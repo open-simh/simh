@@ -1,0 +1,34 @@
+
+# DEC PDP-10
+set(PDP10_DEFINITIONS
+  VM_PDP10
+  USE_INT64
+  )
+set(PDP10_INCLUDES
+  ../PDP10/
+  ../PDP11/
+  )
+set(PDP10_SOURCES
+  pdp10_cpu.c
+  pdp10_fe.c
+  pdp10_ksio.c
+  pdp10_lp20.c
+  pdp10_mdfp.c
+  pdp10_pag.c
+  pdp10_rp.c
+  pdp10_sys.c
+  pdp10_tim.c
+  pdp10_tu.c
+  pdp10_xtnd.c
+  ../PDP11/pdp11_ch.c
+  ../PDP11/pdp11_dz.c
+  ../PDP11/pdp11_pt.c
+  ../PDP11/pdp11_ry.c
+  ../PDP11/pdp11_cr.c
+  ../PDP11/pdp11_dup.c
+  ../PDP11/pdp11_dmc.c
+  ../PDP11/pdp11_kmc.c
+  ../PDP11/pdp11_xu.c
+  )
+add_simulator(pdp10)
+add_simulator_network(pdp10)

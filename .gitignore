@@ -1,4 +1,7 @@
 .git-commit-id
+#ignored CMake files
+CMakeCache.txt
+CMakeFiles
 #ignore thumbnails created by windows
 Thumbs.db
 #ignore Desktop Services Store created by OSX
@@ -45,5 +48,11 @@ Visual Studio Projects/*
 !Visual Studio Projects/*.vcproj
 !Visual Studio Projects/*.sln
 !Visual Studio Projects/0ReadMe_Projects.txt
-
+# CMake output
+CMakeCache.txt
+install_manifest.txt
+bin/
+**/Makefile
+**/CMakeFiles
+**/cmake_install.cmake
 

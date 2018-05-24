@@ -998,9 +998,12 @@ extern int32 cpu_instruction_set;
 #include "vax820_defs.h"
 #elif defined (VAX_860)
 #include "vax860_defs.h"
-#else /* VAX 3900 */
+#elif defined (VAX_650)
 #include "vaxmod_defs.h"
+#else
+#error Unknown model.
 #endif
+
 #ifndef CPU_INSTRUCTION_SET
 #if defined (FULL_VAX)
 #define CPU_INSTRUCTION_SET FULL_INSTRUCTION_SET
