@@ -494,25 +494,27 @@ The SHIFT command will shift the %1 thru %9 arguments to the left one position.
 
 ## Building and running a simulator
 
-### Use Prebuilt Windows Simulators
+<!-- ### Use Prebuilt Windows Simulators
 
 Simulators for the Windows platform are built and made available on a regular basis (at least once a week if substantive changes have been made to the codebase).  
 
 The prebuilt Windows binaries will run on all versions of Microsoft Windows from Windows XP onward.
 
-They can be accessed at https://github.com/simh/Win32-Development-Binaries
+They can be accessed at https://github.com/open-simh/Win32-Development-Binaries
 
-Several relatively recent versions should be available which you can download and use directly.
+<!-- Several relatively recent versions should be available which you can download and use directly. -->
 
 ### Building simulators yourself
 
-First download the latest source code from the github repository's master branch at https://github.com/simh/simh/archive/master.zip
+<!-- First download the latest source code from the github repository's master branch at https://github.com/open-simh/simh/archive/master.zip -->
+
+Obtain the current source code using the "git clone" command to obtain the "master" branch of the open-simh/simh repository.
 
 Depending on your host platform one of the following steps should be followed:
 
 #### Linux/OSX other *nix platforms
 
-If you are interested in using a simulator with Ethernet networking support (i.e. one of the VAX simulators or the PDP11), then you should make sure you have the correct networking components available.  The instructions in https://github.com/simh/simh/blob/master/0readme_ethernet.txt describe the required steps to get ethernet networking components installed and how to configure your environment.
+If you are interested in using a simulator with Ethernet networking support (i.e. one of the VAX simulators or the PDP11), then you should make sure you have the correct networking components available.  The instructions in https://github.com/open-simh/simh/blob/master/0readme_ethernet.txt describe the required steps to get ethernet networking components installed and how to configure your environment.
 
 See the 0readme_ethernet.txt file for details about the required network components for your platform.  Once your operating system build environment has the correct networking components available the following command will build working simulators:
 
@@ -565,19 +567,19 @@ Ubuntu:
 Compiling on windows is supported with recent versions of Microsoft Visual Studio (Standard or Express) and using GCC via the MinGW32 environment.  Things may also work under Cygwin, but that is not the preferred windows environment.  Not all features will be available as well as with either Visual Studio or MinGW32.
 
 ##### Required related files
-The file https://github.com/simh/simh/blob/master/Visual%20Studio%20Projects/0ReadMe_Projects.txt
+The file https://github.com/open-simh/simh/blob/master/Visual%20Studio%20Projects/0ReadMe_Projects.txt
 
 ##### Visual Studio (Standard or Express) 2008, 2010, 2012, 2013 or Visual Studio Community 2015, 2017, 2019
 
-The file https://github.com/simh/simh/blob/master/Visual%20Studio%20Projects/0ReadMe_Projects.txt describes the required steps to use the setup your environment to build using Visual Studio.
+The file https://github.com/open-simh/simh/blob/master/Visual%20Studio%20Projects/0ReadMe_Projects.txt describes the required steps to use the setup your environment to build using Visual Studio.
 
 ##### MinGW32
 
-Building with MinGW32 requires the same directory organization and the dependent package support described for Visual Studio in the file https://github.com/simh/simh/blob/master/Visual%20Studio%20Projects/0ReadMe_Projects.txt.  Building with MinGW64 is not supported.
+Building with MinGW32 requires the same directory organization and the dependent package support described for Visual Studio in the file https://github.com/open-simh/simh/blob/master/Visual%20Studio%20Projects/0ReadMe_Projects.txt.  Building with MinGW64 is not supported.
 
-#### VMS
+<!-- #### VMS
 
-Download the latest source code as a zip file from: https://github.com/simh/simh/archive/master.zip
+Download the latest source code as a zip file from: https://github.com/open-simh/simh/archive/master.zip
 
 Unzip it in the directory that you want SIMH to reside in.  Unpack it and 
 set the file attributes as follows:
@@ -625,11 +627,11 @@ On a Alpha & IA64 hosts use:
 UNZIP can be found on the VMS freeware CDs, or from www.info-zip.org
 MMS (Module Management System) can be licensed from HP/Compaq/Digital as part of the VMS Hobbyist program (it is a component of the DECSET product).
 MMK can be found on the VMS freeware CDs, or from http://www.kednos.com/kednos/Open_Source/MMK
-DEC C can be licensed from HP/Compaq/Digital as part of the VMS Hobbyist program.
+<!-- DEC C can be licensed from HP/Compaq/Digital as part of the VMS Hobbyist program. -->
 
 ## Problem Reports
 
-If you find problems or have suggestions relating to any simulator or the simh package as a whole, please report these using the github "Issue" interface at https://github.com/simh/simh/issues.
+If you find problems or have suggestions relating to any simulator or the simh package as a whole, please report these using the github "Issue" interface at https://github.com/open-simh/simh/issues.
 
 Problem reports should contain;
  - a description of the problem
