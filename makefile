@@ -1587,6 +1587,11 @@ IMLAC = ${IMLACD}/imlac_sys.c ${IMLACD}/imlac_cpu.c \
 IMLAC_OPT = -I ${IMLACD} ${DISPLAY_OPT}
 
 
+STUBD = ${SIMHD}/stub
+STUB = ${STUBD}/stub_sys.c ${STUBD}/stub_cpu.c
+STUB_OPT = -I ${STUBD}
+
+
 TT2500D = ${SIMHD}/tt2500
 TT2500 = ${TT2500D}/tt2500_sys.c ${TT2500D}/tt2500_cpu.c \
 	${TT2500D}/tt2500_dpy.c ${TT2500D}/tt2500_crt.c ${TT2500D}/tt2500_tv.c \
@@ -2247,6 +2252,12 @@ ${BIN}imlac${EXE} : ${IMLAC} ${SIM}
 ifneq (,$(call find_test,${IMLAC},imlac))
 	$@ $(call find_test,${IMLACD},imlac) ${TEST_ARG}
 endif
+
+stub : ${BIN}stub${EXE}
+
+${BIN}stub${EXE} : ${STUB} ${SIM}
+	${MKDIRBIN}
+	${CC} ${STUB} ${SIM} ${STUB_OPT} ${CC_OUTSPEC} ${LDFLAGS}
 
 tt2500 : ${BIN}tt2500${EXE}
 
