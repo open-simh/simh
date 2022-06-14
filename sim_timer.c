@@ -88,6 +88,9 @@
 #include "sim_defs.h"
 #include <ctype.h>
 #include <math.h>
+#ifdef HAVE_WINMM
+#include <windows.h>
+#endif
 
 #define SIM_INTERNAL_CLK (SIM_NTIMERS+(1<<30))
 #define SIM_INTERNAL_UNIT sim_internal_timer_unit
@@ -462,7 +465,7 @@ return 0;
 }
 #endif /* CLOCK_REALTIME */
 
-#elif defined (_WIN32)
+#elif defined (_WIN32)  ||  defined(HAVE_WINMM)
 
 /* Win32 routines */
 
