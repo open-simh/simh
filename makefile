@@ -751,6 +751,11 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
     endif
     ifeq (cygwin,$(OSTYPE))
       LIBEXT = $(LIBEXTSAVE)
+      LIBPATH += /usr/lib/w32api
+      ifneq (,$(call find_lib,winmm))
+        OS_CCDEFS += -DHAVE_WINMM
+        OS_LDFLAGS += -lwinmm
+      endif
     endif
     ifeq (,$(findstring HAVE_LIBSDL,$(VIDEO_CCDEFS)))
       $(info *** Info ***)
