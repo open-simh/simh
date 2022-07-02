@@ -1,4 +1,3 @@
-
 # IBM PC
 set(IBMPC_SOURCES
   ../common/i8088.c
@@ -12,4 +11,5 @@ set(IBMPC_SOURCES
   ibmpc.c
   ibmpc_sys.c
   )
-add_simulator(ibmpc)
+# Doesn't currently build without source code modifications
+#add_simulator(ibmpc)

@@ -1,37 +1,82 @@
-
 set(3B2_DEFINITIONS
   USE_ADDR64
   USE_INT64
-  )
-
+  REV2
+)
 set(3B2_SOURCES
-  3b2_ctc.c
-  3b2_dmac.c
-  3b2_if.c
-  3b2_io.c
+  3b2_cpu.h
+  3b2_cpu.c
+  3b2_sys.h
+  3b2_sys.c
+  3b2_rev2_sys.c
+  3b2_rev2_mmu.h
+  3b2_rev2_mmu.c
+  3b2_rev2_mau.h
+  3b2_rev2_mau.c
+  3b2_rev2_csr.h
+  3b2_rev2_csr.c
+  3b2_rev2_timer.h
+  3b2_rev2_timer.c
+  3b2_stddev.h
+  3b2_stddev.c
+  3b2_mem.h
+  3b2_mem.c
+  3b2_iu.h
   3b2_iu.c
-  3b2_ni.c
-  3b2_ports.c
-  )
-
-set(3B2R2_DEFINITIONS ${3B2_DEFINITIONS})
-set(3B2R2_SOURCES
-  ${3B2_SOURCES}
-  )
-
-add_simulator(3b2r2)
-if(SIMULATOR_3B2R2_ENABLE)
-  target_compile_definitions(3b2r2 PUBLIC -DREV2)
-endif()
-
-set(3B2R3_DEFINITIONS ${3B2_DEFINITIONS})
-set(3B2R3_SOURCES
-  ${3B2_SOURCES}
+  3b2_if.h
+  3b2_if.c
+  3b2_id.h
   3b2_id.c
-  )
+  3b2_dmac.h
+  3b2_dmac.c
+  3b2_io.h
+  3b2_io.c
+  3b2_ports.h
+  3b2_ports.c
+  3b2_ctc.h
+  3b2_ctc.c
+  3b2_ni.h
+  3b2_ni.c
+)
+add_simulator(3b2)
 
-add_simulator(3b2r3)
-if(SIMULATOR_3B2R3_ENABLE)
-  target_compile_definitions(3b2r3 PUBLIC -DREV3)
-endif()
-
+set(3B2_600_DEFINITIONS
+  USE_ADDR64
+  USE_INT64
+  REV3
+)
+set(3B2_600_SOURCES
+  3b2_cpu.h
+  3b2_cpu.c
+  3b2_sys.h
+  3b2_sys.c
+  3b2_rev3_sys.c
+  3b2_rev3_mmu.h
+  3b2_rev3_mmu.c
+  3b2_rev2_mau.h
+  3b2_rev2_mau.c
+  3b2_rev3_csr.h
+  3b2_rev3_csr.c
+  3b2_rev3_timer.h
+  3b2_rev3_timer.c
+  3b2_stddev.h
+  3b2_stddev.c
+  3b2_mem.h
+  3b2_mem.c
+  3b2_iu.h
+  3b2_iu.c
+  3b2_if.h
+  3b2_if.c
+  3b2_dmac.h
+  3b2_dmac.c
+  3b2_io.h
+  3b2_io.c
+  3b2_ports.h
+  3b2_ports.c
+  3b2_scsi.h
+  3b2_scsi.c
+  3b2_ni.h
+  3b2_ni.c
+)
+add_simulator(3b2_600)
+target_link_libraries(3b2_600 PUBLIC sim_scsi)

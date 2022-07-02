@@ -1,0 +1,26 @@
+set(INTELMDS_SOURCES
+	../common/i3214.c
+	../common/i8251.c
+	../common/i8253.c
+	../common/i8255.c
+	../common/i8259.c
+	../common/ieprom.c
+	../common/ioc-cont.c
+	../common/ipc-cont.c
+	../common/iram8.c
+	../common/isbc064.c
+	../common/isbc202.c
+	../common/isbc201.c
+	../common/isbc206.c
+	../common/isbc464.c
+	../common/isbc208.c
+	../common/port.c
+	../common/irq.c
+	../common/multibus.c
+	../common/mem.c
+	../common/sys.c
+	../common/zx200a.c 
+    ../common/i8080.c
+    imds_sys.c
+)
+add_simulator(intelmds)

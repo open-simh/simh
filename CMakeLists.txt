@@ -16,9 +16,15 @@ set(ENABLE_NETWORK ON CACHE BOOL "Initial default: enable network support")
 set(EXECUTABLE_PREFIX "simx-" CACHE STRING "Prefix for simulator executables")
 
 # Find system libraries
-find_library(LIBM_LIBRARIES m)
-find_library(LIBDL_LIBRARIES dl)
-find_library(LIBRT_LIBRARIES rt)
+if(UNIX)
+  find_library(LIBM_LIBRARIES m)
+  find_library(LIBDL_LIBRARIES dl)
+  find_library(LIBRT_LIBRARIES rt)
+else()
+  set(LIBM_LIBRARIES "")
+  set(LIBDL_LIBRARIES "")
+  set(LIBRT_LIBRARIES "")
+endif()
 # Find curses
 find_package(Curses)
 # Find threads
@@ -34,6 +40,9 @@ if(ENABLE_GRAPHICS)
 endif()
 if(ENABLE_NETWORK)
   pkg_check_modules(VDEPLUG vdeplug)
+endif()
+if(WIN32)
+  find_package(pthread REQUIRED)
 endif()
 
 # GNU toolchain
@@ -90,63 +99,96 @@ if(COMPILER_IS_GNU_LIKE)
 endif()
 
 # Definitions common to all simulators
-set(SIM_DEFINITIONS
+add_library(sim
+  scp_help.h
+  sim_console.h
+  sim_console.c
+  sim_defs.h
+  sim_disk.h
+  sim_disk.c
+  sim_ether.h
+  sim_ether.c
+  sim_fio.h
+  sim_fio.c
+  sim_frontpanel.h
+  sim_frontpanel.c
+  sim_imd.h
+  sim_imd.c
+  sim_rev.h
+  sim_serial.h
+  sim_serial.c
+  sim_sock.h
+  sim_sock.c
+  sim_tape.h
+  sim_tape.c
+  sim_timer.h
+  sim_timer.c
+  sim_tmxr.h
+  sim_tmxr.c
+  sim_video.h
+  sim_video.c
+)
+target_compile_definitions(sim PUBLIC
   _GNU_SOURCE
   HAVE_GLOB
-  )
-set(SIM_LIBRARIES
+)
+target_link_libraries(sim PUBLIC
   ${LIBM_LIBRARIES}
   ${THREAD_LIBRARIES}
+)
+target_include_directories(sim PUBLIC .)
+if(WIN32)
+  target_compile_definitions(sim PUBLIC
+    _CRT_NONSTDC_NO_WARNINGS            # Don't warn about POSIX functions being deprecated.
+    _CRT_SECURE_NO_WARNINGS             # Don't warn about unsafe C functions.
   )
+  target_link_libraries(sim PUBLIC PThreads4W::PThreads4W Winmm.lib)
+endif()
+# These sources need to be built with each simulator as they have features
+# enabled by conditional compilation.
 set(SIM_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/scp.h
   ${CMAKE_CURRENT_SOURCE_DIR}/scp.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/sim_card.h
   ${CMAKE_CURRENT_SOURCE_DIR}/sim_card.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_console.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_disk.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_ether.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_fio.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_frontpanel.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_imd.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_serial.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_sock.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_tape.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_timer.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_tmxr.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim_video.c
-  )
+)
+
+# simulator SCSI support
+add_library(sim_scsi sim_scsi.h sim_scsi.c)
+target_link_libraries(sim_scsi PUBLIC sim)
 
 # Asynchronous I/O
 if(ENABLE_ASYNC)
-  set(SIM_DEFINITIONS ${SIM_DEFINITIONS} SIM_ASYNCH_IO)
+  target_compile_definitions(sim PUBLIC SIM_ASYNCH_IO)
 endif()
 
 # Dynamic linker
 if(LIBDL_LIBRARIES)
   string(SUBSTRING ${CMAKE_SHARED_LIBRARY_SUFFIX} 1 -1 LIBDL_SUFFIX)
-  set(SIM_DEFINITIONS ${SIM_DEFINITIONS} HAVE_DLOPEN=${LIBDL_SUFFIX})
-  set(SIM_LIBRARIES ${SIM_LIBRARIES} ${LIBDL_LIBRARIES})
+  target_compile_definitions(sim PUBLIC HAVE_DLOPEN=${LIBDL_SUFFIX})
+  target_link_libraries(sim PUBLIC ${LIBDL_LIBRARIES})
 endif()
 
 # Shared memory support
 if(LIBRT_LIBRARIES)
-  set(SIM_DEFINITIONS ${SIM_DEFINITIONS} HAVE_SHM_OPEN)
-  set(SIM_LIBRARIES ${SIM_LIBRARIES} ${LIBRT_LIBRARIES})
+  target_compile_definitions(sim PUBLIC HAVE_SHM_OPEN)
+  target_link_libraries(sim PUBLIC ${LIBRT_LIBRARIES})
 endif()
 
 # Regular expression support
 if(PCRE_FOUND AND PCREPOSIX_FOUND)
-  set(SIM_DEFINITIONS ${SIM_DEFINITIONS} HAVE_PCRE_H HAVE_PCREPOSIX_H)
-  set(SIM_INCLUDES ${SIM_INCLUDES} ${PCRE_INCLUDE_DIRS} ${PCREPOSIX_INCLUDE_DIRS})
-  set(SIM_LIBRARIES ${SIM_LIBRARIES} ${PCRE_LIBRARIES} ${PCREPOSIX_LIBRARIES})
+  target_compile_definitions(sim PUBLIC HAVE_PCRE_H HAVE_PCREPOSIX_H)
+  target_include_directories(sim PUBLIC ${PCRE_INCLUDE_DIRS} ${PCREPOSIX_INCLUDE_DIRS})
+  target_link_libraries(sim PUBLIC ${PCRE_LIBRARIES} ${PCREPOSIX_LIBRARIES})
 else()
-  set(SIM_DEFINITIONS ${SIM_DEFINITIONS} HAVE_REGEX_H)
+  target_compile_definitions(sim PUBLIC HAVE_REGEX_H)
 endif()
 
 # Curses support
 if(CURSES_FOUND)
-  set(SIM_DEFINITIONS ${SIM_DEFINITIONS} HAVE_NCURSES)
-  set(SIM_INCLUDES ${SIM_INCLUDES} ${CURSES_INCLUDE_DIRS})
-  set(SIM_LIBRARIES ${SIM_LIBRARIES} ${CURSES_LIBRARIES})
+  target_compile_definitions(sim PUBLIC HAVE_NCURSES)
+  target_include_directories(sim PUBLIC ${CURSES_INCLUDE_DIRS})
+  target_link_libraries(sim PUBLIC ${CURSES_LIBRARIES})
 endif()
 
 # Graphics support
@@ -181,6 +223,19 @@ if(ENABLE_NETWORK)
 	set(NETWORK_INCLUDES ${NETWORK_INCLUDES} ${VDEPLUG_INCLUDE_DIRS})
 	set(NETWORK_LIBRARIES ${NETWORK_LIBRARIES} ${VDEPLUG_LIBRARIES})
   endif()
+  target_compile_definitions(sim PUBLIC ${NETWORK_DEFINITIONS})
+  if(WIN32)
+    # Don't warn about WinSock deprecated functions.
+    target_compile_definitions(sim PUBLIC _WINSOCK_DEPRECATED_NO_WARNINGS)
+    target_link_libraries(sim PUBLIC ws2_32.lib)
+  endif()
+endif()
+
+# Utility to generate headers for inclusion of binary ROMs in simulators.
+add_executable(BuildROMs sim_BuildROMs.c)
+if(WIN32)
+  # Suppress warnings about unsafe standard library functions.
+  target_compile_definitions(BuildROMs PUBLIC _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Convenience function for defining simulators
@@ -188,16 +243,14 @@ function(add_simulator NAME)
   string(TOUPPER ${NAME} NAMEU)
   set(SIMULATOR_${NAMEU}_ENABLE ${BUILD_ALL} CACHE BOOL "Build the ${NAME} simulator")
   if(BUILD_ALL OR SIMULATOR_${NAMEU}_ENABLE)
-	add_executable(${NAME} ${SIM_SOURCES} ${${NAMEU}_SOURCES})
+	add_executable(${NAME} ${${NAMEU}_SOURCES} ${SIM_SOURCES})
 	target_link_libraries(${NAME} PUBLIC
-	  ${SIM_LIBRARIES}
+	  sim
 	  ${${NAMEU}_LIBRARIES})
 	target_compile_definitions(${NAME} PUBLIC
-	  ${SIM_DEFINITIONS}
 	  ${${NAMEU}_DEFINITIONS}
 	  )
 	target_include_directories(${NAME} PUBLIC
-	  ${SIM_INCLUDES}
 	  ${${NAMEU}_INCLUDES}
 	  ${CMAKE_SOURCE_DIR}
 	  ${CMAKE_CURRENT_SOURCE_DIR}
@@ -258,7 +311,7 @@ endfunction()
 # Advanced Computer Design
 add_subdirectory(PDQ-3)
 # AT&T
-#add_subdirectory(3B2)
+add_subdirectory(3B2)
 # Burroughs Corporation
 add_subdirectory(B5500)
 # Control Data Corporation (CDC)
@@ -281,7 +334,7 @@ add_subdirectory(HP3000)
 # Honeywell
 add_subdirectory(H316)
 # Intel-based computers
-#add_subdirectory(Intel-Systems)
+add_subdirectory(Intel-Systems)
 # Interdata / Perkin-Elmer
 add_subdirectory(Interdata)
 # International Business Machines (IBM)

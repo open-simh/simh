@@ -1,10 +1,11 @@
-
-# XXX
 set(ALPHA_DEFINITIONS
   USE_INT64
   USE_ADDR64
   )
 set(ALPHA_SOURCES
+  alpha_defs.h
+  alpha_ev5_defs.h
+  alpha_sys_defs.h
   alpha_500au_syslist.c
   alpha_cpu.c
   alpha_ev5_cons.c

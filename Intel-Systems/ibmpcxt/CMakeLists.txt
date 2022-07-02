@@ -12,4 +12,5 @@ set(IBMPCXT_SOURCES
   ibmpcxt.c
   ibmpcxt_sys.c
   )
-add_simulator(ibmpcxt)
+# Doesn't currently build without source modifications
+#add_simulator(ibmpcxt)

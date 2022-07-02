@@ -27,6 +27,7 @@ function(add_vax_simulator NAME)
   if(BUILD_ALL OR SIMULATOR_${NAMEU}_ENABLE)
     target_compile_definitions(${NAME} PUBLIC ${VAX_DEFINITIONS})
     target_include_directories(${NAME} PUBLIC ${VAX_INCLUDES})
+    target_link_libraries(${NAME} PUBLIC sim_scsi)
   endif()
 endfunction()
 
@@ -65,7 +66,6 @@ set(VAX_UNIBUS_SOURCES
 
 # Common definitions for VAX4XX variants
 set(VAX4XX_SOURCES
-  ../sim_scsi.c
   ${VAX_SOURCES}
   vax_lk.c
   vax_nar.c
@@ -215,7 +215,6 @@ set(IS1000_DEFINITIONS
   IS_1000
   )
 set(IS1000_SOURCES
-  ../sim_scsi.c
   ${VAX_SOURCES}
   vax_nar.c
   vax_xs.c
