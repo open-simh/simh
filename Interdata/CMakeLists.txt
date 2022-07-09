@@ -1,6 +1,6 @@
-
 # Interdata common bits
-set(INTERDATA_SOURCES
+add_library(interdata_common STATIC
+  id_defs.h
   id_dp.c
   id_fd.c
   id_fp.c
@@ -14,21 +14,23 @@ set(INTERDATA_SOURCES
   id_ttp.c
   id_uvc.c
 )
+set_property(TARGET interdata_common PROPERTY FOLDER "Simulators/Libraries")
+target_include_directories(interdata_common PUBLIC . ${SIMH_DIR})
 
 # Interdata 16-bit
-set(ID16_SOURCES
-  ${INTERDATA_SOURCES}
-  id16_cpu.c
-  id16_dboot.c
-  id16_sys.c
-  )
-add_simulator(id16)
+add_simulator2(NAME id16
+  SOURCES
+    id16_cpu.c
+    id16_dboot.c
+    id16_sys.c
+  LIBRARIES interdata_common
+)
 
 # Interdata 32-bit
-set(ID32_SOURCES
-  ${INTERDATA_SOURCES}
-  id32_cpu.c
-  id32_dboot.c
-  id32_sys.c
-  )
-add_simulator(id32)
+add_simulator2(NAME id32
+  SOURCES
+    id32_cpu.c
+    id32_dboot.c
+    id32_sys.c
+  LIBRARIES interdata_common
+)

@@ -1,4 +1,5 @@
-set(INTELMDS_SOURCES
+add_simulator2(NAME intel-mds
+  SOURCES
 	../common/i3214.c
 	../common/i8251.c
 	../common/i8253.c
@@ -23,4 +24,3 @@ set(INTELMDS_SOURCES
     ../common/i8080.c
     imds_sys.c
 )
-add_simulator(intelmds)
