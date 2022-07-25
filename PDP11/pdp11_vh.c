@@ -26,6 +26,17 @@
 
    vh           DHQ11 asynch multiplexor for SIMH
 
+   23-Jul-22    JAD     Correct RBUF_GETLINE & RBUF_PUTLINE: these are both
+                        sensitive to modeling DHU vs. DHV; the correct bit
+                        mask was not generated for DHU.
+                        Make certain the device presents 16 lines when
+                        modeling a DHU.
+                        In vh_reset(), make certain the number of lines
+                        makes sense in the context of the current bus
+                        and adjust if not appropriate; mark each unit
+                        correctly for DHU vs. DHV; mark each unit
+                        enabled or disabled as appropriate; reset
+                        the vector length; reset the number of units.
    02-Jun-11    MP      Added debugging support to trace register, interrupt 
                         and data traffic (SET VH DEBUG[=REG;INT;XMT;RCV])
                         Added SET LOG and SET NOLOG support for logging mux
@@ -157,8 +168,8 @@ BITFIELD vh_csr_bits[] = {
 #define RBUF_FRAME_ERR      (1 << 13)
 #define RBUF_OVERRUN_ERR    (1 << 14)
 #define RBUF_DATA_VALID     (1 << 15)
-#define RBUF_GETLINE(x)     (((x) >> RBUF_V_RX_LINE) & RBUF_M_RX_LINE)
-#define RBUF_PUTLINE(x)     ((x) << RBUF_V_RX_LINE)
+#define RBUF_GETLINE(u,x)   (((x) >> RBUF_V_RX_LINE) & ((vh_unit[(u)].flags & UNIT_MODEDHU) ? 017 : 07))
+#define RBUF_PUTLINE(u,x)   (((x) & ((vh_unit[(u)].flags & UNIT_MODEDHU) ? 017 : 07)) << RBUF_V_RX_LINE)
 #define RBUF_DIAG       \
     (RBUF_PARITY_ERR|RBUF_FRAME_ERR|RBUF_OVERRUN_ERR)
 #define XON         (021)
@@ -736,7 +747,7 @@ override:
         vh_rbuf[vh][rbuf_idx[vh]] = data;
         rbuf_idx[vh] += 1;
     } else {
-        vh_ovrrun[vh] |= (1 << RBUF_GETLINE (data));
+        vh_ovrrun[vh] |= (1 << RBUF_GETLINE (vh, data));
         status = -1;
     }
     if (vh_csr[vh] & CSR_RXIE) {
@@ -767,7 +778,7 @@ override:
     if (lp != NULL) {
         if ((lp->lnctrl & LNCTRL_FORCE_XOFF) || 
               ((vh_crit & (1 << vh)) && (lp->lnctrl & LNCTRL_IAUTO))) {
-            int32   chan = RBUF_GETLINE(data);
+            int32   chan = RBUF_GETLINE(vh, data);
             vh_stall[vh] ^= (1 << chan);
             /* send XOFF every other character received */
             if (vh_stall[vh] & (1 << chan))
@@ -796,7 +807,7 @@ static int32 fifo_get ( int32   vh  )
         for (i = 0; i < VH_LINES; i++) {
             if (vh_ovrrun[vh] & (1 << i)) {
                 fifo_put (vh, NULL, RBUF_OVERRUN_ERR |
-                      RBUF_PUTLINE (i));
+                      RBUF_PUTLINE (vh, i));
                 vh_ovrrun[vh] &= ~(1 << i);
                 break;
             }
@@ -928,10 +939,10 @@ static t_stat vh_putc ( int32   vh,
     case 2:     /* local loopback */
         if (lp->lnctrl & LNCTRL_BREAK)
             val = fifo_put (vh, lp,
-                RBUF_FRAME_ERR | RBUF_PUTLINE (chan));
+                RBUF_FRAME_ERR | RBUF_PUTLINE (vh, chan));
         else
             val = fifo_put (vh, lp,
-                RBUF_PUTLINE (chan) | data);
+                RBUF_PUTLINE (vh, chan) | data);
         status = (val < 0) ? SCPE_TTMO : SCPE_OK;
         break;
     default:    /* remote loopback */
@@ -956,11 +967,11 @@ static void vh_getc (   int32   vh  )
         while ((c = tmxr_getc_ln (lp->tmln)) != 0) {
             if (c & SCPE_BREAK) {
                 fifo_put (vh, lp,
-                    RBUF_FRAME_ERR | RBUF_PUTLINE (i));
+                    RBUF_FRAME_ERR | RBUF_PUTLINE (vh, i));
             } else {
                 c &= bitmask[(lp->lpr >> LPR_V_CHAR_LGTH) &
                     LPR_M_CHAR_LGTH];
-                fifo_put (vh, lp, RBUF_PUTLINE (i) | c);
+                fifo_put (vh, lp, RBUF_PUTLINE (vh, i) | c);
             }
         }
         tmxr_set_get_modem_bits (lp->tmln, 0, 0, &modem_incoming_bits);
@@ -972,7 +983,7 @@ static void vh_getc (   int32   vh  )
         if (new_lstat != lp->lstat) {
             lp->lstat = new_lstat;
             if (lp->lnctrl & LNCTRL_LINK_TYPE)
-                fifo_put (vh, lp, RBUF_DIAG | RBUF_PUTLINE (i) | ((lp->lstat >> 8) & 0376));
+                fifo_put (vh, lp, RBUF_DIAG | RBUF_PUTLINE (vh, i) | ((lp->lstat >> 8) & 0376));
         }
     }
 }
@@ -1199,7 +1210,7 @@ static t_stat vh_wr (   int32   ldata,
         if (((lp->lpr >> LPR_V_DIAG) & LPR_M_DIAG) == 1) {
             fifo_put (vh, lp,
                 RBUF_DIAG |
-                RBUF_PUTLINE (CSR_GETCHAN (vh_csr[vh])) |
+                RBUF_PUTLINE (vh, CSR_GETCHAN (vh_csr[vh])) |
                 BMP_OK);
             /* BUG: check for overflow above */
             lp->lpr &= ~(LPR_M_DIAG << LPR_V_DIAG);
@@ -1478,7 +1489,7 @@ static t_stat vh_svc (  UNIT    *uptr   )
         lp->lstat &= ~STAT_RI;
         if (lp->lnctrl & LNCTRL_LINK_TYPE)
             fifo_put (vh, lp, RBUF_DIAG |
-                      RBUF_PUTLINE (line) |
+                      RBUF_PUTLINE (vh, line) |
                       ((lp->lstat >> 8) & 0376));
             /* BUG: should check for overflow above */
     }
@@ -1494,7 +1505,7 @@ static t_stat vh_svc (  UNIT    *uptr   )
                 if (lp->tmln->modembits & TMXR_MDM_RNG) {
                     lp->lstat |= STAT_DSR | STAT_RI;
                     fifo_put (vh, lp, RBUF_DIAG |
-                              RBUF_PUTLINE (line) |
+                              RBUF_PUTLINE (vh, line) |
                               ((lp->lstat >> 8) & 0376));
                 }
             }
@@ -1620,25 +1631,25 @@ static t_stat vh_clear (    int32   vh,
     rbuf_idx[vh] = 0;
     /* put 8 diag bytes in FIFO: 6 SELF_x, 2 circuit revision codes */
     if (vh_csr[vh] & CSR_SKIP) {
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(0) | SELF_SKIP);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(1) | SELF_SKIP);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(2) | SELF_SKIP);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(3) | SELF_SKIP);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(4) | SELF_SKIP);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(5) | SELF_SKIP);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(6) | 0107);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(7) | 0105);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 0) | SELF_SKIP);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 1) | SELF_SKIP);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 2) | SELF_SKIP);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 3) | SELF_SKIP);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 4) | SELF_SKIP);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 5) | SELF_SKIP);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 6) | 0107);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 7) | 0105);
     } else {
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(0) | SELF_NULL);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(1) | SELF_NULL);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(2) | SELF_NULL);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(3) | SELF_NULL);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(4) | SELF_NULL);
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(5) | SELF_NULL);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 0) | SELF_NULL);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 1) | SELF_NULL);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 2) | SELF_NULL);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 3) | SELF_NULL);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 4) | SELF_NULL);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 5) | SELF_NULL);
         /* PROC2 ver. 1 */
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(6) | 0107);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 6) | 0107);
         /* PROC1 ver. 1 */
-        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(7) | 0105);
+        fifo_put (vh, NULL, RBUF_DIAG | RBUF_PUTLINE(vh, 7) | 0105);
     }
     vh_csr[vh] &= ~(CSR_TX_ACTION|CSR_DIAG_FAIL|CSR_MASTER_RESET);
     if (flag)
@@ -1661,12 +1672,22 @@ static t_stat vh_clear (    int32   vh,
 
 static t_stat vh_reset (    DEVICE  *dptr   )
 {
-    int32   i;
+    int32   i, lines, maxlines;
 
     tmxr_set_port_speed_control (&vh_desc);
     tmxr_set_modem_control_passthru (&vh_desc);
-    if (vh_desc.lines > VH_MUXES*VH_LINES)
-        vh_desc.lines = VH_MUXES*VH_LINES;
+    /* re-establish lines per unit and lower bounds */
+    lines = VH_LINES;
+    /* enforce multiples; find next if necessary */
+    while ((vh_desc.lines % lines) != 0)
+        vh_desc.lines++;
+    /* establish upper bounds */
+    maxlines = lines * VH_MUXES;
+    /* enforce bounds */
+    if (vh_desc.lines > maxlines)
+        vh_desc.lines = maxlines;
+    if (vh_desc.lines < lines)
+        vh_desc.lines = lines;
     vh_dev.numunits = (vh_desc.lines / VH_LINES) + 3;
     if (vh_poll_unit)
         sim_cancel (vh_poll_unit);
@@ -1697,6 +1718,8 @@ static t_stat vh_reset (    DEVICE  *dptr   )
             /* if Unibus, force DHU mode */
             if (UNIBUS)
                 vh_unit[i].flags |= UNIT_MODEDHU;
+            else
+                vh_unit[i].flags &= ~UNIT_MODEDHU;
             vh_unit[i].flags &= ~UNIT_DIS;
             vh_clear (i, TRUE);
         } else {
@@ -1885,7 +1908,7 @@ return SCPE_OK;
 
 static t_stat vh_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 {
-const char *devtype = (UNIBUS) ? "DH11" : "DHQ11";
+const char *devtype = (UNIBUS) ? "DHU11" : "DHQ11";
 
 fprintf (st, "%s Terminal Multiplexer (%s)\n\n", devtype, dptr->name);
 fprintf (st, "The %s is an %d-line terminal multiplexer for %s systems.  Up to %d %s's\n", devtype, VH_LINES, (UNIBUS) ? "Unibus" : "Qbus", VH_MUXES, devtype);
@@ -1940,7 +1963,7 @@ return SCPE_OK;
 
 static t_stat vh_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 {
-const char *devtype = (UNIBUS) ? "DH11" : "DHQ11";
+const char *devtype = (UNIBUS) ? "DHU11" : "DHQ11";
 
 fprintf (st, "%s %s Terminal Multiplexer Attach Help\n\n", devtype, dptr->name);
 return tmxr_attach_help (st, dptr, uptr, 1, cptr);
@@ -1948,5 +1971,5 @@ return tmxr_attach_help (st, dptr, uptr, 1, cptr);
 
 static const char *vh_description (DEVICE *dptr)
 {
-return (UNIBUS) ? "DH11 16-line Terminal Multiplexer" : "DHQ11 8-line Terminal Multiplexer";
+return (UNIBUS) ? "DHU11 16-line Terminal Multiplexer" : "DHQ11 8-line Terminal Multiplexer";
 }
