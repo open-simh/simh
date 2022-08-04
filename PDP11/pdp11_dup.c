@@ -1295,7 +1295,7 @@ return SCPE_OK;
 
 static t_stat dup_rcv_byte (int32 dup)
 {
-    int32 crcoffset, bytemodeeom, charmode;
+int32 crcoffset, charmode;
 
 sim_debug (DBG_TRC, DUPDPTR, "dup_rcv_byte(dup=%d) - %s, byte %d of %d\n", dup, 
            (dup_rxcsr[dup] & RXCSR_M_RCVEN) ? "enabled" : "disabled",
@@ -1330,8 +1330,7 @@ if (UNIBUS) { /* DUP */
         if (dup_rcvpkinoff[dup] >= dup_rcvpkbytes[dup])
             dup_rcvpkinoff[dup] = dup_rcvpkbytes[dup] = 0;
     }
-    else
-    { /* HDLC */
+    else { /* HDLC */
         /* set End Of Message on fake Flag that was added earlier */
         if (dup_rcvpkinoff[dup] == dup_rcvpkbytes[dup]) {
             dup_rxdbuf[dup] |= RXDBUF_M_RENDMSG;
