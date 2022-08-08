@@ -7,7 +7,7 @@ add_library(simh_network INTERFACE)
 
 # Source URLs (to make it easy to update versions):
 set(ZLIB_SOURCE_URL     "https://github.com/madler/zlib/archive/v1.2.11.zip")
-set(PCRE2_SOURCE_URL    "https://github.com/PhilipHazel/pcre2/releases/download/pcre2-10.39/pcre2-10.39.tar.bz2")
+set(PCRE2_SOURCE_URL    "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.40/pcre2-10.40.tar.bz2")
 set(PCRE_SOURCE_URL     "https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.tar.bz2/download")
 set(PNG_SOURCE_URL      "https://sourceforge.net/projects/libpng/files/libpng16/1.6.37/libpng-1.6.37.tar.xz/download")
 set(FREETYPE_SOURCE_URL "https://download.savannah.nongnu.org/releases/freetype/freetype-2.11.1.tar.xz")
@@ -102,7 +102,7 @@ IF (WITH_REGEX)
           CONFIGURE_COMMAND ""
           BUILD_COMMAND ""
           INSTALL_COMMAND ""
-        )
+          )
 
         BuildDepMatrix(pcre-ext pcre CMAKE_ARGS ${PCRE_CMAKE_ARGS})
 
@@ -128,7 +128,7 @@ IF (WITH_VIDEO)
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
             INSTALL_COMMAND ""
-        )
+            )
 
         ## Work around the GCC 8.1.0 SEH index regression.
         set(PNG_CMAKE_BUILD_TYPE_RELEASE "Release")
@@ -160,7 +160,7 @@ IF (WITH_VIDEO)
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
             INSTALL_COMMAND ""
-        )
+            )
 
         BuildDepMatrix(freetype-dep FreeType)
 
@@ -176,7 +176,7 @@ IF (WITH_VIDEO)
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
             INSTALL_COMMAND ""
-        )
+            )
 
         BuildDepMatrix(sdl2-dep SDL2)
 

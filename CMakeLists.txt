@@ -214,6 +214,13 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     endforeach ()
 endif (MSVC)
 
+## CMake policy tweaks
+if (POLICY CMP0135)
+    ## Until I figure out a way to add DOWNLOAD_EXTRACT_TIMESTAMP to the call to
+    ## ExternalProject_Add cleanly..
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Find packages, arrange for dependency download/compile/install:
 #
 # SIMH_BUILD_DEPS is the list of the dependecies' names, for pretty-printing.
@@ -405,6 +412,7 @@ else (NOT DO_DEPENDENCY_BUILD)
             ${CMAKE_CURRENT_BINARY_DIR}
         USES_TERMINAL_CONFIGURE TRUE
         USES_TERMINAL_BUILD     TRUE
+        ${USE_DOWNLOAD_EXTRACT_TIMESTAMP}
     )
 
     ## Ensure that the next build rechecks the dependency
