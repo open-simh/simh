@@ -117,8 +117,8 @@ if __name__ == '__main__':
     args = argparse.ArgumentParser(description="SIMH simulator CMakeLists.txt generator.")
     args.add_argument('-d', '--debug', nargs='?', const=1, default=0, type=int,
                        help='Debug level (0-3, 0 == off)')
-    args.add_argument('--file', '-f', default=os.path.join(GEN_SCRIPT_DIR, 'simh_makefile.cmake'),
-                      help='Output file for "all-in-one" CMakeLists.txt, default is simh_makefile.cmake')
+    ## args.add_argument('--file', '-f', default=os.path.join(GEN_SCRIPT_DIR, 'simh_makefile.cmake'),
+    ##                  help='Output file for "all-in-one" CMakeLists.txt, default is simh_makefile.cmake')
     flags = vars(args.parse_args())
 
     debug_level = flags.get('debug')

@@ -343,17 +343,18 @@ if (NOT DO_DEPENDENCY_BUILD)
     include(FindPythonInterp)
     if (PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR GREATER_EQUAL 3)
         add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake
-                                  ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake
+                                  ## ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake
             COMMAND ${PYTHON_EXECUTABLE} "-m" generate
             MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/makefile
-            COMMENT "Updating cmake/simh-simulators.cmake and cmake/simh_makefile.cmake"
+            ## COMMENT "Updating cmake/simh-simulators.cmake and cmake/simh_makefile.cmake"
+            COMMENT "Updating cmake/simh-simulators.cmake"
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
             COMMAND_EXPAND_LISTS)
         message(STATUS "Added makefile update rule.")
     endif (PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR GREATER_EQUAL 3)
 
-    if (${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake OR
-        ${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake)
+    if (${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake)    ## OR
+        ## ${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake)
         if (NOT PYTHONINTERP_FOUND OR PYTHON_VERSION_MAJOR LESS 3)
             if (NOT PYTHONINTERP_FOUND)
                 message("!! Python not found")
@@ -365,14 +366,14 @@ if (NOT DO_DEPENDENCY_BUILD)
             message("!! Cannot update cmake/simh-simulators.cmake, using older version.")
             message("!! Proceed with caution: This build might not succeed.")
             message("!!")
-            message(STATUS "Updating cmake/simh-simulators.cmake and cmake/simh_makefile.cmake")
+            message(STATUS "Keeping existing cmake/simh-simulators.cmake")
         else (NOT PYTHONINTERP_FOUND OR PYTHON_VERSION_MAJOR LESS 3)
-            message(STATUS "Updating cmake/simh-simulators.cmake and cmake/simh_makefile.cmake")
+            message(STATUS "Updating cmake/simh-simulators.cmake")
             execute_process(COMMAND ${PYTHON_EXECUTABLE} "-m" generate
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake)
         endif (NOT PYTHONINTERP_FOUND OR PYTHON_VERSION_MAJOR LESS 3)
-    endif (${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake OR
-           ${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake)
+    endif (${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake)     ## OR
+           ## ${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake)
 
     message(STATUS "Adding simulators")
 

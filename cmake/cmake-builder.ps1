@@ -30,8 +30,8 @@ param (
     [switch] $generate    = $false,
     [switch] $regenerate  = $false,
     [switch] $testonly    = $false,
-    [switch] $installOnly = $false,
-    [switch] $allInOne    = $false
+    [switch] $installOnly = $false
+    ## [switch] $allInOne    = $false
 )
 
 $scriptName = $(Split-Path -Leaf $PSCommandPath)
@@ -58,9 +58,6 @@ Arguments:
 -noinstall             Do not install simulator executables
 -installOnly           Only execute the simulator executable installation
                        phase.
--allInOne              Use the simh_makefile.cmake "all-in-one" project
-                       configuration vs. individual CMakeList.txt projects.
-                       (default: off)
 
 -flavor (2022|vs2022)  Generate build environment for Visual Studio 2022 (default)
 -flavor (2019|vs2019)  Generate build environment for Visual Studio 2019
@@ -390,10 +387,10 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
     {
         $generateArgs += @("-DWITH_NETWORK:Bool=Off")
     }
-    if ($allInOne)
-    {
-        $generateArgs += @("-DALL_IN_ONE:Bool=TRUE")
-    }
+    ## if ($allInOne)
+    ## {
+    ##     $generateArgs += @("-DALL_IN_ONE:Bool=TRUE")
+    ## }
     $generateArgs += ${simhTopDir}
 
     $buildArgs     =  @("--build", ".", "--config", "${config}")

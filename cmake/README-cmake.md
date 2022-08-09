@@ -3,21 +3,27 @@
 <!-- TOC -->
 
 - [Build `simh` using CMake](#build-simh-using-cmake)
-    - [Why CMake?](#why-cmake)
-    - [Quickstart For The Impatient](#quickstart-for-the-impatient)
-        - [Linux/WSL](#linuxwsl)
-        - [Windows](#windows)
-        - [Running Simulators](#running-simulators)
-    - [Details](#details)
-        - [Tools and Runtime Library Dependencies](#tools-and-runtime-library-dependencies)
-        - [CMake Configuration Options](#cmake-configuration-options)
-        - [Directory Structure/Layout](#directory-structurelayout)
-        - [Regenerating the simulator `CMakeLists.txt` Files](#regenerating-the-simulator-cmakeliststxt-files)
-        - [Step-by-Step](#step-by-step)
-            - [Linux/WSL/Ubuntu Step-by-Step](#linuxwslubuntu-step-by-step)
-            - [Visual Studio Step-by-Step](#visual-studio-step-by-step)
-            - [MinGW/GCC Step-by-Step](#mingwgcc-step-by-step)
-    - [Motivation](#motivation)
+  - [Why CMake?](#why-cmake)
+  - [Quickstart For The Impatient](#quickstart-for-the-impatient)
+    - [Linux/WSL](#linuxwsl)
+    - [Windows](#windows)
+    - [Running Simulators](#running-simulators)
+  - [Details](#details)
+    - [Tools and Runtime Library Dependencies](#tools-and-runtime-library-dependencies)
+    - [CMake Configuration Options](#cmake-configuration-options)
+- [Do configuration/generation in the cmake/build-ninja subdirectory](#do-configurationgeneration-in-the-cmakebuild-ninja-subdirectory)
+- [Clean out prior CMake configuration](#clean-out-prior-cmake-configuration)
+- [Don't want networking enabled:](#dont-want-networking-enabled)
+- [Do configuration in the cmake\build-vs2019 subdirectory](#do-configuration-in-the-cmakebuild-vs2019-subdirectory)
+- [Clear out prior CMake configuration](#clear-out-prior-cmake-configuration)
+- [Dont'want video enabled:](#dontwant-video-enabled)
+    - [Directory Structure/Layout](#directory-structurelayout)
+    - [Regenerating the simulator `CMakeLists.txt` Files](#regenerating-the-simulator-cmakeliststxt-files)
+    - [Step-by-Step](#step-by-step)
+      - [Linux/WSL/Ubuntu Step-by-Step](#linuxwslubuntu-step-by-step)
+      - [Visual Studio Step-by-Step](#visual-studio-step-by-step)
+      - [MinGW/GCC Step-by-Step](#mingwgcc-step-by-step)
+  - [Motivation](#motivation)
 
 <!-- /TOC -->
 
@@ -147,13 +153,6 @@ Visual Studio. If you are using [MinGW][mingw64], __do not use `pkg-config` to i
 and `SDL2-ttf`__ -- let `simh-cmake` compile and locally install those two dependencies. There
 is an active ticket with Kitware to resolve this issue.
 
-__Emulated Ethernet via Packet Capture (PCAP):__ If you want emulated Ethernet support in
-Windows-based simulators, you __have__ to install the [WinPCAP][winpcap] package. __Note__:
-The follow-on project, [NPCAP](https://nmap.org/npcap/), does not support packet reinjection
-whereas [WinPCAP][winpcap] does. [NPCAP](https://nmap.org/npcap/) cannot be used (at the moment)
-with `SIMH`. While there are no open CERT or CVE advisories and [WinPCAP][winpcap] still
-operates under Windows(tm) 10, [WinPCAP][winpcap] may not be a viable choice in certain
-configuration-controlled environments.
 
 ```shell
 # If you have Visual Studio installed, skip the following two development
@@ -172,9 +171,9 @@ PS> cd simh
 # Choose one of the following build steps, depending on which development
 # environment you use/installed:
 
-# Visual Studio 2019 build, Release configuration. Simulators and runtime
+# Visual Studio 2022 build, Release configuration. Simulators and runtime
 # dependencies will install into the simh/BIN/Win32/Release directory.
-PS> cmake\cmake-builder.ps1 -flavor vs2019
+PS> cmake\cmake-builder.ps1 -flavor vs2022
 
 # MinGW/GCC build, Release build type. Simulators and runtime
 # dependencies will install into the simh/BIN directory.
@@ -189,9 +188,9 @@ PS> cmake\cmake-builder.ps1 -help
 Configure and build simh's dependencies and simulators using the Microsoft
 Visual Studio C compiler or MinGW-W64-based gcc compiler.
 
-cmake/build-vs* subdirectories: MSVC build products and artifacts
-cmake/build-mingw subdirectory: MinGW-W64 products and artifacts
-cmake/build-ninja subdirectory: Ninja builder products and artifacts
+cmake/build--vs* subdirectories: MSVC build products and artifacts
+cmake/build-mingw subdirectory:  MinGW-W64 products and artifacts
+cmake/build-ninja subdirectory:  Ninja builder products and artifacts
 
 Arguments:
 -clean                 Remove and recreate the build subdirectory before
@@ -205,11 +204,9 @@ Arguments:
 -noinstall             Do not install simulator executables
 -installOnly           Only execute the simulator executable installation
                        phase.
--allInOne              Use the simh_makefile.cmake "all-in-one" project
-                       configuration vs. individual CMakeList.txt projects.
-                       (default: off)
 
--flavor (2019|vs2019)  Generate build environment for Visual Studio 2019 (default)
+-flavor (2022|vs2022)  Generate build environment for Visual Studio 2022 (default)
+-flavor (2019|vs2019)  Generate build environment for Visual Studio 2019
 -flavor (2017|vs2017)  Generate build environment for Visual Studio 2017
 -flavor (2015|vs2015)  Generate build environment for Visual Studio 2015
 -flavor (2013|vs2013)  Generate build environment for Visual Studio 2013
