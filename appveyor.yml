@@ -1,19 +1,114 @@
-platform:
-  - x86
 cache:
-  - ../windows-build
+  - ./cmake/dependencies -> appveyor.yml, CMakeLists.txt, cmake/build_dep_matrix.cmake, cmake/network-deps.cmake,
+        cmake/pcre-dep.cmake, cmake/pthreads-dep.cmake, cmake/video-deps.cmake, cmake/zlib-dep.cmake
+
+## shallow_clone: true
+## clone_depth: 50
+
+environment:
+  DIST_DIR: '%APPVEYOR_BUILD_FOLDER%\dist'
+  CMAKE_DIST_DIR: C:/projects/simh/dist
+
+  matrix:
+    ## CMake-based builds:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      SIMH_BUILD_FLAVOR: mingw
+      MINGW: C:\\msys64\\mingw32\\bin
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      SIMH_BUILD_FLAVOR: unix
+
+    ## Put VS2019 later just to see what happens on the MinGW and Ubuntu builds
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      SIMH_BUILD_FLAVOR: 2019
+
+    ## Here's how you would build with Ninja. It's going to build the same executables
+    ## as the MinGW flavor, which is why it's skipped here.
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    #   SIMH_BUILD_FLAVOR: ninja
+    #   MINGW: C:\\msys64\\mingw32\\bin
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    #   SIMH_BUILD_FLAVOR: 2017
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    #   SIMH_BUILD_FLAVOR: 2015
+    ## Do not use VS2013 image: Appveyor image has CMake 3.12.x; pthreads4w requires
+    ## CMake >= 3.14. Might be able to get Chocolatey to install an updated
+    ## version.
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    #   SIMH_BUILD_FLAVOR: 2013
+
+matrix:
+  ## Bail if a job fails, don't start new ones.
+  fast_finish: true
+
 skip_commits:
   files:
-    - doc/*
+    - 'doc/*'
     - '**/*.md'
-    - '**/*.txt'
+
+configuration:
+  - Debug
+  - Release
+
+build:
+  parallel: true                  # enable MSBuild parallel builds
+  verbosity: minimal
+
 before_build:
-  "\"C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\vcvarsall.bat\""
+  ## If we need to install scoop:
+  # - ps: Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+  #
+  ## Use PS to install Scoop. Scoop is not strictly needed. Added it here for "show and tell."
+  # - ps: scoop install winflexbison
+
+  - ps: |
+      if ($isWindows) {
+        if (${env:SIMH_BUILD_FLAVOR} -eq "ninja") { choco install ninja; }
+        if (!(Test-Path -Path cmake/dependencies)) { New-Item -ItemType Directory -Path cmake/dependencies }
+      }
+  - sh: |
+      sudo apt-get update -y -qq && \
+          sudo apt-get install -qq -y cmake libpcre2-8-0 libpcre2-dev libsdl2-ttf-dev zlib1g-dev && \
+          sudo apt-get install -qq -y libpcap-dev libvdeplug-dev && \
+          sudo apt-get install -qq -y libpcre3-dev && \
+          sudo apt-get install -qq -y python3 && \
+          sudo apt-get install -qq -y ninja-build
+
+  ## Npcap install
+  ## Answer: Don't. If we could disable the Npcap installer's GUI (silent mode),
+  ## then uncomment the next three lines. Same problem likely applies to wpcap.
+  # - ps: (New-Object System.Net.WebClient).DownloadFile('https://nmap.org/npcap/dist/npcap-0.9986.exe',
+  #       'npcap-installer.exe')
+  # - npcap-installer /loopback_support=no /dot11_support=no /admin_only=no
+
 build_script:
-  cmd: cd "Visual Studio Projects" & vcbuild /M%NUMBER_OF_PROCESSORS% /useenv /rebuild Simh.sln "Release|Win32"
-notifications:
-  - provider: Email
-    to:
-      - Mark@infocomm.com
-      - lars@nocrew.org
-    on_build_success: false
+  ## Remove Git's MSYS from PATH, otherwise CMake borks.
+  # - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=% 
+  # - set PATH=%PATH:C:\Program Files\Git\bin;=% 
+  # - set PATH=%PATH:C:\Program Files\Git\usr\bin;=% 
+  # Note: This is handled by the cmake-builder.ps1 script.
+  #
+  # Run the cmake-builder script all the way through: generate, build, test, install.
+  - ps: |
+      if ($isWindows) {
+        if (!([string]::IsNullOrEmpty($env:MINGW))) { $env:PATH=$(@(${env:MINGW}, ${env:PATH}) -join ";"); };
+        cmake\cmake-builder.ps1 -clean -nonetwork -notest -noinstall -config ${env:CONFIGURATION} `
+            -flavor ${env:SIMH_BUILD_FLAVOR}
+      }
+  - sh: |
+      cmake/cmake-builder.sh --flavor ${SIMH_BUILD_FLAVOR} --config ${CONFIGURATION} --clean
+
+test_script:
+  - ps: |
+      if ($isWindows) {
+        cmake\cmake-builder -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}
+      }
+  - sh: |
+      cmake/cmake-builder.sh --testonly --config ${CONFIGURATION} --flavor ${SIMH_BUILD_FLAVOR}
+
+# notifications:
+#   - provider: Email
+#     to:
+#       - Mark@infocomm.com
+#       - lars@nocrew.org
+#     on_build_success: false
