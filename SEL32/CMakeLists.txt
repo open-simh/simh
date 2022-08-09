@@ -1,4 +1,4 @@
-## CDC1700 simulator
+## SEL32 simulator
 ##
 ## This is an automagically generated file. Do NOT EDIT.
 ## Any changes you make will be overwritten!!
@@ -14,24 +14,28 @@ if (HAVE_UNITY_FRAMEWORK AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/unit-tests/CMak
   add_subdirectory(unit-tests)
 endif ()
 
-add_simulator(cdc1700
+add_simulator(sel32
     SOURCES
-        cdc1700_cpu.c
-        cdc1700_dis.c
-        cdc1700_io.c
-        cdc1700_sys.c
-        cdc1700_dev1.c
-        cdc1700_mt.c
-        cdc1700_dc.c
-        cdc1700_iofw.c
-        cdc1700_lp.c
-        cdc1700_dp.c
-        cdc1700_cd.c
-        cdc1700_sym.c
-        cdc1700_rtc.c
-        cdc1700_drm.c
-        cdc1700_msos5.c
+        sel32_cpu.c
+        sel32_sys.c
+        sel32_chan.c
+        sel32_iop.c
+        sel32_com.c
+        sel32_con.c
+        sel32_clk.c
+        sel32_mt.c
+        sel32_lpr.c
+        sel32_scfi.c
+        sel32_fltpt.c
+        sel32_disk.c
+        sel32_hsdp.c
+        sel32_mfp.c
+        sel32_scsi.c
+        sel32_ec.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
-    LABEL CDC1700
-    TEST cdc1700)
+    DEFINES
+        USE_INT32
+        SEL32
+    LABEL SEL32
+    TEST sel32)

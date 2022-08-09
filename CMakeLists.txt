@@ -110,7 +110,7 @@ option(WITH_REGEX
        TRUE)
 option(PREFER_PCRE
        "Prefer (=1)/ignore (=0) Prefer PCRE over PCRE2 (def: ignore)"
-       FALSE)
+       TRUE)
 option(WITH_NETWORK
        "Enable (=1)/disable (=0) simulator networking support. (def: enabled)"
        TRUE)

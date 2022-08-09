@@ -6,7 +6,7 @@
 ## Make changes to the SIMH top-level makefile and then run the
 ## "cmake/generate.py" script to regenerate these files.
 ##
-##     python -m cmake/generate --help
+##     cd cmake; python -m generate --help
 ##
 ## ------------------------------------------------------------
 
