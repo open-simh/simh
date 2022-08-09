@@ -17,18 +17,11 @@ import re
 GEN_SCRIPT_DIR = os.path.dirname(__file__)
 GEN_SCRIPT_NAME = os.path.basename(__file__)
 
-try:
-    from distutils.text_file import TextFile
-except ModuleNotFoundError:
-    ## If, for some reason, distutils goes away like Python2, we have alternate
-    ## module source (it is distutils' text_file.py)
-    from simgen.text_file import TextFile
-
-
 import pprint
 
 import simgen.cmake_container as SCC
 import simgen.parse_makefile as SPM
+from simgen.text_file import TextFile
 
 
 def process_makefile(makefile_dir, debug=0):
@@ -155,13 +148,13 @@ if __name__ == '__main__':
     sims.write_simulators(makefile_dir, debug=debug_level, stream=None, individual=True)
 
     ## Followed by the "all-in-one"
-    outfile_name = flags.get('file') ## redundant: or os.path.join(GEN_SCRIPT_DIR, "simh_makefile.cmake")
-    print('outfile_name {0}'.format(outfile_name))
-    if outfile_name != '-':
-        outfile_stream = open(outfile_name, "w")
-        print('==== writing "all-in-one" to {0}'.format(outfile_name))
-    else:
-        outfile_stream = None
+    # outfile_name = flags.get('file') ## redundant: or os.path.join(GEN_SCRIPT_DIR, "simh_makefile.cmake")
+    # print('outfile_name {0}'.format(outfile_name))
+    # if outfile_name != '-':
+    #     outfile_stream = open(outfile_name, "w")
+    #     print('==== writing "all-in-one" to {0}'.format(outfile_name))
+    # else:
+    #     outfile_stream = None
 
-    sims.write_simulators(makefile_dir, debug=debug_level, stream=outfile_stream, individual=False)
-    outfile_stream.close()
+    # sims.write_simulators(makefile_dir, debug=debug_level, stream=outfile_stream, individual=False)
+    # outfile_stream.close()

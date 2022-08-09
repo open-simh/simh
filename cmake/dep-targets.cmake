@@ -55,7 +55,8 @@ if (BZIP2_FOUND)
 endif (BZIP2_FOUND)
 
 IF (WITH_REGEX)
-    ## Prefer PCRE2 over PCRE (unless PREFER_PCRE is set)
+    ## TEMP: Use PCRE until patches for PCRE2 are avaiable.
+    ## (Prefer PCRE2 over PCRE (unless PREFER_PCRE is set)
     IF (NOT PREFER_PCRE AND PCRE2_FOUND)
         target_compile_definitions(regexp_lib INTERFACE HAVE_PCRE2_H PCRE2_STATIC)
         target_include_directories(regexp_lib INTERFACE ${PCRE2_INCLUDE_DIRS})
@@ -320,7 +321,11 @@ if (WITH_NETWORK)
             INSTALL_COMMAND ""
         )
 
-        BuildDepMatrix(pcap-dep libpcap)
+        ## Note: ENABLE_REMOTE=Off prevents libpcap from building the 'rpcapd' executable, which
+        ## has a dependency on openssl and the off_t type. MS dropped the off_t type in VS 2022.
+        ##
+        ## rpcapd: YAGNI.
+        BuildDepMatrix(pcap-dep libpcap CMAKE_ARGS "-DENABLE_REMOTE:Bool=Off")
 
         list(APPEND SIMH_BUILD_DEPS "pcap")
         list(APPEND SIMH_DEP_TARGETS "pcap-dep")

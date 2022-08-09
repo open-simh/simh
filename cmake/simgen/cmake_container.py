@@ -26,7 +26,7 @@ _individual_header = [
     '## Make changes to the SIMH top-level makefile and then run the',
     '## "cmake/generate.py" script to regenerate these files.',
     '##',
-    '##     python -m cmake/generate --help',
+    '##     cd cmake; python -m generate --help',
     '##',
     '## ' + '-' * 60 + '\n'
     ]
@@ -42,7 +42,7 @@ _unit_test_header = [
     '## cmake/simgen/basic_simulator.py, then execute the',
     '## "cmake/generate.py" script to regenerate these files.',
     '##',
-    '##     python -m cmake/generate --help',
+    '##     cd cmake; python -m generate --help',
     '##',
     '## ' + '-' * 60 + '\n'
     ]

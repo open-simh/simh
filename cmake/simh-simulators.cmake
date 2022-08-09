@@ -5,7 +5,7 @@
 ## Make changes to the SIMH top-level makefile and then run the
 ## "cmake/generate.py" script to regenerate these files.
 ##
-##     python -m cmake/generate --help
+##     cd cmake; python -m generate --help
 ##
 ## ------------------------------------------------------------
 set(ALTAIRD    "${CMAKE_SOURCE_DIR}/ALTAIR")
@@ -43,6 +43,7 @@ set(PDP6D      "${CMAKE_SOURCE_DIR}/PDP10")
 set(PDP8D      "${CMAKE_SOURCE_DIR}/PDP8")
 set(S3D        "${CMAKE_SOURCE_DIR}/S3")
 set(SDSD       "${CMAKE_SOURCE_DIR}/SDS")
+set(SEL32D     "${CMAKE_SOURCE_DIR}/SEL32")
 set(SIGMAD     "${CMAKE_SOURCE_DIR}/sigma")
 set(SSEMD      "${CMAKE_SOURCE_DIR}/SSEM")
 set(TT2500D    "${CMAKE_SOURCE_DIR}/tt2500")
@@ -91,6 +92,7 @@ add_subdirectory(PDP18B)
 add_subdirectory(PDP8)
 add_subdirectory(S3)
 add_subdirectory(SDS)
+add_subdirectory(SEL32)
 add_subdirectory(SSEM)
 add_subdirectory(TX-0)
 add_subdirectory(VAX)
