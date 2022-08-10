@@ -132,7 +132,7 @@ if (have_dlfcn_h)
 
         set(dlext ${CMAKE_SHARED_LIBRARY_SUFFIX})
         string(REPLACE "." "" dlext "${dlext}")
-        target_compile_definitions(os_features INTERFACE HAVE_DLOPEN=${dlext})
+        target_compile_definitions(os_features INTERFACE SIM_HAVE_DLOPEN=${dlext})
     endif (have_dlopen)
 
     cmake_pop_check_state()
