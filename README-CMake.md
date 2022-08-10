@@ -57,8 +57,8 @@ framework. A sample of the supported build environments include:
   - Unix Makefiles
   - [MinGW Makefiles][mingw64]
   - [Ninja][ninja]
-  - MS Visual Studio solutions (2015, 2017, 2019)
-  - IDE build wrappers ([Sublime Text](https://www.sublimetext.com) and [CodeBlocks](http://www.codeblocks.org))
+  - MS Visual Studio solutions (2015, 2017, 2019, 2022)
+  - IDE build wrappers ([Sublime Text][sublime] and [CodeBlocks][codeblocks])
 
 [CMake][cmake] is not intended to supplant, supercede or replace the existing
 `simh` build infrastructure. If you like the existing `makefile` "poor man's
@@ -102,6 +102,8 @@ respective package manager.
 | [SDL2][SDL2]             | Dependency | libsdl2-dev     | SDL2-devel     |                        | (5)    |
 | [SDL_ttf][SDL2_ttf]      | Dependency | libsdl2-ttf-dev |                |                        | (5)    |
 | [pthreads4w][pthreads4w] | Dependency |                 |                |                        | (6)    |
+| [coreutils][coreutils]   | Runtime    | coreutils       | coreutils      |                        | (7)
+| [util-linux][util-linux] | Runtime    | util-linux      | util-linux     |                        | (8)
 
 _Notes_:
 
@@ -124,6 +126,14 @@ _Notes_:
 
 (6) [pthreads4w][pthreads4w] provides POSIX `pthreads` API using a native Windows implementation. This dependency is built only when using the
     _Visual Studio_ compiler. [Mingw-w64][mingw64] provides a `pthreads` library as a part of the `gcc` compiler toolchain.
+
+(7) [coreutils][coreutils] provides the `realpath`, `dirname` and `basename` commands used in the
+    `cmake/cmake-builder.sh` script. [coreutils][coreutils] is normally installed by base Linux
+    installlations; MacOS developers may need to install this package.
+
+(8) [util-linux][util-linux] provides the GNU `getopt` option parser used in the
+    `cmake/cmake-builder.sh` script. [util-linux][util-linux] is normally installed by base Linux
+    installations; MacOS developers may have to install this package.
 
 ### Building `simh`
 
@@ -501,3 +511,7 @@ upgrading dependency libraries.
 [winflexbison]: https://github.com/lexxmark/winflexbison
 [pthreads4w]: https://github.com/jwinarske/pthreads4w
 [chocolatey]: https://chocolatey.org/
+[sublime]: https://www.sublimetext.com
+[codeblocks]: http://www.codeblocks.org
+[coreutils]: https://www.gnu.org/software/coreutils/coreutils.html
+[util-linux]: https://git.kernel.org/pub/scm/utils/util-linux/util-linux.git/
