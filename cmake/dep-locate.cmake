@@ -64,8 +64,7 @@ endif (WITH_NETWORK)
 find_package(PkgConfig)
 
 ## pkg_check_modules() should only be used with runtime dependencies that don't
-## have a corresponding 'Find<package>.cmake' script. There are only two at
-## present: SDL2 and SDL2_ttf.
+## have a corresponding 'Find<package>.cmake' script.
 ##
 ## Don't use pkg-config searches with MS Visual C -- the library names are
 ## incompatible.
@@ -74,13 +73,43 @@ find_package(PkgConfig)
 ##  exceptions to pkg-config than just Windows.]
 
 if (PKG_CONFIG_FOUND AND NOT (MSVC))
+    if (NOT ZLIB_FOUND)
+        pkg_check_modules(ZLIB IMPORTED_TARGET zlib)
+    endif (NOT ZLIB_FOUND)
+
+    if (WITH_REGEX)
+        if (PREFER_PCRE AND NOT PCRE_FOUND)
+            pkg_check_modules(PCRE IMPORTED_TARGET libpcre)
+        elseif (NOT PREFER_PCRE AND NOT PCRE2_FOUND)
+            pkg_check_modules(PCRE IMPORTED_TARGET libpcre2-8)
+        endif (PREFER_PCRE AND NOT PCRE_FOUND)
+    endif (WITH_REGEX)
+
     if (WITH_VIDEO)
+        if (NOT PNG_FOUND)
+            pkg_check_modules(PNG IMPORTED_TARGET libpng16)
+        endif (NOT PNG_FOUND)
+
+        if (NOT HARFBUZZ_FOUND)
+            pkg_check_modules(HARFBUZZ IMPORTED_TARGET harfbuzz)
+        endif (NOT HARFBUZZ_FOUND)
+
+        if (NOT Freetype_FOUND)
+            pkg_check_modules(Freetype IMPORTED_TARGET freetype2)
+        endif (NOT Freetype_FOUND)
+
         if (NOT SDL2_FOUND)
-            pkg_check_modules(SDL2 IMPORTED_TARGET SDL2)
+            pkg_check_modules(SDL2 IMPORTED_TARGET sdl2)
+            if (NOT SDL2_FOUND)
+                pkg_check_modules(SDL2 IMPORTED_TARGET SDL2)
+            endif (NOT SDL2_FOUND)
         endif (NOT SDL2_FOUND)
 
         IF (NOT SDL2_ttf_FOUND)
-            pkg_check_modules(SDL2_ttf IMPORTED_TARGET SDL2_ttf)
+            pkg_check_modules(SDL2_ttf IMPORTED_TARGET sdl2_ttf)
+            if (NOT SDL2_ttf_FOUND)
+                pkg_check_modules(SDL2_ttf IMPORTED_TARGET SDL2_ttf)
+            endif (NOT SDL2_ttf_FOUND)
         ENDIF (NOT SDL2_ttf_FOUND)
     endif (WITH_VIDEO)
 endif (PKG_CONFIG_FOUND AND NOT (MSVC))

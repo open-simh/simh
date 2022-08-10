@@ -19,6 +19,8 @@ set(LIBPCAP_SOURCE_URL  "https://github.com/the-tcpdump-group/libpcap/archive/re
 if (ZLIB_FOUND)
     if (TARGET ZLIB::ZLIB)
         target_link_libraries(zlib_lib INTERFACE ZLIB::ZLIB)
+    elseif (TARGET PkgConfig::ZLIB)
+        target_link_libraries(zlib_lib INTERFACE PkgConfig::ZLIB)
     else (TARGET ZLIB::ZLIB)
         target_compile_definitions(zlib_lib INTERFACE ${ZLIB_INCLUDE_DIRS})
         target_link_libraries(zlib_lib INTERFACE ${ZLIB_LIBRARIES})
@@ -148,7 +150,7 @@ IF (WITH_VIDEO)
         list(APPEND VIDEO_PKG_STATUS "PNG source build")
     ENDIF (NOT PNG_FOUND)
 
-    IF (NOT FREETYPE_FOUND)
+    IF (NOT Freetype_FOUND)
         set(FREETYPE_DEPS)
         if (TARGET png-dep)
             list(APPEND FREETYPE_DEPS "png-dep")
@@ -169,7 +171,7 @@ IF (WITH_VIDEO)
         list(APPEND SIMH_DEP_TARGETS "freetype-dep")
         message(STATUS "Building Freetype from ${FREETYPE_SOURCE_URL}.")
         list(APPEND VIDEO_PKG_STATUS "Freetype source build")
-    endif (NOT FREETYPE_FOUND)
+    endif (NOT Freetype_FOUND)
 
     IF (NOT SDL2_FOUND)
         ExternalProject_Add(sdl2-dep
@@ -251,8 +253,12 @@ IF (WITH_VIDEO)
         list(APPEND VIDEO_PKG_STATUS "installed SDL2")
     ENDIF (SDL2_FOUND)
 
-    IF (FREETYPE_FOUND)
-        target_link_libraries(simh_video INTERFACE Freetype::Freetype)
+    IF (Freetype_FOUND)
+        IF (TARGET Freetype::Freetype)
+            target_link_libraries(simh_video INTERFACE Freetype::Freetype)
+        ELSEIF (TARGET PkgConfig::Freetype)
+            target_link_libraries(simh_video INTERFACE PkgConfig::Freetype)
+        ENDIF (TARGET Freetype::Freetype)
 
         if (HARFBUZZ_FOUND)
             target_link_libraries(simh_video INTERFACE Harfbuzz::Harfbuzz)
@@ -264,11 +270,16 @@ IF (WITH_VIDEO)
         endif (BROTLIDEC_FOUND)
 
         list(APPEND VIDEO_PKG_STATUS "installed Freetype")
-    ENDIF (FREETYPE_FOUND)
+    ENDIF (Freetype_FOUND)
 
     IF (PNG_FOUND)
-        target_include_directories(simh_video INTERFACE ${PNG_INCLUDE_DIRS})
-        target_link_libraries(simh_video INTERFACE ${PNG_LIBRARIES})
+        if (TARGET PkgConfig::PNG)
+            target_include_directories(simh_video INTERFACE PkgConfig::PNG)
+            target_link_libraries(simh_video INTERFACE PkgConfig::PNG)
+        else ()
+            target_include_directories(simh_video INTERFACE ${PNG_INCLUDE_DIRS})
+            target_link_libraries(simh_video INTERFACE ${PNG_LIBRARIES})
+        endif (TARGET PkgConfig::PNG)
 
         target_compile_definitions(simh_video INTERFACE ${PNG_DEFINITIONS} HAVE_LIBPNG)
 
@@ -302,7 +313,7 @@ if (WITH_NETWORK)
             set(network_runtime USE_SHARED)
         endif (NOT WIN32)
 
-        set(NETWORK_PKG_STATUS "installed PCAP")
+        list (APPEND NETWORK_PKG_STATUS "installed PCAP")
     else (PCAP_FOUND)
         # Extract the npcap headers and libraries
         set(NPCAP_ARCHIVE ${SIMH_DEP_PATCHES}/libpcap/npcap-sdk-1.13.zip)
@@ -330,7 +341,7 @@ if (WITH_NETWORK)
         list(APPEND SIMH_BUILD_DEPS "pcap")
         list(APPEND SIMH_DEP_TARGETS "pcap-dep")
         message(STATUS "Building PCAP from ${LIBPCAP_SOURCE_URL}")
-        set(NETWORK_PKG_STATUS "PCAP source build")
+        list(APPEND NETWORK_PKG_STATUS "PCAP source build")
     endif (PCAP_FOUND)
 
     ## TAP/TUN devices
@@ -346,8 +357,23 @@ if (WITH_NETWORK)
         list(APPEND NETWORK_PKG_STATUS "VDE")
     endif (VDE_FOUND)
 
+    if (WITH_TAP)
+        if (HAVE_TAP_NETWORK)
+            target_compile_definitions(simh_network INTERFACE HAVE_TAP_NETWORK)
+
+            if (HAVE_BSDTUNTAP)
+                target_compile_definitions(simh_network INTERFACE HAVE_BSDTUNTAP)
+                list(APPEND NETWORK_PKG_STATUS "BSD TUN/TAP")
+            else (HAVE_BSDTUNTAP)
+                list(APPEND NETWORK_PKG_STATUS "TAP")
+            endif (HAVE_BSDTUNTAP)
+   
+        endif (HAVE_TAP_NETWORK)
+    endif (WITH_TAP)
+
     if (WITH_SLIRP)
         target_link_libraries(simh_network INTERFACE slirp)
+        list(APPEND NETWORK_PKG_STATUS "SLIRP")
     endif (WITH_SLIRP)
 
     ## Finally, set the network runtime

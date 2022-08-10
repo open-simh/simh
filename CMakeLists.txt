@@ -51,10 +51,14 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     if (MSVC OR MINGW)
         set(CMAKE_C_LIBRARY_ARCHITECTURE "x64")
         set(CMAKE_LIBRARY_ARCHITECTURE "x64")
-    else (EXISTS /usr/lib/x86_64-linux-gnu)
+    elseif (EXISTS /usr/lib/x86_64-linux-gnu)
         # Linux-ism
         set(CMAKE_C_LIBRARY_ARCHITECTURE "x86_64-linux-gnu")
         set(CMAKE_LIBRARY_ARCHITECTURE "x86_64-linux-gnu")
+    elseif (EXISTS /usr/lib/aarch64-linux-gnu)
+        # Linux-ism
+        set(CMAKE_C_LIBRARY_ARCHITECTURE "aarch64-linux-gnu")
+        set(CMAKE_LIBRARY_ARCHITECTURE "aarch64-linux-gnu")
     endif ()
 endif()
 
@@ -99,9 +103,6 @@ list(APPEND SIMH_PREFIX_PATH_LIST ${SIMH_DEP_TOPDIR})
 list(APPEND CMAKE_PREFIX_PATH ${SIMH_PREFIX_PATH_LIST})
 
 ##-- Options --##
-option(ALL_IN_ONE
-       "Use the 'all-in-one' project definitions (vs. individual CMakeLists.txt) (def: disabled)"
-       FALSE)
 option(WITH_ASYNC
        "Enable (=1)/disable (=0) Asynchronous I/O and threading."
        TRUE)
@@ -299,7 +300,7 @@ message(STATUS "  Thread support ................... ${THREADING_PKG_STATUS}")
 message(STATUS "  zlib ............................. ${ZLIB_PKG_STATUS}")
 message(STATUS "  Perl-Compatible RegExps........... ${PCRE_PKG_STATUS}")
 message(STATUS "  PNG, Freetype, SDL2, SDL2_ttf .... ${VIDEO_PKG_STATUS}")
-message(STATUS "  Packet Capture (PCAP) ............ ${NETWORK_PKG_STATUS}")
+message(STATUS "  Network support .................. ${NETWORK_PKG_STATUS}")
 message(STATUS "  ncurses .......................... ${NCURSES_PKG_STATUS}")
 message(STATUS "  OS Feature definitions ........... ${OS_FEATURE_DEFS}")
 message(STATUS "  OS Feature libraries ............. ${OS_FEATURE_LIBS}")
@@ -376,12 +377,7 @@ if (NOT DO_DEPENDENCY_BUILD)
            ## ${CMAKE_SOURCE_DIR}/makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake)
 
     message(STATUS "Adding simulators")
-
-    if (NOT ALL_IN_ONE)
-        include(simh-simulators)
-    else (NOT ALL_IN_ONE)
-        include(simh_makefile)
-    endif (NOT ALL_IN_ONE)
+    include(simh-simulators)
 
     # Install the DLLs... including Packet.DLL
     if (WIN32 AND EXISTS ${SIMH_DEP_TOPDIR}/bin)
@@ -418,7 +414,7 @@ else (NOT DO_DEPENDENCY_BUILD)
 
     ## Ensure that the next build rechecks the dependency
     ## libraries that were just built and finds them.
-    unset(FREETYPE_FOUND CACHE)
+    unset(Freetype_FOUND CACHE)
     unset(PCAP_FOUND CACHE)
     unset(PCRE_FOUND CACHE)
     unset(PCRE2_FOUND CACHE)

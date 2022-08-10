@@ -29,7 +29,7 @@ find_path(PCRE_INCLUDE_DIR pcre.h
         )
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(LIB_PATH_SUFFIXES lib64 x64 amd64 x86_64-linux-gnu lib)
+    set(LIB_PATH_SUFFIXES lib64 x64 amd64 x86_64-linux-gnu aarch64-linux-gnu)
 else ()
     set(LIB_PATH_SUFFIXES x86)
 endif ()
