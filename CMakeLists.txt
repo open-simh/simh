@@ -165,16 +165,15 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # Make sure we can include and link from the top level source...
-include_directories(${CMAKE_SOURCE_DIR} ${SIMH_DEP_TOPDIR}/include)
+list(APPEND CMAKE_LIBRARY_PATH ${SIMH_DEP_TOPDIR}/lib)
 link_directories(${SIMH_DEP_TOPDIR}/lib)
+list(APPEND CMAKE_INCLUDE_PATH ${SIMH_DEP_TOPDIR}/include)
+include_directories(${CMAKE_SOURCE_DIR} ${SIMH_DEP_TOPDIR}/include)
 
 set(EXTRA_CFLAGS "")
 
 # A bunch of Windows customizations
 if (WIN32)
-    list(APPEND CMAKE_LIBRARY_PATH ${SIMH_DEP_TOPDIR}/lib)
-    list(APPEND CMAKE_INCLUDE_PATH ${SIMH_DEP_TOPDIR}/include)
-
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 
     if (MSVC_VERSION GREATER_EQUAL 1920)
