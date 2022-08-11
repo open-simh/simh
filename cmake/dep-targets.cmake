@@ -13,8 +13,15 @@ set(PNG_SOURCE_URL      "https://sourceforge.net/projects/libpng/files/libpng16/
 set(FREETYPE_SOURCE_URL "https://download.savannah.nongnu.org/releases/freetype/freetype-2.11.1.tar.xz")
 set(SDL2_SOURCE_URL     "https://www.libsdl.org/release/SDL2-2.0.20.zip")
 set(SDL2_TTF_SOURCE_URL "https://github.com/libsdl-org/SDL_ttf/archive/refs/tags/release-2.0.18.tar.gz")
-set(LIBPCAP_SOURCE_URL  "https://github.com/the-tcpdump-group/libpcap/archive/refs/tags/libpcap-1.10.1.tar.gz")
 
+## LIBPCAP is a special case
+set(LIBPCAP_PROJECT "libpcap")
+set(LIBPCAP_ARCHIVE_NAME "libpcap")
+set(LIBPCAP_RELEASE "1.10.1")
+set(LIBPCAP_ARCHIVE_TYPE "tar.gz")
+set(LIBPCAP_TAR_ARCHIVE "${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}.${LIBPCAP_ARCHIVE_TYPE}")
+set(LIBPCAP_SOURCE_URL  "https://github.com/the-tcpdump-group/libpcap/archive/refs/tags/${LIBPCAP_TAR_ARCHIVE}")
+# set(LIBPCAP_SOURCE_URL  "https://github.com/the-tcpdump-group/libpcap.git")
 
 if (ZLIB_FOUND)
     if (TARGET ZLIB::ZLIB)
@@ -205,8 +212,6 @@ IF (WITH_VIDEO)
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
             INSTALL_COMMAND ""
-            # UPDATE_COMMAND
-            #     ${CMAKE_COMMAND} -E copy ${SIMH_DEP_PATCHES}/SDL2_ttf/SDL2_ttfConfig.cmake ${SDL2_ttf_depdir}
             DEPENDS
                 ${SDL2_ttf_DEPS}
         )
@@ -300,8 +305,6 @@ if (WITH_NETWORK)
         if (NOT WIN32)
             set(network_runtime USE_NETWORK)
 
-            target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
-            target_compile_definitions(simh_network INTERFACE HAVE_PCAP_NETWORK)
             target_link_libraries(simh_network INTERFACE "${PCAP_LIBRARIES}")
 
             ## HAVE_PCAP_COMPILE is set in dep-locate.
@@ -313,35 +316,83 @@ if (WITH_NETWORK)
             set(network_runtime USE_SHARED)
         endif (NOT WIN32)
 
-        list (APPEND NETWORK_PKG_STATUS "installed PCAP")
+        target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
+        target_compile_definitions(simh_network INTERFACE HAVE_PCAP_NETWORK)
+
+        list (APPEND NETWORK_PKG_STATUS "PCAP headers")
     else (PCAP_FOUND)
-        # Extract the npcap headers and libraries
-        set(NPCAP_ARCHIVE ${SIMH_DEP_PATCHES}/libpcap/npcap-sdk-1.13.zip)
+        list(APPEND NETWORK_PKG_STATUS "PCAP headers (unpacked)")
 
-        if (WIN32)
-            execute_process(
-                    COMMAND ${CMAKE_COMMAND} -E tar xzf ${NPCAP_ARCHIVE} Include/ Lib/
-                    WORKING_DIRECTORY ${SIMH_DEP_TOPDIR}
-            )
-        endif (WIN32)
-
-        ExternalProject_Add(pcap-dep
-            URL ${LIBPCAP_SOURCE_URL}
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
+        message(STATUS "Downloading ${LIBPCAP_SOURCE_URL}")
+        message(STATUS "Destination ${CMAKE_BINARY_DIR}/libpcap")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/libpcap"
+            RESULT_VARIABLE LIBPCAP_MKDIR
         )
+        if (NOT (${LIBPCAP_MKDIR} EQUAL 0))
+            message(FATAL_ERROR "Could not create ${CMAKE_CMAKE_BINARY_DIR}/libpcap")
+        endif (NOT (${LIBPCAP_MKDIR} EQUAL 0))
 
-        ## Note: ENABLE_REMOTE=Off prevents libpcap from building the 'rpcapd' executable, which
-        ## has a dependency on openssl and the off_t type. MS dropped the off_t type in VS 2022.
-        ##
-        ## rpcapd: YAGNI.
-        BuildDepMatrix(pcap-dep libpcap CMAKE_ARGS "-DENABLE_REMOTE:Bool=Off")
+        file(DOWNLOAD "${LIBPCAP_SOURCE_URL}" "${CMAKE_BINARY_DIR}/libpcap/libpcap.${LIBPCAP_ARCHIVE_TYPE}"
+                STATUS LIBPCAP_DOWNLOAD
+            )
+        list(GET LIBPCAP_DOWNLOAD 0 LIBPCAP_DL_STATUS)
+        if (NOT (${LIBPCAP_DL_STATUS} EQUAL 0))
+            list(GET LIBPCAP_DOWNLOAD 1 LIBPCAP_DL_ERROR)
+            message(FATAL_ERROR "Download failed: ${LIBPCAP_DL_ERROR}")
+        endif (NOT (${LIBPCAP_DL_STATUS} EQUAL 0))
 
-        list(APPEND SIMH_BUILD_DEPS "pcap")
-        list(APPEND SIMH_DEP_TARGETS "pcap-dep")
-        message(STATUS "Building PCAP from ${LIBPCAP_SOURCE_URL}")
-        list(APPEND NETWORK_PKG_STATUS "PCAP source build")
+        message(STATUS "Extracting headers ${LIBPCAP_SOURCE_URL}")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xvf "${CMAKE_BINARY_DIR}/libpcap/libpcap.${LIBPCAP_ARCHIVE_TYPE}"
+                "${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/pcap.h"
+                "${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/pcap/*.h"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libpcap"
+            RESULT_VARIABLE LIBPCAP_EXTRACT
+        )
+        if (NOT (${LIBPCAP_EXTRACT} EQUAL 0))
+            message(FATAL_ERROR "Extract failed.")
+        endif (NOT (${LIBPCAP_EXTRACT} EQUAL 0))
+
+        message(STATUS "Copying headers from ${CMAKE_BINARY_DIR}/libpcap/${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/pcap")
+        message(STATUS "Destination ${SIMH_DEP_TOPDIR}/include/pcap")
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory "${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/"
+                "${SIMH_DEP_TOPDIR}/include/"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libpcap"
+            RESULT_VARIABLE LIBPCAP_COPYDIR
+        )
+        if (NOT (${LIBPCAP_COPYDIR} EQUAL 0))
+            message(FATAL_ERROR "Copy failed.")
+        endif (NOT (${LIBPCAP_COPYDIR} EQUAL 0))
+
+        # # Extract the npcap headers and libraries
+        # set(NPCAP_ARCHIVE ${SIMH_DEP_PATCHES}/libpcap/npcap-sdk-1.13.zip)
+
+        # if (WIN32)
+        #     execute_process(
+        #             COMMAND ${CMAKE_COMMAND} -E tar xzf ${NPCAP_ARCHIVE} Include/ Lib/
+        #             WORKING_DIRECTORY ${SIMH_DEP_TOPDIR}
+        #     )
+        # endif (WIN32)
+
+        # ExternalProject_Add(pcap-dep
+        #     URL ${LIBPCAP_SOURCE_URL}
+        #     CONFIGURE_COMMAND ""
+        #     BUILD_COMMAND ""
+        #     INSTALL_COMMAND ""
+        # )
+
+        # ## Note: ENABLE_REMOTE=Off prevents libpcap from building the 'rpcapd' executable, which
+        # ## has a dependency on openssl and the off_t type. MS dropped the off_t type in VS 2022.
+        # ##
+        # ## rpcapd: YAGNI.
+        # BuildDepMatrix(pcap-dep libpcap CMAKE_ARGS "-DENABLE_REMOTE:Bool=Off")
+
+        # list(APPEND SIMH_BUILD_DEPS "pcap")
+        # list(APPEND SIMH_DEP_TARGETS "pcap-dep")
+        # message(STATUS "Building PCAP from ${LIBPCAP_SOURCE_URL}")
+        # list(APPEND NETWORK_PKG_STATUS "PCAP source build")
     endif (PCAP_FOUND)
 
     ## TAP/TUN devices

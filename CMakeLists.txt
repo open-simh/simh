@@ -12,7 +12,7 @@ if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif ()
 
 ## Note: pthreads4w requires 3.14 or better.
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 set(SIMH_VERSION "4.0.0")
 project(simh VERSION "${SIMH_VERSION}" LANGUAGES C CXX)
@@ -23,7 +23,6 @@ include(CheckCCompilerFlag)
 include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(ExternalProject)
-
 find_package(PkgConfig)
 find_package(PackageHandleStandardArgs)
 
