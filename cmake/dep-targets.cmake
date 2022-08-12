@@ -303,6 +303,7 @@ if (WITH_NETWORK)
 
     if (PCAP_FOUND)
 # Building with the libraries is deprecated.
+#
 #         if (NOT WIN32)
 #             set(network_runtime USE_NETWORK)
 # 
@@ -327,6 +328,7 @@ if (WITH_NETWORK)
             list(APPEND network_runtime BPF_CONST_STRING)
           endif()
         endforeach()
+
         target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
         target_compile_definitions(simh_network INTERFACE HAVE_PCAP_NETWORK)
 
@@ -376,34 +378,6 @@ if (WITH_NETWORK)
         if (NOT (${LIBPCAP_COPYDIR} EQUAL 0))
             message(FATAL_ERROR "Copy failed.")
         endif (NOT (${LIBPCAP_COPYDIR} EQUAL 0))
-
-        # # Extract the npcap headers and libraries
-        # set(NPCAP_ARCHIVE ${SIMH_DEP_PATCHES}/libpcap/npcap-sdk-1.13.zip)
-
-        # if (WIN32)
-        #     execute_process(
-        #             COMMAND ${CMAKE_COMMAND} -E tar xzf ${NPCAP_ARCHIVE} Include/ Lib/
-        #             WORKING_DIRECTORY ${SIMH_DEP_TOPDIR}
-        #     )
-        # endif (WIN32)
-
-        # ExternalProject_Add(pcap-dep
-        #     URL ${LIBPCAP_SOURCE_URL}
-        #     CONFIGURE_COMMAND ""
-        #     BUILD_COMMAND ""
-        #     INSTALL_COMMAND ""
-        # )
-
-        # ## Note: ENABLE_REMOTE=Off prevents libpcap from building the 'rpcapd' executable, which
-        # ## has a dependency on openssl and the off_t type. MS dropped the off_t type in VS 2022.
-        # ##
-        # ## rpcapd: YAGNI.
-        # BuildDepMatrix(pcap-dep libpcap CMAKE_ARGS "-DENABLE_REMOTE:Bool=Off")
-
-        # list(APPEND SIMH_BUILD_DEPS "pcap")
-        # list(APPEND SIMH_DEP_TARGETS "pcap-dep")
-        # message(STATUS "Building PCAP from ${LIBPCAP_SOURCE_URL}")
-        # list(APPEND NETWORK_PKG_STATUS "PCAP source build")
     endif (PCAP_FOUND)
 
     ## TAP/TUN devices
@@ -440,8 +414,8 @@ if (WITH_NETWORK)
 
     ## Finally, set the network runtime
     if (NOT network_runtime)
-        ## Default to USE_NETWORK...
-        set(network_runtime USE_NETWORK)
+        ## Default to USE_SHARED... USE_NETWORK is deprecated.
+        set(network_runtime USE_SHARED)
     endif (NOT network_runtime)
 
     target_compile_definitions(simh_network INTERFACE ${network_runtime})
