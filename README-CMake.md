@@ -10,7 +10,7 @@
       - [Supported C Compilers](#supported-c-compilers)
       - [Tool and Library Dependencies](#tool-and-library-dependencies)
     - [Building `simh`](#building-simh)
-      - [Linux/*nix platforms](#linuxnix-platforms)
+      - [Linux/Unix/Unix-like platforms](#linuxunixunix-like-platforms)
     - [Configuration Options](#configuration-options)
     - [CMake quickstart](#cmake-quickstart)
     - [Notes for Windows Visual Studio](#notes-for-windows-visual-studio)
@@ -30,8 +30,8 @@ This document assumes that you, the reader, are a knowledgeable software develop
   - You know how to develop and build software artifacts (executables, shared
     objects, dynamically linked libraries).
   - You can install software development dependencies on your host or virtual machine.
-    - Linux and *nix platforms: You know how to use `rpm`, `apt`, `pacman` or the appropriate
-      package manager your Linux or *nix uses.
+    - Linux and Unix/Unix-like platforms: You know how to use `rpm`, `apt`,
+      `pacman` or the appropriate package manager your Linux or Unix uses.
     - Windows: You use a package manager such as [Scoop][scoop] or [Chocolatey][chocolatey],
       or you are comfortable with installing software directly.
   - You known what tools such as `make`, `bison` and `flex` do.
@@ -74,9 +74,9 @@ build `simh`'s simulators.
 
 | Compiler                 | Notes                                                 |
 | ------------------------ | ----------------------------------------------------- |
-| _GNU C Compiler (gcc)_   | This is one of two compilers against which `simh` is routinely compiled. `gcc` is the default compiler for many Linux and *nix platforms; it can also be used for [Mingw-w64][mingw64]-based builds on Windows. |
+| _GNU C Compiler (gcc)_   | This is one of two compilers against which `simh` is routinely compiled. `gcc` is the default compiler for many Linux and Unix/Unix-like platforms; it can also be used for [Mingw-w64][mingw64]-based builds on Windows. |
 | _Microsoft Visual C/C++_ | This is the other compiler against which `simh` is routinely compiled. |
-| _CLang/LLVM_             | Building `simh` with `clang` and [CMake][cmake] is untested. It will probably work on Linux and *nix platforms without issues. This is completely untested on Windows. |
+| _CLang/LLVM_             | Building `simh` with `clang` and [CMake][cmake] is untested. It will probably work on Linux and Unix/Unix-like platforms without issues. This is completely untested on Windows. |
 
 Your mileage may vary on other platforms where [CMake][cmake] is supported.
 
@@ -91,19 +91,17 @@ respective package manager.
 | ------------------------ | ---------- | --------------- | -------------- | ---------------------- | :----: |
 | [CMake][cmake]           | Dev. tool  | cmake           | cmake          | cmake                  | (1)    |
 | [Git][gitscm]            | Dev. tool  | git             | git            | git                    | (1, 2) |
-| [bison][bison]           | Dev. tool  | bison           | bison          | winflexbison           | (3)    |
-| [flex][flex]             | Dev. tool  | flex            | flex           | winflexbison           |        |
-| [Npcap][npcap]           | Runtime    |                 |                |                        | (4)    |
-| [zlib][zlib]             | Dependency | zlib1g-dev      | zlib-devel     |                        | (5)    |
-| [pcre2][pcre2]           | Dependency | libpcre2-dev    | pcre2-devel    |                        | (5)    |
-| [libpng][libpng]         | Dependency | libpng-dev      | libpng-devel   |                        | (5)    |
-| [FreeType][FreeType]     | Dependency | libfreetype-dev | freetype-devel |                        | (5)    |
-| [libpcap][libpcap]       | Dependency | libpcap-dev     | libpcap-devel  |                        | (5)    |
-| [SDL2][SDL2]             | Dependency | libsdl2-dev     | SDL2-devel     |                        | (5)    |
-| [SDL_ttf][SDL2_ttf]      | Dependency | libsdl2-ttf-dev |                |                        | (5)    |
-| [pthreads4w][pthreads4w] | Dependency |                 |                |                        | (6)    |
-| [coreutils][coreutils]   | Runtime    | coreutils       | coreutils      |                        | (7)
-| [util-linux][util-linux] | Runtime    | util-linux      | util-linux     |                        | (8)
+| [Npcap][npcap]           | Runtime    |                 |                |                        | (3)    |
+| [zlib][zlib]             | Dependency | zlib1g-dev      | zlib-devel     |                        | (4)    |
+| [pcre2][pcre2]           | Dependency | libpcre2-dev    | pcre2-devel    |                        | (4)    |
+| [libpng][libpng]         | Dependency | libpng-dev      | libpng-devel   |                        | (4)    |
+| [FreeType][FreeType]     | Dependency | libfreetype-dev | freetype-devel |                        | (4)    |
+| [libpcap][libpcap]       | Dependency | libpcap-dev     | libpcap-devel  |                        | (4)    |
+| [SDL2][SDL2]             | Dependency | libsdl2-dev     | SDL2-devel     |                        | (4)    |
+| [SDL_ttf][SDL2_ttf]      | Dependency | libsdl2-ttf-dev |                |                        | (4)    |
+| [pthreads4w][pthreads4w] | Dependency |                 |                |                        | (5)    |
+| [coreutils][coreutils]   | Runtime    | coreutils       | coreutils      |                        | (6)
+| [util-linux][util-linux] | Runtime    | util-linux      | util-linux     |                        | (7)
 
 _Notes_:
 
@@ -111,27 +109,22 @@ _Notes_:
 
 (2) Tool might already be installed on your system.
 
-(3) Tool might already be installed in Linux and *nix systems; [winflexbison][winflexbison] is package that installs both the
-    [bison][bison] and [flex][flex] tools for Windows developers. [bison][bison] and [flex][flex] are _only_ required to compile
-    the [libpcap][libpcap] packet capture library. If you do not need emulated native Ethernet networking, [bison][bison] and
-    [flex][flex] are optional.
+(3) [Npcap][npcap] is a Windows packet capture device driver. It is an optional package: if present, SIMH dynamically load needed functionality.
+    [Npcap][npcap] provides a close-to-native network interface to the simulators that support networking, e.g. VAXen.
 
-(4) [Npcap][npcap] is a Windows packet capture device driver. It is a runtime requirement used by simulators that emulate native Ethernet networking
-    on Windows.
-
-(5) If the package name is blank or you do not have the package installed, the `simh` [CMake][cmake] build process will download and compile the
+(4) If the package name is blank or you do not have the package installed, the `simh` [CMake][cmake] build process will download and compile the
     library dependency from source. [Scoop][scoop] does not provide these development library dependencies, so all dependencies will be built from
     source on Windows. Similarly, `SDL_ttf` support may not be available for RPM package-based systems (RedHat, CentOS, ArchLinux, ...), but will
     be compiled from source.
 
-(6) [pthreads4w][pthreads4w] provides POSIX `pthreads` API using a native Windows implementation. This dependency is built only when using the
+(5) [pthreads4w][pthreads4w] provides POSIX `pthreads` API using a native Windows implementation. This dependency is built only when using the
     _Visual Studio_ compiler. [Mingw-w64][mingw64] provides a `pthreads` library as a part of the `gcc` compiler toolchain.
 
-(7) [coreutils][coreutils] provides the `realpath`, `dirname` and `basename` commands used in the
+(6) [coreutils][coreutils] provides the `realpath`, `dirname` and `basename` commands used in the
     `cmake/cmake-builder.sh` script. [coreutils][coreutils] is normally installed by base Linux
     installlations; MacOS developers may need to install this package.
 
-(8) [util-linux][util-linux] provides the GNU `getopt` option parser used in the
+(7) [util-linux][util-linux] provides the GNU `getopt` option parser used in the
     `cmake/cmake-builder.sh` script. [util-linux][util-linux] is normally installed by base Linux
     installations; MacOS developers may have to install this package.
 
@@ -160,7 +153,7 @@ The process to build `simh` with [CMake][cmake] follows the steps below:
   - Configure and generate the build environment for the simulators
   - Build the simulators
 
-#### Linux/*nix platforms
+#### Linux/Unix/Unix-like platforms
 
 The following shell 
 
@@ -178,7 +171,7 @@ $ cd cmake-unix
 $ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
 
 # First time around, d/l and build dependency libraries, if they're
-# not found (usually the case on Windows, YMMV on *nix):
+# not found (usually the case on Windows, YMMV on Unix):
 $ cmake --build . --config Release
 
 # Second time around: Reconfigure using the newly built dependency libraries
@@ -196,7 +189,7 @@ $ cmake --build . --config Release
 $ PATH=`pwd`/build-stage/bin:$PATH
 
 # For Windows Powershell:
-# $env:PATH="$(Get-Location)\build-stage\bin;C:\Windows\System32\Npcap;$env:PATH"
+# $env:PATH="$(Get-Location)\build-stage\bin;$env:PATH"
 
 # Run the vax simulator from inside the build:
 $ VAX/vax
@@ -254,7 +247,7 @@ $ cd cmake-ninja
 $ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 
 # First time around, d/l and build dependency libraries, if they're
-# not found (usually the case on Windows, YMMV on *nix):
+# not found (usually the case on Windows, YMMV on Unix):
 $ cmake --build . --config Release
 
 # Second time around: Reconfigure using the newly built dependency libraries
@@ -433,7 +426,7 @@ add_simulator(3b2
 ```
 
 - `add_simulator`'s first argument is the simulator's executable name: `3b2`.
-  This generates an executable named `3b2` on *nix platforms or `3b2.exe` on
+  This generates an executable named `3b2` on Unix platforms or `3b2.exe` on
   Windows platforms.
   
 - Argument list keywords: `SOURCES`, `INCLUDES`, `DEFINES`
