@@ -57,6 +57,16 @@ if [ $? -ne 4 ] ; then
     exit 1
 fi
 
+## This script also needs GNU coreutils
+realpath=$(which realpath) || {
+    echo "${scriptName}: Could not find 'realpath'. Please install and re-execute this script."
+    echo "${scriptName}: 'realpath' is a component of the GNU coreutils collection."
+}
+dirname=$(which dirname) || {
+    echo "${scriptName}: Could not find 'dirname'. Please install and re-execute this script."
+    echo "${scriptName}: 'dirname' is a component of the GNU coreutils collection."
+}
+
 ## Check if CMake supports parallel
 cmake=$(which cmake) || {
     echo "${scriptName}: Could not find 'cmake'. Please install and re-execute this script."
@@ -170,9 +180,9 @@ while true; do
 done
 
 ## Determine the SIMH top-level source directory:
-simhTopDir=$(dirname $(realpath $0))
+simhTopDir=$(${dirname} $(${realpath} $0))
 while [ "x${simhTopDir}" != x -a ! -f "${simhTopDir}/CMakeLists.txt" ]; do
-  simhTopDir=$(dirname "${simhTopDir}")
+  simhTopDir=$(${dirname} "${simhTopDir}")
 done
 
 if [[ "x${simhTopDir}" = x ]]; then
@@ -180,7 +190,7 @@ if [[ "x${simhTopDir}" = x ]]; then
   echo "Did this really happen?"
   exit 1
 else
-  buildSubdir=$(realpath "${simhTopDir}/cmake/${buildSubdir}")
+  buildSubdir=$(${realpath} "${simhTopDir}/cmake/${buildSubdir}")
   echo "${scriptName}: SIMH top-evel directory: ${simhTopDir}"
   echo "${scriptName}: Build directory:         ${buildSubdir}"
 fi
