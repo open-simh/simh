@@ -302,26 +302,37 @@ if (WITH_NETWORK)
     set(network_runtime)
 
     if (PCAP_FOUND)
-        if (NOT WIN32)
-            set(network_runtime USE_NETWORK)
+# Building with the libraries is deprecated.
+#         if (NOT WIN32)
+#             set(network_runtime USE_NETWORK)
+# 
+#             target_link_libraries(simh_network INTERFACE "${PCAP_LIBRARIES}")
+# 
+#             ## HAVE_PCAP_COMPILE is set in dep-locate.
+#             if (HAVE_PCAP_COMPILE)
+#                 target_compile_definitions(simh_network INTERFACE BPF_CONST_STRING)
+#             endif (HAVE_PCAP_COMPILE)
+#         else (NOT WIN32)
+#             ## USE_SHARED for Windows.
+#             set(network_runtime USE_SHARED)
+#         endif (NOT WIN32)
 
-            target_link_libraries(simh_network INTERFACE "${PCAP_LIBRARIES}")
-
-            ## HAVE_PCAP_COMPILE is set in dep-locate.
-            if (HAVE_PCAP_COMPILE)
-                target_compile_definitions(simh_network INTERFACE BPF_CONST_STRING)
-            endif (HAVE_PCAP_COMPILE)
-        else (NOT WIN32)
-            ## USE_SHARED for Windows.
-            set(network_runtime USE_SHARED)
-        endif (NOT WIN32)
-
+        set(network_runtime USE_SHARED)
+        foreach(hdr "${PCAP_INCLUDE_DIRS}")
+          file(STRINGS ${hdr}/pcap/pcap.h hdrcontent REGEX "pcap_compile *\\(.*const")
+          # message("hdrcontent: ${hdrcontent}")
+          list(LENGTH hdrcontent have_bpf_const)
+          if (${have_bpf_const} GREATER 0)
+            message(STATUS "pcap_compile has const string: setting BPF_CONST_STRING")
+            list(APPEND network_runtime BPF_CONST_STRING)
+          endif()
+        endforeach()
         target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
         target_compile_definitions(simh_network INTERFACE HAVE_PCAP_NETWORK)
 
-        list (APPEND NETWORK_PKG_STATUS "PCAP headers")
+        list (APPEND NETWORK_PKG_STATUS "PCAP dynamic")
     else (PCAP_FOUND)
-        list(APPEND NETWORK_PKG_STATUS "PCAP headers (unpacked)")
+        list(APPEND NETWORK_PKG_STATUS "PCAP dynamic (unpacked)")
 
         message(STATUS "Downloading ${LIBPCAP_SOURCE_URL}")
         message(STATUS "Destination ${CMAKE_BINARY_DIR}/libpcap")
