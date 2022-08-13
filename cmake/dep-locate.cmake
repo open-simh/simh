@@ -38,20 +38,6 @@ endif (WITH_VIDEO)
 if (WITH_NETWORK)
     if (WITH_PCAP)
         find_package(PCAP)
-
-        if (NOT WIN32)
-            ## See if pcap_compile() is present:
-            set(saved_cmake_required_incs ${CMAKE_REQUIRED_INCLUDES})
-            set(saved_cmake_required_libs ${CMAKE_REQUIRED_LIBRARIES})
-
-            set(CMAKE_REQUIRED_INCLUDES ${PCAP_INCLUDE_DIRS})
-            set(CMAKE_REQUIRED_LIBRARIES ${PCAP_LIBRARIES})
-
-            check_symbol_exists(pcap_compile pcap.h HAVE_PCAP_COMPILE)
-
-            set(CMAKE_REQUIRED_INCLUDES ${saved_cmake_required_incs})
-            set(CMAKE_REQUIRED_LIBRARIES ${saved_cmake_required_libs})
-        endif (NOT WIN32)
     endif (WITH_PCAP)
 
     find_package(VDE)
