@@ -18,13 +18,6 @@ set(SIMH_VERSION "4.0.0")
 project(simh VERSION "${SIMH_VERSION}" LANGUAGES C CXX)
 
 include(GNUInstallDirs)
-include(CheckCSourceCompiles)
-include(CheckCCompilerFlag)
-include(CheckIncludeFile)
-include(CheckSymbolExists)
-include(ExternalProject)
-find_package(PkgConfig)
-find_package(PackageHandleStandardArgs)
 
 ## Provide a default CMAKE_BUILD_TYPE if CMAKE_CONFIGURATION_TYPES is empty or not defined.
 if (NOT CMAKE_CONFIGURATION_TYPES)
@@ -102,6 +95,27 @@ list(APPEND SIMH_PREFIX_PATH_LIST ${SIMH_DEP_TOPDIR})
 list(APPEND CMAKE_PREFIX_PATH ${SIMH_PREFIX_PATH_LIST})
 
 ##-- Options --##
+if (NOT DEFINED NO_DEP_BUILD)
+    ## For Windows, always build dependencies
+    if (WIN32)
+        message(STATUS "Setting NO_DEP_BUILD to FALSE, will BUILD missing dependencies")
+        set(NO_DEP_BUILD_VAL FALSE)
+    else ()
+        message(STATUS "Setting NO_DEP_BUILD to TRUE, will NOT BUILD missing dependencies")
+        set(NO_DEP_BUILD_VAL TRUE)
+    endif ()
+else ()
+    set(NO_DEP_VAL ${NO_DEP_BUILD})
+    if (NO_DEP_BUILD_VAL)
+        messge(STATUS "Missing dependencies WILL NOT BE BUILT.")
+    else ()
+        messge(STATUS "Missing dependencies WILL BE BUILT.")
+    endif ()
+endif ()
+
+option(NO_DEP_BUILD
+       "Enable (=1)/disable (=0) Dependency library builds (def: enabled)"
+       ${NO_DEP_BUILD_VAL})
 option(WITH_ASYNC
        "Enable (=1)/disable (=0) Asynchronous I/O and threading."
        TRUE)
@@ -235,6 +249,16 @@ set(VIDEO_PKG_STATUS)
 set(NETWORK_PKG_STATUS)
 set(NCURSES_PKG_STATUS "unknown")
 
+## "Standard" includes
+include(CheckCSourceCompiles)
+include(CheckCCompilerFlag)
+include(CheckIncludeFile)
+include(CheckSymbolExists)
+include(ExternalProject)
+find_package(PkgConfig)
+find_package(PackageHandleStandardArgs)
+
+# SIMH local:
 include(git-commit-id)
 include(build_dep_matrix)
 include(os-features)
@@ -253,16 +277,16 @@ else (NETWORK_PKG_STATUS)
     set(NETWORK_PKG_STATUS "unknown")
 endif (NETWORK_PKG_STATUS)
 
-get_target_property(OS_FEATURE_DEFS os_features INTERFACE_COMPILE_DEFINITIONS)
-string(REPLACE ";" ", " OS_FEATURE_DEFS "${OS_FEATURE_DEFS}")
-if (NOT OS_FEATURE_DEFS)
-  set(OS_FEATURE_DEFS "no operating system-specific features")
-endif (NOT OS_FEATURE_DEFS)
-get_target_property(OS_FEATURE_LIBS os_features INTERFACE_LINK_LIBRARIES)
-string(REPLACE ";" ", " OS_FEATURE_LIBS "${OS_FEATURE_LIBS}")
-if (NOT OS_FEATURE_LIBS)
-  set(OS_FEATURE_LIBS "no operating system-specific libraries")
-endif (NOT OS_FEATURE_LIBS)
+# get_target_property(OS_FEATURE_DEFS os_features INTERFACE_COMPILE_DEFINITIONS)
+# string(REPLACE ";" ", " OS_FEATURE_DEFS "${OS_FEATURE_DEFS}")
+# if (NOT OS_FEATURE_DEFS)
+#   set(OS_FEATURE_DEFS "no operating system-specific features")
+# endif (NOT OS_FEATURE_DEFS)
+# get_target_property(OS_FEATURE_LIBS os_features INTERFACE_LINK_LIBRARIES)
+# string(REPLACE ";" ", " OS_FEATURE_LIBS "${OS_FEATURE_LIBS}")
+# if (NOT OS_FEATURE_LIBS)
+#   set(OS_FEATURE_LIBS "no operating system-specific libraries")
+# endif (NOT OS_FEATURE_LIBS)
 
 set(CPPCHECK_STATUS "disabled.")
 
@@ -300,8 +324,29 @@ message(STATUS "  Perl-Compatible RegExps........... ${PCRE_PKG_STATUS}")
 message(STATUS "  PNG, Freetype, SDL2, SDL2_ttf .... ${VIDEO_PKG_STATUS}")
 message(STATUS "  Network support .................. ${NETWORK_PKG_STATUS}")
 message(STATUS "  ncurses .......................... ${NCURSES_PKG_STATUS}")
-message(STATUS "  OS Feature definitions ........... ${OS_FEATURE_DEFS}")
-message(STATUS "  OS Feature libraries ............. ${OS_FEATURE_LIBS}")
+
+get_target_property(OS_FEATURE_DEFS os_features INTERFACE_COMPILE_DEFINITIONS)
+list(LENGTH OS_FEATURE_DEFS len_os_features)
+if (OS_FEATURE_DEFS)
+    message(STATUS "  OS Feature definitions ...........")
+    foreach (feature ${OS_FEATURE_DEFS})
+        message(STATUS "    ${feature}")
+    endforeach()
+else ()
+    message(STATUS "  OS Feature definitions ........... None defined.")
+endif ()
+
+get_target_property(OS_FEATURE_LIBS os_features INTERFACE_LINK_LIBRARIES)
+list(LENGTH OS_FEATURE_LIBS len_os_features)
+if (OS_FEATURE_LIBS)
+    message(STATUS "  OS Feature libraries .............")
+    foreach (feature ${OS_FEATURE_LIBS})
+        message(STATUS "    ${feature}")
+    endforeach()
+else ()
+    message(STATUS "  OS Feature libraries ............. None required.")
+endif ()
+
 message(STATUS "")
 message(STATUS "Build options:")
 message(STATUS "  Build with video/graphics support. ${BUILD_WITH_VIDEO}")
@@ -316,6 +361,20 @@ message(STATUS "  'cppcheck' ....................... ${CPPCHECK_STATUS}")
 message(STATUS "")
 
 unset(ROM_STATUS)
+
+if (NOT_DEP_BUILD AND SIMH_BUILD_DEPS)
+    ## Don't build dependencies. Just wail about them.
+    message("")
+    message("Missing SIMH dependencies:")
+    foreach (dep ${SIMH_BUILD_DEPS})
+        message(STATUS "    ${dep}")
+    endforeach()
+    message("")
+    message("Please install the above dependencies via your platform package management or")
+    message("software installation system and reconfigure.")
+    message("")
+    message(FATAL_ERROR "Missing dependencies, cannot continue.")
+endif ()
 
 if (NOT DEFINED DO_DEPENDENCY_BUILD OR SIMH_BUILD_DEPS)
     if (DEFINED DO_DEPENDENCY_BUILD AND NOT DO_DEPENDENCY_BUILD AND SIMH_BUILD_DEPS)
@@ -342,10 +401,8 @@ if (NOT DO_DEPENDENCY_BUILD)
     include(FindPythonInterp)
     if (PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR GREATER_EQUAL 3)
         add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake
-                                  ## ${CMAKE_SOURCE_DIR}/cmake/simh_makefile.cmake
             COMMAND ${PYTHON_EXECUTABLE} "-m" generate
             MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/makefile
-            ## COMMENT "Updating cmake/simh-simulators.cmake and cmake/simh_makefile.cmake"
             COMMENT "Updating cmake/simh-simulators.cmake"
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
             COMMAND_EXPAND_LISTS)
@@ -407,7 +464,6 @@ else (NOT DO_DEPENDENCY_BUILD)
             ${CMAKE_CURRENT_BINARY_DIR}
         USES_TERMINAL_CONFIGURE TRUE
         USES_TERMINAL_BUILD     TRUE
-        ${USE_DOWNLOAD_EXTRACT_TIMESTAMP}
     )
 
     ## Ensure that the next build rechecks the dependency
