@@ -12,8 +12,7 @@
 ## build environment, build dependency libraries and then reconfigure and build
 ## the simulators.
 ##
-## This script produces a "Batteries Included" set of simulators, which implies that
-## Npcap is installed.
+## This script produces a "Batteries Included" set of simulators.
 ##
 ## Author: B. Scott Michel
 ## "scooter me fecit"
@@ -236,25 +235,6 @@ if (!$testOnly)
 "@
             exit 1
         }
-    }
-
-    if (!$nonetwork -and !(Test-Path -Path "C:\Windows\System32\Npcap"))
-    {
-        ## Note: Windows does redirection under the covers to make the 32-bit
-        ## version of Npcap appear in the C:\Windows\System32 directory. But
-        ## it should be sufficient to detect the 64-bit runtime because both
-        ## get installed.
-        @"
-    !! ${scriptName} error:
-
-    Did not find the Npcap packet capture runtime. Please install it for simulator
-    network support:
-
-        https://nmap.org/npcap/
-
-    Or invoke this script with the "-nonetwork" flag to disable networking support.
-
-"@
     }
 }
 
