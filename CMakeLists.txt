@@ -109,7 +109,7 @@ else ()
     if (NO_DEP_BUILD_VAL)
         messge(STATUS "Missing dependencies WILL NOT BE BUILT.")
     else ()
-        messge(STATUS "Missing dependencies WILL BE BUILT.")
+        message(STATUS "Missing dependencies WILL BE BUILT.")
     endif ()
 endif ()
 
