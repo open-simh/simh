@@ -150,6 +150,10 @@ extern int sim_vax_snprintf(char *buf, size_t buf_size, const char *fmt, ...);
 #if defined(HAVE_PCRE_H)
 #include <pcre.h>
 #define USE_REGEX 1
+#elif defined(HAVE_PCRE2_H)
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
+#define USE_REGEX 1
 #endif
 
 #if (defined (__MWERKS__) && defined (macintosh)) || defined(__DECC)
@@ -814,6 +818,18 @@ struct BRKTYPTAB {
     const char *desc;                                   /* description */
     };
 #define BRKTYPE(typ,descrip) {SWMASK(typ), descrip}
+
+/* sim_regex_t: Type alias for the appropriate PCRE package to reduce
+   conditional compiles in this header. Unfortunately, that's not the
+   case when the actual PCRE/PCRE2 functions are called in scp.c. */
+
+#if defined(HAVE_PCRE_H)
+typedef pcre sim_regex_t;
+typedef uint32 sim_regex_offs;
+#elif defined(HAVE_PCRE2_H)
+typedef pcre2_code sim_regex_t;
+typedef PCRE2_SIZE sim_regex_offs;
+#endif
 
 /* Expect rule */
 
