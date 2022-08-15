@@ -555,14 +555,28 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       LIBEXT = $(LIBEXTSAVE)
     endif
   endif
+  # Find the PCRE2 library, prefer it over older PCRE
+  ifneq (,$(call find_include,pcre2))
+    ifneq (,$(call find_lib,pcre2-8))
+      OS_CCDEFS += -DHAVE_PCRE2_H
+      OS_LDFLAGS += -lpcre2-8
+      $(info using libpcre2: $(call find_lib,pcre2) $(call find_include,pcre2))
+      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre2))
+        OS_LDFLAGS += -L$(dir $(call find_lib,pcre2))
+      endif
+      FOUND_PCRE2=yes
+    endif
+  endif
   # Find PCRE RegEx library.
-  ifneq (,$(call find_include,pcre))
-    ifneq (,$(call find_lib,pcre))
-      OS_CCDEFS += -DHAVE_PCRE_H
-      OS_LDFLAGS += -lpcre
-      $(info using libpcre: $(call find_lib,pcre) $(call find_include,pcre))
-      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre))
-        OS_LDFLAGS += -L$(dir $(call find_lib,pcre))
+  ifndef FOUND_PCRE2
+    ifneq (,$(call find_include,pcre))
+      ifneq (,$(call find_lib,pcre))
+        OS_CCDEFS += -DHAVE_PCRE_H
+        OS_LDFLAGS += -lpcre
+        $(info using libpcre: $(call find_lib,pcre) $(call find_include,pcre))
+        ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre))
+          OS_LDFLAGS += -L$(dir $(call find_lib,pcre))
+        endif
       endif
     endif
   endif
