@@ -560,9 +560,9 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
     ifneq (,$(call find_lib,pcre2-8))
       OS_CCDEFS += -DHAVE_PCRE2_H
       OS_LDFLAGS += -lpcre2-8
-      $(info using libpcre2: $(call find_lib,pcre2) $(call find_include,pcre2))
-      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre2))
-        OS_LDFLAGS += -L$(dir $(call find_lib,pcre2))
+      $(info using libpcre2-8: $(call find_lib,pcre2) $(call find_include,pcre2))
+      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre2-8))
+        OS_LDFLAGS += -L$(dir $(call find_lib,pcre2-8))
       endif
       FOUND_PCRE2=yes
     endif

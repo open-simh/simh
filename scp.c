@@ -2911,6 +2911,7 @@ setenv ("SIM_REGEX_TYPE", "PCRE", 1);                   /* Publish regex type */
 #elif defined(HAVE_PCRE2_H)
 setenv ("SIM_REGEX_TYPE", "PCRE2", 1);                  /* Publish regex type */
 #endif
+
 sim_argv = argv;
 
 if (sim_switches & SWMASK ('T'))                        /* Command Line -T switch */
