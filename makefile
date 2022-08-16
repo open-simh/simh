@@ -173,10 +173,10 @@ ifneq ($(findstring Windows,${OS}),)
     # Tests don't run under MinGW
     TESTS := 0
   else # Msys or cygwin
-    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-      $(info *** This makefile can not be used with the Msys bash shell)
-      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
-    endif
+    # ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+    #   $(info *** This makefile can not be used with the Msys bash shell)
+    #   $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+    # endif
   endif
 endif
 
@@ -555,14 +555,29 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       LIBEXT = $(LIBEXTSAVE)
     endif
   endif
+  # Find the PCRE2 library, prefer it over older PCRE
+  ifneq (,$(call find_include,pcre2))
+    PCRE2_LIB=pcre2-8
+    ifneq (,$(call find_lib,${PCRE2_LIB}))
+      OS_CCDEFS += -DHAVE_PCRE2_H
+      OS_LDFLAGS += -l${PCRE2_LIB}
+      $(info using libpcre2-8: $(call find_lib,${PCRE2_LIB}) $(call find_include,pcre2))
+      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,${PCRE2_LIB}))
+        OS_LDFLAGS += -L$(dir $(call find_lib,${{PCRE2_LIB}}))
+      endif
+      FOUND_PCRE2=yes
+    endif
+  endif
   # Find PCRE RegEx library.
-  ifneq (,$(call find_include,pcre))
-    ifneq (,$(call find_lib,pcre))
-      OS_CCDEFS += -DHAVE_PCRE_H
-      OS_LDFLAGS += -lpcre
-      $(info using libpcre: $(call find_lib,pcre) $(call find_include,pcre))
-      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre))
-        OS_LDFLAGS += -L$(dir $(call find_lib,pcre))
+  ifndef FOUND_PCRE2
+    ifneq (,$(call find_include,pcre))
+      ifneq (,$(call find_lib,pcre))
+        OS_CCDEFS += -DHAVE_PCRE_H
+        OS_LDFLAGS += -lpcre
+        $(info using libpcre: $(call find_lib,pcre) $(call find_include,pcre))
+        ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre))
+          OS_LDFLAGS += -L$(dir $(call find_lib,pcre))
+        endif
       endif
     endif
   endif
