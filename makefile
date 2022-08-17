@@ -173,10 +173,10 @@ ifneq ($(findstring Windows,${OS}),)
     # Tests don't run under MinGW
     TESTS := 0
   else # Msys or cygwin
-    # ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-    #   $(info *** This makefile can not be used with the Msys bash shell)
-    #   $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
-    # endif
+    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+      $(info *** This makefile can not be used with the Msys bash shell)
+      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+    endif
   endif
 endif
 
