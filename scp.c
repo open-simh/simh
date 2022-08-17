@@ -13325,11 +13325,6 @@ for (i=0; i < exp->size; i++) {
 #if defined (USE_REGEX)
 #if defined(HAVE_PCRE_H)
         int *ovector = NULL;
-#elif defined(HAVE_PCRE2_H)
-        size_t *ovector = NULL;
-        pcre2_match_data *match_data = NULL;
-#endif
-        int rc;
         char *cbuf = (char *)exp->buf;
 #elif defined(HAVE_PCRE2_H)
         size_t *ovector = NULL;
