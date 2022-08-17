@@ -22,21 +22,33 @@ class VAXSimulator(BasicVAXSimulator):
 
     def write_simulator(self, stream, indent, individual=False, test_label='VAX'):
         super().write_simulator(stream, indent, individual, test_label)
-        stream.write('\n')
-        stream.write('\n'.join([
-            'set(vax_symlink_dir_src ${CMAKE_CURRENT_BINARY_DIR})',
-            'if (CMAKE_CONFIGURATION_TYPES)',
-            '    string(APPEND vax_symlink_dir_src "/$<CONFIG>")',
-            'endif (CMAKE_CONFIGURATION_TYPES)',
-            ' '.join(['add_custom_command(TARGET vax POST_BUILD',
-                      ' '.join(['COMMAND "${CMAKE_COMMAND}" -E copy_if_different',
-                                'vax${CMAKE_EXECUTABLE_SUFFIX}',
-                                'microvax3900${CMAKE_EXECUTABLE_SUFFIX}']),
-                                'COMMENT '
-                                  '"Copy vax${CMAKE_EXECUTABLE_SUFFIX} to '
-                                  'microvax3900${CMAKE_EXECUTABLE_SUFFIX}"',
-                                'WORKING_DIRECTORY ${vax_symlink_dir_src})']),
-                      'install(FILES ${vax_symlink_dir_src}/microvax3900${CMAKE_EXECUTABLE_SUFFIX}',
-                      '        DESTINATION ${CMAKE_INSTALL_BINDIR})']))
+        stream.write('''
+set(vax_symlink_dir_src ${CMAKE_CURRENT_BINARY_DIR})
+if (CMAKE_CONFIGURATION_TYPES)
+    string(APPEND vax_symlink_dir_src "/$<CONFIG>")
+endif (CMAKE_CONFIGURATION_TYPES)
+
+if (NOT WIN32)
+    add_custom_command(TARGET vax POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E create_symlink vax${CMAKE_EXECUTABLE_SUFFIX} microvax3900${CMAKE_EXECUTABLE_SUFFIX}
+        COMMENT "Symlink vax${CMAKE_EXECUTABLE_SUFFIX} to microvax3900${CMAKE_EXECUTABLE_SUFFIX}"
+        WORKING_DIRECTORY ${vax_symlink_dir_src})
+
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink \
+        vax${CMAKE_EXECUTABLE_SUFFIX} \
+        microvax3900${CMAKE_EXECUTABLE_SUFFIX})"
+    )
+else ()
+    add_custom_command(TARGET vax POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different vax${CMAKE_EXECUTABLE_SUFFIX} microvax3900${CMAKE_EXECUTABLE_SUFFIX}
+        COMMENT "Copy vax${CMAKE_EXECUTABLE_SUFFIX} to microvax3900${CMAKE_EXECUTABLE_SUFFIX}"
+        WORKING_DIRECTORY ${vax_symlink_dir_src})
+
+    install(FILES ${vax_symlink_dir_src}/microvax3900${CMAKE_EXECUTABLE_SUFFIX}
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif ()
+
+''')
         stream.write('\n')
 

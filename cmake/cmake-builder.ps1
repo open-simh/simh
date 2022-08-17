@@ -165,46 +165,6 @@ was installed.
 
 if (!$testOnly)
 {
-    ## bison/winbison and flex/winflex: Just make sure they exist.
-    if (!$nonetwork) {
-      $haveBison = $false
-      $haveFlex  = $false
-      foreach ($i in @("bison", "winbison")) {
-        if ($(Get-Command $i -ErrorAction Ignore).Path.Length -gt 0) { $haveBison = $true }
-      }
-
-      foreach ($i in @("flex",  "winflex")) {
-        if ($(Get-Command $i -ErrorAction Ignore).Path.Length -gt 0) { $haveFlex  = $true }
-      }
-
-      if (!$haveBison)
-      {
-          @"
-      !! ${scriptName} error:
-
-      Did not find 'bison' or 'winbison'. Please ensure you have installed bison or
-      winbison and that your PATH environment variables references the directory in
-      which it was installed.
-"@
-      }
-
-      if (!$haveFlex)
-      {
-          @"
-      !! ${scriptName} error:
-
-      Did not find 'flex' or 'winflex'. Please ensure you have installed flex or
-      winflex and that your PATH environment variables references the directory in
-      which it was installed.
-"@
-      }
-
-      if (!$haveBison -or !$haveFlex)
-      {
-        exit 1
-      }
-    }
-
     ## Check for GCC and mingw32-make if user wants the mingw flavor build.
     if ($flavor -eq "mingw" -or $flavor -eq "ninja")
     {

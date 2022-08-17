@@ -397,9 +397,27 @@ set(vax_symlink_dir_src ${CMAKE_CURRENT_BINARY_DIR})
 if (CMAKE_CONFIGURATION_TYPES)
     string(APPEND vax_symlink_dir_src "/$<CONFIG>")
 endif (CMAKE_CONFIGURATION_TYPES)
-add_custom_command(TARGET vax POST_BUILD COMMAND "${CMAKE_COMMAND}" -E copy_if_different vax${CMAKE_EXECUTABLE_SUFFIX} microvax3900${CMAKE_EXECUTABLE_SUFFIX} COMMENT "Copy vax${CMAKE_EXECUTABLE_SUFFIX} to microvax3900${CMAKE_EXECUTABLE_SUFFIX}" WORKING_DIRECTORY ${vax_symlink_dir_src})
-install(FILES ${vax_symlink_dir_src}/microvax3900${CMAKE_EXECUTABLE_SUFFIX}
-        DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+if (NOT WIN32)
+    add_custom_command(TARGET vax POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E create_symlink vax${CMAKE_EXECUTABLE_SUFFIX} microvax3900${CMAKE_EXECUTABLE_SUFFIX}
+        COMMENT "Symlink vax${CMAKE_EXECUTABLE_SUFFIX} to microvax3900${CMAKE_EXECUTABLE_SUFFIX}"
+        WORKING_DIRECTORY ${vax_symlink_dir_src})
+
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink         vax${CMAKE_EXECUTABLE_SUFFIX}         microvax3900${CMAKE_EXECUTABLE_SUFFIX})"
+    )
+else ()
+    add_custom_command(TARGET vax POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different vax${CMAKE_EXECUTABLE_SUFFIX} microvax3900${CMAKE_EXECUTABLE_SUFFIX}
+        COMMENT "Copy vax${CMAKE_EXECUTABLE_SUFFIX} to microvax3900${CMAKE_EXECUTABLE_SUFFIX}"
+        WORKING_DIRECTORY ${vax_symlink_dir_src})
+
+    install(FILES ${vax_symlink_dir_src}/microvax3900${CMAKE_EXECUTABLE_SUFFIX}
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif ()
+
+
 
 add_simulator(vax730
     SOURCES

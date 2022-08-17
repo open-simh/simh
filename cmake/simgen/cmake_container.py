@@ -397,6 +397,7 @@ class CMakeBuildSystem:
                 stream2.write('\n## ' + '-' * 40 + '\n\n')
                 stmts = [ 'add_subdirectory(' + dir + ')' for dir in dirnames ]
                 stream2.write('\n'.join(stmts))
+                stream2.write('\n')
 
     ## Representation when printed
     def __repr__(self):
