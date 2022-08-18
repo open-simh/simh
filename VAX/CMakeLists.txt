@@ -404,7 +404,7 @@ if (NOT WIN32)
         COMMENT "Symlink vax${CMAKE_EXECUTABLE_SUFFIX} to microvax3900${CMAKE_EXECUTABLE_SUFFIX}"
         WORKING_DIRECTORY ${vax_symlink_dir_src})
 
-    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink         vax${CMAKE_EXECUTABLE_SUFFIX}         microvax3900${CMAKE_EXECUTABLE_SUFFIX})"
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink vax${CMAKE_EXECUTABLE_SUFFIX} microvax3900${CMAKE_EXECUTABLE_SUFFIX}         WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}\")"
     )
 else ()
     add_custom_command(TARGET vax POST_BUILD
@@ -413,7 +413,7 @@ else ()
         WORKING_DIRECTORY ${vax_symlink_dir_src})
 
     install(FILES ${vax_symlink_dir_src}/microvax3900${CMAKE_EXECUTABLE_SUFFIX}
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}"
     )
 endif ()
 
