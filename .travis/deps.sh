@@ -5,6 +5,7 @@ install_osx() {
     brew install sdl2
     brew install sdl2_ttf
     brew install vde
+    brew install cmake
 }
 
 install_linux() {
@@ -12,6 +13,7 @@ install_linux() {
     sudo apt-get install -ym libegl1-mesa-dev libgles2-mesa-dev
     sudo apt-get install -ym libsdl2-dev libpcap-dev libvdeplug-dev
     sudo apt-get install -ym libsdl2-ttf-dev
+    sudo apt-get install -ym cmake cmake-data
 }
 
 install_"$1"

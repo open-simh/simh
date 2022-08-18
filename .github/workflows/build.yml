@@ -33,3 +33,5 @@ jobs:
         env:
           SIM: ${{matrix.simulators}}
         run: make $SIM
+      - name: CMake build
+        run: cmake/cmake-builder.sh --parallel
