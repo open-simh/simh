@@ -33,5 +33,6 @@ jobs:
         env:
           SIM: ${{matrix.simulators}}
         run: make $SIM
-      - name: CMake build
-        run: cmake/cmake-builder.sh --parallel
+      ## Not until I figure out where getopt is installed by brew.
+      ## - name: CMake build
+      ##   run: cmake/cmake-builder.sh --parallel
