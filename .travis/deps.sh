@@ -5,7 +5,7 @@ install_osx() {
     brew install sdl2
     brew install sdl2_ttf
     brew install vde
-    brew install cmake
+    brew install cmake gnu-getopt
 }
 
 install_linux() {
