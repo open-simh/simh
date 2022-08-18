@@ -50,10 +50,25 @@ noinstall=
 installOnly=
 allInOne=
 
-## This script really needs GNU getopt. Really.
-getopt -T > /dev/null
-if [ $? -ne 4 ] ; then
+## This script really needs GNU getopt. Really. And try reallly hard to
+## find the version that supports "--long-opt"
+##
+## MacOS workaround: MacOS has an older getopt installed in /usr/bin, brew
+## has an updated version that installs in a custom place.
+getopt_prog=
+[[ -d /usr/local/opt/gnu-getopt/bin ]] && PATH=/usr/local/opt/gnu-getopt/bin:$PATH
+IFS_SAVE="${IFS}"; IFS=":"; for p in ${PATH}; do
+    "${p}/getopt" -T > /dev/null 2>&1 
+    if [[ $? -eq 4 ]]; then
+        getopt_prog="${p}/getopt"
+        break
+    fi
+done
+IFS="${IFS_SAVE}"
+
+if [[ "x${getopt_prog}" = "x" ]]; then
     echo "${scriptName}: GNU getopt needed for this script to function properly."
+    echo "${scriptName}: Specifically, a 'getopt' that supports the '-T' flag (enhanced getopt)"
     exit 1
 fi
 
@@ -91,7 +106,7 @@ canTestParallel=no
 longopts=clean,help,flavor:,config:,nonetwork,notest,parallel,generate,testonly,regenerate
 longopts=${longopts},noinstall,installonly,allInOne
 
-ARGS=$(getopt --longoptions $longopts --options xhf:cpg -- "$@")
+ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:cpg -- "$@")
 if [ $? -ne 0 ] ; then
     showHelp "${scriptName}: Usage error (use -h for help.)"
 fi

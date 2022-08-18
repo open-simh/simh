@@ -7,7 +7,25 @@ defaults:
     shell: bash
 
 jobs:
-  build:
+  cmake:
+    name: CMake build via cmake-builder.sh script
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-10.15, ubuntu-18.04, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        if: ${{runner.os == 'macOS'}}
+        run: sh -ex .travis/deps.sh osx
+      - name: Install dependencies
+        if: ${{runner.os == 'Linux'}}
+        run: sh -ex .travis/deps.sh linux
+      - name: cmake-builder.sh
+        run: |
+          cmake/cmake-builder.sh --clean --parallel
+  
+  makefile:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -29,10 +47,7 @@ jobs:
       - name: Install dependencies
         if: ${{runner.os == 'Linux'}}
         run: sh -ex .travis/deps.sh linux
-      - name: Build
+      - name: makefile build
         env:
           SIM: ${{matrix.simulators}}
         run: make $SIM
-      ## Not until I figure out where getopt is installed by brew.
-      ## - name: CMake build
-      ##   run: cmake/cmake-builder.sh --parallel
