@@ -21,7 +21,9 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(CMAKE_C_LIBRARY_ARCHITECTURE "x64")
         set(CMAKE_LIBRARY_ARCHITECTURE "x64")
     elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-        foreach (arch "x86_64-linux-gnu" "aarch64-linux-gnu")
+        ## Linux has architecture-specific subdirectories where CMake needs to
+        ## search for headers. Currently, we'll look for x64 and ARM.
+        foreach (arch "x86_64-linux-gnu" "aarch64-linux-gnu" "arm-linux-gnueabihf")
             if (EXISTS "/usr/lib/${arch}")
                 message(STATUS "CMAKE_LIBRARY_ARCHITECTURE set to ${arch}")
                 set(CMAKE_C_LIBRARY_ARCHITECTURE "${arch}")
@@ -76,11 +78,4 @@ if (CMAKE_HOST_APPLE)
         unset(hb_libs)
         unset(hb_path)
     endif()
-
-#    if (POLICY CMP0042)
-#        ## Embed runtime path
-#        cmake_policy(SET CMP0042 NEW)
-#    endif ()
-#
-#    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
