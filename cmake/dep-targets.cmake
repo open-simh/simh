@@ -26,6 +26,7 @@ set(LIBPCAP_SOURCE_URL  "https://github.com/the-tcpdump-group/libpcap/archive/re
 
 ## ncurses library:
 if (TARGET PkgConfig::CURSES)
+    target_compile_definitions(simh_ncurses INTERFACE HAVE_NCURSES)
     target_link_libraries(simh_ncurses INTERFACE PkgConfig::CURSES)
     set(NCURSES_PKG_STATUS "pkg-config ncurses")
 elseif (CURSES_HAVE_NCURSES_H)
@@ -95,7 +96,7 @@ IF (WITH_REGEX)
     ## (Prefer PCRE2 over PCRE (unless PREFER_PCRE is set)
     IF (TARGET PkgConfig::PCRE)
         target_compile_definitions(regexp_lib INTERFACE $<TARGET_PROPERTY:PkgConfig::PCRE,INTERFACE_COMPILE_DEFINITIONS>)
-        target_include_directories(regexp_lib INTERFACE $<TARGET_PROPERTY:PkgConfig::PCRE,INTERFACE_COMPILE_DEFINITIONS>)
+        target_include_directories(regexp_lib INTERFACE $<TARGET_PROPERTY:PkgConfig::PCRE,INTERFACE_INCLUDE_DIRECTORIES>)
         target_link_libraries(regexp_lib INTERFACE PkgConfig::PCRE)
         if (PREFER_PCRE)
             target_compile_definitions(regexp_lib INTERFACE HAVE_PCRE_H PCRE_STATIC)
