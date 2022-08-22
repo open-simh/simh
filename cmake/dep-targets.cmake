@@ -442,10 +442,10 @@ if (WITH_NETWORK)
         else ()
             target_include_directories(simh_network INTERFACE "${VDEPLUG_INCLUDE_DIRS}")
             target_link_libraries(simh_network INTERFACE "${VDEPLUG_LIBRARY}")
-
-            target_compile_definitions(simh_network INTERFACE HAVE_VDE_NETWORK)
             list(APPEND NETWORK_PKG_STATUS "detected VDE")
         endif ()
+
+        target_compile_definitions(simh_network INTERFACE HAVE_VDE_NETWORK)
     endif (VDE_FOUND)
 
     if (WITH_TAP)
