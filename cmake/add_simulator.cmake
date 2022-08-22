@@ -64,6 +64,24 @@ function(build_simcore _targ)
         target_link_libraries(${_targ} PUBLIC simh_video)
     endif (WITH_VIDEO AND SIMH_VIDEO)
 
+    target_compile_definitions(${_targ} PUBLIC
+        $<TARGET_PROPERTY:simh_network,INTERFACE_COMPILE_DEFINITIONS>
+        $<TARGET_PROPERTY:simh_ncurses,INTERFACE_COMPILE_DEFINITIONS>
+        $<TARGET_PROPERTY:regexp_lib,INTERFACE_COMPILE_DEFINITIONS>
+        $<TARGET_PROPERTY:zlib_lib,INTERFACE_COMPILE_DEFINITIONS>
+        $<TARGET_PROPERTY:os_features,INTERFACE_COMPILE_DEFINITIONS>
+        $<TARGET_PROPERTY:thread_lib,INTERFACE_COMPILE_DEFINITIONS>
+    )
+    
+    target_include_directories(${_targ} PUBLIC
+        $<TARGET_PROPERTY:simh_network,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:simh_ncurses,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:regexp_lib,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:zlib_lib,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:os_features,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:thread_lib,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+
     target_link_libraries(${_targ} PUBLIC
         simh_network
         simh_ncurses
@@ -74,7 +92,7 @@ function(build_simcore _targ)
     )
 
     if (WIN32)
-	target_link_libraries(simh_network INTERFACE ws2_32 wsock32)
+	    target_link_libraries(simh_network INTERFACE ws2_32 wsock32)
     endif (WIN32)
 
     # Define SIM_BUILD_TOOL for the simulator'

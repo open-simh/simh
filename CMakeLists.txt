@@ -29,30 +29,13 @@ if (NOT CMAKE_CONFIGURATION_TYPES)
     endif (NOT CMAKE_BUILD_TYPE)
 endif ()
 
-# For 64-bit builds (and this is especially true for MSVC), set the library
-# architecture.
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    # For the WinPcap and Npcap SDKs, the Lib subdirectory of the top-level
-    # directory contains 32-bit libraries; the 64-bit libraries are in the
-    # Lib/x64 directory.
-    #
-    # The only way to *FORCE* CMake to look in the Lib/x64 directory
-    # without searching in the Lib directory first appears to be to set
-    # CMAKE_LIBRARY_ARCHITECTURE to "x64".
-    #
-    if (MSVC OR MINGW)
-        set(CMAKE_C_LIBRARY_ARCHITECTURE "x64")
-        set(CMAKE_LIBRARY_ARCHITECTURE "x64")
-    elseif (EXISTS /usr/lib/x86_64-linux-gnu)
-        # Linux-ism
-        set(CMAKE_C_LIBRARY_ARCHITECTURE "x86_64-linux-gnu")
-        set(CMAKE_LIBRARY_ARCHITECTURE "x86_64-linux-gnu")
-    elseif (EXISTS /usr/lib/aarch64-linux-gnu)
-        # Linux-ism
-        set(CMAKE_C_LIBRARY_ARCHITECTURE "aarch64-linux-gnu")
-        set(CMAKE_LIBRARY_ARCHITECTURE "aarch64-linux-gnu")
-    endif ()
-endif()
+# Places to look for CMake modules/includes
+set(SIMH_INCLUDE_PATH_LIST ${CMAKE_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_INCLUDE_PATH ${SIMH_INCLUDE_PATH_LIST})
+list(APPEND CMAKE_MODULE_PATH ${SIMH_INCLUDE_PATH_LIST})
+
+## Deal with platform quirkiness
+include(platform_quirks)
 
 # SIMH_SYSTEM_ID: Roughly analogous to the autoconf system triple. Used (almost exclusively)
 # as part of the depedencies' top-level directory name. 
@@ -83,11 +66,6 @@ set(SIMH_DEP_TOPDIR
 # it's needed by a script.
 set(SIMH_DEP_PATCHES ${CMAKE_SOURCE_DIR}/cmake/patches
         CACHE PATH "Top-level directory for external dependency patches")
-
-# Places to look for CMake modules/includes
-set(SIMH_INCLUDE_PATH_LIST ${CMAKE_SOURCE_DIR}/cmake)
-list(APPEND CMAKE_INCLUDE_PATH ${SIMH_INCLUDE_PATH_LIST})
-list(APPEND CMAKE_MODULE_PATH ${SIMH_INCLUDE_PATH_LIST})
 
 # Places where CMake should look for dependent package configuration fragments and artifacts:
 set(SIMH_PREFIX_PATH_LIST)
@@ -206,7 +184,7 @@ endif (WIN32)
 if (MSVC)
     list(APPEND EXTRA_CFLAGS "$<$<CONFIG:Debug>:/W3>" "$<$<CONFIG:Debug>:/w34744>" "$<$<CONFIG:Debug>:/w34777>")
     # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /verbose:lib")
-elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
     # include(fpintrin)
 
     # Turn on warnings about strict overflow/potential overflows.
@@ -215,19 +193,32 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
     # 'O3' optimization and strict overflow cause all kinds of simulator issues, especially inside
     # the VAX simulators. Reduce optimization and ensure strict overflow is turned off.
+    message(STATUS "Replacing '-O3' with '-O2'")
     string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
 
-    foreach (opt_flag "-finline-functions" "-fgcse-after-reload" "-fpredictive-commoning"
-                      "-fipa-cp-clone" "-fno-unsafe-loop-optimizations" "-fno-strict-overflow")
+    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        message(STATUS "Adding GNU-specific optimizations to CMAKE_C_FLAGS_RELEASE")
+        list(APPEND opt_flags "-finline-functions" "-fgcse-after-reload" "-fpredictive-commoning"
+                              "-fipa-cp-clone" "-fno-unsafe-loop-optimizations" "-fno-strict-overflow")
+    elseif (CMAKE_C_COMPILER_ID MATCHES ".*Clang")
+        message(STATUS "Adding Clang-specific optimizations to CMAKE_C_FLAGS_RELEASE")
+        list(APPEND opt_flags "-fno-strict-overflow")
+    endif()
+
+    foreach (opt_flag ${opt_flags})
+        message(STATUS "    ${opt_flag}")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
         string(APPEND CMAKE_C_FLAGS_RELEASE " ${opt_flag}")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         string(APPEND CMAKE_C_FLAGS_MINSIZEREL " ${opt_flag}")
     endforeach ()
+else ()
+    message(STATUS "Not touching CMAKE_C_FLAGS_RELEASE on ${CMAKE_C_COMPILER_ID}")
 endif (MSVC)
 
 ## CMake policy tweaks
+
 if (POLICY CMP0135)
     ## Until I figure out a way to add DOWNLOAD_EXTRACT_TIMESTAMP to the call to
     ## ExternalProject_Add cleanly..
@@ -339,10 +330,8 @@ endif ()
 get_target_property(OS_FEATURE_LIBS os_features INTERFACE_LINK_LIBRARIES)
 list(LENGTH OS_FEATURE_LIBS len_os_features)
 if (OS_FEATURE_LIBS)
-    message(STATUS "  OS Feature libraries .............")
-    foreach (feature ${OS_FEATURE_LIBS})
-        message(STATUS "    ${feature}")
-    endforeach()
+    string(REPLACE ";" ", " OS_FEATURE_LIBS "${OS_FEATURE_LIBS}")
+    message(STATUS "  OS Feature libraries ............. ${OS_FEATURE_LIBS}")
 else ()
     message(STATUS "  OS Feature libraries ............. None required.")
 endif ()

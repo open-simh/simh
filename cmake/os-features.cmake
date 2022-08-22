@@ -11,22 +11,6 @@ include(pthreads-dep)
 set(NEED_LIBRT FALSE)
 
 add_library(os_features INTERFACE)
-add_library(simh_ncurses INTERFACE)
-
-## ncurses library:
-set(CURSES_NEED_NCURSES TRUE)
-find_package(Curses)
-
-if (CURSES_HAVE_NCURSES_H)
-    target_compile_definitions(simh_ncurses INTERFACE HAVE_NCURSES)
-    target_include_directories(simh_ncurses INTERFACE "${CURSES_INCLUDE_DIRS}")
-    target_link_libraries(simh_ncurses INTERFACE "${CURSES_LIBRARIES}")
-    set(NCURSES_PKG_STATUS "installed ncurses")
-elseif (WIN32)
-    set(NCURSES_PKG_STATUS "not supported on Win32")
-else (CURSES_HAVE_NCURSES_H)
-    set(NCURSES_PKG_STATUS "not found")
-endif (CURSES_HAVE_NCURSES_H)
 
 if (WITH_ASYNC)
     ## semaphores and sem_timedwait support (OS feature):

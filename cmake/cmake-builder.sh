@@ -18,14 +18,16 @@ Options:
 --regenerate (-r) Regenerate the build environment from scratch.
 --parallel (-p)   Enable build parallelism (parallel builds)
 --nonetwork       Build simulators without network support
+--novideo         Build simulators without video support
 --notest          Do not execute 'ctest' test cases
 --noinstall       Do not install SIMH simulators.
 --testonly        Do not build, execute the 'ctest' test cases
 --installonly     Do not build, install the SIMH simulators
---allInOne        Use 'all-in-one' project structure (vs. individual)
 
 --flavor (-f)     Specifies the build flavor: 'unix' or 'ninja'
 --config (-c)     Specifies the build configuraiton: 'Release' or 'Debug'
+
+--verbose         Turn on verbose build output
 
 --help (-h)       Print this help.
 EOF
@@ -34,6 +36,7 @@ EOF
 }
 
 scriptName=$0
+generateArgs=
 buildArgs=
 buildPostArgs=""
 buildClean=
@@ -48,15 +51,17 @@ regenerateFlag=
 testOnly=
 noinstall=
 installOnly=
-allInOne=
+verboseMode=
 
 ## This script really needs GNU getopt. Really. And try reallly hard to
 ## find the version that supports "--long-opt"
 ##
 ## MacOS workaround: MacOS has an older getopt installed in /usr/bin, brew
 ## has an updated version that installs in a custom place.
+[[ -d /usr/local/opt/gnu-getopt/bin ]] && PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
+[[ -d /usr/local/opt/coreutils/libexec/gnubin ]] && PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+
 getopt_prog=
-[[ -d /usr/local/opt/gnu-getopt/bin ]] && PATH=/usr/local/opt/gnu-getopt/bin:$PATH
 IFS_SAVE="${IFS}"; IFS=":"; for p in ${PATH}; do
     "${p}/getopt" -T > /dev/null 2>&1 
     if [[ $? -eq 4 ]]; then
@@ -103,8 +108,8 @@ canTestParallel=no
 #     canTestParallel=yes
 # }
 
-longopts=clean,help,flavor:,config:,nonetwork,notest,parallel,generate,testonly,regenerate
-longopts=${longopts},noinstall,installonly,allInOne
+longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly,regenerate
+longopts=${longopts},noinstall,installonly,verbose
 
 ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:cpg -- "$@")
 if [ $? -ne 0 ] ; then
@@ -149,7 +154,11 @@ while true; do
             esac
             ;;
         --nonetwork)
-            buildArgs="${buildArgs} -DWITH_NETWORK:Bool=Off -DWITH_PCAP:Bool=Off -DWITH_SLIRP:Bool=Off"
+            generateArgs="${generateArgs} -DWITH_NETWORK:Bool=Off -DWITH_PCAP:Bool=Off -DWITH_SLIRP:Bool=Off"
+            shift
+            ;;
+        --novideo)
+            generateArgs="${generateArgs} -DWITH_VIDEO:Bool=Off"
             shift
             ;;
         --notest)
@@ -170,7 +179,7 @@ while true; do
             ;;
         -r | --regenerate)
             generateOnly=yes
-	    regenerateFlag=yes
+	        regenerateFlag=yes
             shift
             ;;
         --testonly)
@@ -181,9 +190,8 @@ while true; do
             installOnly=yes
             shift
             ;;
-        --allInOne)
-            allInOne=yes
-            buildClean=yes
+        --verbose)
+            verboseMode="--verbose"
             shift
             ;;
         --)
@@ -260,19 +268,19 @@ for ph in ${phases}; do
 	    rm -rf ${buildSubdir}/CMakeCache.txt ${buildSubdir}/CMakefiles
 	}
         ( cd "${buildSubdir}" \
-          && ${cmake} -G "${buildFlavor}" -DCMAKE_BUILD_TYPE="${buildConfig}" "${simhTopDir}" ) || {
+          && ${cmake} -G "${buildFlavor}" -DCMAKE_BUILD_TYPE="${buildConfig}" "${simhTopDir}" ${generateArgs}) || {
           echo "*** ${scriptName}: Errors detected during environment generation. Exiting."
           exit 1
         }
         ;;
     build)
-        ${cmake} --build "${buildSubdir}" ${buildArgs} -- ${buildPostArgs} || {
+        ${cmake} --build "${buildSubdir}" ${buildArgs} ${verboseMode} -- ${buildPostArgs} || {
             echo "*** ${scriptName}: Build errors detected. Exiting."
             exit 1
         }
         ;;
     test)
-        (cd "${buildSubdir}" && ${ctest} ${testArgs}) || {
+        (cd "${buildSubdir}" && ${ctest} ${testArgs} ${verboseMode}) || {
             echo "*** ${scriptName}: Errors detected during testing. Exiting."
             exit 1
         }
