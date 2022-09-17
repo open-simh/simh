@@ -3,18 +3,19 @@ AT&T 3B2 Simulator
 
 This module contains the source for two simulators:
 
-1. A simulator for the AT&T 3B2 Model 400 computer (Rev. 2)
-2. A simulator for the AT&T 3B2 Model 600 computer (Rev. 3)
+1. A simulator for the AT&T 3B2/400 computer (3b2 or 3B2.EXE)
+2. A simulator for the AT&T 3B2/700 computer (3b2-700 or 3B2-700.EXE)
 
-The 3B2/400 simulator is complete, usable, and robust. The 3B2/600 simulator
-is not yet usable, however. It is under active development.
+The 3B2/400 simulator is complete, usable, and robust. The 3B2/700
+simulator is under active development and is not yet considered
+stable.
 
 Full documentation for the 3B2 simulator is available here:
 
   - https://loomcom.com/3b2/emulator.html
 
-Devices
--------
+3B2/400 Simulator Devices
+-------------------------
 
 The following devices are simulated. The SIMH names for the simulated
 devices are given in parentheses:
@@ -22,7 +23,7 @@ devices are given in parentheses:
   - 3B2 Model 400 System Board with 1MB, 2MB, or 4MB RAM (CSR, NVRAM)
   - WE32100 CPU (CPU)
   - WE32101 MMU (MMU)
-  - PD8253 Interval Timer (TIMER)
+  - PD8253 Interval Timer (TMR)
   - AM9517 DMA controller (DMAC)
   - SCN2681A Integrated DUART (IU)
   - TMS2793 Integrated Floppy Controller (IFLOPPY)
@@ -33,8 +34,8 @@ devices are given in parentheses:
   - CM195B 4-port Serial MUX (PORTS)
   - CM195H Cartridge Tape Controller (CTC)
 
-Usage
------
+3B2/400 Simulator Usage
+-----------------------
 
 To boot the 3B2 simulator into firmware mode, simply type:
 
@@ -80,12 +81,12 @@ You should then be prompted with:
 Here, you may type a question mark (?) and press Enter to see a list
 of available firmware programs.
 
-Booting UNIX SVR3
------------------
+Booting UNIX SVR3 on the 3B2/400
+--------------------------------
 
-UNIX SVR3 is the only operating system available for the 3B2.  To boot
-UNIX, attach the first disk image from the 3B2 "Essential Utilities"
-distribution.
+UNIX System V UNIX is the only operating system available for the 3B2.
+To boot UNIX, attach the first disk image from the 3B2 "Essential
+Utilities" distribution.
 
     sim> ATTACH IFLOPPY <floppy-image>
     sim> BOOT
@@ -104,8 +105,8 @@ carriage return.
 
     Enter Load Device Option Number [0 (FD5)]:
 
-Installing SVR3
----------------
+Installing SVR3 on the 3B2/400
+------------------------------
 
 To install SVR3 to the first hard disk, first, attach a new image
 to the IDISK0 device:
@@ -127,3 +128,8 @@ integrated disk 0. Parameters for the default 72MB hard disk are:
 After low-level formatting integrated disk 0, boot the file `unix`
 from the first diskette of the 3B2 "Essential Utilities" distribution,
 and follow the prompts.
+
+More information about installing AT&T System V Release 3.2 UNIX is
+available on the web:
+
+  - https://loomcom.com/3b2/installing_unix.html

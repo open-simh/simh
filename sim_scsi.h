@@ -68,10 +68,13 @@
 #define SCSI_DBG_TAP    0x10000000                      /* tape activity */
 
 #define SCSI_V_NOAUTO   ((DKUF_V_UF > MTUF_V_UF) ? DKUF_V_UF : MTUF_V_UF)/* noautosize */
-#define SCSI_V_UF       (SCSI_V_NOAUTO + 1)
+#define SCSI_V_QIC      (SCSI_V_NOAUTO + 1)
+#define SCSI_V_UF       (SCSI_V_QIC + 1)
+#define SCSI_QIC        (1 << SCSI_V_QIC)
 #define SCSI_WLK        (UNIT_WLK|UNIT_RO)              /* hwre write lock */
 #define SCSI_NOAUTO     DKUF_NOAUTOSIZE
 
+#define SCSI_QIC_BLKSZ  0x200
 
 struct scsi_dev_t {
     uint8 devtype;                                      /* device type */
