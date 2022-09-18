@@ -509,6 +509,11 @@ main_argc = argc;
 main_argv = argv;
 
 SDL_SetHint (SDL_HINT_RENDER_DRIVER, "software");
+#if defined (SDL_HINT_VIDEO_ALLOW_SCREENSAVER)
+/* If this hint is defined, the default is to disable the screen saver.
+    We want to leave the screen saver enabled. */
+SDL_SetHint (SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+#endif
 
 status = SDL_Init (SDL_INIT_VIDEO);
 
@@ -2138,6 +2143,11 @@ VID_DISPLAY *vptr = (VID_DISPLAY *)arg;
 int stat;
 
 SDL_SetHint (SDL_HINT_RENDER_DRIVER, "software");
+#if defined (SDL_HINT_VIDEO_ALLOW_SCREENSAVER)
+/* If this hint is defined, the default is to disable the screen saver.
+    We want to leave the screen saver enabled. */
+SDL_SetHint (SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+#endif
 
 stat = SDL_Init (SDL_INIT_VIDEO);
 
