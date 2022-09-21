@@ -1,6 +1,6 @@
 /* pdp11_sys.c: PDP-11 simulator interface
 
-   Copyright (c) 1993-2018, Robert M Supnik
+   Copyright (c) 1993-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,8 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   25-Jul-22    RMS     Re-enabled VH11 after fixes (Mark Pizzolato)
+   17-Feb-20    RMS     Disabled VH11
    23-May-18    RMS     Changed UC15 simulator name
    14-Mar-16    RMS     Added UC15 support
    02-Sep-13    RMS     Added third Massbus, RS03/RS04
