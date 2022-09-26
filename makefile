@@ -2130,7 +2130,7 @@ ALL = pdp1 pdp4 pdp7 pdp8 pdp9 pdp15 pdp11 pdp10 \
 
 all : ${ALL}
 
-EXPERIMENTAL = cdc1700
+EXPERIMENTAL = alpha pdq3 sage
 
 experimental : ${EXPERIMENTAL}
 
