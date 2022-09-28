@@ -607,6 +607,18 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       endif
     endif
   endif
+  ifneq (,$(call find_include,editline/readline))
+    OS_CCDEFS += -DHAVE_EDITLINE
+    OS_LDFLAGS += -ledit
+    ifneq (Darwin,$(OSTYPE))
+      # The doc says termcap is needed, though reality suggests
+      # otherwise.  Put it in anyway, it can't hurt.
+      ifneq (,$(call find_lib,termcap))
+        OS_LDFLAGS += -ltermcap
+      endif
+    endif
+    $(info using libedit: $(call find_include,editline/readline))
+  endif
   ifneq (,$(call find_include,utime))
     OS_CCDEFS += -DHAVE_UTIME
   endif

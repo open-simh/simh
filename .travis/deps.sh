@@ -12,6 +12,7 @@ install_linux() {
     sudo apt-get install -ym libegl1-mesa-dev libgles2-mesa-dev
     sudo apt-get install -ym libsdl2-dev libpcap-dev libvdeplug-dev
     sudo apt-get install -ym libsdl2-ttf-dev
+    sudo apt-get install -ym libedit-dev
 }
 
 install_"$1"

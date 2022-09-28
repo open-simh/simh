@@ -242,8 +242,8 @@
 #endif
 #include <setjmp.h>
 
-#if defined(SIM_HAVE_DLOPEN)                                /* Dynamic Readline support */
-#include <dlfcn.h>
+#if defined(HAVE_EDITLINE)              /* Editline command line editing */
+#include <editline/readline.h>
 #endif
 
 #ifndef MAX
@@ -10273,51 +10273,16 @@ return read_line_p (NULL, cptr, size, stream);
 char *read_line_p (const char *prompt, char *cptr, int32 size, FILE *stream)
 {
 char *tptr;
-#if defined(SIM_HAVE_DLOPEN)
-static int initialized = 0;
-typedef char *(*readline_func)(const char *);
-static readline_func p_readline = NULL;
-typedef void (*add_history_func)(const char *);
-static add_history_func p_add_history = NULL;
-
-if (prompt && (!initialized)) {
-    initialized = 1;
-    void *handle;
-
-#define S__STR_QUOTE(tok) #tok
-#define S__STR(tok) S__STR_QUOTE(tok)
-    handle = dlopen("libncurses." S__STR(SIM_HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    handle = dlopen("libcurses." S__STR(SIM_HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    handle = dlopen("libreadline." S__STR(SIM_HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(SIM_HAVE_DLOPEN) ".8", RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(SIM_HAVE_DLOPEN) ".7", RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(SIM_HAVE_DLOPEN) ".6", RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(SIM_HAVE_DLOPEN) ".5", RTLD_NOW|RTLD_GLOBAL);
-    if (handle) {
-        p_readline = (readline_func)((size_t)dlsym(handle, "readline"));
-        p_add_history = (add_history_func)((size_t)dlsym(handle, "add_history"));
-        }
-    }
+#if defined(HAVE_EDITLINE)
 if (prompt) {                                           /* interactive? */
-    if (p_readline) {
-        char *tmpc = p_readline (prompt);               /* get cmd line */
-        if (tmpc == NULL)                               /* bad result? */
-            cptr = NULL;
-        else {
-            strlcpy (cptr, tmpc, size);                 /* copy result */
-            free (tmpc) ;                               /* free temp */
-            }
-        }
+    char *tmpc = readline (prompt);                     /* get cmd line */
+    if (tmpc == NULL)                                   /* bad result? */
+        cptr = NULL;
     else {
-        printf ("%s", prompt);                          /* display prompt */
-        fflush (stdout);
-        cptr = fgets (cptr, size, stream);              /* get cmd line */
-        }
+        strlcpy (cptr, tmpc, size);                     /* copy result */
+        free (tmpc) ;                                   /* free temp */
     }
+}
 else cptr = fgets (cptr, size, stream);                 /* get cmd line */
 #else
 if (prompt) {                                           /* interactive? */
@@ -10349,9 +10314,9 @@ if ((*cptr == ';') || (*cptr == '#')) {                 /* ignore comment */
     *cptr = 0;
     }
 
-#if defined (SIM_HAVE_DLOPEN)
-if (prompt && p_add_history && *cptr)                   /* Save non blank lines in history */
-    p_add_history (cptr);
+#if defined (HAVE_EDITLINE)
+if (prompt && *cptr)                   /* Save non blank lines in history */
+    add_history (cptr);
 #endif
 
 return cptr;
