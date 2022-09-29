@@ -1,6 +1,6 @@
 /* i7094_com.c: IBM 7094 7750 communications interface simulator
 
-   Copyright (c) 2005-2017, Robert M Supnik
+   Copyright (c) 2005-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
    com          7750 controller
    coml         7750 lines
 
+   29-Sep-22    RMS     Changed structures to arrays for display
    07-Apr-17    RMS     Fixed typo in accessing unit array (COVERITY)
    12-Aug-10    RMS     Major rewrite for CTSS (Dave Pitts)
    19-Nov-08    RMS     Revised for common TMXR show routines
@@ -149,15 +150,11 @@
 
 /* List heads and entries */
 
-typedef struct {
-    uint16              head;
-    uint16              tail;
-    } LISTHD;
+#define HEAD            0
+#define TAIL            1
 
-typedef struct {
-    uint16              next;
-    uint16              data;
-    } LISTENT;
+#define NEXT            0
+#define DATA            1
 
 /* The 7750 character buffer is maintained as linked lists.  The lists are:
 
@@ -182,11 +179,11 @@ t_uint64 com_sns = 0;                                   /* sense word */
 t_uint64 com_chob = 0;                                  /* chan output buf */
 uint32 com_chob_v = 0;                                  /* valid flag */
 t_uint64 com_buf[COM_BUFSIZ];                           /* channel buffer */
-LISTHD com_free;                                        /* free list */
+uint16 com_free[2];                                     /* free list */
 uint32 com_not_ret[COM_TLINES] = { 0 };                 /* chars not returned */
-LISTHD com_inpq[COM_TLINES] = { {0} };                  /* input queues */
-LISTHD com_outq[COM_TLINES] = { {0} };                  /* output queues */
-LISTENT com_pkt[COM_PKTSIZ];                            /* character packets */
+uint16 com_inpq[COM_TLINES][2] = { {0} };               /* input queues */
+uint16 com_outq[COM_TLINES][2] = { {0} };               /* output queues */
+uint16 com_pkt[COM_PKTSIZ][2];                          /* character packets */
 TMLN com_ldsc[COM_MLINES] = { {0} };                    /* line descriptors */
 TMXR com_desc = { COM_MLINES, 0, 0, com_ldsc };         /* mux descriptor */
 
@@ -230,12 +227,12 @@ t_stat com_show_allq (FILE *st, UNIT *uptr, int32 val, void *desc);
 t_stat com_show_oneq (FILE *st, UNIT *uptr, int32 val, void *desc);
 void com_reset_ln (uint32 i);
 uint16 com_get_nexti (uint32 *ln);
-uint16 com_gethd_free (LISTHD *lh);
-uint16 com_gethd (LISTHD *lh);
-uint16 com_gettl_free (LISTHD *lh);
-uint16 com_gettl (LISTHD *lh);
-t_bool com_new_puttl (LISTHD *lh, uint16 val);
-void com_puttl (LISTHD *lh, uint16 ent);
+uint16 com_gethd_free (uint16 *lh);
+uint16 com_gethd (uint16 *lh);
+uint16 com_gettl_free (uint16 *lh);
+uint16 com_gettl (uint16 *lh);
+t_bool com_new_puttl (uint16 *lh, uint16 val);
+void com_puttl (uint16 *lh, uint16 ent);
 t_bool com_test_inp (void);
 void com_set_inpp (uint32 ln);
 t_uint64 com_getob (uint32 ch);
@@ -316,7 +313,7 @@ REG com_reg[] = {
     { URDATA (NEEDID, coml_unit[0].NEEDID, 8, 1, 0, COM_TLINES, 0) },
     { URDATA (NOECHO, coml_unit[0].NOECHO, 8, 1, 0, COM_TLINES, 0) },
     { URDATA (INPP, coml_unit[0].INPP, 8, 1, 0, COM_TLINES, 0) },
-    { BRDATA (FREEQ, &com_free, 10, 16, 2) },
+    { BRDATA (FREEQ, com_free, 10, 16, 2) },
     { BRDATA (INPQ, com_inpq, 10, 16, 2 * COM_TLINES) },
     { BRDATA (OUTQ, com_outq, 10, 16, 2 * COM_TLINES) },
     { BRDATA (PKTB, com_pkt, 10, 16, 2 * COM_PKTSIZ) },
@@ -447,7 +444,7 @@ switch (com_sta) {                                      /* case on state */
 
     case CHSL_SNS:                                      /* prepare data */
         com_sns &= ~COMS_DYN;                           /* clear dynamic flags */
-        if (com_free.head)                              /* free space? */
+        if (com_free[HEAD])                             /* free space? */
             com_set_sns (COMS_INBF);
         if (com_test_inp ())                            /* pending input? */
             com_set_sns (COMS_DATR);
@@ -502,9 +499,9 @@ switch (com_sta) {                                      /* case on state */
             ln++) {
             chr = (uint16) com_gen_ccmp (ln);           /* completion msg? */
             if ((chr == 0) && coml_unit[ln].INPP) {     /* no, line input? */
-                ent = com_gethd_free (&com_inpq[ln]);   /* get first char */
+                ent = com_gethd_free (com_inpq[ln]);    /* get first char */
                 if (ent != 0)                           /* any input? */
-                    chr = com_pkt[ent].data;            /* return char */
+                    chr = com_pkt[ent][DATA];           /* return char */
                 else coml_unit[ln].INPP = 0;            /* this line is idle */
                 }                                       /* end if input pending */
             if (chr != 0) {                             /* got something? */
@@ -604,7 +601,7 @@ switch (com_sta) {                                      /* case on state */
                     chr = (uint16) (com_buf[j] >> ((2 - (i % 3)) * 12)) & 07777;
                     if (chr == COMO_EOM12B)             /* EOM? */
                         break;
-                    if (!com_new_puttl (&com_outq[uln], chr))
+                    if (!com_new_puttl (com_outq[uln], chr))
                         return STOP_NOOFREE;            /* append to outq */
                     }
                 sim_activate (&coml_unit[uln], coml_unit[uln].wait);
@@ -646,7 +643,7 @@ if (coml_unit[ln].NEEDID)                               /* ID needed? */
     return com_send_id (ln);
 if ((c & SCPE_KFLAG) && ((c = c & 0177) != 0)) {        /* char input? */
     if ((c == 0177) || (c == '\b')) {                   /* delete? */
-        ent = com_gettl_free (&com_inpq[ln]);           /* remove last char */
+        ent = com_gettl_free (com_inpq[ln]);            /* remove last char */
         if (!coml_unit[ln].NOECHO)
             sim_putchar (ent? '\b': '\a');
         return SCPE_OK;
@@ -696,7 +693,7 @@ for (ln = 0; ln < COM_MLINES; ln++) {                   /* loop thru mux */
         if (c) {                                        /* any char? */
             c = c & 0177;                               /* mask to 7b */
             if ((c == 0177) || (c == '\b')) {           /* delete? */
-                ent = com_gettl_free (&com_inpq[ln]);   /* remove last char */
+                ent = com_gettl_free (com_inpq[ln]);    /* remove last char */
                 if (!coml_unit[ln].NOECHO)
                     tmxr_putc_ln (&com_ldsc[ln], ent? '\b': '\a');
                 return SCPE_OK;
@@ -718,7 +715,7 @@ for (ln = 0; ln < COM_MLINES; ln++) {                   /* loop thru mux */
         coml_unit[ln].CONN = 0;                         /* clear connected */
         coml_unit[ln].NEEDID = 0;                       /* clear need id */
         com_set_inpp (ln);                              /* input pending, ATN1 */
-        if (!com_new_puttl (&com_inpq[ln], COMI_HANGUP))/* hangup message */
+        if (!com_new_puttl (com_inpq[ln], COMI_HANGUP)) /* hangup message */
             return STOP_NOIFREE;
         }
     }                                                   /* end for */
@@ -737,7 +734,7 @@ if (c)                                                  /* printable? output */
     sim_putchar (c);
 if (c1)                                                 /* second char? output */
     sim_putchar (c1);
-if (com_outq[ln].head == 0)                             /* line idle? */
+if (com_outq[ln][HEAD] == 0)                            /* line idle? */
     ch9_set_atn (com_ch);                               /* set ATN1 */
 else sim_activate (uptr, uptr->wait);                   /* next char */
 return SCPE_OK;
@@ -759,7 +756,7 @@ if (com_ldsc[ln].conn) {                                /* connected? */
             tmxr_putc_ln (&com_ldsc[ln], c1);
         }                                               /* end if */
     tmxr_poll_tx (&com_desc);                           /* poll xmt */
-    if (com_outq[ln].head == 0)                         /* line idle? */
+    if (com_outq[ln][HEAD] == 0)                         /* line idle? */
         ch9_set_atn (com_ch);                           /* set ATN1 */
     else sim_activate (uptr, uptr->wait);               /* next char */
     }                                                   /* end if conn */
@@ -770,16 +767,16 @@ return SCPE_OK;
 
 t_stat com_send_id (uint32 ln)
 {
-com_new_puttl (&com_inpq[ln], COMI_DIALUP);             /* input message: */
+com_new_puttl (com_inpq[ln], COMI_DIALUP);              /* input message: */
 if (coml_unit[ln].flags & UNIT_K35)                     /* dialup, ID, endID */
-    com_new_puttl (&com_inpq[ln], COMI_K35);
-else com_new_puttl (&com_inpq[ln], COMI_K37);
-com_new_puttl (&com_inpq[ln], 0);
-com_new_puttl (&com_inpq[ln], 0);
-com_new_puttl (&com_inpq[ln], 0);
-com_new_puttl (&com_inpq[ln], 0);
-com_new_puttl (&com_inpq[ln], (uint16) (ln + COM_LBASE));
-if (!com_new_puttl (&com_inpq[ln], COMI_ENDID))         /* make sure there */
+    com_new_puttl (com_inpq[ln], COMI_K35);
+else com_new_puttl (com_inpq[ln], COMI_K37);
+com_new_puttl (com_inpq[ln], 0);
+com_new_puttl (com_inpq[ln], 0);
+com_new_puttl (com_inpq[ln], 0);
+com_new_puttl (com_inpq[ln], 0);
+com_new_puttl (com_inpq[ln], (uint16) (ln + COM_LBASE));
+if (!com_new_puttl (com_inpq[ln], COMI_ENDID))          /* make sure there */
     return STOP_NOIFREE;                                /* was room for msg */
 coml_unit[ln].NEEDID = 0;
 com_set_inpp (ln);                                      /* input pending, ATN1 */
@@ -810,7 +807,7 @@ else {
     else c |= (com_epar[c]? COMI_PARITY: 0);            /* add even parity */
     out = (~c) & 0377;                                  /* 1's complement */
     }
-return com_new_puttl (&com_inpq[ln], out);              /* input message */
+return com_new_puttl (com_inpq[ln], out);               /* input message */
 }
 
 /* Retrieve and translate output character */
@@ -820,12 +817,12 @@ uint32 com_queue_out (uint32 ln, uint32 *c1)
 uint32 c, ent, raw;
 
 *c1 = 0;                                                /* assume non-printing */
-if ((ent = com_gethd_free (&com_outq[ln])) == 0)        /* get character */
+if ((ent = com_gethd_free (com_outq[ln])) == 0)         /* get character */
     return 0;                                           /* nothing, exit */
-raw = com_pkt[ent].data;                                /* get 12b character */
+raw = com_pkt[ent][DATA];                               /* get 12b character */
 com_not_ret[ln]++;
 if (raw == COMO_BITRPT) {                               /* insert delay? */
-    if (com_gethd_free (&com_outq[ln]))                 /* skip next char */
+    if (com_gethd_free (com_outq[ln]))                  /* skip next char */
          com_not_ret[ln]++;                             /* and count it */
     return 0;
     }
@@ -933,34 +930,34 @@ return;
 
 /* List routines - remove from head and free */
 
-uint16 com_gethd_free (LISTHD *lh)
+uint16 com_gethd_free (uint16 *lh)
 {
 uint16 ent;
 
 if ((ent = com_gethd (lh)) != 0)
-    com_puttl (&com_free, ent);
+    com_puttl (com_free, ent);
 return ent;
 }
 
 /* Remove from tail and free */
 
-uint16 com_gettl_free (LISTHD *lh)
+uint16 com_gettl_free (uint16 *lh)
 {
 uint16 ent;
 
 if ((ent = com_gethd (lh)) != 0)
-    com_puttl (&com_free, ent);
+    com_puttl (com_free, ent);
 return ent;
 }
 
 /* Get free entry and insert at tail */
 
-t_bool com_new_puttl (LISTHD *lh, uint16 val)
+t_bool com_new_puttl (uint16 *lh, uint16 val)
 {
 uint16 ent;
 
-if ((ent = com_gethd (&com_free)) != 0) {
-    com_pkt[ent].data = val;
+if ((ent = com_gethd (com_free)) != 0) {
+    com_pkt[ent][DATA] = val;
     com_puttl (lh, ent);
     return TRUE;
     }
@@ -969,36 +966,36 @@ return FALSE;
 
 /* Remove from head */
 
-uint16 com_gethd (LISTHD *lh)
+uint16 com_gethd (uint16 *lh)
 {
 uint16 ent;
 
-if ((ent = lh->head) != 0) {
-    lh->head = com_pkt[ent].next;
-    if (lh->head == 0)
-        lh->tail = 0;
+if ((ent = lh[HEAD]) != 0) {
+    lh[HEAD] = com_pkt[ent][NEXT];
+    if (lh[HEAD] == 0)
+        lh[TAIL] = 0;
     }
-else lh->tail = 0;
+else lh[TAIL] = 0;
 return ent;
 }
 
 /* Remove from tail */
 
-uint16 com_gettl (LISTHD *lh)
+uint16 com_gettl (uint16 *lh)
 {
 uint16 ent, next;
 uint32 i;
 
-ent = lh->tail;
-if (lh->head == lh->tail) {
-    lh->head = lh->tail = 0;
+ent = lh[TAIL];
+if (lh[HEAD] == lh[TAIL]) {
+    lh[HEAD] = lh[TAIL] = 0;
     return ent;
     }
-next = lh->head;
+next = lh[HEAD];
 for (i = 0; i < COM_PKTSIZ; i++) {
-    if (com_pkt[next].next == ent) {
-        com_pkt[next].next = 0;
-        lh->tail = next;
+    if (com_pkt[next][NEXT] == ent) {
+        com_pkt[next][NEXT] = 0;
+        lh[TAIL] = next;
         return ent;
         }
     }
@@ -1007,13 +1004,13 @@ return 0;
 
 /* Insert at tail */
 
-void com_puttl (LISTHD *lh, uint16 ent)
+void com_puttl (uint16 *lh, uint16 ent)
 {
-if (lh->tail == 0)
-    lh->head = ent;
-else com_pkt[lh->tail].next = ent;
-com_pkt[ent].next = 0;
-lh->tail = ent;
+if (lh[TAIL] == 0)
+    lh[HEAD] = ent;
+else com_pkt[lh[TAIL]][NEXT] = ent;
+com_pkt[ent][NEXT] = 0;
+lh[TAIL] = ent;
 return;
 }
 
@@ -1065,20 +1062,20 @@ com_blim = 0;
 for (i = 0; i < COM_BUFSIZ; i++)
     com_buf[i] = 0;
 for (i = 0; i < COM_TLINES; i++) {                      /* init lines */
-    com_inpq[i].head = 0;
-    com_inpq[i].tail = 0;
-    com_outq[i].head = 0;
-    com_outq[i].tail = 0;
+    com_inpq[i][HEAD] = 0;
+    com_inpq[i][TAIL] = 0;
+    com_outq[i][HEAD] = 0;
+    com_outq[i][TAIL] = 0;
     com_reset_ln (i);
     }
-com_pkt[0].next = 0;                                    /* init free list */
+com_pkt[0][NEXT] = 0;                                   /* init free list */
 for (i = 1; i < COM_PKTSIZ; i++) {
-    com_pkt[i].next = i + 1;
-    com_pkt[i].data = 0;
+    com_pkt[i][NEXT] = i + 1;
+    com_pkt[i][DATA] = 0;
     }
-com_pkt[COM_PKTSIZ - 1].next = 0;                       /* end of free list */
-com_free.head = 1;
-com_free.tail = COM_PKTSIZ - 1;
+com_pkt[COM_PKTSIZ - 1][NEXT] = 0;                       /* end of free list */
+com_free[HEAD] = 1;
+com_free[TAIL] = COM_PKTSIZ - 1;
 coml_unit[COM_MLINES].CONN = 1;                         /* console always conn */
 coml_unit[COM_MLINES].NEEDID = 1;
 return SCPE_OK;
@@ -1116,8 +1113,8 @@ return r;
 
 void com_reset_ln (uint32 ln)
 {
-while (com_gethd_free (&com_inpq[ln])) ;
-while (com_gethd_free (&com_outq[ln])) ;
+while (com_gethd_free (com_inpq[ln])) ;
+while (com_gethd_free (com_outq[ln])) ;
 com_not_ret[ln] = 0;
 coml_unit[ln].NEEDID = 0;
 coml_unit[ln].NOECHO = 0;
@@ -1130,11 +1127,11 @@ return;
 
 /* Special show commands */
 
-uint32 com_show_qsumm (FILE *st, LISTHD *lh, char *name)
+uint32 com_show_qsumm (FILE *st, uint16 *lh, char *name)
 {
 uint32 i, next;
 
-next = lh->head;
+next = lh[HEAD];
 for (i = 0; i < COM_PKTSIZ; i++) {
     if (next == 0) {
         if (i == 0)
@@ -1144,7 +1141,7 @@ for (i = 0; i < COM_PKTSIZ; i++) {
         else fprintf (st, "%s has %d entries\n", name, i);
         return i;
         }
-    next = com_pkt[next].next;
+    next = com_pkt[next][NEXT];
     }
 fprintf (st, "%s is corrupt\n", name);
 return 0;
@@ -1163,25 +1160,25 @@ return;
 
 t_stat com_show_freeq (FILE *st, UNIT *uptr, int32 val, void *desc)
 {
-com_show_qsumm (st, &com_free, "Free queue");
+com_show_qsumm (st, com_free, "Free queue");
 return SCPE_OK;
 }
 
 t_stat com_show_oneq (FILE *st, UNIT *uptr, int32 val, void *desc)
 {
 uint32 entc, ln, i, next;
-LISTHD *lh;
+uint16 *lh;
 char name[20];
 
 ln = uptr - coml_dev.units;
 sprintf (name, val? "Output queue %d": "Input queue %d", ln);
-lh = val? &com_outq[ln]: &com_inpq[ln];
+lh = val? com_outq[ln]: com_inpq[ln];
 if ((entc = com_show_qsumm (st, lh, name))) {
-    for (i = 0, next = lh->head; next != 0;
-         i++, next = com_pkt[next].next) {
+    for (i = 0, next = lh[HEAD]; next != 0;
+         i++, next = com_pkt[next][NEXT]) {
         if ((i % 8) == 0)
             fprintf (st, "%d:\t", i);
-        com_show_char (st, com_pkt[next].data >> (val? 1: 0));
+        com_show_char (st, com_pkt[next][DATA] >> (val? 1: 0));
         fputc ((((i % 8) == 7)? '\n': '\t'), st);
         }
     if (i % 8)
