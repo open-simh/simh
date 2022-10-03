@@ -561,6 +561,7 @@ Ubuntu:
     # apt-get install vde2
     # apt-get install libsdl2-dev
     # apt-get install libsdl2_ttf-dev
+    # apt-get install libedit-dev
 
 #### Windows
 
