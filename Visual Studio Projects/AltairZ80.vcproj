@@ -252,31 +252,31 @@
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kasm.c"
+				RelativePath="..\AltairZ80\m68k\m68kasm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kcpu.c"
+				RelativePath="..\AltairZ80\m68k\m68kcpu.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kdasm.c"
+				RelativePath="..\AltairZ80\m68k\m68kdasm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kopac.c"
+				RelativePath="..\AltairZ80\m68k\m68kopac.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kopdm.c"
+				RelativePath="..\AltairZ80\m68k\m68kopdm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kopnz.c"
+				RelativePath="..\AltairZ80\m68k\m68kopnz.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68kops.c"
+				RelativePath="..\AltairZ80\m68k\m68kops.c"
 				>
 			</File>
 			<File
