@@ -751,7 +751,7 @@ return SCPE_OK;
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32_t t;
+int32 t;
 t = sim_rtcn_calb (clk_tps, TMR_CLK);                   /* calibrate clock */
 sim_activate_after (uptr, 1000000/clk_tps);             /* reactivate unit */
 tmr_poll = t;                                           /* set tmr poll */
