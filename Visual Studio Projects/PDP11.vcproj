@@ -228,6 +228,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\PDP11\pdp11_dh.c"
+				>
+			</File>
+			<File
 				RelativePath="..\PDP11\pdp11_dl.c"
 				>
 			</File>
