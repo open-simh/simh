@@ -294,7 +294,7 @@ static void tod_resync(UNIT *uptr)
 {
     TOD_DATA *td;
     time_t delta;
-    uint32_t catchup_ticks;
+    uint32 catchup_ticks;
 
     if (!(uptr->flags & UNIT_ATT) || uptr->filebuf == NULL) {
         return;
@@ -305,7 +305,7 @@ static void tod_resync(UNIT *uptr)
     if (td->time > 0) {
         delta = time(NULL) - td->time;
         if (delta > MIN_DIFF && delta < MAX_DIFF) {
-            catchup_ticks = (uint32_t) delta * CLK_TPS;
+            catchup_ticks = (uint32) delta * CLK_TPS;
             sim_debug(EXECUTE_MSG, &tod_dev,
                       "Catching up with a delta of %ld seconds (%d ticks).\n",
                       delta, catchup_ticks);
