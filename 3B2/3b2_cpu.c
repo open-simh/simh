@@ -876,7 +876,6 @@ t_stat sys_boot(int32 flag, CONST char *ptr)
 {
     char gbuf[CBUFSIZE];
     size_t len = ROM_SIZE;
-    t_stat r;
 
     if ((ptr = get_sim_sw(ptr)) == NULL) {
         return SCPE_INVSW;
@@ -1032,7 +1031,6 @@ static void build_int_map()
 t_stat cpu_reset(DEVICE *dptr)
 {
     int i;
-    t_stat r;
 
     sim_debug(EXECUTE_MSG, &cpu_dev, "CPU Reset.\n");
 
