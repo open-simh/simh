@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Lars Brinkhoff
+ * Copyright (c) 2018, 2022 Lars Brinkhoff
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
  * from the authors.
  */
 
+#include <string.h>
 #include "display.h"                    /* XY plot interface */
 #include "ng.h"
 
@@ -51,7 +52,7 @@ extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt
 int ng_type = 0;
 int ng_scale = PIX_SCALE;
 
-static uint16 status = 0;
+static uint16 status[8];
 static int reloc = 0;
 static int console = 0;
 static int dpc[8];
@@ -66,14 +67,15 @@ ng_get_csr(void)
 {
   if (ng_type == TYPE_DAZZLE) {
     DEBUGF("[%d] Get CSR: ", 0);
-    if (status & TKRUN)
+    if (status[console] & TKRUN)
       DEBUGF("running\n");
     else
       DEBUGF("stopped\n");
+    return status[console];
   } else if (ng_type == TYPE_LOGO) {
-    DEBUGF("Get CSR: %06o\n", status);
+    DEBUGF("Get CSR: %06o\n", status[0]);
+    return status[0];
   }
-  return status;
 }
 
 int32
@@ -90,19 +92,19 @@ ng_set_csr(uint16 d)
 
     if (d & TKGO) {
       DEBUGF("[%d] Set CSR: GO\n", console);
-      if ((status & TKRUN) == 0)
+      if ((status[console] & TKRUN) == 0)
         dpc[console] = 2*console;
-      status |= TKRUN;
+      status[console] = TKRUN | console;
     }
     if (d & TKSTOP) {
       DEBUGF("[%d] Set CSR: STOP\n", console);
-      status &= ~TKRUN;
+      status[console] = console;
     }
   } else if (ng_type == TYPE_LOGO) {
     DEBUGF("Set CSR: %06o\n", d);
-    if ((status & 1) == 0 && (d & 1))
+    if ((status[0] & 1) == 0 && (d & 1))
       dpc[0] = 2*0;
-    status = d;
+    status[0] = d;
   }
 }
 
@@ -118,6 +120,7 @@ ng_init(void *dev, int debug)
 {
   ng_dptr = dev;
   ng_dbit = debug;
+  memset (status, 0, sizeof status);
   return display_init(DIS_NG, ng_scale, ng_dptr);
 }
 
@@ -217,7 +220,7 @@ void stop (void)
 {
   DEBUGF("[%d] STOP\n", console);
   if (ng_type == TYPE_DAZZLE)
-    status &= ~TKRUN;
+    status[console] &= ~TKRUN;
   else if (ng_type == TYPE_LOGO)
     dpc[0] = 2*0;
 }
@@ -298,6 +301,7 @@ ng_cycle(int us, int slowdown)
   static uint32 usec = 0;
   static uint32 msec = 0;
   uint32 new_msec;
+  int saved;
 
   new_msec = (usec += us) / 1000;
 
@@ -307,20 +311,21 @@ ng_cycle(int us, int slowdown)
 
   msec = new_msec;
 
-  if (ng_type == TYPE_DAZZLE) {
-    if ((status & TKRUN) == 0)
+  if (ng_type == TYPE_LOGO) {
+    DEBUGF("LOGO/STATUS %06o\n", status[0]);
+    if ((status[0] & 1) == 0)
       goto age_ret;
-  } else if (ng_type == TYPE_LOGO) {
-    DEBUGF("STATUS %06o\n", status);
-    if ((status & 1) == 0)
-      goto age_ret;
-  } else
+  } else if (ng_type != TYPE_DAZZLE)
     return 1;
 
   if (sync_period)
     goto age_ret;
 
+  saved = console;
   for (console = 0; console < 1; console++) {
+    if (ng_type == TYPE_DAZZLE && (status[console] & TKRUN) == 0)
+      continue;
+
     time_out = fetch(dpc[console], &inst);
     DEBUGF("[%d] PC %06o, INSTR %06o\n", console, dpc[console], inst);
     dpc[console] += 2;
@@ -339,6 +344,7 @@ ng_cycle(int us, int slowdown)
       break;
     }
   }
+  console = saved;
 
  age_ret:
   display_age(us, slowdown);
