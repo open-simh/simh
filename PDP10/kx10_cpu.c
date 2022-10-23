@@ -126,6 +126,9 @@ uint64  MI;                                   /* Monitor lights */
 uint32  FLAGS;                                /* Flags */
 uint32  AC;                                   /* Operand accumulator */
 uint64  SW;                                   /* Switch register */
+#if PDP6 | KA | KI
+t_addr  AS;                                   /* Address switches */
+#endif
 int     BYF5;                                 /* Flag for second half of LDB/DPB instruction */
 int     uuo_cycle;                            /* Uuo cycle in progress */
 int     SC;                                   /* Shift count */
@@ -138,6 +141,15 @@ int     push_ovf;                             /* Push stack overflow */
 int     mem_prot;                             /* Memory protection flag */
 #endif
 int     nxm_flag;                             /* Non-existant memory flag */
+#if KA | KI
+int     adr_flag;                             /* Address break flag */
+int     adr_cond;                             /* Address condition swiches */
+#define ADR_IFETCH  020
+#define ADR_DFETCH  010
+#define ADR_WRITE   004
+#define ADR_STOP    002
+#define ADR_BREAK   001
+#endif
 int     clk_flg;                              /* Clock flag */
 int     ov_irq;                               /* Trap overflow */
 int     fov_irq;                              /* Trap floating overflow */
@@ -450,7 +462,10 @@ REG cpu_reg[] = {
     { ORDATAD (PIE, PIE, 8, "Priority Interrupt Enable") },
     { ORDATAD (PIENB, pi_enable, 7, "Enable Priority System") },
     { ORDATAD (SW, SW, 36, "Console SW Register"), REG_FIT},
-    { ORDATAD (MI, MI, 36, "Monitor Display"), REG_FIT},
+    { ORDATAD (MI, MI, 36, "Memory Indicators"), REG_FIT},
+#if PDP6 | KA | KI
+    { ORDATAD (AS, AS, 18, "Console AS Register"), REG_FIT},
+#endif
     { FLDATAD (BYF5, BYF5, 0, "Byte Flag") },
     { FLDATAD (UUO, uuo_cycle, 0, "UUO Cycle") },
 #if KA | PDP6
@@ -463,6 +478,10 @@ REG cpu_reg[] = {
     { FLDATAD (MEMPROT, mem_prot, 0, "Memory protection flag") },
 #endif
     { FLDATAD (NXM, nxm_flag, 0, "Non-existing memory access") },
+#if KA | KI
+    { FLDATAD (ABRK, adr_flag, 0, "Address break") },
+    { ORDATAD (ACOND, adr_cond, 5, "Address condition switches") },
+#endif
     { FLDATAD (CLK, clk_flg, 0, "Clock interrupt") },
     { FLDATAD (OV, ov_irq, 0, "Overflow enable") },
 #if PDP6
@@ -1040,6 +1059,9 @@ t_stat dev_pi(uint32 dev, uint64 *data) {
 #if KI | KL
         res |= ((uint64)(PIR) << 18);
 #endif
+#if KI
+        res |= ((uint64)adr_flag << 31);
+#endif
 #if !KL
         res |= ((uint64)parity_irq << 15);
 #endif
@@ -1501,7 +1523,7 @@ void check_apr_irq() {
      if (pi_enable && apr_irq) {
          int flg = 0;
          clr_interrupt(0);
-         flg |= inout_fail | nxm_flag;
+         flg |= inout_fail | nxm_flag | adr_flag;
          if (flg)
              set_interrupt(0, apr_irq);
      }
@@ -1652,7 +1674,7 @@ void check_apr_irq() {
          clr_interrupt(0);
          flg |= ((FLAGS & OVR) != 0) & ov_irq;
          flg |= ((FLAGS & FLTOVR) != 0) & fov_irq;
-         flg |= nxm_flag | mem_prot | push_ovf;
+         flg |= nxm_flag | mem_prot | push_ovf | adr_flag;
          if (flg)
              set_interrupt(0, apr_irq);
      }
@@ -1686,7 +1708,7 @@ t_stat dev_apr(uint32 dev, uint64 *data) {
         res |= (((FLAGS & FLTOVR) != 0) << 6) | (fov_irq << 7) ;
         res |= (clk_flg << 9) | (((uint64)clk_en) << 10) | (nxm_flag << 12);
         res |= (mem_prot << 13) | (((FLAGS & USERIO) != 0) << 15);
-        res |= (push_ovf << 16) | (maoff >> 1);
+        res |= (adr_flag << 14) | (push_ovf << 16) | (maoff >> 1);
         *data = res;
         sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012llo\n", *data);
         break;
@@ -1725,6 +1747,8 @@ t_stat dev_apr(uint32 dev, uint64 *data) {
             nxm_flag = 0;
         if (res & 020000)
             mem_prot = 0;
+        if (res & 040000)
+            adr_flag = 0;
         if (res & 0200000) {
 #if MPX_DEV
             mpx_enable = 0;
@@ -2998,6 +3022,27 @@ int Mem_write_byte(int n, uint16 *data) {
 
 #endif
 
+#if KA | KI
+static void
+address_conditions (int fetch, int write)
+{
+    int cond;
+    if (fetch)
+        cond = ADR_IFETCH;
+    else if (write)
+        cond = ADR_WRITE;
+    else
+        cond = ADR_DFETCH;
+    if (adr_cond & cond) {
+        if (adr_cond & ADR_STOP)
+            watch_stop = 1;
+        if (adr_cond & ADR_BREAK)
+            adr_flag = 1;
+    }
+    check_apr_irq();
+}
+#endif
+
 #if KI
 /*
  * Load the TLB entry, used for both page_lookup and MAP.
@@ -3066,6 +3111,9 @@ int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int
 
     if (page_fault)
         return 0;
+
+    if (adr_cond && addr == AS)
+        address_conditions (fetch, wr);
 
     /* If paging is not enabled, address is direct */
     if (!page_enable) {
@@ -3299,6 +3347,9 @@ int page_lookup_its(t_addr addr, int flag, t_addr *loc, int wr, int cur_context,
     int      acc;
     int      uf = (FLAGS & USER) != 0;
     int      ofd = (int)fault_data;
+
+    if (adr_cond && addr == AS)
+        address_conditions (fetch, wr);
 
     /* If paging is not enabled, address is direct */
     if (!page_enable) {
@@ -3576,6 +3627,9 @@ int page_lookup_bbn(t_addr addr, int flag, t_addr *loc, int wr, int cur_context,
 
     if (page_fault)
         return 0;
+
+    if (adr_cond && addr == AS)
+        address_conditions (fetch, wr);
 
     /* If paging is not enabled, address is direct */
     if (!page_enable) {
@@ -3872,6 +3926,9 @@ int page_lookup_waits(t_addr addr, int flag, t_addr *loc, int wr, int cur_contex
     /* If this is modify instruction use write access */
     wr |= modify;
 
+    if (adr_cond && addr == AS)
+        address_conditions (fetch, wr);
+
     /* Figure out if this is a user space access */
     if (flag)
         uf = 0;
@@ -3970,6 +4027,9 @@ int Mem_write_waits(int flag, int cur_context) {
 #endif
 
 int page_lookup_ka(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+      if (adr_cond && addr == AS)
+        address_conditions (fetch, wr);
+
       if (!flag && (FLAGS & USER) != 0) {
           if (addr <= Pl) {
              *loc = (addr + Rl) & RMASK;
@@ -4216,6 +4276,10 @@ int Mem_write(int flag, int cur_context) {
  * Return of 0 if successful, 1 if there was an error.
  */
 int Mem_read_nopage() {
+#if KA | KI
+    if (adr_cond && AB == AS)
+        address_conditions (0, 0);
+#endif
     if (AB < 020) {
         MB =  get_reg(AB);
     } else {
@@ -4240,6 +4304,10 @@ int Mem_read_nopage() {
  * Return of 0 if successful, 1 if there was an error.
  */
 int Mem_write_nopage() {
+#if KA | KI
+    if (adr_cond && AB == AS)
+        address_conditions (0, 1);
+#endif
     if (AB < 020) {
         set_reg(AB, MB);
     } else {
@@ -13447,6 +13515,9 @@ t_stat cpu_reset (DEVICE *dptr)
 #if ITS | BBN
     page_enable = 0;
 #endif
+#endif
+#if KA | KI
+    adr_flag = 0;
 #endif
     nxm_flag = clk_flg = 0;
     PIR = PIH = PIE = pi_enable = parity_irq = 0;
