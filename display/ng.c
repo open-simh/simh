@@ -25,6 +25,7 @@
  */
 
 #include <string.h>
+#include <assert.h>
 #include "display.h"                    /* XY plot interface */
 #include "ng.h"
 
@@ -34,6 +35,8 @@
 #define TKGO    010000
 #define TKSTOP  020000
 
+/* Number of displays. */
+#define DISPLAYS  8
 
 static void *ng_dptr;
 static int ng_dbit;
@@ -52,12 +55,12 @@ extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt
 int ng_type = 0;
 int ng_scale = PIX_SCALE;
 
-static uint16 status[8];
+static uint16 status[DISPLAYS];
 static int reloc = 0;
 static int console = 0;
-static int dpc[8];
-static int x[8];
-static int y[8];
+static int dpc[DISPLAYS];
+static int x[DISPLAYS];
+static int y[DISPLAYS];
 
 static unsigned char sync_period = 0;
 static unsigned char time_out = 0;
@@ -118,6 +121,9 @@ ng_set_reloc(uint16 d)
 int
 ng_init(void *dev, int debug)
 {
+  /* Don't change this number. */
+  assert (DISPLAYS == 8);
+
   ng_dptr = dev;
   ng_dbit = debug;
   memset (status, 0, sizeof status);
