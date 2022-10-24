@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../AltairZ80/;./;../;../slirp;../slirp_glue;../slirp_glue/qemu;../slirp_glue/qemu/win32/include;../../windows-build/include;;../../windows-build/include/SDL2"
-				PreprocessorDefinitions="NO_INLINE;SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC"
+				PreprocessorDefinitions="inline=__inline;SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC"
 				KeepComments="false"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
@@ -125,7 +125,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="../AltairZ80/;./;../;../slirp;../slirp_glue;../slirp_glue/qemu;../slirp_glue/qemu/win32/include;../../windows-build/include;;../../windows-build/include/SDL2"
-				PreprocessorDefinitions="NO_INLINE;SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC"
+				PreprocessorDefinitions="inline=__inline;SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -280,10 +280,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\m68k\softfloat\softfloat.c"
-				>
-			</File>
-			<File
 				RelativePath="..\AltairZ80\m68ksim.c"
 				>
 			</File>
@@ -336,11 +332,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\s100_if3.c"
+				RelativePath="..\AltairZ80\s100_icom.c"
 				>
 			</File>
 			<File
-				RelativePath="..\AltairZ80\s100_icom.c"
+				RelativePath="..\AltairZ80\s100_if3.c"
 				>
 			</File>
 			<File
@@ -428,6 +424,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\AltairZ80\m68k\softfloat\softfloat.c"
+				>
+			</File>
+			<File
 				RelativePath="..\AltairZ80\vfdhd.c"
 				>
 			</File>
@@ -442,6 +442,58 @@
 			>
 			<File
 				RelativePath="..\AltairZ80\altairz80_defs.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\i8272.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\i86.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\insns.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\m68k.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\m68kconf.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\m68kcpu.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\m68kmmu.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\m68kops.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68ksim.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\softfloat\mamesf.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\mfdc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\softfloat\milieu.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\nasm.h"
 				>
 			</File>
 			<File
@@ -498,6 +550,18 @@
 			</File>
 			<File
 				RelativePath="..\sim_video.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\m68k\softfloat\softfloat.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\vfdhd.h"
+				>
+			</File>
+			<File
+				RelativePath="..\AltairZ80\wd179x.h"
 				>
 			</File>
 		</Filter>
