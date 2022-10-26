@@ -1,0 +1,225 @@
+name: CMake build workflows
+
+on:
+  workflow_call:
+
+jobs:
+  cmake-unix:
+    name: Ubuntu
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        sh -ex .travis/deps.sh linux
+        sudo apt install -ym ninja-build
+    - name: cmake-builder.sh
+      run: |
+        cmake/cmake-builder.sh --config Release --flavor ninja --lto --notest --parallel --verbose --cpack_suffix x86_64-${{matrix.os}}
+    - name: SIMH simulator suite test
+      run: |
+        cmake/cmake-builder.sh --config Release --flavor ninja --testonly
+    ## Install isn't strictly necessary, but it's a good way to see what dependencies
+    ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
+    - name: Install
+      run: |
+        cmake/cmake-builder.sh --config Release --flavor ninja --installonly
+    - name: SIMH packaging
+      run: |
+        cd cmake/build-ninja
+        cpack -G DEB -C Release
+    - name: Upload DEB
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-x86_64-${{matrix.os}}.deb
+        path: cmake/build-ninja/simh-4.0.0-x86_64-${{matrix.os}}.deb
+
+
+  cmake-macOS:
+    name: macOS
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-12, macos-11]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        sh -ex .travis/deps.sh osx
+    - name: cmake-builder.sh
+      run: |
+        cmake/cmake-builder.sh --config Release --flavor xcode --lto --notest --cpack_suffix x86_64.${{matrix.os}}
+    - name: SIMH simulator suite test
+      run: |
+        cmake/cmake-builder.sh --config Release --flavor xcode --testonly
+    ## Install isn't strictly necessary, but it's a good way to see what dependencies
+    ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
+    - name: Install
+      run: |
+        cmake/cmake-builder.sh --config Release --flavor xcode --installonly
+    - name: SIMH packaging
+      run: |
+        cd cmake/build-xcode
+        cpack -G "ZIP;TGZ" -C Release
+        cpack -G DragNDrop -C Release
+    - name: Upload ZIP
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-x86_64.${{matrix.os}}.zip
+        path: cmake/build-xcode/simh-4.0.0-x86_64.${{matrix.os}}.zip
+    - name: Upload DMG
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-x86_64.${{matrix.os}}.dmg
+        path: cmake/build-xcode/simh-4.0.0-x86_64.${{matrix.os}}.dmg
+
+
+  ## This looks like it's doing the right thing on the Github CI/CD pipeline because
+  ## the output contains references to x86_64 and arm64 targets for Mac OS 12.
+  ##
+  ## However, need to figure out how to concurrently install BOTH arm64 and intel
+  ## Homebrews AND how to tell SDL2 which set of header files it should use for
+  ## platform-specific assembly (/usr/local vs. /opt/local.)
+  ##
+  # cmake-macOS-universal:
+  #   name: macOS universal
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [macos-12]
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Install dependencies
+  #     run: |
+  #       sh -ex .travis/deps.sh osx
+  #   - name: cmake-builder.sh
+  #     run: |
+  #       cmake/cmake-builder.sh --config Release --flavor xcode-universal --lto --notest
+  #   - name: SIMH simulator suite test
+  #     run: |
+  #       cmake/cmake-builder.sh --config Release --flavor xcode-universal --testonly
+
+
+  cmake-vs2022xp:
+    name: VS 2022 XP-compatible LEGACY
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    ##+
+    ## NOTE: This will have to change when Github updates the windows-latest
+    ## image AND when Microsoft bumps the Visual Studio year.
+    ##
+    ## Things that need updating:
+    ## - Product ID (maybe: MS seems to be very consistent with the component
+    ##   name, hasn't changed since VS 2019.)
+    ## - Channel ID
+    ##-
+    - name: Install v141_xp (XP toolkit)
+      shell: pwsh
+      run: |
+          $ErrorActionPreference="Stop"
+          $WarningPreference="Continue"
+          $packageParams = @( "--productId", "Microsoft.VisualStudio.Product.Enterprise", 
+              "--channelId", "VisualStudio.17.Release",
+              "--add", "Microsoft.VisualStudio.Component.VC.v141.x86.x64",
+              "--add", "Microsoft.VisualStudio.Component.WinXP",
+              "--no-includeRecommended",
+              "--includeOptional",
+              "--quiet",
+              "--locale en-US" ) -join " "
+          choco install visualstudio2022-workload-nativedesktop --package-parameters $packageParams
+
+    - name: vs2022-xp build
+      shell: pwsh
+      run: |
+          $ErrorActionPreference="Stop"
+          $WarningPreference="Continue"
+          $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+          Update-SessionEnvironment
+          # Fix PATH so that "C:\Strawberry" (Strawberry Perl) doesn't mess with the build
+          # CMake WILL find incompatible libraries within Strawberry.
+          $fixPATH = (${env:PATH}.Split(';') | `
+              Where-Object { $_ -notlike "*\Strawberry\*" -and $_ -notlike "*/Strawberry/*" }) -join ';'
+          $env:Path = $fixPATH
+          ./cmake/cmake-builder.ps1 -flavor vs2022-xp -config Release -clean -lto -verbose -notest -cpack_suffix win32-xp
+    - name: SIMH simulator suite test
+      shell: pwsh
+      run: |
+          ./cmake/cmake-builder.ps1 -flavor vs2022-xp -config Release -testOnly
+    ## Install isn't strictly necessary, but it's a good way to see what dependencies
+    ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
+    - name: Install
+      shell: pwsh
+      run: |
+        cmake/cmake-builder.ps1 -config Release -flavor vs2022-xp -installOnly
+    - name: SIMH packaging
+      shell: pwsh
+      run: |
+          cd cmake\build-vs2022-xp
+          cpack -G "ZIP;WIX" -C Release
+    - name: Upload ZIP
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-win32-vs2022xp.zip
+        path: cmake/build-vs2022-xp/simh-4.0.0-win32-xp.zip
+    - name: Upload MSI
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-win32-vs2022xp.zip
+        path: cmake/build-vs2022-xp/simh-4.0.0-win32-xp.msi     
+
+  cmake-vs2022:
+    name: VS 2022 Win10 native VCPKG
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: vs2022 build
+      shell: pwsh
+      run: |
+          $ErrorActionPreference="Stop"
+          $WarningPreference="Continue"
+          # Fix PATH so that "C:\Strawberry" (Strawberry Perl) doesn't mess with the build
+          # CMake WILL find incompatible libraries within Strawberry.
+          $fixPATH = (${env:PATH}.Split(';') | `
+              Where-Object { $_ -notlike "*\Strawberry\*" -and $_ -notlike "*/Strawberry/*" }) -join ';'
+          $env:PATH = $fixPATH
+          # Make this a vcpkg build:
+          $env:VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT
+          Push-Location $env:VCPKG_ROOT
+          git pull
+          Pop-Location
+          ./cmake/cmake-builder.ps1 -flavor vs2022 -config Release -clean -lto -verbose -notest -cpack_suffix win32-native
+    - name: SIMH simulator suite test
+      shell: pwsh
+      run: |
+          ./cmake/cmake-builder.ps1 -flavor vs2022 -config Release -testOnly
+    ## Install isn't strictly necessary, but it's a good way to see what dependencies
+    ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
+    - name: Install
+      shell: pwsh
+      run: |
+        cmake/cmake-builder.ps1 -config Release -flavor vs2022 -installOnly
+    - name: SIMH packaging
+      shell: pwsh
+      run: |
+          cd cmake\build-vs2022
+          cpack -G "NSIS;WIX;ZIP" -C Release
+    - name: Upload ZIP
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-win32-vs2022.zip
+        path: cmake/build-vs2022/simh-4.0.0-win32-native.zip
+    - name: Upload EXE installer
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-win32-vs2022.exe
+        path: cmake/build-vs2022/simh-4.0.0-win32-native.exe
+    - name: Upload MSI installer
+      uses: actions/upload-artifact@v3
+      with:
+        name: simh-4.0.0-win32-vs2022.msi
+        path: cmake/build-vs2022/simh-4.0.0-win32-native.msi

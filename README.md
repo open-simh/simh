@@ -1,3 +1,9 @@
+Github Actions CI/CD status:
+
+   master branch: ![master](https://github.com/bscottm/open-simh/actions/workflows/build.yml/badge.svg)
+
+   cmake branch: ![cmake](https://github.com/bscottm/open-simh/actions/workflows/build.yml/badge.svg?branch=cmake)
+
 # Open SIMH machine simulator
 
 This is the codebase of SIMH, a framework and collection of computer system simulators.

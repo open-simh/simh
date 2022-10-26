@@ -1,19 +1,161 @@
-platform:
-  - x86
 cache:
-  - ../windows-build
+  - cmake\dependencies -> appveyor.yml, **\CMakeLists.txt, cmake\dep-targets.cmake
+
+## shallow_clone: true
+## clone_depth: 50
+
+environment:
+  DIST_DIR: '%APPVEYOR_BUILD_FOLDER%\dist'
+  CMAKE_DIST_DIR: C:/projects/simh/dist
+
+  matrix:
+    ##+
+    ## The matrix is ordered by relative popularity/priority:
+    ##-
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      SIMH_BUILD_FLAVOR: ninja
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+      SIMH_BUILD_FLAVOR: vs2022
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      SIMH_BUILD_FLAVOR: vs2019
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      SIMH_BUILD_FLAVOR: vs2017
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+      SIMH_BUILD_FLAVOR: vs2022-xp
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      SIMH_BUILD_FLAVOR: vs2019-xp
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      SIMH_BUILD_FLAVOR: vs2017-xp
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      SIMH_BUILD_FLAVOR: vs2015
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
+      SIMH_BUILD_FLAVOR: unix
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
+      SIMH_BUILD_FLAVOR: unix
+
+    ## These images have cmake 3.12, which is too old. Could build if
+    ## cmake were upgraded in the image in the before_build stanza, but
+    ## that subverts the purpose of the image.
+
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    #   SIMH_BUILD_FLAVOR: vs2013
+    #
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    #   SIMH_BUILD_FLAVOR: vs2012
+    #
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    #   SIMH_BUILD_FLAVOR: vs2008
+    
+    ## - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+    ##   SIMH_BUILD_FLAVOR: mingw
+    ##   MINGW: C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0
+
+    ## Here's how you would build with Ninja. It's going to build the same executables
+    ## as the MinGW flavor, which is why it's skipped here.
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    #   SIMH_BUILD_FLAVOR: ninja
+    #   MINGW: C:\msys64\mingw32\bin
+    #
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    #   SIMH_BUILD_FLAVOR: 2017
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    #   SIMH_BUILD_FLAVOR: 2015
+
+matrix:
+  ## Bail if a job fails, don't start new ones.
+  fast_finish: true
+
 skip_commits:
   files:
-    - doc/*
+    - 'doc/*'
     - '**/*.md'
-    - '**/*.txt'
+
+configuration:
+  - Debug
+  - Release
+
+build:
+  parallel: true                  # enable MSBuild parallel builds
+  verbosity: minimal
+
 before_build:
-  "\"C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\vcvarsall.bat\""
+  - ps: |
+      if ($isWindows) {
+        if (${env:SIMH_BUILD_FLAVOR} -eq "ninja") { choco install ninja; }
+        if (!(Test-Path -Path cmake\dependencies)) { New-Item -ItemType Directory -Path cmake\dependencies }
+      }
+  - sh: |
+      case "${APPVEYOR_BUILD_WORKER_IMAGE}" in
+      Ubuntu*)
+        ## .travis/deps.sh will try to install cmake, but that's not desirable
+        sudo apt-get update -yqqm
+        sudo apt-get install -ym pkg-config
+        sudo apt-get install -ym libpcre3-dev
+        sudo apt-get install -ym libegl1-mesa-dev libgles2-mesa-dev
+        sudo apt-get install -ym libsdl2-dev libpcap-dev libvdeplug-dev
+        sudo apt-get install -ym libsdl2-ttf-dev
+        sudo apt-get install -ym libedit-dev
+        ;;
+      *)
+        echo "Update before_build for ${APPVEYOR_BUILD_WORKER_IMAGE}"
+        exit 99
+      esac
+
 build_script:
-  cmd: cd "Visual Studio Projects" & vcbuild /M%NUMBER_OF_PROCESSORS% /useenv /rebuild Simh.sln "Release|Win32"
-notifications:
-  - provider: Email
-    to:
-      - Mark@infocomm.com
-      - lars@nocrew.org
-    on_build_success: false
+  # Run the cmake-builder script all the way through: generate, build, test.
+  - ps: |
+      if ($isWindows) {
+          $ErrorActionPreference="Stop"
+          $WarningPreference="Continue"
+        if (!([string]::IsNullOrEmpty($env:MINGW))) { $env:PATH=$(@(${env:MINGW}, ${env:PATH}) -join ";"); };
+        cmake\cmake-builder.ps1 `
+            -flavor ${env:SIMH_BUILD_FLAVOR} `
+            -config ${env:CONFIGURATION} `
+            -lto -parallel -clean -notest -noinstall -verbose
+      }
+  - sh: |
+      case "${APPVEYOR_BUILD_WORKER_IMAGE}" in
+      Ubuntu1604)
+        ## LTO support is either incompletely installed or not installed at all.
+        LTO=
+        ;;
+      *)
+        LTO="--lto"
+        ;;
+      esac
+      cmake/cmake-builder.sh --flavor ${SIMH_BUILD_FLAVOR} --config ${CONFIGURATION} ${LTO} \
+          --verbose --parallel --clean --notest --noinstall
+
+test_script:
+  - ps: |
+      if ($isWindows) {
+        Write-Output "cmake\cmake-builder.ps1 -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}"
+        cmake\cmake-builder.ps1 -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}
+      }
+  - sh: |
+      cmake/cmake-builder.sh --testonly --config ${CONFIGURATION} --flavor ${SIMH_BUILD_FLAVOR}
+
+##+
+## Don't package artifacts -- only GitHub does this now.
+##-
+# after_test:
+# 
+# artifacts:
+#   - path: PACKAGES\*.zip
+
+# notifications:
+#   - provider: Email
+#     to:
+#       - Mark@infocomm.com
+#       - lars@nocrew.org
+#     on_build_success: false
