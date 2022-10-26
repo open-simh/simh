@@ -1276,7 +1276,8 @@ else
   else
     NO_LTO = 1
     ifeq (Darwin,$(OSTYPE))
-      CFLAGS_O += -O4 -flto -fwhole-program
+      #CFLAGS_O += -O4 -flto -fwhole-program
+      CFLAGS_O := -O2
     else
       CFLAGS_O := -O2
     endif
