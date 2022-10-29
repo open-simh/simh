@@ -53,7 +53,7 @@ static uint16 COLORA;
 static uint8  tv_source[256];
 static uint8  tv_display[256];
 static uint16 TVINCR;
-static uint8  TVSEL;     /* Frame buffer select. */
+static uint16 TVSEL;     /* Frame buffer select. */
 static uint16 TVRADR;
 static uint16 tvdata;
 static uint16 TVWC;
