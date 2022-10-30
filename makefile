@@ -1270,10 +1270,10 @@ ifneq ($(DEBUG),)
   LTO =
 else
   ifneq (,$(findstring clang,$(COMPILER_NAME))$(findstring LLVM,$(COMPILER_NAME)))
-    CFLAGS_O = -O2 -fno-strict-overflow
+    CFLAGS_O = -O3 -fno-strict-overflow
     GCC_OPTIMIZERS_CMD = ${GCC} --help 2>&1
   else
-    CFLAGS_O := -O2
+    CFLAGS_O := -O3
   endif
   LDFLAGS_O = 
   GCC_MAJOR_VERSION = $(firstword $(subst  ., ,$(GCC_VERSION)))
@@ -1313,7 +1313,7 @@ else
   ifneq (,$(LTO))
     ifneq (,$(findstring -flto,$(GCC_OPTIMIZERS)))
       CFLAGS_O += -flto
-      ifneq (,$(and $(findstring gcc,$(COMPILER_NAME)),$(findstring -fwhole-program,$(GCC_OPTIMIZERS))))
+      ifneq (,$(and $(or $(findstring gcc,$(COMPILER_NAME)),$(findstring GCC,$(COMPILER_NAME))),$(findstring -fwhole-program,$(GCC_OPTIMIZERS))))
         CFLAGS_O += -fwhole-program
       endif
       LTO_FEATURE = , with Link Time Optimization,
@@ -2256,7 +2256,7 @@ endif
 
 pdp11 : ${BIN}pdp11${EXE}
 
-${BIN}pdp11${EXE} : ${PDP11} ${SIM}
+${BIN}pdp11${EXE} : ${PDP11} ${SIM} ${BUILD_ROMS}
 	${MKDIRBIN}
 	${CC} ${PDP11} ${SIM} ${PDP11_OPT} ${CC_OUTSPEC} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP11D},pdp11))
