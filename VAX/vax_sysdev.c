@@ -1181,9 +1181,12 @@ while (memsize > 1) {
         }
     for (i=0; boards[i].capacity > memsize; ++i)
         ;
-    fprintf(st, "Memory (@0x%08x): %3d Mbytes (%s)\n", baseaddr, boards[i].capacity, boards[i].option);
-    memsize -= boards[i].capacity;
-    baseaddr += boards[i].capacity<<20;
+    if (boards[i].option != NULL)
+    {
+        fprintf(st, "Memory (@0x%08x): %3d Mbytes (%s)\n", baseaddr, boards[i].capacity, boards[i].option);
+        memsize -= boards[i].capacity;
+        baseaddr += boards[i].capacity << 20;
+        }
     }
 return SCPE_OK;
 }
