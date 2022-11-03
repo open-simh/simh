@@ -60,6 +60,7 @@ t_bool build_dev_tab (void)
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
                    UNIT *uptr, int32 sw)
 {
+  return SCPE_OK;
 }
 
 t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr,
