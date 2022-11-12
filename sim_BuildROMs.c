@@ -90,7 +90,7 @@ struct ROM_File_Descriptor {
 #endif
 
 int sim_read_ROM_include(const char *include_filename, 
-                         int *psize,
+                         size_t *psize,
                          unsigned char **pROMData,
                          unsigned int *pchecksum,
                          char **prom_array_name,
@@ -227,7 +227,7 @@ return 1;
 }
 
 int sim_make_ROM_include(const char *rom_filename,
-                         int expected_size,
+                         size_t expected_size,
                          unsigned int expected_checksum,
                          const char *include_filename, 
                          const char *rom_array_name,
@@ -237,7 +237,7 @@ FILE *rFile;
 FILE *iFile;
 time_t now;
 int bytes_written = 0;
-int include_bytes;
+size_t include_bytes;
 int c;
 int rom;
 struct stat statb;
@@ -275,8 +275,8 @@ if (stat (rom_filename, &statb)) {
     fclose (rFile);
     return -1;
     }
-if (statb.st_size != expected_size) {
-    printf ("Error: ROM file '%s' has an unexpected size: %d vs %d\n", rom_filename, (int)statb.st_size, expected_size);
+if ((size_t)statb.st_size != (size_t)expected_size) {
+    printf ("Error: ROM file '%s' has an unexpected size: %d vs %d\n", rom_filename, (int)statb.st_size, (int)expected_size);
     printf ("This can happen if the file was transferred or unpacked incorrectly\n");
     printf ("and in the process tried to convert line endings rather than passing\n");
     printf ("the file's contents unmodified\n");
