@@ -121,7 +121,7 @@ struct drvtyp {
     };
 
 static struct drvtyp drv_tab[] = {
-    { RK_NUMSC, RK_NUMSF, RK_NUMCY*2, RK_SIZE, "RK05" },
+    { RK_NUMSC, RK_NUMSF, RK_NUMCY, RK_SIZE, "RK05" },
     { 0 }
     };
 
@@ -426,9 +426,9 @@ REG rk_reg[] = {
 
 MTAB rk_mod[] = {
     { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED", 
-        &set_writelock, &show_writelock,   NULL, "Write enable tape drive" },
+        &set_writelock, &show_writelock,   NULL, "Write enable disk drive" },
     { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED", 
-        &set_writelock, NULL,   NULL, "Write lock tape drive" },
+        &set_writelock, NULL,   NULL, "Write lock disk drive" },
     { MTAB_XTD|MTAB_VUN, 0, "TYPE", NULL,
       NULL, &rk_show_type, NULL, "Display device type" },
     { UNIT_NOAUTO,           0, "autosize", "AUTOSIZE", 
