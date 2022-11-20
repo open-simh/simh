@@ -161,6 +161,7 @@ static t_stat cpu_set_chiptype      (UNIT *uptr, int32 value, CONST char *cptr, 
 static t_stat cpu_set_size          (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_set_memory        (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_set_hist          (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+static t_stat cpu_set_ddt           (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_show_hist         (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat cpu_clear_command     (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static void cpu_clear(void);
@@ -170,11 +171,14 @@ static t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 static t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw);
 static t_stat cpu_reset(DEVICE *dptr);
 static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+static void cpu_show_ddt(FILE *st, int32 af, int32 bc, int32 de, int32 hl, int32 sp, int32 pc,
+                         int32 af1, int32 bc1, int32 de1, int32 hl1, int32 ix, int32 iy, t_value *op);
 static t_stat sim_instr_mmu(void);
 static uint32 GetBYTE(register uint32 Addr);
 static void PutWORD(register uint32 Addr, const register uint32 Value);
 static void PutBYTE(register uint32 Addr, const register uint32 Value);
 static const char* cpu_description(DEVICE *dptr);
+static t_bool cpu_fprint_stopped (FILE *st, t_stat v);
 void out(const uint32 Port, const uint32 Value);
 uint32 in(const uint32 Port);
 void altairz80_init(void);
@@ -511,6 +515,10 @@ static MTAB cpu_mod[] = {
         NULL, NULL, "Enable Altair ROM for 8080 / Z80"  },
     { UNIT_CPU_ALTAIRROM,   0,                  "NOALTAIRROM",  "NOALTAIRROM",  &cpu_set_noaltairrom,
         NULL, NULL, "Disable Altair ROM for 8080 / Z80"},
+    { UNIT_CPU_DDT,   UNIT_CPU_DDT,             "DDT",          "DDT",          &cpu_set_ddt,
+        NULL, NULL, "Enable DDT stop messages"  },
+    { UNIT_CPU_DDT,   0,                        "NODDT",        "NODDT",        &cpu_set_ddt,
+        NULL, NULL, "Disable DDT stop messages"},
     { UNIT_CPU_VERBOSE,     UNIT_CPU_VERBOSE,   "VERBOSE",      "VERBOSE",      NULL, &cpu_show,
         NULL, "Enable verbose messages"     },
     { UNIT_CPU_VERBOSE,     0,                  "QUIET",        "QUIET",        NULL, NULL,
@@ -6616,6 +6624,16 @@ static t_stat cpu_set_noaltairrom(UNIT *uptr, int32 value, CONST char *cptr, voi
     return SCPE_OK;
 }
 
+static t_stat cpu_set_ddt(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
+    if (chiptype == CHIP_TYPE_8080 || chiptype == CHIP_TYPE_Z80) {
+        sim_vm_fprint_stopped = (value == UNIT_CPU_DDT) ? cpu_fprint_stopped : NULL;
+        return SCPE_OK;
+    }
+
+    sim_printf("CPU type does not support DDT stop messages.\n");
+    return SCPE_ARG;
+}
+
 static t_stat cpu_set_nommu(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
     if (chiptype == CHIP_TYPE_8086) {
         sim_printf("Cannot switch off MMU for 8086 CPU.\n");
@@ -7062,38 +7080,7 @@ t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
         h = &hst[(di++) % hst_lnt];
 
         if (h->valid) {                              /* valid entry? */
-            if (chiptype == CHIP_TYPE_8080) {
-                /*
-                ** Use DDT output:
-                ** CfZfMfEfIf A=bb B=dddd D=dddd H=dddd S=dddd P=dddd inst
-                */
-                fprintf(st, "CPU: C%dZ%dM%dE%dI%d A=%02X B=%04X D=%04X H=%04X S=%04X P=%04X ",
-                    TSTFLAG2(h->af, C),
-                    TSTFLAG2(h->af, Z),
-                    TSTFLAG2(h->af, S),
-                    TSTFLAG2(h->af, P),
-                    TSTFLAG2(h->af, H),
-                    HIGH_REGISTER(h->af), h->bc, h->de, h->hl, h->sp, h->pc);
-                fprint_sym (st, h->pc, h->op, &cpu_unit, SWMASK ('M'));
-                fprintf(st, "\n");
-            } else {    /* Z80 */
-                /*
-                ** Use DDT/Z output:
-                */
-                fprintf(st, "CPU: C%dZ%dS%dV%dH%dN%d A =%02X BC =%04X DE =%04X HL =%04X S =%04X P =%04X ",
-                    TSTFLAG2(h->af, C),
-                    TSTFLAG2(h->af, Z),
-                    TSTFLAG2(h->af, S),
-                    TSTFLAG2(h->af, P),
-                    TSTFLAG2(h->af, H),
-                    TSTFLAG2(h->af, N),
-                    HIGH_REGISTER(h->af), h->bc, h->de, h->hl, h->sp, h->pc);
-                fprint_sym (st, h->pc, h->op, &cpu_unit, SWMASK ('M'));
-                fprintf(st, "\n");
-                fprintf(st, "                  A'=%02X BC'=%04X DE'=%04X HL'=%04X IX=%04X IY=%04X ",
-                    HIGH_REGISTER(h->af1), h->bc1, h->de1, h->hl1, h->ix, h->iy);
-                fprintf(st, "\n");
-            }
+            cpu_show_ddt(st, h->af, h->bc, h->de, h->hl, h->sp, h->pc, h->af1, h->bc1, h->de1, h->hl1, h->ix, h->iy, h->op);
         }
     }
 
@@ -7230,3 +7217,67 @@ void cpu_raise_interrupt(uint32 irq) {
                (chiptype < NUM_CHIP_TYPE) ? cpu_mod[chiptype].mstring : "????");
     }
 }
+
+static t_bool cpu_fprint_stopped (FILE *st, t_stat v) {
+    t_value op[INST_MAX_BYTES];
+    int i;
+
+    fputc ('\n', st);                                       /* start on a new line */
+
+    if (v >= SCPE_BASE)                                     /* SCP error? */
+        fputs (sim_error_text (v), st);                     /* print it from the SCP list */
+    else {                                                  /* VM error */
+        if (sim_stop_messages [v])
+            fputs (sim_stop_messages [v], st);              /* print the VM-specific message */
+        else
+            fprintf (st, "Unknown simulator stop code %d\n", v);
+    }
+
+    for (i = 0; i < INST_MAX_BYTES; i++) {
+        op[i] = GetBYTE(PC_S + i);
+    }
+
+    fputc('\n', st);
+ 
+    cpu_show_ddt(st, AF_S, BC_S, DE_S, HL_S, SP_S, PC_S, AF1_S, BC1_S, DE1_S, HL1_S, IX_S, IY_S, op);
+
+    return FALSE;
+}
+
+static void cpu_show_ddt(FILE *st, int32 af, int32 bc, int32 de, int32 hl, int32 sp, int32 pc,
+                         int32 af1, int32 bc1, int32 de1, int32 hl1, int32 ix, int32 iy, t_value *op)
+{
+    if (chiptype == CHIP_TYPE_8080) {
+        /*
+        ** Use DDT output:
+        ** CfZfMfEfIf A=bb B=dddd D=dddd H=dddd S=dddd P=dddd inst
+        */
+        fprintf(st, "C%dZ%dM%dE%dI%d A=%02X B=%04X D=%04X H=%04X S=%04X P=%04X ",
+            TSTFLAG2(af, C),
+            TSTFLAG2(af, Z),
+            TSTFLAG2(af, S),
+            TSTFLAG2(af, P),
+            TSTFLAG2(af, H),
+            HIGH_REGISTER(af), (uint16) bc, (uint16) de, (uint16) hl, (uint16) sp, (uint16) pc);
+        fprint_sym (st, pc, op, &cpu_unit, SWMASK ('M'));
+    } else {    /* Z80 */
+        /*
+        ** Use DDT/Z output:
+        */
+        fprintf(st, "C%dZ%dS%dV%dH%dN%d A =%02X BC =%04X DE =%04X HL =%04X S =%04X P =%04X ",
+            TSTFLAG2(af, C),
+            TSTFLAG2(af, Z),
+            TSTFLAG2(af, S),
+            TSTFLAG2(af, P),
+            TSTFLAG2(af, H),
+            TSTFLAG2(af, N),
+            HIGH_REGISTER(af), (uint16) bc, (uint16) de, (uint16) hl, (uint16) sp, (uint16) pc);
+        fprint_sym (st, pc, op, &cpu_unit, SWMASK ('M'));
+        fputc('\n', st);
+        fprintf(st, "             A'=%02X BC'=%04X DE'=%04X HL'=%04X IX=%04X IY=%04X ",
+            HIGH_REGISTER(af1), (uint16) bc1, (uint16) de1, (uint16) hl1, (uint16) ix, (uint16) iy);
+    }
+
+    fputc('\n', st);
+}
+

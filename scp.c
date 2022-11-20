@@ -9433,6 +9433,10 @@ t_stat r = 0;
 t_addr k;
 t_value pcval;
 
+if ((sim_vm_fprint_stopped != NULL) &&                  /* if a VM-specific handler is defined */
+    (!sim_vm_fprint_stopped (st, v)))                   /*   call it; if it returned FALSE, */
+    return;                                             /*     we're done */
+
 fputc ('\n', st);                                       /* start on a new line */
 
 if (v >= SCPE_BASE)                                     /* SCP error? */
@@ -9442,9 +9446,6 @@ else {                                                  /* VM error */
         fputs (sim_stop_messages [v], st);              /* print the VM-specific message */
     else
         fprintf (st, "Unknown %s simulator stop code %d", sim_name, v);
-    if ((sim_vm_fprint_stopped != NULL) &&              /* if a VM-specific stop handler is defined */
-        (!sim_vm_fprint_stopped (st, v)))               /*   call it; if it returned FALSE, */
-        return;                                         /*     we're done */
     }
 
 fprintf (st, ", %s: ", pc->name);                       /* print the name of the PC register */
