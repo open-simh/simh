@@ -9327,7 +9327,7 @@ do {
         sim_brk_clrall (BRK_TYP_DYN_STEPOVER);          /* cancel any step/over subroutine breakpoints */
         }
     else {
-        if (r != SCPE_STEP)                             /* done if step didn't complete with step expired */
+        if (SCPE_BARE_STATUS(r) != SCPE_STEP)                             /* done if step didn't complete with step expired */
             break;
         }
     /* setup another next/step */
@@ -9432,6 +9432,9 @@ int32 i;
 t_stat r = 0;
 t_addr k;
 t_value pcval;
+
+if (v & SCPE_NOMESSAGE)                                 /* Stopped message suppressed (already handled) */
+    return;                                             /*     we're done */
 
 fputc ('\n', st);                                       /* start on a new line */
 
