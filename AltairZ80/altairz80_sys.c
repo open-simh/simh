@@ -75,6 +75,8 @@ extern DEVICE m2sio0_dev;
 extern DEVICE m2sio1_dev;
 extern DEVICE pmmi_dev;
 extern DEVICE hayes_dev;
+extern DEVICE mmd_dev;
+extern DEVICE mmdm_dev;
 
 extern DEVICE cromfdc_dev;
 extern DEVICE wd179x_dev;
@@ -144,6 +146,9 @@ DEVICE      *sim_devices[]  = {
     &pmmi_dev,
     /* HAYES MODEM */
     &hayes_dev,
+    /* Morrow Micro Decision Devices */
+    &mmd_dev,
+    &mmdm_dev,
     /* Vector Graphic Devices */
     &fw2_dev, &vfdhd_dev,
     /* Single-Board Computers */

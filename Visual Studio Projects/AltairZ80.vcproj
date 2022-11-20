@@ -290,6 +290,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\AltairZ80\mmd.c"
+				>
+			</File>
+			<File
 				RelativePath="..\AltairZ80\n8vem.c"
 				>
 			</File>
