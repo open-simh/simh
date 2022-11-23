@@ -673,6 +673,8 @@ AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
         {010700} },                                     /* KG11-A - fx CSR, no VEC */
     { { "RHA" },         1,  1,  0, 0, 
         {016700}, {0254} },                             /* RH11/RH70 - fx CSR, fx VEC */
+    { { "RP" },          1,  1,  0, 0, 
+        {016710}, {0254} },                             /* RP11 - fx CSR, fx VEC */
     { { "RHB" },         1,  1,  0, 0, 
         {012440}, {0224} },                             /* RH11/RH70 - fx CSR, fx VEC */
     { { "RHC" },  1,  1,  0, 0, 
@@ -702,8 +704,6 @@ AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
         {0200,     0170,   0174,   0270,   0274} },     /* LP11 - fx CSR, fx VEC */
     { { "RB" },          1,  1,  0, 0, 
         {015606}, {0250} },                             /* RB730 - fx CSR, fx VEC */
-    { { "RL" },          1,  1,  0, 0, 
-        {014400}, {0160} },                             /* RL11 - fx CSR, fx VEC */
     { { "RL" },          1,  1,  0, 0, 
         {014400}, {0160} },                             /* RL11 - fx CSR, fx VEC */
     { { "DCI" },         1,  2,  0, 8, 
