@@ -1277,9 +1277,9 @@ endif
 ifneq (,$(UNSUPPORTED_BUILD))
   CFLAGS_GIT += -DSIM_BUILD=Unsupported=$(UNSUPPORTED_BUILD)
 endif
-OPTIMIZE ?= -O2
+OPTIMIZE ?= -O2 -DNDEBUG
 ifneq ($(DEBUG),)
-  CFLAGS_G = -g -ggdb -g3
+  CFLAGS_G = -g -ggdb -g3 -D_DEBUG=1
   CFLAGS_O = -O0
   BUILD_FEATURES = - debugging support
   LTO =
@@ -1453,7 +1453,7 @@ PDP11 = ${PDP11D}/pdp11_fp.c ${PDP11D}/pdp11_cpu.c ${PDP11D}/pdp11_dz.c \
 	${PDP11D}/pdp11_vt.c ${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c \
 	${PDP11D}/pdp11_rom.c ${PDP11D}/pdp11_ch.c ${PDP11D}/pdp11_dh.c \
 	${PDP11D}/pdp11_ng.c ${PDP11D}/pdp11_daz.c ${PDP11D}/pdp11_tv.c \
-	${PDP11D}/pdp11_mb.c \
+	${PDP11D}/pdp11_mb.c ${PDP11D}/pdp11_rp11.c \
 	${DISPLAYL} ${DISPLAYNG} ${DISPLAYVT}
 PDP11_OPT = -DVM_PDP11 -I ${PDP11D} ${NETWORK_OPT} ${DISPLAY_OPT}
 

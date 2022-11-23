@@ -598,6 +598,10 @@ t_stat rp_set_bad (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 int32 rp_abort (void);
 t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *rp_description (DEVICE *dptr);
+#if defined(VM_PDP11)  &&  !defined(UC15)
+t_stat rp_set_ctrl (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+t_stat rp_show_ctrl (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
+#endif
 
 
 /* RP data structures
@@ -655,6 +659,12 @@ REG rp_reg[] = {
     };
 
 MTAB rp_mod[] = {
+#if defined(VM_PDP11)  &&  !defined(UC15)
+    { MTAB_VDV, 0, NULL, "RP11C", 
+        &rp_set_ctrl, NULL, NULL, "Switch controller type to RP11C/RP03" },
+    { MTAB_VDV, 0, "TYPE", NULL,
+        NULL, &rp_show_ctrl, NULL, "Display controller type" },
+#endif
     { MTAB_XTD|MTAB_VDV, 0, "MASSBUS", NULL, 
         NULL, &mba_show_num, NULL, "Display Massbus number" },
     { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED", 
@@ -1525,3 +1535,37 @@ const char *rp_description (DEVICE *dptr)
 {
 return "RP04/05/06/07 RM02/03/05/80 Massbus disk controller";
 }
+
+#if defined(VM_PDP11)  &&  !defined(UC15)
+/* Show / Switch controller type */
+
+t_stat rp_show_ctrl (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
+{
+    fputs ("MASSBUS", st);
+    return SCPE_OK;
+}
+
+t_stat set_dev_enbdis (DEVICE *dptr, UNIT *uptr, int32 flag, CONST char *cptr);
+
+t_stat rp_set_ctrl (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+    DEVICE* dptr = find_dev_from_unit (uptr);
+    t_stat rv;
+    int i;
+
+    if (cptr)
+        return SCPE_ARG;
+    if ((rv = set_dev_enbdis(dptr, 0, 0/*disable*/, NULL)) != SCPE_OK)
+        return rv;
+    for (i = 0;  sim_devices[i];  ++i) {
+        extern DEVICE rr_dev;
+        if (sim_devices[i] == dptr) {
+            sim_devices[i]  = &rr_dev;
+            if ((rv = set_dev_enbdis(sim_devices[i], 0, 1/*enable*/, NULL)) != SCPE_OK)
+                sim_devices[i] = dptr;
+            return rv;
+        }
+    }
+    return SCPE_NXDEV;
+}
+#endif
