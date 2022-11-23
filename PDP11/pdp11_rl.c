@@ -1047,16 +1047,6 @@ uptr->STAT = RLDS_BHO | RLDS_LOAD;
 return sim_disk_detach (uptr);
 }
 
-/* Set size routine */
-
-t_stat rl_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
-{
-if (uptr->flags & UNIT_ATT)
-    return SCPE_ALATT;
-uptr->capac = (val & UNIT_RL02)? RL02_SIZE: RL01_SIZE;
-return SCPE_OK;
-}
-
 /* Set type command validation routine */
 
 t_stat rl_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
