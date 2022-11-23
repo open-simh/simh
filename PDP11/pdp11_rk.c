@@ -85,15 +85,15 @@
 
 #define RKCONTR         uint32                          /* container format */
 #define RKWRDSZ         18                              /* word width */
-#define MAP_RDW(a,b,c)  Map_Read18 (a, b, c)
-#define MAP_WRW(a,b,c)  Map_Write18 (a, b, c)
+#define MAP_RDW(a,c,b)  (Map_Read18 (a, (c) << 1, b) >> 1)
+#define MAP_WRW(a,c,b)  (Map_Write18 (a, (c) << 1, b) >> 1)
 
 #else
 
 #define RKCONTR         uint16
 #define RKWRDSZ         16
-#define MAP_RDW(a,b,c)  Map_ReadW (a, b, c)
-#define MAP_WRW(a,b,c)  Map_WriteW (a, b, c)
+#define MAP_RDW(a,c,b)  (Map_ReadW (a, (c) << 1, b) >> 1)
+#define MAP_WRW(a,c,b)  (Map_WriteW (a, (c) << 1, b) >> 1)
 
 #endif
 
@@ -104,9 +104,9 @@
 #define RK_NUMTR        (RK_NUMCY * RK_NUMSF)           /* tracks/drive */
 #define RK_NUMDR        8                               /* drives/controller */
 #define RK_M_NUMDR      07
-#define RK_SIZE         (RK_NUMCY * RK_NUMSF * RK_NUMSC * RK_NUMWD)
+#define RK_NUMBL        (RK_NUMTR * RK_NUMSC)
+#define RK_SIZE         (RK_NUMBL * RK_NUMWD)           /* words/drive */
 #define RK_RSRVSEC      (3 * RK_NUMSF * RK_NUMSC)       /* reserved (unused) disk area */
-                                                        /* words/drive */
 #define RK_CTLI         1                               /* controller int */
 #define RK_SCPI(x)      (2u << (x))                     /* drive int */
 #define RK_MAXFR        (1 << 16)                       /* max transfer */
@@ -121,7 +121,7 @@ struct drvtyp {
     };
 
 static struct drvtyp drv_tab[] = {
-    { RK_NUMSC, RK_NUMSF, RK_NUMCY, RK_SIZE, "RK05" },
+    { RK_NUMSC, RK_NUMSF, RK_NUMCY, RK_NUMBL, "RK05" },
     { 0 }
     };
 
@@ -293,7 +293,7 @@ BITFIELD *rk_reg_bits[] = {
     rk_ba_bits,
     rk_da_bits,
     NULL,
-    NULL,
+    NULL
     };
 
 /* Debug detail levels */
@@ -323,6 +323,7 @@ int32 last_drv = 0;                                     /* last r/w drive */
 int32 rk_stopioe = 1;                                   /* stop on error */
 int32 rk_swait = 10;                                    /* seek time */
 int32 rk_rwait = 10;                                    /* rotate time */
+static int32 not_impl = 0;                              /* placeholder for unused regs */
 
 const char *rk_regnames[] = {
     "RKDS",
@@ -332,7 +333,7 @@ const char *rk_regnames[] = {
     "RKBA",
     "RKDA",
     "unused",
-    "RKDB",
+    "RKDB"
     };
 
 int32 *rk_regs[] = {
@@ -342,6 +343,8 @@ int32 *rk_regs[] = {
     &rkwc,
     &rkba,
     &rkda,
+    &not_impl,
+    &not_impl
     };
 
 t_stat rk_rd (int32 *data, int32 PA, int32 access);
@@ -741,13 +744,13 @@ if (wc && (err == 0)) {                                 /* seek ok? */
             sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
             }
         if (rkcs & RKCS_INH) {                          /* incr inhibit? */
-            if ((t = MAP_WRW (ma, 2, &rkxb[wc - 1]))) { /* store last */
+            if (MAP_WRW (ma, 1, &rkxb[wc - 1])) {       /* store last */
                 rker = rker | RKER_NXM;                 /* NXM? set flag */
                 wc = 0;                                 /* no transfer */
                 }
             }
         else {                                          /* normal store */
-            if ((t = MAP_WRW (ma, wc << 1, rkxb))) {    /* store buf */
+            if ((t = MAP_WRW (ma, wc, rkxb))) {         /* store buf */
                 rker = rker | RKER_NXM;                 /* NXM? set flag */
                 wc = wc - t;                            /* adj wd cnt */
                 }
@@ -756,7 +759,7 @@ if (wc && (err == 0)) {                                 /* seek ok? */
 
     case RKCS_WRITE:                                    /* write */
         if (rkcs & RKCS_INH) {                          /* incr inhibit? */
-            if ((t = MAP_RDW (ma, 2, &comp))) {         /* get 1st word */
+            if (MAP_RDW (ma, 1, &comp)) {               /* get 1st word */
                 rker = rker | RKER_NXM;                 /* NXM? set flag */
                 wc = 0;                                 /* no transfer */
                 }
@@ -764,7 +767,7 @@ if (wc && (err == 0)) {                                 /* seek ok? */
                 rkxb[i] = comp;
             }
         else {                                          /* normal fetch */
-            if ((t = MAP_RDW (ma, wc << 1, rkxb))) {  /* get buf */
+            if ((t = MAP_RDW (ma, wc, rkxb))) {         /* get buf */
                 rker = rker | RKER_NXM;                 /* NXM? set flg */
                 wc = wc - t;                            /* adj wd cnt */
                 }
@@ -773,7 +776,7 @@ if (wc && (err == 0)) {                                 /* seek ok? */
             awc = (wc + (RK_NUMWD - 1)) & ~(RK_NUMWD - 1); /* clr to */
             for (i = wc; i < awc; i++)                  /* end of blk */
                 rkxb[i] = 0;
-            sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, awc, "sim_disk_wrsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+            sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, awc*sizeof(*rkxb), "sim_disk_wrsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
             err = sim_disk_wrsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, NULL, awc/RK_NUMWD);
             }
         break;                                          /* end write */
@@ -787,7 +790,7 @@ if (wc && (err == 0)) {                                 /* seek ok? */
             }
         awc = wc;                                       /* save wc */
         for (wc = 0, cma = ma; wc < awc; wc++)  {       /* loop thru buf */
-            if (MAP_RDW (cma, 2, &comp)) {              /* mem wd */
+            if (MAP_RDW (cma, 1, &comp)) {              /* mem wd */
                 rker = rker | RKER_NXM;                 /* NXM? set flg */
                 break;
                 }
@@ -816,6 +819,7 @@ if ((uptr->FUNC == RKCS_READ) && (rkcs & RKCS_FMT))     /* read format? */
 else da = da + wc + (RK_NUMWD - 1);                     /* count by words */
 track = (da / RK_NUMWD) / RK_NUMSC;
 sect = (da / RK_NUMWD) % RK_NUMSC;
+uptr->CYL = track / RK_NUMSF;
 rkda = (rkda & RKDA_DRIVE) | (track << RKDA_V_TRACK) | (sect << RKDA_V_SECT);
 rk_set_done (0);
 
@@ -917,13 +921,9 @@ return auto_config (0, 0);
 t_stat rk_attach (UNIT *uptr, CONST char *cptr)
 {
 t_stat r;
-static const char *drives[] = {"RK05", NULL};
-
 r = sim_disk_attach_ex2 (uptr, cptr, RK_NUMWD * sizeof (uint16), 
                          sizeof (uint16), TRUE, 0, 
-                         "RK05", 0, 0, 
-                         (uptr->flags & UNIT_NOAUTO) ? NULL: drives,
-                         RK_RSRVSEC);
+                         "RK05", 0, 0, NULL, RK_RSRVSEC);
 if (r != SCPE_OK)                                       /* error? */
     return r;
 return SCPE_OK;
