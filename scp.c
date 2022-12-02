@@ -16044,17 +16044,9 @@ for (i = 0; (dptr = devices[i]) != NULL; i++) {
     REG *rptr;
 
     for (rptr = dptr->registers; (rptr != NULL) && (rptr->name != NULL); rptr++) {
-        uint32 bytes = 1;
         uint32 rsz = SZ_R(rptr);
         uint32 memsize = ((rptr->flags & REG_FIT) || (rptr->depth > 1)) ? rptr->depth * rsz : 4;
-        DEVICE *udptr = NULL;
         t_bool Bad;
-
-        while ((bytes << 3) < rptr->offset + rptr->width)
-            bytes <<= 1;
-
-        if (rptr->depth > 1)
-            bytes = rptr->size;
 
         if (((rptr->width + rptr->offset + CHAR_BIT - 1) / CHAR_BIT) >= sizeof(size_map) / sizeof(size_map[0])) {
             Bad = TRUE;
