@@ -25,6 +25,7 @@
 
    dp           moving head disk pack controller
 
+   09-Dec-22    RMS     Invalid address must set a TDV-visible error flag (Ken Rector)
    23-Jul-22    RMS     SEEK(I), RECAL(I) should be fast operations (Ken Rector)
    02-Jul-22    RMS     Fixed bugs in multi-unit operation
    29-Jun-22    RMS     Fixed initialization errors in ctrl, seek units (Ken Rector)
@@ -772,6 +773,7 @@ switch (uptr->UCMD) {
             return SCPE_OK;
             }
         if (dp_inv_ad (uptr, &da)) {                    /* invalid addr? */
+            ctx->dp_flags |= DPF_PGE;
             chan_uen (dva);                             /* uend */
             return SCPE_OK;
             }
@@ -801,6 +803,7 @@ switch (uptr->UCMD) {
             return SCPE_OK;
             }
         if (dp_inv_ad (uptr, &da)) {                    /* invalid addr? */
+            ctx->dp_flags |= DPF_PGE;
             chan_uen (dva);                             /* uend */
             return SCPE_OK;
             }
@@ -825,6 +828,7 @@ switch (uptr->UCMD) {
 
     case DPS_CHECK:                                     /* write check */
         if (dp_inv_ad (uptr, &da)) {                    /* invalid addr? */
+            ctx->dp_flags |= DPF_PGE;
             chan_uen (dva);                             /* uend */
             return SCPE_OK;
             }
@@ -850,6 +854,7 @@ switch (uptr->UCMD) {
 
     case DPS_READ:                                      /* read */
         if (dp_inv_ad (uptr, &da)) {                    /* invalid addr? */
+            ctx->dp_flags |= DPF_PGE;
             chan_uen (dva);                             /* uend */
                 return SCPE_OK;
             }
@@ -870,6 +875,7 @@ switch (uptr->UCMD) {
 
     case DPS_RHDR:                                      /* read header */
         if (dp_inv_ad (uptr, &da)) {                    /* invalid addr? */
+            ctx->dp_flags |= DPF_PGE;
             chan_uen (dva);                             /* uend */
                 return SCPE_OK;
             }
@@ -995,7 +1001,7 @@ st = 0;
 on_cyl = !sim_is_active (&dp_unit[un + DP_SEEK]) ||
     (dp_unit[un + DP_SEEK].UCMD == DSC_SEEKW);
 if (DP_Q10B (dp_ctx[cidx].dp_ctype))
-    st = ((dp_ctx[cidx].dp_flags & DPF_IVA)? 0x20: 0) |
+    st = ((dp_ctx[cidx].dp_flags & (DPF_IVA|DPF_PGE))? 0x20: 0) |
         (on_cyl? 0x04: 0);
 else st = ((dp_ctx[cidx].dp_flags & DPF_PGE)? 0x20: 0) |
         ((dp_ctx[cidx].dp_flags & DPF_WPE)? 0x08: 0);
