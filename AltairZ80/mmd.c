@@ -70,7 +70,7 @@
 
     Track = (2 * Cylinder) + Side
 
-    MTAB contains one 9 byte entry for each logical drive.
+    CP/M MTAB contains one 9 byte entry for each logical drive.
     The bytes of each entry are defined as follows:
 
     Byte 0          DSKDEF0:
@@ -180,6 +180,8 @@ static t_stat mmd_set_diag(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat mmd_show_diag(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat mmd_set_rom(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat mmd_show_rom(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
+static t_stat mmd_set_sides(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+static t_stat mmd_show_sides(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static int32 mmddev(int32 Addr, int32 rw, int32 data);
 static int32 mmdrom(int32 Addr, int32 rw, int32 data);
 static int32 mmdmem(int32 Addr, int32 rw, int32 data);
@@ -2550,7 +2552,8 @@ static uint8 *mmd_rom = mmd_rom_31;    /* Default 3.1 ROM */
 #define MMD_BPT         (MMD_SPT * MMD_SECTOR_LEN)
 #define MMD_TRACKS      40
 #define MMD_SIDES       2
-#define MMD_CAPACITY    (MMD_BPT * MMD_TRACKS * MMD_SIDES)  /* Default Disk Capacity */
+#define MMD_SS_CAPACITY (MMD_BPT * MMD_TRACKS)              /* SS Disk Capacity */
+#define MMD_DS_CAPACITY (MMD_BPT * MMD_TRACKS * MMD_SIDES)  /* DS Disk Capacity */
 
 #define MMD_IO_BASE     0xf0
 #define MMD_IO_SIZE     14        /* FE is used by SIMH */
@@ -2569,7 +2572,6 @@ static uint8 *mmd_rom = mmd_rom_31;    /* Default 3.1 ROM */
 #define MMD_REG_FDCDATA  0xfb
 #define MMD_REG_CDATA    0xfc
 #define MMD_REG_CSTAT    0xfd
-
 
 #define MMD_CH_1         0x7e    /* Select CTC Channel 1 */
 #define MMD_CH_2         0xbe    /* Select CTC Channel 2 */
@@ -2661,7 +2663,7 @@ typedef struct {
     uint8   stat1[MMD_MAX_DRIVES];          /* Status 1 Register */
     uint8   stat2[MMD_MAX_DRIVES];          /* Status 2 Register */
     uint8   stat3[MMD_MAX_DRIVES];          /* Status 3 Register */
-    uint8   c[MMD_MAX_DRIVES];
+    uint8   c[MMD_MAX_DRIVES];              /* Cylinder Register */
     uint8   hd[MMD_MAX_DRIVES];             /* Head Register */
     uint8   h;                              /* Head Register */
     uint8   r;                              /* Sector Register */
@@ -2715,10 +2717,10 @@ static MMD_CTX mmd_ctx_data = {
 static MMD_CTX *mmd_ctx = &mmd_ctx_data;
 
 static UNIT mmd_unit[MMD_UNITS] = {
-    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, MMD_CAPACITY), 10000 },
-    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, MMD_CAPACITY), 10000 },
-    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, MMD_CAPACITY), 10000 },
-    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, MMD_CAPACITY), 10000 },
+    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, 0), 10000 },
+    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, 0), 10000 },
+    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, 0), 10000 },
+    { UDATA (mmd_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, 0), 10000 },
     { UDATA (mmd_sio1_svc, UNIT_ATTABLE + UNIT_DISABLE, 0), 10000 },
 };
 
@@ -2744,8 +2746,10 @@ static REG mmd_reg[] = {
 static MTAB mmd_mod[] = {
     { MTAB_XTD|MTAB_VDV|MTAB_VALR, 0, "DIAG", "DIAG={ENABLE|DISABLE}",
         &mmd_set_diag, &mmd_show_diag, NULL, "Set/Show ROM DIAG enabled/disabled status"},
-    { MTAB_XTD|MTAB_VDV|MTAB_VALR, 0, "ROM", "ROM={25|31}",
+    { MTAB_XTD|MTAB_VDV|MTAB_VALR, 0, "ROM", "ROM={13|23|24|25|31}",
         &mmd_set_rom, &mmd_show_rom, NULL, "Set/Show ROM version"},
+    { MTAB_XTD|MTAB_VUN|MTAB_VALR, 0, "SIDES", "SIDES={1|2}",
+        &mmd_set_sides, &mmd_show_sides, NULL, "Set/Show disk sides"},
     { 0 }
 };
 
@@ -2966,7 +2970,7 @@ static t_stat mmd_reset(DEVICE *dptr)
         if (mmd_dev.units[i].flags & UNIT_ATT) {
             mmd_ctx->MMD.stat3[i] |= MMD_STAT3_RY;
 
-            if (mmd_ctx->uptr[i]->capac == MMD_CAPACITY) {
+            if (mmd_ctx->uptr[i]->capac == MMD_DS_CAPACITY) {
                 mmd_ctx->MMD.stat3[i] |= MMD_STAT3_TS;
             }
         }
@@ -3159,16 +3163,16 @@ static t_stat mmd_attach(UNIT *uptr, CONST char *cptr)
     if (sim_fsize(uptr->fileref) != 0) {
         uptr->capac = sim_fsize(uptr->fileref);
     } else {
-        uptr->capac = MMD_CAPACITY;
+        uptr->capac = MMD_SS_CAPACITY;
     }
 
-    for (i = 0; i < MMD_UNITS; i++) {
+    for (i = 0; i < MMD_MAX_DRIVES; i++) {
         if (mmd_dev.units[i].fileref == uptr->fileref) {
             break;
         }
     }
 
-    if (i >= MMD_UNITS) {
+    if (i >= MMD_MAX_DRIVES) {
         mmd_detach(uptr);
 
         return SCPE_ARG;
@@ -3176,11 +3180,14 @@ static t_stat mmd_attach(UNIT *uptr, CONST char *cptr)
 
     /* Set Status 3 */
     mmd_ctx->MMD.stat3[i] |= MMD_STAT3_RY;
+    mmd_ctx->MMD.stat3[i] &= ~MMD_STAT3_WP;
     if (uptr->flags | UNIT_RO) {
         mmd_ctx->MMD.stat3[i] |= MMD_STAT3_WP;
     }
 
-    if (uptr->capac == MMD_CAPACITY) {
+    mmd_ctx->MMD.stat3[i] &= ~MMD_STAT3_TS;   /* Default SS */
+
+    if (uptr->capac == MMD_DS_CAPACITY) {
         mmd_ctx->MMD.stat3[i] |= MMD_STAT3_TS;
     }
 
@@ -3221,19 +3228,15 @@ static t_stat mmd_detach(UNIT *uptr)
         return r;
     }
 
-    for (i = 0; i < MMD_UNITS; i++) {
+    for (i = 0; i < MMD_MAX_DRIVES; i++) {
         if (mmd_dev.units[i].fileref == uptr->fileref) {
             break;
         }
     }
 
-    if (i >= MMD_UNITS) {
+    if (i >= MMD_MAX_DRIVES) {
         return SCPE_ARG;
     }
-
-    mmd_ctx->MMD.stat3[i] &= (MMD_STAT3_US0 | MMD_STAT3_US1);
-
-    DBG_PRINT(("Detach MMD%d\n", i));
 
     r = detach_unit(uptr);  /* detach unit */
 
@@ -3241,7 +3244,8 @@ static t_stat mmd_detach(UNIT *uptr)
         return r;
     }
 
-    mmdm_dev.units[i].fileref = NULL;
+    mmd_ctx->MMD.stat3[i] &= (MMD_STAT3_US0 | MMD_STAT3_US1);
+    uptr->capac = 0;
 
     sim_debug(VERBOSE_MSG, uptr->dptr, "unit %d detached.\n", i);
 
@@ -3398,6 +3402,61 @@ static t_stat mmd_show_rom(FILE *st, UNIT *uptr, int32 val, CONST void *desc)
         fprintf(st, "ROM=v3.1");
     } else {
         fprintf(st, "ROM=v?.?");
+    }
+
+    return SCPE_OK;
+}
+
+static t_stat mmd_set_sides(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+    int i;
+
+    if (!cptr) return SCPE_IERR;
+    if (!strlen(cptr)) return SCPE_ARG;
+
+    for (i=0; i < MMD_MAX_DRIVES; i++) {
+        if (mmd_ctx->uptr[i] == uptr) {
+            break;
+        }
+    }
+
+    if (i >= MMD_MAX_DRIVES) {
+        return SCPE_ARG;
+    }
+
+    if (!strncmp(cptr, "1", strlen(cptr))) {
+        mmd_ctx->MMD.stat3[i] &= ~MMD_STAT3_TS;
+        uptr->capac = MMD_SS_CAPACITY;
+    } else if (!strncmp(cptr, "2", strlen(cptr))) {
+        mmd_ctx->MMD.stat3[i] |= MMD_STAT3_TS;
+        uptr->capac = MMD_DS_CAPACITY;
+    } else {
+        return SCPE_ARG;
+    }
+
+    return SCPE_OK;
+}
+
+static t_stat mmd_show_sides(FILE *st, UNIT *uptr, int32 val, CONST void *desc)
+{
+    int i;
+
+    if (!(uptr->flags & UNIT_ATT)) {
+        fprintf(st, "N/A");
+        return SCPE_OK;
+    }
+
+    for (i=0; i < MMD_MAX_DRIVES; i++) {
+        if (mmd_ctx->uptr[i] == uptr) {
+            break;
+        }
+    }
+
+    if (i >= MMD_MAX_DRIVES) {
+        fprintf(st, "N/A");
+    }
+    else {
+        fprintf(st, "%s", (mmd_ctx->MMD.stat3[i] & MMD_STAT3_TS) ? "DS" : "SS");
     }
 
     return SCPE_OK;
@@ -3942,7 +4001,7 @@ static uint8 MMD_Seek_Sector(uint8 drive)
 
     track = mmd_ctx->MMD.c[drive];
     if (mmd_ctx->MMD.stat3[drive] & MMD_STAT3_TS) {   /* 2 Sided? */
-        track = mmd_ctx->MMD.c[drive] * 2 + mmd_ctx->MMD.hd[drive];
+        track = (mmd_ctx->MMD.c[drive] * 2) + mmd_ctx->MMD.hd[drive];
     }
     offset = track * MMD_BPT + (mmd_ctx->MMD.r - 1) * MMD_SECTOR_LEN;
 
