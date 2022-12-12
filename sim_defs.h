@@ -23,6 +23,17 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   06-Jun-22    RMS     Deprecated UNIT_TEXT, deleted UNIT_RAW
+   10-Mar-22    JDB     Modified REG macros to fix "stringizing" problem
+   12-Nov-21    JDB     Added UNIT_EXTEND dynamic flag
+   17-Mar-21    JDB     Added UNIT_PIPE dynamic flag
+   16-Feb-21    JDB     Added "stride" to REG to support arrays of structures
+                        Modified REG macros to initialize strides
+   21-Jan-21    JDB     Added "size" and "maxval" fields to the REG structure
+                        Modified REG macros to initialize access sizes
+   09-Nov-20    RMS     More V4.X compatibility hooks (Mark Pizzolato)
+   26-Oct-19    RMS     Removed MTAB_VAL definition
+   23-Jun-17    RMS     Added #include sim_rev.h (Mark Pizzolato)
    25-Sep-16    RMS     Removed KBD_WAIT and friends
    08-Mar-16    RMS     Added shutdown invisible switch
    24-Dec-14    JDB     Added T_ADDR_FMT
@@ -647,8 +658,10 @@ struct UNIT {
 #define UNIT_WLK        0100000         /* hardware write lock */
 #define UNIT_WPRT     (UNIT_WLK|UNIT_RO)/* write protect */
 
-/* Unused/meaningless flags */
-#define UNIT_TEXT       0000000         /* text mode - no effect */
+/* Deleted or deprecated */
+
+// #define UNIT_RAW        000000                          /* raw mode */
+#define UNIT_TEXT       000000                          /* text mode */
 
 #define UNIT_UFMASK_31  (((1u << UNIT_V_RSV) - 1) & ~((1u << UNIT_V_UF_31) - 1))
 #define UNIT_UFMASK     (((1u << UNIT_V_RSV) - 1) & ~((1u << UNIT_V_UF) - 1))

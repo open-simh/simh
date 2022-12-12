@@ -2370,7 +2370,36 @@ return r;
 
    Implementation notes:
 
-    1. Erase gaps are currently supported only in SIMH (MTUF_F_STD) tape format.
+    1. Erase gaps are currently supported only in standard and extended SIMH
+       tape formats.
+
+    2. Metadatum reads either succeed and return 1 or fail and return 0.  If a
+       read fails, and "ferror" returns false, then it must have read into the
+       end of the file (only these three outcomes are possible).
+
+    3. The area scan is necessary for tape image integrity to ensure that a data
+       record straddling the end of the erasure is truncated appropriately.  The
+       scan is guaranteed to succeed only if it begins at a valid metadatum.  If
+       it begins in the middle of a previously overwritten data record, then the
+       scan will interpret old data values as tape formatting markers.  The data
+       record sanity checks attempt to recover from this situation, but it is
+       still possible to corrupt valid data that follows an erasure of an
+       invalid area (e.g., if the leading and trailing length words happen
+       to match but actually represent previously recorded data rather than
+       record metadata).  If an application knows that the erased area will
+       not contain valid formatting, the "sim_tape_erase" routine should be used
+       instead, as it erases without first scanning the area.
+
+    4. Truncating an existing data record corresponds to overwriting part of a
+       record on a real tape.  Reading such a record on a real drive would
+       produce CRC errors, due to the lost portion.  In simulation, we could
+       change a good record (Class 0) to a bad record (Class 8).  However, this
+       is not possible for private or reserved record classes, as that would
+       change the classification (consider that a private class that had
+       been ignored would not be once it had been truncated and changed to Class
+       8).  Given that there is no good general solution, we do not modify
+       classes for truncated records, as reading a partially erased record is an
+       "all bets are off" operation.
 */
 
 static t_stat tape_erase_fwd (UNIT *uptr, t_mtrlnt gap_size)

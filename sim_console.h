@@ -1,6 +1,6 @@
 /* sim_console.h: simulator console I/O library headers
 
-   Copyright (c) 1993-2014, Robert M Supnik
+   Copyright (c) 1993-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,8 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   27-Sep-22    RMS     Added sim_ttisatty
+   14-Dec-14    JDB     [4.0] Added sim_*_char externals
    02-Jan-14    RMS     Added tab stop routines
    17-Jan-11    MP      Added buffered line capabilities
    22-Jun-06    RMS     Implemented SET/SHOW PCHAR
