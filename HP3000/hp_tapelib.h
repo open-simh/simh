@@ -41,6 +41,7 @@
 
 
 
+#include "sim_rev.h"                        /* For SIM_MAJOR */
 #include "sim_tape.h"
 
 

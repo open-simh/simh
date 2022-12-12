@@ -38,6 +38,7 @@
 #ifndef I1620_DEFS_H_
 #define I1620_DEFS_H_  0
 
+#include "sim_rev.h"
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)

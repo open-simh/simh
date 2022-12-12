@@ -44,17 +44,11 @@
 #define SIM_VERSION_MODE "Current"
 #endif
 
-#if defined(SIM_NEED_GIT_COMMIT_ID)
-#include ".git-commit-id.h"
-#endif
-
 /*
-  Simh's git commit id would be undefined when working with an 
-  extracted archive (zip file or tar ball).  To address this 
-  problem and record the commit id that the archive was created 
-  from, the archive creation process populates the below 
-  information as a consequence of the "sim_rev.h export-subst" 
-  line in the .gitattributes file.
+  SIM__GIT_COMMMIT_ID is undefined when working with an 
+  archive (zip file or tar ball).  Use Git keyword subsitution
+  to record the archive's commit id via the .gitattributes
+  "export-subst".
  */
 #define SIM_ARCHIVE_GIT_COMMIT_ID $Format:%H$
 #define SIM_ARCHIVE_GIT_COMMIT_TIME $Format:%aI$
