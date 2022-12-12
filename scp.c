@@ -246,6 +246,10 @@
 #include <editline/readline.h>
 #endif
 
+#if defined(SIM_NEED_GIT_COMMIT_ID)
+#include ".git-commit-id.h"
+#endif
+
 #ifndef MAX
 #define MAX(a,b)  (((a) >= (b)) ? (a) : (b))
 #endif
