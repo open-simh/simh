@@ -95,12 +95,32 @@ ifneq (,${GREP_OPTIONS})
   $(info unset the GREP_OPTIONS environment variable to use this makefile)
   $(error 1)
 endif
-ifeq (old,$(shell gmake --version /dev/null 2>&1 | grep 'GNU Make' | awk '{ if ($$3 < "3.81") {print "old"} }'))
-  GMAKE_VERSION = $(shell gmake --version /dev/null 2>&1 | grep 'GNU Make' | awk '{ print $$3 }')
+ifneq ($(findstring Windows,${OS}),)
+  ifeq ($(findstring .exe,${SHELL}),.exe)
+    # MinGW
+    WIN32 := 1
+    # Tests don't run under MinGW
+    TESTS := 0
+  else # Msys or cygwin
+    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+      $(info *** This makefile can not be used with the Msys bash shell)
+      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+    endif
+  endif
+endif
+ifeq ($(WIN32),)
+  SIM_MAJOR=$(shell grep SIM_MAJOR sim_rev.h | awk '{ print $$3 }')
+  GMAKE_VERSION = $(shell $(MAKE) --version /dev/null 2>&1 | grep 'GNU Make' | awk '{ print $$3 }')
+  OLD = $(shell echo $(GMAKE_VERSION) | awk '{ if ($$1 < "3.81") {print "old"} }')
+else
+  SIM_MAJOR=$(shell for /F "tokens=3" %%i in ('findstr /c:"SIM_MAJOR" sim_rev.h') do echo %%i)
+  GMAKE_VERSION = $(shell for /F "tokens=3" %%i in ('$(MAKE) --version ^| findstr /c:"GNU Make"') do echo %%i)
+  OLD = $(shell cmd /e:on /c "if $(GMAKE_VERSION) LSS 3.81 echo old")
+endif
+ifeq ($(OLD),old)
   $(warning *** Warning *** GNU Make Version $(GMAKE_VERSION) is too old to)
   $(warning *** Warning *** fully process this makefile)
 endif
-SIM_MAJOR=$(shell grep SIM_MAJOR sim_rev.h | awk '{ print $$3 }')
 BUILD_SINGLE := ${MAKECMDGOALS} $(BLANK_SUFFIX)
 BUILD_MULTIPLE_VERB = is
 # building the pdp1, pdp11, tx-0, or any microvax simulator could use video support
@@ -167,19 +187,6 @@ endif
 ifeq (3,${SIM_MAJOR})
   # simh v3 DOES not have any video support
   VIDEO_USEFUL =
-endif
-ifneq ($(findstring Windows,${OS}),)
-  ifeq ($(findstring .exe,${SHELL}),.exe)
-    # MinGW
-    WIN32 := 1
-    # Tests don't run under MinGW
-    TESTS := 0
-  else # Msys or cygwin
-    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-      $(info *** This makefile can not be used with the Msys bash shell)
-      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
-    endif
-  endif
 endif
 
 find_exe = $(abspath $(strip $(firstword $(foreach dir,$(strip $(subst :, ,${PATH})),$(wildcard $(dir)/$(1))))))
@@ -598,6 +605,18 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         endif
       endif
     endif
+  endif
+  ifneq (,$(call find_include,editline/readline))
+    OS_CCDEFS += -DHAVE_EDITLINE
+    OS_LDFLAGS += -ledit
+    ifneq (Darwin,$(OSTYPE))
+      # The doc says termcap is needed, though reality suggests
+      # otherwise.  Put it in anyway, it can't hurt.
+      ifneq (,$(call find_lib,termcap))
+        OS_LDFLAGS += -ltermcap
+      endif
+    endif
+    $(info using libedit: $(call find_include,editline/readline))
   endif
   ifneq (,$(call find_include,utime))
     OS_CCDEFS += -DHAVE_UTIME
@@ -1117,18 +1136,20 @@ else
       $(info Cloning the windows-build dependencies into $(abspath ..)/windows-build)
       $(shell git clone https://github.com/simh/windows-build ../windows-build)
     else
-      $(info ***********************************************************************)
-      $(info ***********************************************************************)
-      $(info **  This build is operating without the required windows-build       **)
-      $(info **  components and therefore will produce less than optimal          **)
-      $(info **  simulator operation and features.                                **)
-      $(info **  Download the file:                                               **)
-      $(info **  https://github.com/simh/windows-build/archive/windows-build.zip  **)
-      $(info **  Extract the windows-build-windows-build folder it contains to    **)
-      $(info **  $(abspath ..\)                                                   **)
-      $(info ***********************************************************************)
-      $(info ***********************************************************************)
-      $(info .)
+      ifneq (3,${SIM_MAJOR})
+        $(info ***********************************************************************)
+        $(info ***********************************************************************)
+        $(info **  This build is operating without the required windows-build       **)
+        $(info **  components and therefore will produce less than optimal          **)
+        $(info **  simulator operation and features.                                **)
+        $(info **  Download the file:                                               **)
+        $(info **  https://github.com/simh/windows-build/archive/windows-build.zip  **)
+        $(info **  Extract the windows-build-windows-build folder it contains to    **)
+        $(info **  $(abspath ..\)                                                   **)
+        $(info ***********************************************************************)
+        $(info ***********************************************************************)
+        $(info .)
+      endif
     endif
   else
     # Version check on windows-build
@@ -1444,7 +1465,7 @@ ID16 = ${ID16D}/id16_cpu.c ${ID16D}/id16_sys.c ${ID16D}/id_dp.c \
 	${ID16D}/id_fd.c ${ID16D}/id_fp.c ${ID16D}/id_idc.c ${ID16D}/id_io.c \
 	${ID16D}/id_lp.c ${ID16D}/id_mt.c ${ID16D}/id_pas.c ${ID16D}/id_pt.c \
 	${ID16D}/id_tt.c ${ID16D}/id_uvc.c ${ID16D}/id16_dboot.c ${ID16D}/id_ttp.c
-ID16_OPT = -I ${ID16D}
+ID16_OPT = -DIFP_IN_MEM -I ${ID16D}
 
 
 ID32D = Interdata

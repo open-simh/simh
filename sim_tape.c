@@ -1422,7 +1422,7 @@ else {                                                  /* otherwise the writes 
     1. Erase gaps are currently supported only in standard and extended SIMH
        tape formats.
 
-    2. Metadatum reads either succeed and returns 1 or fail and returns 0.  If a
+    2. Metadatum reads either succeed and return 1 or fail and return 0.  If a
        read fails, and "ferror" returns false, then it must have read into the
        end of the file (only these three outcomes are possible).
 

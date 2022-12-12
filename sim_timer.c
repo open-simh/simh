@@ -1,6 +1,6 @@
 /* sim_timer.c: simulator timer library
 
-   Copyright (c) 1993-2021, Robert M Supnik
+   Copyright (c) 1993-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   27-Sep-22    RMS     Removed OS/2 and Mac "Classic" support
    01-Feb-21    JDB     Added cast for down-conversion
    22-May-17    RMS     Hacked for V4.0 CONST compatibility
    23-Nov-15    RMS     Fixed calibration lost path to reinitialize timer
@@ -201,80 +202,6 @@ uint32 sim_os_ms_sleep (unsigned int msec)
 uint32 stime = sim_os_msec();
 
 Sleep (msec);
-return sim_os_msec () - stime;
-}
-
-/* OS/2 routines, from Bruce Ray */
-
-#elif defined (__OS2__)
-
-const t_bool rtc_avail = FALSE;
-
-uint32 sim_os_msec ()
-{
-return 0;
-}
-
-void sim_os_sleep (unsigned int sec)
-{
-return;
-}
-
-uint32 sim_os_ms_sleep_init (void)
-{
-return FALSE;
-}
-
-uint32 sim_os_ms_sleep (unsigned int msec)
-{
-return 0;
-}
-
-/* Metrowerks CodeWarrior Macintosh routines, from Ben Supnik */
-
-#elif defined (__MWERKS__) && defined (macintosh)
-
-#include <Timer.h>
-#include <Mactypes.h>
-#include <sioux.h>
-#include <unistd.h>
-#include <siouxglobals.h>
-#define NANOS_PER_MILLI     1000000
-#define MILLIS_PER_SEC      1000
-
-const t_bool rtc_avail = TRUE;
-
-uint32 sim_os_msec (void)
-{
-unsigned long long micros;
-UnsignedWide macMicros;
-unsigned long millis;
-
-Microseconds (&macMicros);
-micros = *((unsigned long long *) &macMicros);
-millis = micros / 1000LL;
-return (uint32) millis;
-}
-
-void sim_os_sleep (unsigned int sec)
-{
-sleep (sec);
-return;
-}
-
-uint32 sim_os_ms_sleep_init (void)
-{
-return 1;
-}
-
-uint32 sim_os_ms_sleep (unsigned int milliseconds)
-{
-uint32 stime = sim_os_msec ();
-struct timespec treq;
-
-treq.tv_sec = milliseconds / MILLIS_PER_SEC;
-treq.tv_nsec = (milliseconds % MILLIS_PER_SEC) * NANOS_PER_MILLI;
-(void) nanosleep (&treq, NULL);
 return sim_os_msec () - stime;
 }
 

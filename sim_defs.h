@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   06-Jun-22    RMS     Deprecated UNIT_TEXT, deleted UNIT_RAW
    10-Mar-22    JDB     Modified REG macros to fix "stringizing" problem
    12-Nov-21    JDB     Added UNIT_EXTEND dynamic flag
    17-Mar-21    JDB     Added UNIT_PIPE dynamic flag
@@ -416,9 +417,12 @@ struct sim_unit {
 #define UNIT_ROABLE     001000                          /* read only ok */
 #define UNIT_DISABLE    002000                          /* disable-able */
 #define UNIT_DIS        004000                          /* disabled */
-#define UNIT_RAW        010000                          /* raw mode */
-#define UNIT_TEXT       020000                          /* text mode */
 #define UNIT_IDLE       040000                          /* idle eligible */
+
+/* Deleted or deprecated */
+
+// #define UNIT_RAW        000000                          /* raw mode */
+#define UNIT_TEXT       000000                          /* text mode */
 
 #define UNIT_UFMASK_31  (((1u << UNIT_V_RSV) - 1) & ~((1u << UNIT_V_UF_31) - 1))
 #define UNIT_UFMASK     (((1u << UNIT_V_RSV) - 1) & ~((1u << UNIT_V_UF) - 1))
