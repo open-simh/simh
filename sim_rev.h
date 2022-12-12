@@ -29,7 +29,7 @@
 
 #define SIM_MAJOR       3
 #define SIM_MINOR       12
-#define SIM_PATCH       2
+#define SIM_PATCH       3
 #define SIM_DELTA       0
 
 /* V3.12 revision history
@@ -38,6 +38,11 @@
    logic by Dave Bryan.
 
 patch   date            module(s) and fix(es)
+
+  3     12-Dec-2022     Mac "Classic" and OS/2 support has been removed
+                        PDP11: numerous 11/70 compatibility fixes
+                        Sigma: numerous bug fixes
+                        VAX and PDP11: restored VH11 after rework
 
   2     26-Mar-2022     sim_defs.h, scp.c
                         - deprecated UNIT_RAW, UNIT_TEXT

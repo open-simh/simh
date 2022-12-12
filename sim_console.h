@@ -1,6 +1,6 @@
 /* sim_console.h: simulator console I/O library headers
 
-   Copyright (c) 1993-2015, Robert M Supnik
+   Copyright (c) 1993-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   27-Sep-22    RMS     Added sim_ttisatty
    14-Dec-14    JDB     [4.0] Added sim_*_char externals
    02-Jan-14    RMS     Added tab stop routines
    22-Jun-06    RMS     Implemented SET/SHOW PCHAR
@@ -90,6 +91,7 @@ t_stat sim_ttinit (void);
 t_stat sim_ttrun (void);
 t_stat sim_ttcmd (void);
 t_stat sim_ttclose (void);
+t_bool sim_ttisatty (void);
 t_stat sim_os_poll_kbd (void);
 t_stat sim_os_putchar (int32 out);
 int32 sim_tt_inpcvt (int32 c, uint32 mode);

@@ -23,6 +23,8 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   01-Oct-22    RMS     Replaced readline with editline due to licensing issues (Paul Koning)
+   15-Aug-22    RMS     Fixed inconsistent SIM_HAVE_DLOPEN naming (Walter Mueller)
    06-Mar-22    RMS     Removed UNIT_RAW support
    21-Oct-21    RMS     Fixed bug in byte deposits if aincr > 1
    20=Sep-21    RMS     Fixed bug in nested DO recognition (per Mark Pizzolato)
@@ -242,8 +244,8 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#if defined(SIM_HAVE_DLOPEN)                             /* Dynamic Readline support */
-#include <dlfcn.h>
+#if defined(HAVE_EDITLINE)                              /* Editline command line editing */
+#include <editline/readline.h>
 #endif
 
 /* Search definitions */
@@ -712,10 +714,6 @@ t_bool lookswitch;
 t_stat stat;
 CTAB *cmdp;
 
-#if defined (__MWERKS__) && defined (macintosh)
-argc = ccommand (&argv);
-#endif
-
 *cbuf = 0;                                              /* init arg buffer */
 sim_switches = 0;                                       /* init switches */
 lookswitch = TRUE;
@@ -808,8 +806,13 @@ while (stat != SCPE_EXIT) {                             /* in case exit */
         cptr = (*sim_vm_read) (cbuf, CBUFSIZE, stdin);
         }
     else cptr = read_line_p ("sim> ", cbuf, CBUFSIZE, stdin);/* read with prompt*/
-    if (cptr == NULL)                                   /* ignore EOF */
-        continue;
+    if (cptr == NULL) {                                 /* EOF? */
+        if (sim_ttisatty ()) {                          /* on a real console? */
+            printf ("\n");                              /* ignore */
+            continue;
+            }
+        else break;                                     /* give up */
+        }
     if (*cptr == 0)                                     /* ignore blank */
         continue;
     sub_args (cbuf, gbuf, CBUFSIZE, cmdargs);           /* substitute arguments */
@@ -3696,43 +3699,15 @@ return read_line_p (NULL, cptr, size, stream);
 char *read_line_p (char *prompt, char *cptr, int32 size, FILE *stream)
 {
 char *tptr;
-#if defined(SIM_HAVE_DLOPEN)
-static int initialized = 0;
-static char *(*p_readline)(const char *) = NULL;
-static void (*p_add_history)(const char *) = NULL;
 
-if (!initialized) {
-    initialized = 1;
-    void *handle;
-
-#define __STR_QUOTE(tok) #tok
-#define __STR(tok) __STR_QUOTE(tok)
-    handle = dlopen("libncurses." __STR(HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    handle = dlopen("libcurses." __STR(HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    handle = dlopen("libreadline." __STR(HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." __STR(HAVE_DLOPEN) ".6", RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." __STR(HAVE_DLOPEN) ".5", RTLD_NOW|RTLD_GLOBAL);
-    if (handle) {
-        p_readline = dlsym(handle, "readline");
-        p_add_history = dlsym(handle, "add_history");
-        }
-    }
+#if defined(HAVE_EDITLINE)
 if (prompt) {                                           /* interactive? */
-    if (p_readline) {
-        char *tmpc = p_readline (prompt);               /* get cmd line */
-        if (tmpc == NULL)                               /* bad result? */
-            cptr = NULL;
-        else {
-            strncpy (cptr, tmpc, size);                 /* copy result */
-            free (tmpc) ;                               /* free temp */
-            }
-        }
+    char *tmpc = readline (prompt);                     /* get cmd line */
+    if (tmpc == NULL)                                   /* bad result? */
+        cptr = NULL;
     else {
-        printf ("%s", prompt);                          /* display prompt */
-        fflush (stdout);
-        cptr = fgets (cptr, size, stream);              /* get cmd line */
+        strlcpy (cptr, tmpc, size);                     /* copy result */
+        free (tmpc) ;                                   /* free temp */
         }
     }
 else cptr = fgets (cptr, size, stream);                 /* get cmd line */
@@ -3760,11 +3735,10 @@ while (isspace (*cptr))                                 /* trim leading spc */
 if (*cptr == ';')                                       /* ignore comment */
     *cptr = 0;
 
-#if defined (SIM_HAVE_DLOPEN)
-if (prompt && p_add_history && *cptr)                   /* Save non blank lines in history */
-    p_add_history (cptr);
+#if defined (HAVE_EDITLINE)
+if (prompt && *cptr)                                    /* save non blank lines in history */
+    add_history (cptr);
 #endif
-
 return cptr;
 }
 
