@@ -25,6 +25,7 @@
 
    rl           RL11(RLV12)/RL01/RL02 cartridge disk
 
+   28-Nov-22    RMS     Fixed word count adjustment on NXM
    23-Oct-13    RMS     Revised for new boot setup routine
    24-Mar-11    JAD     Various changes to support diagnostics, including:
                         - distinguish between RLV11 & 12
