@@ -31,7 +31,6 @@
 #include "rtx2001a_debug.h"
 #include "rtx2001a_registers.h"
 #include "rtx2001a_psb.h"
-#include "hp3k_defs.h"
 #include "rtx2001a_execute.h"
 
 /**

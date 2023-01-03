@@ -2946,3 +2946,17 @@ ${BIN}frontpaneltest${EXE} : frontpanel/FrontPanelTest.c sim_sock.c sim_frontpan
 	${MKDIRBIN}
 	${CC} frontpanel/FrontPanelTest.c sim_sock.c sim_frontpanel.c ${CC_OUTSPEC} ${LDFLAGS} ${OS_CURSES_DEFS}
 
+# rtx2001a
+RTX2001AD = ${SIMHD}/RTX2001A/
+RTX2001AD_SRC = ${RTX2001AD}
+RTX2001A_SRC = \
+	${RTX2001AD_SRC}rtx2001a_cpu.c ${RTX2001AD_SRC}rtx2001a_sys.c ${RTX2001AD_SRC}rtx2001a_decode.c \
+	${RTX2001AD_SRC}rtx2001a_execute.c ${RTX2001AD_SRC}rtx2001a_ab.c ${RTX2001AD_SRC}rtx2001a_mb.c \
+	${RTX2001AD_SRC}rtx2001a_psb.c ${RTX2001AD_SRC}rtx2001a_rsb.c
+
+rtx2001a : ${BIN}rtx2001a${EXE}
+
+${BIN}rtx2001a${EXE} : ${SIM} ${RTX2001A_SRC}
+	${MKDIRBIN}
+	${CC} ${SIM} ${RTX2001A_SRC} ${CC_OUTSPEC} ${LDFLAGS}
+

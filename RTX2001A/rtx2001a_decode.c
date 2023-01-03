@@ -1,6 +1,6 @@
 /* rtx2001a_decode.c: RTX2001A simulator definitions
 
-   Copyright (c) 2020, Systasis Computer Systems, Inc.
+   Copyright (c) 2022, Systasis Computer Systems, Inc.
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),

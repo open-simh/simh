@@ -1,6 +1,6 @@
 /* rtx2001a_execute.h: RTX2001A simulator definitions
 
-   Copyright (c) 2020, Systasis Computer Systems, Inc.
+   Copyright (c) 2022, Systasis Computer Systems, Inc.
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -941,7 +941,8 @@ t_stat execute(t_value instruction)
     if (SCPE_OK == (status = decode(instruction, &opcode)))
     {
         print_instruction(instruction, cpr.pr, asic_file[PC]);
-        if (!STREAM && second_cycle){
+        if (!STREAM && second_cycle)
+        {
             dispatch_vector_2[opcode]();
             second_cycle = 0;
         }
@@ -958,7 +959,10 @@ t_stat execute(t_value instruction)
  */
 void print_instruction(t_value instruction, t_value page, t_addr address)
 {
-#define PREFIX "2nd "
+
+#define PREFIX \
+    ((second_cycle && !STREAM) ? "2nd " : "")
+
     machine_op opr = 0;
     if (SCPE_OK != decode(instruction, &opr))
     {
@@ -1016,11 +1020,11 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_DDUP_STORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%sDDUP %s!\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM);
+        sim_debug(DBG_CPU, &cpu_dev, "%sDDUP %s!\n", PREFIX, MEM);
         break;
 
     case OP_DDUP_STORE_WITH_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%sDDUP %s! 0x%X %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SHORT_LIT, SWAP_ALU3);
+        sim_debug(DBG_CPU, &cpu_dev, "%sDDUP %s! 0x%X %s\n", PREFIX, MEM, SHORT_LIT, SWAP_ALU3);
         break;
 
     case OP_DROP:
@@ -1031,7 +1035,7 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
     {
         t_value value;
         _long_fetch(page, address, &value);
-        sim_debug(DBG_CPU, &cpu_dev, "%sDROP LIT %d %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), value, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%sDROP LIT %d %s\n", PREFIX, value, INVERT);
     }
     break;
 
@@ -1040,11 +1044,11 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_DUP_FETCH_SWAP:
-        sim_debug(DBG_CPU, &cpu_dev, "%sDUP %s@ SWAP\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM);
+        sim_debug(DBG_CPU, &cpu_dev, "%sDUP %s@ SWAP\n", PREFIX, MEM);
         break;
 
     case OP_DUP_USTORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%sDUP %X U! %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%sDUP %X U! %s\n", PREFIX, SHORT_LIT, INVERT);
         break;
 
     case OP_GFETCH_DROP:
@@ -1056,27 +1060,27 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_FETCH:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ %s\n", PREFIX, MEM, INVERT);
         break;
 
     case OP_FETCH_LIT:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ 0x%X\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SHORT_LIT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ 0x%X\n", PREFIX, MEM, SHORT_LIT);
         break;
 
     case OP_FETCH_SWAP:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ SWAP %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ SWAP %s\n", PREFIX, MEM, INVERT);
         break;
 
     case OP_FETCH_OVER_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ OVER %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, ALU);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ OVER %s\n", PREFIX, MEM, ALU);
         break;
 
     case OP_FETCH_SWAP_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SWAP_ALU);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s@ %s\n", PREFIX, MEM, SWAP_ALU);
         break;
 
     case OP_FETCH_WITH_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X %s@_%s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, MEM, ALU3);
+        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X %s@_%s\n", PREFIX, SHORT_LIT, MEM, ALU3);
         break;
 
     case OP_GFETCH:
@@ -1141,7 +1145,7 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
     {
         t_value value;
         _long_fetch(page, address, &value);
-        sim_debug(DBG_CPU, &cpu_dev, "%sLIT 0x%X OVER %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), value, ALU);
+        sim_debug(DBG_CPU, &cpu_dev, "%sLIT 0x%X OVER %s\n", PREFIX, value, ALU);
     }
     break;
 
@@ -1149,7 +1153,7 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
     {
         t_value value;
         _long_fetch(page, address, &value);
-        sim_debug(DBG_CPU, &cpu_dev, "%sLIT %d SWAP %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), value, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%sLIT %d SWAP %s\n", PREFIX, value, INVERT);
     }
     break;
 
@@ -1160,7 +1164,7 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         sim_is_running = 0; // turn off debug for a moment
         _long_fetch(page, address, &value);
         sim_is_running = _sim_is_running;
-        sim_debug(DBG_CPU, &cpu_dev, "%sLIT %d %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), value, SWAP_ALU);
+        sim_debug(DBG_CPU, &cpu_dev, "%sLIT %d %s\n", PREFIX, value, SWAP_ALU);
     }
     break;
 
@@ -1169,15 +1173,15 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_NIP_DUP_FETCH_SWAP:
-        sim_debug(DBG_CPU, &cpu_dev, "%sNIP DUP %s@ SWAP\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM);
+        sim_debug(DBG_CPU, &cpu_dev, "%sNIP DUP %s@ SWAP\n", PREFIX, MEM);
         break;
 
     case OP_NIP_FETCH_LIT:
-        sim_debug(DBG_CPU, &cpu_dev, "%sNIP %s@ 0x%X\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SHORT_LIT);
+        sim_debug(DBG_CPU, &cpu_dev, "%sNIP %s@ 0x%X\n", PREFIX, MEM, SHORT_LIT);
         break;
 
     case OP_NIP_FETCH_WITH_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%sNIP 0x%X %s@_%s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, MEM, ALU3);
+        sim_debug(DBG_CPU, &cpu_dev, "%sNIP 0x%X %s@_%s\n", PREFIX, SHORT_LIT, MEM, ALU3);
         break;
 
     case OP_OVER:
@@ -1204,11 +1208,11 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_STORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s! %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s! %s\n", PREFIX, MEM, INVERT);
         break;
 
     case OP_STORE_LIT:
-        sim_debug(DBG_CPU, &cpu_dev, "%s%s! 0x%X\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SHORT_LIT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s%s! 0x%X\n", PREFIX, MEM, SHORT_LIT);
         break;
 
     case OP_SWAP:
@@ -1220,40 +1224,43 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_TUCK_STORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%sTUCK %s!\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM);
+        sim_debug(DBG_CPU, &cpu_dev, "%sTUCK %s!\n", PREFIX, MEM);
         break;
 
     case OP_TUCK_STORE_WITH_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%sTUCK %s! 0x%X %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SHORT_LIT, ALU3);
+        sim_debug(DBG_CPU, &cpu_dev, "%sTUCK %s! 0x%X %s\n", PREFIX, MEM, SHORT_LIT, ALU3);
         break;
 
     case OP_UFETCH:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ %s\n", PREFIX, SHORT_LIT, INVERT);
         break;
 
     case OP_UFETCH_OVER_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ OVER %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, ALU);
+        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ OVER %s\n", PREFIX, SHORT_LIT, ALU);
         break;
 
     case OP_UFETCH_SWAP:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ SWAP %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ SWAP %s\n", PREFIX, SHORT_LIT, INVERT);
         break;
 
     case OP_UFETCH_SWAP_ALU:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ %s", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, SWAP_ALU);
+        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U@ %s", PREFIX, SHORT_LIT, SWAP_ALU);
         break;
 
     case OP_UNDER_STORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%sUNDER %s! %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%sUNDER %s! %s\n", PREFIX, MEM, INVERT);
         break;
 
     case OP_UNDER_STORE_LIT:
-        sim_debug(DBG_CPU, &cpu_dev, "%sUNDER %s! 0x%X\n", ((!STREAM & second_cycle) ? PREFIX : ""), MEM, SHORT_LIT);
+        sim_debug(DBG_CPU, &cpu_dev, "%sUNDER %s! 0x%X\n", PREFIX, MEM, SHORT_LIT);
         break;
 
     case OP_USTORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U! %s\n", ((!STREAM & second_cycle) ? PREFIX : ""), SHORT_LIT, INVERT);
+        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U! %s\n", PREFIX, SHORT_LIT, INVERT);
         break;
+
+    default:
+        bad_insn();
     }
 }
 

@@ -61,7 +61,7 @@ DEVICE cpu_dev = { // RTX2001A device structure
     &cpu_ex,       /* examine routine */
     &cpu_dep,      /* deposit routine */
     &cpu_reset,    /* reset routine */
-    &cpu_boot,     /* boot routine */
+    NULL,          /* boot routine */
     NULL,          /* attach routine */
     NULL,          /* detach routine */
     NULL,          /* context */

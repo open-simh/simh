@@ -32,7 +32,6 @@
 #include "rtx2001a_registers.h"
 #include "rtx2001a_rsb.h"
 #include "rtx2001a_ab.h"
-#include "hp3k_defs.h"
 
 /**
 ** return stack push with 2 inputs

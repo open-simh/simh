@@ -31,7 +31,6 @@
 #include "rtx2001a_debug.h"
 #include "rtx2001a_registers.h"
 #include "rtx2001a_mb.h"
-#include "hp3k_defs.h"
 
 RTX_WORD ram[RAM_SIZE] = {0};
 
@@ -61,7 +60,7 @@ void _long_fetch(t_addr seg, t_addr address, t_value *value)
         return;
     }
 
-    sim_debug(DBG_MEB_R, &cpu_dev, SEGADDR("nxm: PC=0x%X "), asic_file[PC], seg, address, addr);
+    sim_debug(DBG_MEB_R, &cpu_dev, "nxm: PC=0x%X seg:addr=%d:0x%X addr=0x%X\n", asic_file[PC], seg, address, addr);
     ABORT(SCPE_NXM);
 }
 
@@ -76,7 +75,7 @@ void _long_store(t_addr seg, t_addr address, t_value data)
         return;
     }
 
-    sim_debug(DBG_MEB_W, &cpu_dev, SEGADDR("nxm: PC=0x%X "), asic_file[PC], seg, address, addr);
+    sim_debug(DBG_MEB_W, &cpu_dev, "nxm: PC=0x%X seg:addr=%d:0x%X addr=0x%X\n", asic_file[PC], seg, address, addr);
     ABORT(SCPE_NXM);
 }
 

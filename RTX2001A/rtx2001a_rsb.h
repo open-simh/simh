@@ -31,7 +31,7 @@
 #ifndef RTX2001A_RSB_H_
 #define RTX2001A_RSB_H_ 0
 
-#include "hp3k_defs.h"
+#include "rtx2001a_defs.h"
 
 /*
 **

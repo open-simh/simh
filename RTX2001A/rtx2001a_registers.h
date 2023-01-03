@@ -89,7 +89,7 @@ RH        17H             0000 0000 0000 0000     R-W   Scratchpad register for 
 #ifndef RTX2001A_REGISTERS_H_
 #define RTX2001A_REGISTERS_H_ 0
 
-#include "hp3k_defs.h"
+#include "rtx2001a_defs.h"
 #include "rtx2001a_psb.h"
 #include "rtx2001a_rsb.h"
 #include "rtx2001a_debug.h"

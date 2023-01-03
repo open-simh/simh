@@ -30,8 +30,8 @@
 #ifndef RTX2001A_PSB_H_
 #define RTX2001A_PSB_H_ 0
 
-#include "hp3k_defs.h"
 #include "rtx2001a_registers.h"
+
 /*
 **
 ** Stacks on the RTX 2000 and RTX 2010 are each 256 elements deep;
