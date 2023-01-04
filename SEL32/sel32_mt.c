@@ -1,6 +1,6 @@
 /* sel32_mt.c: SEL-32 8051 Buffered Tape Processor
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -40,6 +40,8 @@
 #include "sim_tape.h"
 
 #if NUM_DEVS_MT > 0
+
+extern  uint32  SPAD[];                 /* cpu SPAD memory */
 
 #define BUFFSIZE        (64 * 1024)
 #define UNIT_MT         UNIT_ATTABLE | UNIT_DISABLE | UNIT_ROABLE
@@ -389,6 +391,8 @@ t_stat  mt_iocl(CHANP *chp, int32 tic_ok)
     uint16      chsa = chp->chan_dev;
     uint16      devstat = 0;
     DEVICE      *dptr = get_dev(uptr);
+    DIB         *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
+    CHANP       *pchp = pdibp->chan_prg;        /* get channel chp */
 
     /* check for valid iocd address if 1st iocd */
     if (chp->chan_info & INFO_SIOCD) {          /* see if 1st IOCD in channel prog */
@@ -461,7 +465,7 @@ loop:
     case MT_RDBK: case MT_RDCMP: case MT_REW: case MT_RUN: case MT_FSR:
     case MT_BSR: case MT_FSF: case MT_BSF: case MT_SETM: case MT_WTM: case MT_ERG:  
         /* the inch command must be first command issued */
-        if ((!loading) && (chp->chan_inch_addr == 0)) {
+        if ((!loading) && (pchp->chan_inch_addr == 0)) {
             chp->chan_status |= STATUS_PCHK;    /* program check for invalid cmd */
             uptr->SNS |= SNS_CMDREJ;            /* cmd rejected */
             sim_debug(DEBUG_EXP, dptr,
@@ -628,11 +632,12 @@ t_stat mt_preio(UNIT *uptr, uint16 chan) {
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
     uint16      chsa = GET_UADDR(uptr->CMD);
-    CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
+    DIB         *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
+    CHANP       *pchp = pdibp->chan_prg;        /* get channel chp */
 
     sim_debug(DEBUG_CMD, dptr, "mt_preio CMD %08x unit %02x chsa %04x incha %08x\n",
-        uptr->CMD, unit, chsa, chp->chan_inch_addr);
-    if ((!loading) && (chp->chan_inch_addr == 0)) {
+        uptr->CMD, unit, chsa, pchp->chan_inch_addr);
+    if ((!loading) && (pchp->chan_inch_addr == 0)) {
         sim_debug(DEBUG_CMD, dptr,
             "mt_preio unit %02x chsa %04x NO INCH\n", unit, chsa);
         /* no INCH yet, so do nothing */

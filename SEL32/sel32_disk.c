@@ -1,6 +1,6 @@
 /* sel32_disk.c: SEL-32 2311/2314 Disk Processor II
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -31,6 +31,8 @@
 #if NUM_DEVS_DISK > 0
 
 #define UNIT_DISK   UNIT_ATTABLE | UNIT_IDLE | UNIT_DISABLE
+
+extern  uint32  SPAD[];                         /* cpu SPAD memory */
 
 /* useful conversions */
 /* Fill STAR value from cyl, trk, sec data */
@@ -963,6 +965,8 @@ t_stat disk_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
     DEVICE      *dptr = get_dev(uptr);
     int32       unit = (uptr - dptr->units);
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
+    DIB         *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
+    CHANP       *pchp = pdibp->chan_prg;        /* get channel chp */
 
     sim_debug(DEBUG_DETAIL, dptr,
         "disk_startcmd chsa %04x unit %02x cmd %02x CMD %08x\n",
@@ -990,7 +994,7 @@ t_stat disk_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
     case DSK_INCH:                              /* INCH cmd 0x0 */
         sim_debug(DEBUG_CMD, dptr,
             "disk_startcmd starting INCH %06x cmd, chsa %04x MemBuf %06x cnt %04x\n",
-            chp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
 
         uptr->SNS &= ~SNS_CMDREJ;               /* not rejected yet */
         uptr->CMD |= DSK_INCH2;                 /* use 0xF0 for inch, just need int */
@@ -1105,6 +1109,8 @@ t_stat disk_srv(UNIT *uptr)
     uint16          chsa = GET_UADDR(uptr->CMD);
     DEVICE          *dptr = get_dev(uptr);
     CHANP           *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
+    DIB             *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
+    CHANP           *pchp = pdibp->chan_prg;    /* get channel chp */
     int             cmd = uptr->CMD & DSK_CMDMSK;
     int             type = GET_TYPE(uptr->flags);
     uint32          tcyl=0, trk=0, cyl=0, sec=0, tempt=0;
@@ -1146,7 +1152,7 @@ t_stat disk_srv(UNIT *uptr)
         mema = chp->ccw_addr;                   /* get inch or buffer addr */
         sim_debug(DEBUG_CMD, dptr,
             "disk_srv cmd CONT INCH %06x chsa %04x addr %06x count %04x completed\n",
-            chp->chan_inch_addr, chsa, mema, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, mema, chp->ccw_count);
         /* to use this inch method, byte count must be 896 */
         if (len != 896) {
             /* we have invalid count, error, bail out */
@@ -1172,7 +1178,7 @@ t_stat disk_srv(UNIT *uptr)
         mema = chp->ccw_addr;                   /* get inch or buffer addr */
         sim_debug(DEBUG_CMD, dptr,
             "disk_srv starting INCH %06x cmd, chsa %04x MemBuf %06x cnt %04x\n",
-            chp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
 
         /* mema has IOCD word 1 contents.  For the disk processor it contains */
         /* a pointer to the INCH buffer followed by 8 drive attribute words that */
@@ -1232,7 +1238,7 @@ t_stat disk_srv(UNIT *uptr)
         uptr->CMD &= LMASK;                     /* remove old status bits & cmd */
         sim_debug(DEBUG_CMD, dptr,
             "disk_srv cmd INCH %06x chsa %04x addr %06x count %04x completed\n",
-            chp->chan_inch_addr, chsa, mema, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, mema, chp->ccw_count);
         chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* return OK */
         break;
 

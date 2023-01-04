@@ -1,6 +1,6 @@
 /* sel32_defs.h: SEL-32 Concept/32 simulator definitions 
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell, Geert Rolf and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -21,8 +21,98 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
+/********************Attention************************/
+/* define the environment wanted for sel32 execution */
+/*                                                   */
+/* define CPUONLY to only run with CPU model         */
+/* undef CPUONLY to run with an IPU (2nd CPU)        */
+/*                                                   */
+/* for IPU models, define the IPU support method     */
+/* define USE_IPU_THREAD to run IPU in a thread      */
+/* undef USE_IPU_THREAD to run IPU in forked task    */
+/*                                                   */
+/* for threaded IPU models, select thread locking    */
+/* define USE_POSIX_SEM for POSIX semaphores         */
+/* undef USE_POSIX_SEM to use pthread mutexs         */
+/********************Attention************************/
+
+/* define CPUONLY to run without IPU */
+//#define CPUONLY                         /* run on CPU only */
+#undef CPUONLY                          /* run with cpu/ipu on system */
+
+/* undefine CPUONLY to run with IPU */
+/* define USE_IPU_THREAD to use IPU thread code instead of fork code */
+/* define USE_POSIX_SEM for POSIX semaphores otherwise use pthread mutex */
+/* forked mode IPU must only use semaphores */
+#ifndef CPUONLY
+//#define USE_POSIX_SEM                   /* use POSIX semaphores, else pthread mutex */
+//#undef  USE_IPU_THREAD                  /* run IPU as a forked sel32 */
+#define USE_IPU_THREAD                  /* run IPU in sel32_ipu.c thread */
+#endif
+
+/* enforce proper option combinations for CPU/IPU */
+#ifndef CPUONLY
+#define DEFINE_IPU_MODELS               /* IPU devices must be define for IPU */
+#ifndef USE_IPU_THREAD
+#define USE_POSIX_SEM                   /* forked mode IPU can only use semaphores */
+#endif
+#else /* CPUONLY */
+#undef  USE_IPU_THREAD                  /* make sure IPU code undefined for CPUONLY */
+#undef DEFINE_IPU_MODELS                /* make sure IPU models undefine too */
+#endif /* CPU_ONLY */
+
+/* use correct variable type for thread IPU */
+#ifdef USE_IPU_THREAD
+#ifdef USE_IPU_CODE
+#define LOCAL static                    /* IPU in thread needs static variables */
+#else /* USE_IPU_CODE */
+#define LOCAL                           /* IPU in fork needs regular variables */
+#endif /* USE_IPU_CODE */
+#else /* USE_IPU_THREAD */
+#define LOCAL                           /* IPU in fork needs regular variables */
+#endif /* USE_IPU_THREAD */
+
+#define HASIPU 0x1000                   /* BIT19 */
+#define ONIPU 0x0010                    /* BIT27 */
 
 #include "sim_defs.h"                   /* simh simulator defns */
+
+#ifndef CPUONLY
+#ifdef USE_POSIX_SEM
+#include <semaphore.h>
+
+/* shared Interprocessor Com for SIPU [0] for CPU [1] for IPU */
+struct ipcom {
+    int     pid[2];                     /* process id for each */
+    int     atrap[2];                   /* any Async TRAP to peer */
+    int     sent[2];                    /* counting send calls */
+    int     received[2];                /* counting received calls */
+    int     blocked[2];                 /* counting blocked calls */
+    int     dropped[2];                 /* counting dropped calls */
+    /* anything for semaphores here */
+    sem_t   simsem;                     /* the semaphore */
+    int     pass[2];                    /* count passing */
+    int     wait[2];                    /* count waiting */
+};
+#else
+/* Use pthread mutexs */
+#include <pthread.h>
+/* shared Interprocessor Com for SIPU [0] for CPU [1] for IPU */
+struct ipcom {
+    int     pid[2];                     /* process id for each */
+    int     atrap[2];                   /* any Async TRAP to peer */
+    int     sent[2];                    /* counting send calls */
+    int     received[2];                /* counting received calls */
+    int     blocked[2];                 /* counting blocked calls */
+    int     dropped[2];                 /* counting dropped calls */
+    /* anything for mutexs here */
+    pthread_mutex_t mutex;              /* the mutex for controlling access */
+    pthread_cond_t  cond;               /* conditional wait condition */
+    int     pass[2];                    /* count passing */
+    int     wait[2];                    /* count waiting */
+};
+#endif
+#endif
 
 /* Simulator stop codes */
 #define STOP_IONRDY     1               /* I/O dev not ready */
@@ -142,6 +232,10 @@
 
 extern DEVICE cpu_dev;      /* cpu device */
 extern UNIT cpu_unit;       /* the cpu unit */
+#ifdef USE_IPU_THREAD
+extern DEVICE ipu_dev;      /* cpu device */
+extern UNIT ipu_unit;       /* the cpu unit */
+#endif
 #ifdef NUM_DEVS_IOP
 extern DEVICE iop_dev;      /* IOP channel controller */
 #endif
@@ -344,14 +438,17 @@ extern DEBTAB dev_debug[];
 #define DSEXT32(x)      (x&0x8000?(l_uint64)(((l_uint64)x&D32RMASK)|D32LMASK):(t_uint64)x)
 #define NEGATE32(val)   ((~val) + 1)    /* negate a value 16/32/64 bits */
 
-/* defined in rightmost 8 bits of upper 16 bits of uptr->flags */
+/* defined in rightmost 9 bits of upper 16 bits of uptr->flags */
 #define UNIT_V_MODEL    (UNIT_V_UF + 0)
-#define UNIT_MODEL      (7 << UNIT_V_MODEL)
+#define UNIT_MODEL      (0xf << UNIT_V_MODEL)
 #define MODEL(x)        (x << UNIT_V_MODEL)
-#define UNIT_V_MSIZE    (UNIT_V_MODEL + 3)
+#define UNIT_V_MSIZE    (UNIT_V_MODEL + 4)
+#define UNIT_V_IPU      (UNIT_V_MODEL + 4)
 #define UNIT_MSIZE      (0x1F << UNIT_V_MSIZE)
+#define UNIT_IPU        (0x1 << UNIT_V_IPU)
 #define MEMAMOUNT(x)    (x << UNIT_V_MSIZE)
-#define CPU_MODEL       ((cpu_unit.flags >> UNIT_V_MODEL) & 0x7)    /* cpu model 0-7 */
+#define CPU_MODEL       ((cpu_unit.flags >> UNIT_V_MODEL) & 0x7)/* cpu model 0-7 */
+#define IPU_MODEL       ((cpu_unit.flags >> UNIT_V_IPU) & 0x1)  /* ipu model 1 */
 
 #define MODEL_55        0               /* 512K Mode Only */
 #define MODEL_75        1               /* Extended */
@@ -361,6 +458,12 @@ extern DEBTAB dev_debug[];
 #define MODEL_97        5               /* */
 #define MODEL_V6        6               /* V6 CPU */
 #define MODEL_V9        7               /* V9 CPU */
+#define MODEL_7780      9               /* */
+#define MODEL_6780      11              /* */
+#define MODEL_8780      12              /* */
+#define MODEL_9780      13              /* */
+#define MODEL_V6IPU     14              /* */
+#define MODEL_V9IPU     15              /* */
 
 #define TMR_RTC         1               /* RTC will not work if set to 0!! */ 
 //#define TMR_RTC         0
@@ -375,10 +478,12 @@ extern DEBTAB dev_debug[];
 #define CC3BIT   0x10000000             /* CC3 in PSD1 */
 #define CC4BIT   0x08000000             /* CC4 in PSD1 */
 
-#define MAPMODE  0x40                   /* Map mode, PSD 2 bit 0 */
-#define RETMODE  0x20                   /* Retain current maps, PSD 2 bit 15 */
-#define RETBLKM  0x10                   /* Set retain blocked mode, PSD 2 bit 16 */
+#define IPUMODE  0x20                   /* This is running on IPU, bit 27 of CPUSTATUS */
+#define INTBLKD  0x10                   /* bit 24 of CPUSTATUS word, set if ints blocked */
 #define BLKMODE  0x08                   /* Set blocked mode, PSD 2 bit 17 */
+#define MAPMODE  0x04                   /* Map mode, PSD 2 bit 0 */
+#define RETMODE  0x02                   /* Retain current maps, PSD 2 bit 15 */
+#define RETBLKM  0x01                   /* Set retain blocked mode, PSD 2 bit 16 */
 
 /* PSD mode bits in PSD words 1&2 variable */
 #define PRIVBIT  0x80000000             /* Privileged mode  PSD 1 bit 0 */
@@ -482,6 +587,64 @@ extern DEBTAB dev_debug[];
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
 #define PC PC_Global
 
+/* Definitions for commonly used functions */
+extern  t_stat  set_dev_addr(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+extern  t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32 v, CONST void *desc);
+extern  void    chan_end(uint16 chan, uint16 flags);
+extern  int     chan_read_byte(uint16 chsa, uint8 *data);
+extern  int     chan_write_byte(uint16 chsa, uint8 *data);
+extern  void    set_devattn(uint16 addr, uint16 flags);
+extern  void    set_devwake(uint16 chsa, uint16 flags);
+extern  t_stat  chan_boot(uint16 addr, DEVICE *dptr);
+extern  int     test_write_byte_end(uint16 chsa);
+extern  DEVICE *get_dev(UNIT *uptr);
+extern  t_stat  set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch);    /* set inch addr */
+extern  CHANP  *find_chanp_ptr(uint16 chsa);    /* find chanp pointer */
+
+#ifndef CPUONLY
+#ifndef USE_IPU_THREAD
+extern  struct ipcom *IPC;
+extern  uint32  *M;                     /* our memory shared with fork IPU */
+#else
+extern  struct ipcom *IPC;
+extern  uint32  M[];                    /* our local memory with thread IPU */
+#endif
+#else
+extern  uint32  M[];                    /* our local memory without IPU */
+#endif
+
+#ifndef USE_IPU_CODE
+extern  uint32  SPAD[];                 /* cpu SPAD memory */
+#endif
+extern  uint32  attention_trap;
+extern  int     irq_pend;               /* pending interrupt flag */
+
+#ifdef NOT_USED
+extern  uint32  RDYQ[];                 /* ready queue */
+extern  uint32  RDYQIN;                 /* input index */
+extern  uint32  RDYQOUT;                /* output index */
+extern  int32   RDYQ_Put(uint32 entry);
+extern  int32   RDYQ_Get(uint32 *old);
+extern  int32   RDYQ_Num(void);
+#define RDYQ_SIZE 128
+#endif
+
+struct InstHistory
+{
+    uint32   opsd1;                     /* original PSD1 */
+    uint32   opsd2;                     /* original PSD2 */
+    uint32   npsd1;                     /* new PSD1 after instruction */
+    uint32   npsd2;                     /* new PSD2 after instruction */
+    uint32   oir;                       /* the instruction itself */
+    uint32   modes;                     /* current ipu mode bits */
+    uint32   reg[16];                   /* regs/bregs for operation */
+};
+
+extern  char *dump_mem(uint32 mp, int cnt);
+extern  char *dump_buf(uint8 *mp, int32 off, int cnt);
+
+#define get_chan(chsa)  ((chsa>>8)&0x7f)    /* get channel number from ch/sa */
+
 /* memory access macros */
 /* The RMW and WMW macros are used to read/write memory words */
 /* RMW(addr) or WMW(addr, data) where addr is a byte alligned word address */
@@ -503,33 +666,4 @@ extern DEBTAB dev_debug[];
 /* write halfword map register to MAP cache address */
 #define WMR(a,d) ((a)&2?(MAPC[(a)>>2]=(MAPC[(a)>>2]&LMASK)|((d)&RMASK)):(MAPC[(a)>>2]=(MAPC[(a)>>2]&RMASK)|((d)<<16)))
 
-/* Definitions for commonly used functions */
-extern  t_stat  set_dev_addr(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-extern  t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32 v, CONST void *desc);
-extern  void    chan_end(uint16 chan, uint16 flags);
-extern  int     chan_read_byte(uint16 chsa, uint8 *data);
-extern  int     chan_write_byte(uint16 chsa, uint8 *data);
-extern  void    set_devattn(uint16 addr, uint16 flags);
-extern  void    set_devwake(uint16 chsa, uint16 flags);
-extern  t_stat  chan_boot(uint16 addr, DEVICE *dptr);
-extern  int     test_write_byte_end(uint16 chsa);
-extern  DEVICE *get_dev(UNIT *uptr);
-extern  t_stat  set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch);    /* set inch addr */
-extern  CHANP  *find_chanp_ptr(uint16 chsa);    /* find chanp pointer */
-
-extern  uint32  M[];                    /* our memory */
-extern  uint32  SPAD[];                 /* cpu SPAD memory */
-extern  uint32  attention_trap;
-extern  uint32  RDYQ[];                 /* ready queue */
-extern  uint32  RDYQIN;                 /* input index */
-extern  uint32  RDYQOUT;                /* output index */
-#define RDYQ_SIZE 128
-extern  int32   RDYQ_Put(uint32 entry);
-extern  int32   RDYQ_Get(uint32 *old);
-extern  int32   RDYQ_Num(void);
-
-extern  char *dump_mem(uint32 mp, int cnt);
-extern  char *dump_buf(uint8 *mp, int32 off, int cnt);
-
-#define get_chan(chsa)  ((chsa>>8)&0x7f)    /* get channel number from ch/sa */
 

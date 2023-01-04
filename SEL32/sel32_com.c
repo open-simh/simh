@@ -1,6 +1,6 @@
 /* sel32_com.c: SEL 32 8-Line IOP communications controller
 
-   Copyright (c) 2018-2021, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a

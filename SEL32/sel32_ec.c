@@ -1,6 +1,6 @@
 /* sel32_ec.c: SEL-32 8516 Ethernet controller.
 
-   Copyright (c) 2020-2022, Richard Cornwell
+   Copyright (c) 2020-2023, Richard Cornwell
    Portions provided by James C. Bevier and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -770,6 +770,8 @@ t_stat ec_srv(UNIT *uptr)
     uint8           buf[1520];
     uint8           *pck;
     struct ec_eth_hdr *hdr;
+    DIB             *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
+    CHANP           *pchp = pdibp->chan_prg;    /* get channel chp */
 
     sim_debug(DEBUG_CMD, dptr,
         "ec_srv chp %p cmd=%02x chsa %04x count %04x SNS %08x\n",
@@ -782,7 +784,7 @@ t_stat ec_srv(UNIT *uptr)
         mema = chp->ccw_addr;                   /* get inch or buffer addr */
         sim_debug(DEBUG_CMD, dptr,
             "ec_srv starting INCH %06x cmd, chsa %04x addr %06x cnt %04x\n",
-            chp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
         /* now call set_inch() function to write and test inch buffer addresses */
         /* Ethernet uses 1 dbl wd */
         i = set_inch(uptr, mema, 1);            /* new address */

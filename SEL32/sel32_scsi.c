@@ -1,6 +1,6 @@
 /* sel32_scsi.c: SEL-32 MFP SCSI Disk controller
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -31,6 +31,8 @@
 #if NUM_DEVS_SCSI > 0
 
 #define UNIT_SCSI   UNIT_ATTABLE | UNIT_IDLE | UNIT_DISABLE
+
+extern  uint32  SPAD[];                         /* cpu SPAD memory */
 
 /* useful conversions */
 /* Fill STAR value from cyl, trk, sec data */
@@ -565,7 +567,9 @@ t_stat scsi_srv(UNIT *uptr)
 
         /* now call set_inch() function to write and test inch buffer addresses */
         /* 1-256 wd buffer is provided for 128 status dbl words */
-        i = set_inch(uptr, mema, 128);          /* new address of 33 entries */
+        /* manual says 128 entries, but diag aborts if more than 1 */
+///??   i = set_inch(uptr, mema, 128);          /* new address of 33 entries */
+        i = set_inch(uptr, mema, 1);            /* new address of 1 entrie */
         if ((i == SCPE_MEM) || (i == SCPE_ARG)) {   /* any error */
             /* we have error, bail out */
             uptr->CMD &= LMASK;                 /* remove old status bits & cmd */

@@ -1,6 +1,6 @@
 /* sel32_lpr.c: SEL32 922x & 924x High Speed Line Printer
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
