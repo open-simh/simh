@@ -5,7 +5,10 @@ This is a working simulator for the SEL Concept/32 computer. The current
 version is for the SEL 32/27, 32/67, 32/77, 32/87, 32/97, V6, and V9
 computers.  All of the processors except for the 32/77 can run the Gould
 diags.  Operational support for the 32/77 computers may be added in the
-future.
+future. Additional processors are now supported. The 32/6780, 32/8780,
+32/9780, V6/IPU, and V9/IPU processors with an IPU able to run an
+additional instruction stream.  Threads are used so support is provided
+by both Windows and Linux.
 
 # SEL Concept/32 
 
@@ -19,9 +22,10 @@ can be used to access MPX or UTX via Telnet port 4747. The sumulator has
 support for excess 64 floating point arithmetic and passes the 32/27 and
 32/67 FP diags.  UTX is the SEL version of System V Unix and BSD Unix
 ported to the V6 and V9 processors.  UTX utilizes the basemode instruction
-set and a virtual memory system supported by the V6 & V9 CPUs.  The system
-needs further testing to solidify the SEL32 simulator code in all of the
-supported environmenets and hardware configurations.
+set and a virtual memory system supported by the V6 & V9 CPUs.  The IPU is
+also supported by UTX and MPX-32.  The system needs further testing to
+solidify the SEL32 simulator code in all of the supported environmenets
+and hardware configurations.
 
 # SEL32 installation configuration files in the installs directory:
 
@@ -95,6 +99,13 @@ diag.tap     - bootable level one diagnostic tape w/auto testing.
                Testing is extremely difficult without any source for the
                diagnostics.  Updates to follow as tests are corrected.
 
+# SEL32 tap tools available in the taptools directory:
+
+Available tap tools in taptools directory:
+./taptools   - set of tools to work with .tap formatted tapes.  Also tools
+               to convert between MPX and UNIX file formats.  See README
+               file in the taptools directory and source for descriptions.
+
 Other MPX versions support:
                I have recently received some old MPX 3.X save tapes.  Using
                these I have been able to hand build a MPX3.6 SDT tape that
@@ -109,4 +120,4 @@ Other MPX versions support:
                thankfull.  Please keep looking.
 
 James C. Bevier
-02/28/2022 
+01/03/2023

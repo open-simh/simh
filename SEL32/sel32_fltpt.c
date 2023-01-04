@@ -1,6 +1,6 @@
 /* sel32_fltpt.c: SEL 32 floating point instructions processing.
 
-   Copyright (c) 2018-2021, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell, Geert Rolf and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a

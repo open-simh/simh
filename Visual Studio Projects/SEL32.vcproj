@@ -243,6 +243,10 @@
 				>  
 			</File>
 			<File
+				RelativePath="..\SEL32\sel32_ipu.c"
+				>  
+			</File>
+			<File
 				RelativePath="..\SEL32\sel32_lpr.c"
 				>  
 			</File>

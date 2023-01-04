@@ -198,7 +198,9 @@ t_stat iop_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 
         iop_chp[0].chan_inch_addr = iop_chp[0].ccw_addr;   /* set inch buffer addr */
         iop_chp[0].base_inch_addr = iop_chp[0].ccw_addr;   /* set inch buffer addr */
-        iop_chp[0].max_inch_addr = iop_chp[0].ccw_addr + (128 * 8); /* set last inch buffer addr */
+//???   iop_chp[0].max_inch_addr = iop_chp[0].ccw_addr + (127 * 8); /* set last inch buffer addr */
+        /* IOP manual says it uses 128 dbl wds (256 wds) but diag aborts if gtr than 1 dbl wd */
+        iop_chp[0].max_inch_addr = iop_chp[0].ccw_addr;     /* set last inch buffer addr */
 
         uptr->u3 |= IOP_INCH2;              /* save INCH command as 0xf0 */
         sim_activate(uptr, 40);             /* go on */
@@ -262,7 +264,8 @@ t_stat iop_srv(UNIT *uptr)
         /* now call set_inch() function to write and test inch buffer addresses */
         /* the chp->ccw_addr location contains the inch address */
         /* 1-256 wd buffer is provided for 128 status dbl words */
-        tstart = set_inch(uptr, mema, 128); /* new address of 128 entries */
+//??    tstart = set_inch(uptr, mema, 128); /* new address of 128 entries */
+        tstart = set_inch(uptr, mema, 1);   /* new address of 128 entries */
         if ((tstart == SCPE_MEM) || (tstart == SCPE_ARG)) { /* any error */
             /* we have error, bail out */
             uptr->u5 |= SNS_CMDREJ;

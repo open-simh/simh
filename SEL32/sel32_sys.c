@@ -1,6 +1,6 @@
 /* sel32_sys.c: SEL-32 Gould Concept/32 (orignal SEL-32) Simulator system interface.
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell, Geert Rolf and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -21,11 +21,175 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+/* Concept 32 PSD Mode Trap/Interrupt Priorities */
+/* Relative|Logical |Int Vect|TCW |IOCD|Description */
+/* Priority|Priority|Location|Addr|Addr             */
+/*   -                 080              Power Fail Safe Trap */
+/*   -                 084              Power On Trap */
+/*   -                 088              Memory Parity Trap */
+/*   -                 08C              Nonpresent Memory Trap */
+/*   -                 090              Undefined Instruction Trap */
+/*   -                 094              Privilege Violation Trap */
+/*   -                 098              Supervisor Call Trap (SVC) */
+/*   -                 09C              Machine Check Trap */
+/*   -                 0A0              System Check Trap */
+/*   -                 0A4              Map Fault Trap */
+/*   -                 0A8              CALM or Undefined IPU Instruction Trap */
+/*   -                 0AC              Signal CPU or Signal IPU Trap */
+/*   -                 0B0              Address Specification Trap */
+/*   -                 0B4              Console Attention Trap */
+/*   -                 0B8              Privlege Mode Halt Trap */
+/*   -                 0BC              Arithmetic Exception Trap */
+/*   -                 0C0              Cache Error Trap (V9 Only) */
+/*   -                 0C4              Demand Page Fault Trap (V6&V9 Only) */
+/*                                                                */
+/*   0        00       100              External/software Interrupt 0 */
+/*   1        01       104              External/software Interrupt 1 */
+/*   2        02       108              External/software Interrupt 2 */
+/*   3        03       10C              External/software Interrupt 3 */
+/*   4        04       110    704  700  I/O Channel 0 interrupt */  
+/*   5        05       114    70C  708  I/O Channel 1 interrupt */  
+/*   6        06       118    714  710  I/O Channel 2 interrupt */  
+/*   7        07       11C    71C  718  I/O Channel 3 interrupt */  
+/*   8        08       120    724  720  I/O Channel 4 interrupt */  
+/*   9        09       124    72C  728  I/O Channel 5 interrupt */  
+/*   A        0A       128    734  730  I/O Channel 6 interrupt */  
+/*   B        0B       12C    73C  738  I/O Channel 7 interrupt */  
+/*   C        0C       130    744  740  I/O Channel 8 interrupt */  
+/*   D        0D       134    74C  748  I/O Channel 9 interrupt */  
+/*   E        0E       138    754  750  I/O Channel A interrupt */  
+/*   F        0F       13C    75C  758  I/O Channel B interrupt */  
+/*  10        10       140    764  760  I/O Channel C interrupt */  
+/*  11        11       144    76C  768  I/O Channel D interrupt */  
+/*  12        12       148    774  770  I/O Channel E interrupt */  
+/*  13        13       14c    77C  778  I/O Channel F interrupt */  
+/*  14        14       150              External/Software Interrupt */
+/*  15        15       154              External/Software Interrupt */
+/*  16        16       158              External/Software Interrupt */
+/*  17        17       15C              External/Software Interrupt */
+/*  18        18       160              Real-Time Clock Interrupt */
+/*  19        19       164              External/Software Interrupt */
+/*  1A        1A       1A8              External/Software Interrupt */
+/*  1B        1B       1AC              External/Software Interrupt */
+/*  1C        1C       1B0              External/Software Interrupt */
+/* THRU      THRU     THRU                        THRU              */ 
+/*  6C        6C       2B0              External/Software Interrupt */
+/*  6D        6D       2B4              External/Software Interrupt */
+/*  6E        6E       2B8              External/Software Interrupt */
+/*  6F        6F       2BC              Interval Timer Interrupt */
+
+/* IVL ------------> ICB   Trap/Interrupt Vector Location points to Interrupt Context Block */
+/*                   Wd 0 - Old PSD Word 1  points to return location */
+/*                   Wd 1 - Old PSD Word 2 */
+/*                   Wd 2 - New PSD Word 1  points to first instruction of service routine */
+/*                   Wd 3 - New PSD Word 2 */
+/*                   Wd 4 - CPU Status word at time of interrupt/trap */
+/*                   Wd 5 - N/U For Traps/Interrupts */
+
+/* IVL ------------> ICB   XIO Interrupt Vector Location */
+/*                   Wd 0 - Old PSD Word 1  points to return location */
+/*                   Wd 1 - Old PSD Word 2 */
+/*                   Wd 2 - New PSD Word 1  points to first instruction of service routine */
+/*                   Wd 3 - New PSD Word 2 */
+/*                   Wd 4 - Input/Output Command List Address (IOCL) for the Class F I/O CHannel */
+/*                   Wd 5 - 24 bit real address of the channel status word */
+
+/*-----------------------------------------------------------------------------------------------*/
+
+/* Map image descriptor 32/77 */
+/* |--------------------------------------| */
+/* |0|1|2|3 4 5 6|7 8  9 10 11 12 13 14 15| */
+/* |N|V|P|  n/u  | 9 bit map block entry  | */
+/* |U| | |       |      32kb/block        | */
+/* |             |  32 8kb maps per task  | */
+/* |             |   1 mb address space   | */
+/* |--------------------------------------| */
+
+/* Map image descriptor 32/27 */
+/* |--------------------------------------| */
+/* |0|1|2|3|4|5 6 7 8  9 10 11 12 13 14 15| */
+/* |V|P|P|P|P|    11 bit map block entry  | */
+/* | |1|2|3|4|           8kb/block        | */
+/* |         |    256 8kb maps per task   | */
+/* |         |      2 mb address space    | */
+/* |--------------------------------------| */
+
+/* Map image descriptor  32/67, 32/87, 32/97 */
+/* |--------------------------------------| */
+/* |0|1|2|3|4|5 6 7 8  9 10 11 12 13 14 15| */
+/* |V|P|P|P|P|    11 bit map block entry  | */
+/* | |1|2|3|4|           2kb/block        | */
+/* |         |    2048 8kb maps per task  | */
+/* |         |      16 mb address space   | */
+/* |--------------------------------------| */
+/* BIT 0 = 0    Invalid map block (page) entry */
+/*       = 1    Valid map block (page) entry */
+/*     1 = 0    000-7ff of 8kb page is not write protected */
+/*       = 1    000-7ff of 8kb page is write protected */
+/*     2 = 0    800-fff of 8kb page is not write protected */
+/*       = 1    800-fff of 8kb page is write protected */
+/*     3 = 0    1000-17ff of 8kb page is not write protected */
+/*       = 1    1000-17ff of 8kb page is write protected */
+/*     4 = 0    1800-1fff of 8kb page is not write protected */
+/*       = 1    1800-1fff of 8kb page is write protected */
+/*  5-15 =      11 most significant bits of the 24 bit real address for page */
+
+/* Map image descriptor V6 & V9 */
+/* |--------------------------------------| */
+/* |0|1|2|3|4|5 6 7 8  9 10 11 12 13 14 15| */
+/* |V|P|P|M|M|    11 bit map block entry  | */
+/* | |1|2|M|A|           2kb/map          | */
+/* |         |    2048 8kb maps per task  | */
+/* |         |      16 mb address space   | */
+/* |--------------------------------------| */
+/* BIT 0 = 0    Invalid map block (page) entry */
+/*       = 1    Valid map block (page) entry */
+/* */
+/* PSD 1 BIT 0 -  Map Bit 1 - Map Bit 2 - Access state */
+/* Priv Bits with ECO for Access Protection change */
+/*     0              0           0     No access allowed to page */
+/*     0              0           1     No access allowed to page */
+/*     0              1           0     Read/Write/Execute access */
+/*     0              1           1     Read/Execute access only */
+/*O/S*/
+/*     1              0           0     Read/Write/Execute access */
+/*     1              0           1     Read/Execute access only */
+/*     1              1           0     Read/Write/Execute access */
+/*     1              1           1     Read/Execute access only */
+/* Priv Bits without ECO for Access Protection change */
+/*     0              0           0     No access allowed to page */
+/*     0              0           1     Read/Execute access only */
+/*     0              1           0     Read//Execute access only */
+/*     0              1           1     Read/Write/Execute access */
+/*O/S*/
+/*     1              0           0     Read/Write/Execute only */
+/*     1              0           1     Read/Execute access only */
+/*     1              1           0     Read/Write/Execute access */
+/*     1              1           1     Read/Write/Execute access */
+/* */
+/* BIT 3 = 0    (MM) A first write (modify) to the map block (page) has not occurred */
+/*       = 1    (MM) A first write (modify) to the map block (page) has occurred */
+/* BIT 4 = 0    (MA) A first read or write (access) to the map block (page) has not occurred */
+/*       = 1    (MA) A first read or write (access) to the map block (page) has occurred */
+/*  5-15 =      11 most significant bits of the 24 bit real address for page */
+
+/* Note */
+/* If a map is valid, a MAP (page) hit occurs and logical to physical translation occures */
+/* If the map is not valid, a demand MAP (page) fault occures and the faulting page is provided */
+/* P1 and P2 are used with Bit 0 of PSD to define the access rights */
+/* A privilege violation trap occurres if access it denied */
+/* Bits 5-15 contain the 11 most-significant bits of the physical address */
+/* MSD 0 page limit is used to verify access to O/S pages */
+/* CPIXPL page limit is used to verify access to user pages and page faults */
+/* CPIX CPIX of user MPL offset */
+/* Access to pages outside the limit registers results in a map fault */
+
+/*-----------------------------------------------------------------------------------------------*/
+
 #include "sel32_defs.h"
 #include <ctype.h>
 
 extern REG cpu_reg[];
-extern uint32 M[MAXMEMSIZE];
 extern uint32 SPAD[];
 extern uint32 PSD[];
 char *dump_mem(uint32 mp, int cnt);
@@ -59,6 +223,9 @@ int32 sim_emax = 4;                         /* maximum number of instructions/wo
 
 DEVICE *sim_devices[] = {
         &cpu_dev,
+#ifdef USE_IPU_THREAD
+        &ipu_dev,
+#endif
 #ifdef NUM_DEVS_IOP
         &iop_dev,                           /* IOP channel controller */
 #endif
@@ -230,8 +397,6 @@ char *dump_buf(uint8 *mp, int32 off, int cnt)
     cc += sprintf(cp, "|%s|\n", buff);          /* print out ascii text */
     return (line);                              /* return pointer to caller */
 }
-
-
 
 /*
  * get_word - function to load a 32 bit word from the input file 

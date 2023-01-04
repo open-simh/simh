@@ -1,6 +1,6 @@
 /* sel32_clk.c: SEL 32 Class F IOP processor RTOM functions.
 
-   Copyright (c) 2018-2021, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell, Geert Rolf and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -44,12 +44,11 @@ t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, CONST char *cptr);
 const char *rtc_desc(DEVICE *dptr);
 
-extern int  irq_pend;                       /* go scan for pending int or I/O */
-extern uint32 INTS[];                       /* interrupt control flags */
-extern uint32 SPAD[];                       /* computer SPAD */
-extern uint32 M[];                          /* system memory */
-extern uint32  outbusy;                     /* output waiting on timeout */
-extern uint32  inbusy;                      /* input waiting on timeout */
+extern  int      irq_pend;                  /* go scan for pending int or I/O */
+extern  uint32   INTS[];                    /* interrupt control flags */
+extern  uint32   SPAD[];                    /* computer SPAD */
+extern  uint32   outbusy;                   /* output waiting on timeout */
+extern  uint32   inbusy;                    /* input waiting on timeout */
 
 int32 rtc_pie = 0;                          /* rtc pulse ie */
 int32 rtc_tps = 60;                         /* rtc ticks/sec */
@@ -112,7 +111,7 @@ t_stat rtc_srv (UNIT *uptr)
 #endif
     /* if clock disabled, do not do interrupts */
     if (((rtc_dev.flags & DEV_DIS) == 0) && rtc_pie) {
-        int lev = 0x13;
+        int lev = rtc_lvl;
         sim_debug(DEBUG_CMD, &rtc_dev,
             "RT Clock mfp INTS[%02x] %08x SPAD[%02x] %08x\n",
             lev, INTS[lev], lev+0x80, SPAD[lev+0x80]);
@@ -127,22 +126,24 @@ t_stat rtc_srv (UNIT *uptr)
             /* HACK for console I/O stopping */
             /* This reduces the number of console I/O stopping errors */
             /* need to find real cause of I/O stopping on clock interrupt */
-            if ((outbusy==0) && (inbusy==0))    /* skip interrupt if con I/O in busy wait */
+            if ((outbusy==0) && (inbusy==0)) {  /* skip interrupt if con I/O in busy wait */
                 INTS[rtc_lvl] |= INTS_REQ;      /* request the interrupt */
-            else
-            sim_debug(DEBUG_CMD, &rtc_dev,
-                "RT Clock int console busy\n");
+                irq_pend = 1;                   /* make sure we scan for int */
+            } else {
+                sim_debug(DEBUG_CMD, &rtc_dev,
+                    "RT Clock int console busy\n");
+            }
 #else
             INTS[rtc_lvl] |= INTS_REQ;          /* request the interrupt */
-#endif
             irq_pend = 1;                       /* make sure we scan for int */
+#endif
         }
         sim_debug(DEBUG_CMD, &rtc_dev,
             "RT Clock int INTS[%02x] %08x SPAD[%02x] %08x\n",
             rtc_lvl, INTS[rtc_lvl], rtc_lvl+0x80, SPAD[rtc_lvl+0x80]);
     }
-//  temp = sim_rtcn_calb(rtc_tps, TMR_RTC); /* timer 0 for RTC */
-    sim_rtcn_calb(rtc_tps, TMR_RTC);        /* timer 0 for RTC */
+//  temp = sim_rtcn_calb(rtc_tps, TMR_RTC);     /* timer 0 for RTC */
+    sim_rtcn_calb(rtc_tps, TMR_RTC);            /* timer 0 for RTC */
     sim_activate_after(uptr, 1000000/rtc_tps);  /* reactivate 16666 tics / sec */
     return SCPE_OK;
 }
@@ -243,6 +244,7 @@ t_stat itm_set_freq (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat itm_reset (DEVICE *dptr);
 t_stat itm_show_freq (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat itm_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, CONST char *cptr);
+void itm_setup(uint32 ss, uint32 level);
 const char *itm_desc(DEVICE *dptr);
 
 /* Clock data structures
@@ -370,6 +372,9 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
 
     cmd &= 0x7f;                            /* just need the cmd */
     itm_cmd = cmd;                          /* save last cmd */
+    if (itm_pie == 0) {                     /* timer enabled? */
+        itm_setup(1, level);                /* no, initialize it */
+    }
     switch (cmd) {
     case 0x20:                              /* stop timer */
         /* stop the timer and save the curr value for later */
@@ -637,6 +642,13 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
 /* level = interrupt level */
 void itm_setup(uint32 ss, uint32 level)
 {
+    if (ss && itm_pie && (level == itm_lvl)) {    /* timer enabled? */
+        /* already setup, just return */
+        sim_debug(DEBUG_CMD, &itm_dev,
+            "Intv Timer setup call already enabled int %02x value %08x itm_pie %01x ss %01x\n",
+            itm_lvl, itm_cnt, itm_pie, ss);
+        return;
+    }
     itm_lvl = level;                        /* save the interrupt level */
     itm_load = 0;                           /* not loaded */
     itm_src = 0;                            /* use itm for freq */
@@ -645,14 +657,18 @@ void itm_setup(uint32 ss, uint32 level)
     itm_cnt = 0;                            /* no count reset value */
     sim_cancel (&itm_unit);                 /* not running yet */
     if (ss == 1) {                          /* starting? */
+#ifdef NOT_HERE_112422
         INTS[level] |= INTS_ENAB;           /* make sure enabled */
         SPAD[level+0x80] |= SINT_ENAB;      /* in spad too */
+#endif
         sim_debug(DEBUG_CMD, &itm_dev,
             "Intv Timer setup enable int %02x value %08x itm_pie %01x ss %01x\n",
             itm_lvl, itm_cnt, itm_pie, ss);
     } else {
+#ifdef NOT_HERE_112422
         INTS[level] &= ~INTS_ENAB;          /* make sure disabled */
         SPAD[level+0x80] &= ~SINT_ENAB;     /* in spad too */
+#endif
         sim_debug(DEBUG_CMD, &itm_dev,
             "Intv Timer setup disable int %02x value %08x itm_pie %01x ss %01x\n",
             itm_lvl, itm_cnt, itm_pie, ss);
