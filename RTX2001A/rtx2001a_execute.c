@@ -76,8 +76,8 @@ char *memory_names[] = {
 
 void bad_insn()
 {
-    sim_debug(DBG_CPU, &cpu_dev, "%s IR=0x%X\n", sim_stop_messages[STOP_INVOPCOD], IR);
-    print_instruction(IR, cpr.pr, asic_file[PC]);
+    sim_printf("%s PC=0x%X IR=0x%X\n", sim_stop_messages[STOP_INVOPCOD], asic_file[PC], IR);
+    // print_instruction(IR, cpr.pr, asic_file[PC]);
     ABORT(STOP_IBKPT);
     // longjmp(bkpt_env, STOP_IBKPT);
 }
@@ -749,6 +749,44 @@ void do_short_lit()
     CLOCKS(1);
 }
 
+void do_uslash_one_tick()
+{
+    /* really sleazy definition to make things work for now ???? */
+    /* undoes the preceeding d2* */
+    NEXT = (NEXT >> 1) & 0x7FFF;
+    if (TOP & 1)
+        NEXT = NEXT | 0x8000;
+    TOP = (TOP >> 1) & 0x7FFF;
+    if (CY)
+        TOP = TOP | 0x8000;
+}
+
+void do_uslash_tick()
+{
+    /* really sleazy definition to make things work for now ???? */
+    /* do nothing -- save the division up for the end! */
+    TEST_EXIT;
+    CLOCKS(1);
+}
+
+void do_uslash_tick_tick()
+{
+    /* really sleazy definition to make things work for now ???? */
+    /* do all the division at once */
+    t_uint64 dividend;
+    RTX_WORD divisor, quotient, remainder;
+    dividend = ((t_uint64)TOP << 16) & 0xFFFF0000;
+    dividend = dividend | (t_uint64)(NEXT & 0xFFFF);
+    divisor = MD;
+    quotient = dividend / divisor;
+    dividend = dividend - ((t_uint64)quotient * (t_uint64)divisor);
+    remainder = dividend;
+    TOP = remainder;
+    NEXT = quotient;
+    TEST_EXIT;
+    CLOCKS(1);
+}
+
 /**
  *  ??? the below definitions might speed things up,  from Mitch Bradley
  * ??? the below definitions might speed things up,  from Mitch Bradley
@@ -1039,6 +1077,10 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
     }
     break;
 
+    case OP_DDUP_ALU:
+        sim_debug(DBG_CPU, &cpu_dev, "DDUP %s%s\n", ALU, SHIFT);
+        break;
+
     case OP_DUP:
         sim_debug(DBG_CPU, &cpu_dev, "DUP %s%s\n", INVERT, SHIFT);
         break;
@@ -1255,8 +1297,16 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         sim_debug(DBG_CPU, &cpu_dev, "%sUNDER %s! 0x%X\n", PREFIX, MEM, SHORT_LIT);
         break;
 
-    case OP_USTORE:
-        sim_debug(DBG_CPU, &cpu_dev, "%s0x%X U! %s\n", PREFIX, SHORT_LIT, INVERT);
+    case OP_USLASH_ONE_TICK:
+        sim_debug(DBG_CPU, &cpu_dev, "U/1'\n");
+        break;
+
+    case OP_USLASH_TICK:
+        sim_debug(DBG_CPU, &cpu_dev, "U/'\n");
+        break;
+
+    case OP_USLASH_TICK_TICK:
+        sim_debug(DBG_CPU, &cpu_dev, "U/''\n");
         break;
 
     default:
@@ -1404,10 +1454,14 @@ void init_dispatch_vectors()
     dispatch_vector_1[OP_UNDER_ALU] = do_under_alu;
     dispatch_vector_1[OP_UNDER_STORE] = do_under_store;
     dispatch_vector_1[OP_UNDER_STORE_LIT] = do_under_store_lit;
+#endif
     dispatch_vector_1[OP_USLASH_ONE_TICK] = do_uslash_one_tick;
+#if 0
     dispatch_vector_1[OP_USLASH_ONE_TICK_TICK] = do_uslash_one_tick_tick;
+#endif
     dispatch_vector_1[OP_USLASH_TICK] = do_uslash_tick;
     dispatch_vector_1[OP_USLASH_TICK_TICK] = do_uslash_tick_tick;
+#if 0
     dispatch_vector_1[OP_USTAR_TICK] = do_ustar_tick;
     dispatch_vector_1[OP_USTAR_TICK_TICK] = do_ustar_tick_tick;
     dispatch_vector_1[OP_USTORE] = do_ustore;

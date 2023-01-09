@@ -26,8 +26,26 @@
     9-Sep-22   SYS      ASIC bus routines
 */
 
+#include <unistd.h>
 #include "rtx2001a_ab.h"
 #include "rtx2001a_execute.h"
+
+t_stat poll_kbd(t_value *data)
+{
+    int status;
+    unsigned char buf[1];
+
+    status = read(0, buf, 1);
+    *data = '\0';
+    if (status != 1)
+        return SCPE_OK;
+    if (sim_brk_char && (buf[0] == sim_brk_char))
+        return SCPE_BREAK;
+    if (sim_int_char && (buf[0] == sim_int_char))
+        return SCPE_STOP;
+    *data = buf[0];
+    return SCPE_OK;
+}
 
 /* implementation note: gfetch is always invoked before TEST_EXIT */
 t_stat gfetch(t_addr offset, t_value *data)
@@ -230,22 +248,23 @@ t_stat gfetch(t_addr offset, t_value *data)
 
     if (offset == 0x19)
     {
-#if 0
-    /* this gets I/O to work for now */
-    if (offset == 0x19)
-    {
-        if (hostmode) /* invoke fsm for serving host mode */
-        {
-            return (host_read());
-        }
-        temp = getch() _MASKED_;
+        // if (hostmode) /* invoke fsm for serving host mode */
+        // {
+        //     return (host_read());
+        // }
+        *data = getchar() & D16_MASK;
         /* printf("\n(%d) = '%c'", temp, temp); */
-        return (temp);
+        return SCPE_OK;
     }
+
     if (offset == 0x1A)
-        return (kbhit() _MASKED_);
-#endif
-        return SCPE_NXM;
+    {
+        RTX_WORD c = 0;
+        t_stat status;
+        if ((status = poll_kbd(&c)) != SCPE_OK) /* no char or error? */
+            return status;
+        *data = c;
+        return SCPE_OK;
     }
 
     if (offset >= 0x18 && offset <= 0x1F)
