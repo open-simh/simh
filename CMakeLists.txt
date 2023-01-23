@@ -280,14 +280,21 @@ endif ()
 
 ## CMake policy tweaks
 
-if (POLICY CMP0135)
+if (CMAKE_VERSION GREATER_EQUAL 3.24)
     ## Until I figure out a way to add DOWNLOAD_EXTRACT_TIMESTAMP to the call to
     ## ExternalProject_Add cleanly..
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-## Deal with platform quirkiness
+## "Standard" includes
+include(CheckCSourceCompiles)
+include(CheckIncludeFile)
+include(CheckSymbolExists)
+include(CheckTypeSize)
 include(CheckCCompilerFlag)
+include(FindPackageHandleStandardArgs)
+
+## Deal with platform quirkiness
 include(platform-quirks)
 
 # Find packages, arrange for dependency download/compile/install:
@@ -304,25 +311,17 @@ set(PCRE_PKG_STATUS "unknown")
 set(VIDEO_PKG_STATUS)
 set(NETWORK_PKG_STATUS)
 
-## "Standard" includes
-include(CheckCSourceCompiles)
-include(CheckCCompilerFlag)
-include(CheckIncludeFile)
-include(CheckSymbolExists)
-include(CheckTypeSize)
-include(FindPackageHandleStandardArgs)
+# if (USING_VCPKG)
+#     ## Sanity checking output: Ensure that vcpkg picked up the correct triplet
+#     message(STATUS "VCPKG sanity check:\n"
+#         "    .. VCPKG target triplet is ${VCPKG_TARGET_TRIPLET}\n"
+#         "    .. VCPKG_CRT_LINKAGE is ${VCPKG_CRT_LINKAGE}"
+#         ## "    .. CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}\n"
+#         ## "    .. CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+#     )
+# endif ()
 
 # SIMH local packages:
-if (USING_VCPKG)
-    ## Sanity checking output: Ensure that vcpkg picked up the correct triplet
-    message(STATUS "VCPKG sanity check:\n"
-        "    .. VCPKG target triplet is ${VCPKG_TARGET_TRIPLET}\n"
-        "    .. VCPKG_CRT_LINKAGE is ${VCPKG_CRT_LINKAGE}"
-        ## "    .. CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}\n"
-        ## "    .. CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-    )
-endif ()
-
 include(build_dep_matrix)
 include(os-features)
 include(dep-locate)

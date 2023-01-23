@@ -47,10 +47,8 @@ if (WITH_NETWORK)
     if (WITH_VDE)
         find_package(VDE)
     endif ()
-endif (WITH_NETWORK)
 
-## pcap is special: Headers only and dynamically loaded.
-if (WITH_NETWORK)
+    ## pcap is special: Headers only and dynamically loaded.
     if (WITH_PCAP)
         find_package(PCAP)
     endif (WITH_PCAP)
