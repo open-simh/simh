@@ -102,7 +102,7 @@ RTX_WORD gdata[GDATA_SIZE] = {0};
 ReturnStack rs[RS_MAX + 1] = {0};
 
 jmp_buf save_env; // abort handler
-jmp_buf bkpt_env; // breakpoint handler
+jmp_buf trap_env; // trap/breakpoint handler
 
 t_value rtx2001a_pc_value(void)
 {
@@ -168,7 +168,7 @@ t_stat sim_instr(void)
     ** See pg. 67, PgmrsRefMnl
     */
 
-    reason = setjmp(bkpt_env); /* set break hdlr */
+    reason = setjmp(trap_env); /* set break hdlr */
     if (0 == reason)
     {
       if (!STREAM && second_cycle)
@@ -250,7 +250,9 @@ t_stat cpu_ex(t_value *vptr, t_addr ea, UNIT *uptr, t_svalue sw)
   byte_fetch(ea, vptr);
   if (m)
   {
-    print_instruction(*vptr, cpr.pr, ea);
+    RTX_WORD temp = 0;
+    _long_fetch(cpr.fields.pr, ea, &temp);
+    print_instruction(temp, cpr.pr, ea);
   }
   return SCPE_OK;
 }
@@ -322,8 +324,8 @@ t_stat cpu_reset(DEVICE *dptr)
     {
       // Consider 0x0707 See rtx2000_simulator/STATE.C:58
       sur.pr = 0;
-      // psf: 1, ps: 1, rsf: 1, rs: 1
-      PSF = RSF = PS = RS = 1;
+      // psf: 1, pss: 1, rsf: 1, rss: 1
+      PSF = RSF = PSS = RSS = 1;
     }
     else if (0 == strcmp(rptr->name, "SVR"))
     {

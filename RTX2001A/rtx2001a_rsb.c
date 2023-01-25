@@ -39,9 +39,7 @@
 */
 void rs_push(t_addr page, t_value data)
 {
-    ReturnStack ors;
     SPR ospr;
-    ors.pr = rs[(spr.fields.rsp)].pr;
     ospr.pr = spr.pr;
 
     (spr.fields.rsp) = (++(spr.fields.rsp)) & STACK_MASK;
@@ -49,11 +47,12 @@ void rs_push(t_addr page, t_value data)
 
     rs[(spr.fields.rsp)].fields.ipr = ipr.fields.pr;
     rs[(spr.fields.rsp)].fields.i = asic_file[I];
-    // sim_debug_bits_hdr(DBG_RSB_W, &cpu_dev, "RSB", rs_bits, ors.pr, rs[(spr.fields.rsp)].pr, 1);
+
+    sim_debug(DBG_RSB_W, &cpu_dev, "RS[%d]=%d:0x%04X\n", spr.fields.rsp, ipr.fields.pr, asic_file[I]);
 
     asic_file[I] = data;
+    sim_debug(DBG_ASB_W, &cpu_dev, "I=0x%04X\n", asic_file[I]);
     set_IPR(page);
-    sim_debug(DBG_ASB_W, &cpu_dev, "rs[%d]=%d:0x%X (%d:0x%X)\n", spr.fields.rsp, ipr.fields.pr, asic_file[I], rs[(spr.fields.rsp)].fields.ipr, rs[(spr.fields.rsp)].fields.i);
     // IDK why this is here. See STATE.C:145
     // if (DPRSEL)
     // {
@@ -72,12 +71,11 @@ void rs_pop()
     orsp.pr = rs[(spr.fields.rsp)].pr;
     ospr.pr = spr.pr;
 
-    sim_debug_bits_hdr(DBG_RSB_R, &cpu_dev, "RSB", rs_bits, orsp.pr, rs[(spr.fields.rsp)].pr, 1);
-
     /* don't use set_IPR; bit 4 comes from RS */
-    ipr.fields.pr = rs[(spr.fields.rsp)].fields.ipr & 0x1F;
-    asic_file[I] = rs[(spr.fields.rsp)].fields.i & D16_MASK;
-    sim_debug(DBG_ASB_W, &cpu_dev, "I=0x%X IPR=%d\n", asic_file[I], ipr.fields.pr);
+    sim_debug(DBG_RSB_R, &cpu_dev, "RS[%d]=%d:0x%04X\n", spr.fields.rsp, rs[spr.fields.rsp].fields.ipr, rs[spr.fields.rsp].fields.i);
+    ipr.fields.pr = rs[(spr.fields.rsp)].fields.ipr;
+    asic_file[I] = rs[(spr.fields.rsp)].fields.i;
+    sim_debug(DBG_ASB_W, &cpu_dev, "IPR=%d I=0x%04X\n", ipr.fields.pr, asic_file[I]);
 
     (spr.fields.rsp) = (--(spr.fields.rsp)) & STACK_MASK;
     sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "SPR", spr_bits, ospr.pr, spr.pr, 1);

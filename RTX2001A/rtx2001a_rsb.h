@@ -41,7 +41,7 @@
 struct ReturnStackFields
 {
     RTX_WORD ipr : 6;   // 0-5: Current value of IPR
-    RTX_WORD i : 15;    // 6-21: Current value of I
+    RTX_WORD i : 16;    // 6-21: Current value of I
 };
 
 union Return_Stack
@@ -54,7 +54,7 @@ typedef union Return_Stack ReturnStack;
 
 static BITFIELD rs_bits[] = { // Fig 11, pg 10
     BITF(IPR, 6),             // 0-5: Current value of IPR
-    BITF(I, 15),              // 6-21: Current value of I
+    BITF(I, 16),              // 6-21: Current value of I
     ENDBITS};
 
 #define RS_MAX 0x40

@@ -94,10 +94,10 @@ void do_exit()
 
 void do_call()
 {
-    sim_debug(DBG_ASB_R, &cpu_dev, "PC=0x%X\n", asic_file[PC]);
+    sim_debug(DBG_ASB_R, &cpu_dev, "PC=0x%04X\n", asic_file[PC]);
     rs_push(cpr.pr, asic_file[PC]);
     asic_file[PC] = (IR << 1) & D16_UMAX;
-    sim_debug(DBG_ASB_W, &cpu_dev, "PC=0x%X\n", asic_file[PC]);
+    sim_debug(DBG_ASB_W, &cpu_dev, "PC=0x%04X\n", asic_file[PC]);
     CLOCKS(1);
 }
 
@@ -159,7 +159,7 @@ t_stat shift()
         CR ocr;
         ocr.pr = cr.pr;
         CY = (TOP & 0x8000) ? 1 : 0;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
         TOP = (TOP << 1) & 0xFFFE;
     }
     break;
@@ -174,7 +174,7 @@ t_stat shift()
             temp = temp | 1;
         }
         CY = (TOP & 0x8000) ? 1 : 0;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
         TOP = temp;
     }
     break;
@@ -189,7 +189,7 @@ t_stat shift()
             TOP = TOP | 0x8000;
         }
         CY = 0;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -204,7 +204,7 @@ t_stat shift()
         }
         CY = (TOP & 1) ? 1 : 0;
         TOP = temp;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -214,7 +214,7 @@ t_stat shift()
         ocr.pr = cr.pr;
         TOP = (TOP >> 1) & 0x7FFF;
         CY = 1;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -229,7 +229,7 @@ t_stat shift()
         }
         CY = (TOP & 0x8000) ? 1 : 0;
         TOP = temp;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -243,7 +243,7 @@ t_stat shift()
         {
             NEXT |= 1;
         }
-        sim_debug_bits_hdr(DBG_ASB_R, &cpu_dev, "CR", cr_bits, cr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_R, &cpu_dev, "CR", cr_bits, cr.pr, cr.pr, 0);
         break;
 
     case 0x000A: // D2*
@@ -274,7 +274,7 @@ t_stat shift()
         if (temp)
             TOP |= 1;
         CY = tempa;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -290,7 +290,7 @@ t_stat shift()
         if (temp)
             NEXT |= 0x8000;
         CY = 1;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -307,7 +307,7 @@ t_stat shift()
         if (temp)
             NEXT |= 0x8000;
         CY = tempa;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -321,7 +321,7 @@ t_stat shift()
         if (temp)
             NEXT |= 0x8000;
         CY = 1;
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
@@ -339,13 +339,15 @@ t_stat shift()
         {
             NEXT |= 0x8000;
         }
-        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 1);
+        sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "CR", cr_bits, ocr.pr, cr.pr, 0);
     }
     break;
 
     default:
         return STOP_UNK; // Defensive, no test
     }
+
+    sim_debug(DBG_ASB_W, &cpu_dev, " TOP=0x%X NEXT=0x%X\n", TOP, NEXT);
     return SCPE_OK;
 }
 
@@ -367,6 +369,7 @@ void do_alu()
 
     TEST_EXIT;
     CLOCKS(1);
+    sim_debug(DBG_ASB_W, &cpu_dev, " TOP=0x%X NEXT=0x%X\n", TOP, NEXT);
 }
 
 void do_asic_stream_mac()
@@ -646,6 +649,7 @@ void do_short_lit_swap_alu()
     }
     TEST_EXIT;
     CLOCKS(1);
+    sim_debug(DBG_ASB_W, &cpu_dev, " TOP=0x%X NEXT=0x%X\n", TOP, NEXT);
 }
 
 void do_store()
@@ -777,7 +781,7 @@ void do_uslash_tick_tick()
     RTX_WORD divisor, quotient, remainder;
     dividend = ((t_uint64)TOP << 16) & 0xFFFF0000;
     dividend = dividend | (t_uint64)(NEXT & 0xFFFF);
-    divisor = MD;
+    divisor = asic_file[MD];
     quotient = dividend / divisor;
     dividend = dividend - ((t_uint64)quotient * (t_uint64)divisor);
     remainder = dividend;
@@ -992,6 +996,19 @@ t_stat execute(t_value instruction)
     return status;
 }
 
+void dump_header(char *dest, t_value offset)
+{
+    t_value temp = 0;
+    t_value _sim_is_running = sim_is_running;
+    sim_is_running = 0;
+    byte_fetch(((IR << 1) & D16_MASK) - offset, &temp);
+    sim_is_running = _sim_is_running;
+    if (temp > 32 && temp < 128)
+    {
+        *dest = temp;
+    }
+}
+
 /**
  * print a disassembled instruction
  */
@@ -1045,17 +1062,18 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
         break;
 
     case OP_CALL:
-        sim_debug(DBG_CPU, &cpu_dev, "CALL %d:0x%X\n", page, ((instruction << 1) & D16_MASK));
-        // dump_header(9);
-        // dump_header(8);
-        // dump_header(7);
-        // dump_header(6);
-        // dump_header(5);
-        // dump_header(4);
-        // dump_header(3);
-        // dump_header(2);
-        // dump_header(1);
-        break;
+    {
+        char buffer[64];
+        memset(buffer, '\0', sizeof(buffer));
+        sprintf(buffer, "CALL %d:0x%X ", page, ((instruction << 1) & D16_MASK));
+        t_value i = strlen(buffer);
+        for (int j = 9; j > 0; j--, i++)
+        {
+            dump_header(&buffer[i], j);
+        }
+        sim_debug(DBG_CPU, &cpu_dev, "%s\n", buffer);
+    }
+    break;
 
     case OP_DDUP_STORE:
         sim_debug(DBG_CPU, &cpu_dev, "%sDDUP %s!\n", PREFIX, MEM);
@@ -1212,6 +1230,10 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
 
     case OP_NEXT:
         sim_debug(DBG_CPU, &cpu_dev, "NEXT %d:0x%X ", page, target_addr(instruction, address));
+        break;
+
+    case OP_NIP:
+        sim_debug(DBG_CPU, &cpu_dev, "NIP %s%s\n", INVERT, SHIFT);
         break;
 
     case OP_NIP_DUP_FETCH_SWAP:

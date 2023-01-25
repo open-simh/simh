@@ -138,6 +138,8 @@ static enum {
     RH = 0x17,   // Scratchpad register
     RSP = 0x21,  // Return stack pointer
     PSP = 0x22,  // Parameter stack pointer
+    RS = 0x23,   // Parameter stack
+    PS = 0x24,   // Return stack
     ASIC_MAX = 0x25,
 } ASIC_FILE;
 extern RTX_WORD asic_file[ASIC_MAX];
@@ -265,11 +267,11 @@ static BITFIELD spr_bits[] = { // Fig 7, pg 9
 struct StackUnderflowRegisterFields
 {
     RTX_WORD psf : 1;  // 0: Parameter Stack Start Flag
-    RTX_WORD ps : 1;   // 1: Parameter Substacks, 0: two 32 word stacks, 1: one 64 word stack
+    RTX_WORD pss : 1;  // 1: Parameter Substacks, 0: two 32 word stacks, 1: one 64 word stack
     RTX_WORD mbz0 : 1; // 2: Reserved
     RTX_WORD psu : 5;  // 3-7: Parameter Stack Underflow Limit, 0 - 31 words from stack bottom
     RTX_WORD rsf : 1;  // 8: Return Stack Start Flag
-    RTX_WORD rs : 1;   // 9: Return Substacks, 0: two 32 word stacks, 1: one 64 word stack
+    RTX_WORD rss : 1;  // 9: Return Substacks, 0: two 32 word stacks, 1: one 64 word stack
     RTX_WORD mbz1 : 1; // 10: Reserved
     RTX_WORD rsu : 5;  // 11-15: Return Stack Underflow Limit, 0 - 31 words from stack bottom
 };
@@ -281,10 +283,10 @@ union StackUnderflowRegister
 } sur;
 typedef union StackUnderflowRegister SUR;
 #define PSF (sur.fields.psf)
-#define PS (sur.fields.ps)
+#define PSS (sur.fields.pss)
 #define PSU (sur.fields.psu)
 #define RSF (sur.fields.rsf)
-#define RS (sur.fields.rs)
+#define RSS (sur.fields.rss)
 #define RSU (sur.fields.rsu)
 
 static BITFIELD sur_bits[] = { // Fig 6.8, pg 93
@@ -508,6 +510,8 @@ static REG cpu_reg[] = {
     {HRDATAD(RH, asic_file[RH], 16, "Scratchpad register"), REG_DEPOSIT | (0x20 << REG_V_UF)},
     {HRDATAD(RSP, spr.pr, 16, "Return Stack Pointer"), REG_DEPOSIT | (0x21 << REG_V_UF)},
     {HRDATAD(PSP, spr.pr, 16, "Parameter Stack Pointer"), REG_DEPOSIT | (0x22 << REG_V_UF)},
+    {HRDATAD(RS, rs, 16, "Return Stack"), REG_RO | (0x23 << REG_V_UF)},
+    {HRDATAD(PS, ps, 16, "Parameter Stack"), REG_RO | (0x24 << REG_V_UF)},
     {NULL}};
 
 #endif

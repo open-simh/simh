@@ -113,13 +113,4 @@ extern t_value second_cycle;
 /* extract the bit that determines word vs. byte */
 #define MEM (memory_names[(instruction >> 12) & 0x1])
 
-#define dump_header(n)                                          \
-    {                                                           \
-        t_value temp = 0;                                       \
-        byte_fetch(((instruction << 1) & D16_MASK) - n, &temp); \
-        if (temp > 32 && temp < 128)                            \
-        {                                                       \
-            sim_debug(DBG_CPU, &cpu_dev, "\t%c", temp);         \
-        }                                                       \
-    }
 #endif

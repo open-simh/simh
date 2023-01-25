@@ -138,7 +138,7 @@ extern t_stat cpu_reset(DEVICE *);
 extern t_stat do_cmd_label(int32 flag, CONST char *fcptr, CONST char *label);
 extern t_stat cpu_boot(t_value unit_num, DEVICE *dptr);
 extern jmp_buf save_env;
-extern jmp_buf bkpt_env; // breakpoint handler
+extern jmp_buf trap_env; // breakpoint handler
 
 #define STOP_UNK 0         // Unknown Error
 #define STOP_HALT 1        // HALT
@@ -147,5 +147,6 @@ extern jmp_buf bkpt_env; // breakpoint handler
 #define STOP_ILLASICADDR 4 // Illegal ASIC bus address
 
 #define ABORT(val) longjmp(save_env, (val))
+#define TRAP(val) longjmp(trap_env, (val))
 
 #endif /* RTX2001A_DEFS_H_ */

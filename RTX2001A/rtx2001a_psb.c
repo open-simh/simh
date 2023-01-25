@@ -44,7 +44,7 @@ void ps_pop()
     TOP = NEXT;
     NEXT = ps[(spr.fields.psp)];
     sim_debug_bits_hdr(DBG_ASB_R, &cpu_dev, "SPR", spr_bits, spr.pr, spr.pr, 1);
-    sim_debug(DBG_PSB_R, &cpu_dev, "PSB=0x%X\n", ps[(spr.fields.psp)]);
+    sim_debug(DBG_PSB_R, &cpu_dev, "PS[%d]=0x%X\n", spr.fields.psp, ps[spr.fields.psp] & D16_MASK);
 
     (spr.fields.psp) = (--(spr.fields.psp)) & STACK_MASK;
     sim_debug_bits_hdr(DBG_ASB_W, &cpu_dev, "SPR", spr_bits, ospr.pr, spr.pr, 1);
@@ -64,5 +64,5 @@ void ps_push(t_value data)
     ps[(spr.fields.psp)] = NEXT;
     NEXT = TOP;
     TOP = data;
-    sim_debug(DBG_PSB_W, &cpu_dev, "PSB=0x%X NEXT=0x%X TOP=0x%X\n", ps[(spr.fields.psp)], NEXT, TOP);
+    sim_debug(DBG_PSB_W, &cpu_dev, "PS[%d]=0x%X\n", spr.fields.psp, ps[spr.fields.psp] & D16_MASK);
 }

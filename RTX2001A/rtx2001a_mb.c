@@ -40,6 +40,11 @@ void _read(t_addr addr, t_value *value)
     if (sim_is_running)
     {
         sim_debug(DBG_MEB_R, &cpu_dev, "0x%X 0x%X\n", addr, *value);
+        if ((sim_brk_summ & DBG_MEB_R) && sim_brk_test(addr, DBG_MEB_R))
+        {
+            sim_messagef(STOP_IBKPT, "%s", sim_brk_message());
+            TRAP(STOP_IBKPT);
+        }
     }
 }
 
@@ -82,16 +87,15 @@ void _long_store(t_addr seg, t_addr address, t_value data)
 // See rtx2000_simulator/STATE.C:234
 void byte_fetch(t_addr address, t_value *value)
 {
+    t_value temp = 0;
+    dp_fetch(address, &temp);
     if ((address & 1) ^ BO)
     {
-        dp_fetch(address, value);
-        *value &= 0x00FF;
+        *value = (temp & D16_MASK) & 0x00FF;
     }
     else
     {
-        dp_fetch(address, value);
-        *value >>= 8;
-        *value &= 0x00FF;
+        *value = ((temp & D16_MASK) >> 8) & 0x00FF;
     }
 }
 

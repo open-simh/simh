@@ -65,50 +65,6 @@ t_bool build_dev_tab(void)
 t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
   t_value cell = (addr & REG_UFMASK) >> 16;
-  // if (_RS == cell)
-  // {
-
-  //   RTX_WORD _rsp = spr.fields.rsp;
-  //   if (0 == _rsp)
-  //   {
-  //     fprintf(of, "empty\n");
-  //     return SCPE_OK;
-  //   }
-  //   do
-  //   {
-  //     fprintf(of, " rs[%d]>> %d:0x%X\n", _rsp, rs[_rsp].fields.ipr, rs[_rsp].fields.i);
-  //     _rsp -= 1;
-  //   } while (_rsp > 0);
-  /*
-  void display_rs()
-{ double_stack *ptr;
-ptr = &return_stack[rp];
-printf(" rs>> ");
-if (rp == 0 )
-  { printf("empty ");  return; }
-
-printf("%01X%04X ",IPR, INDEX);
-
-while (ptr != &return_stack[1] )
-  { printf("%01X:%04X",(*ptr).high, (*ptr).low);
-    ptr-- ;
-  }
-}
-
-  void display_short_rs()
-{  if (rp == 0 )
-  { printf("rs(0)>> empty ");  return; }
-
-printf(" rs(%d)>> ", rp-1);
-
-printf("%01X%04X ",IPR, INDEX);
-if (rp != MAX_STACK )  printf(" ...");
-}
-
-
-*/
-  // return SCPE_OK;
-  // }
 
   if (sw & SIM_SW_REG)
   {
@@ -140,10 +96,58 @@ if (rp != MAX_STACK )  printf(" ...");
     case RSP:
       value = spr.fields.rsp;
       break;
+
+    case RS:
+    {
+      fprintf(of, "RSP=%d ", spr.fields.rsp);
+      if (0 == spr.fields.rsp)
+      {
+        fprintf(of, "empty ");
+        return SCPE_OK;
+      }
+
+      fprintf(of, "%d:0x%04X ", ipr.fields.pr, asic_file[I]);
+
+      ReturnStack *ptr = &rs[spr.fields.rsp];
+      while (ptr != &rs[1])
+      {
+        fprintf(of, "%d:0x%04X ", ptr->fields.ipr, ptr->fields.i);
+        ptr--;
+      }
+      return SCPE_OK;
+      break;
+    }
+
+    case PS:
+    {
+      fprintf(of, "PSP=%d ", spr.fields.psp);
+      if (0 == spr.fields.psp)
+      {
+        fprintf(of, "empty ");
+        return SCPE_OK;
+      }
+
+      fprintf(of, "0x%X ", TOP);
+      if (1 == spr.fields.psp)
+        return SCPE_OK;
+
+      fprintf(of, "0x%X ", NEXT);
+
+      RTX_WORD *ptr = &ps[spr.fields.psp];
+      while (ptr != &ps[2])
+      {
+        printf("0x%X ", *ptr & D16_MASK);
+        ptr--;
+      }
+
+      return SCPE_OK;
+    }
+
     case PSP:
       value = spr.fields.psp;
       break;
     }
+
     fprintf(of, sim_is_running ? "0x%X\n" : "0x%X", value);
     if (bits)
     {
