@@ -36,6 +36,7 @@
 #define GDATA_SIZE 0x20
 
 extern RTX_WORD gdata[GDATA_SIZE];
+extern RTX_WORD hostmode;
 
 /* extract the 5-bit short-lit/g-bus/user value */
 #define SHORT_LIT (IR & 0x1F)
@@ -67,5 +68,6 @@ extern RTX_WORD gdata[GDATA_SIZE];
 
 extern t_stat gstore(t_addr, t_value);
 extern t_stat gfetch(t_addr, t_value *);
+extern t_stat host_write(t_value);
 
 #endif

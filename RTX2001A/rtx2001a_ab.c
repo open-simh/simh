@@ -30,6 +30,8 @@
 #include "rtx2001a_ab.h"
 #include "rtx2001a_execute.h"
 
+RTX_WORD hostmode = FALSE; /* when true, in process of talking to the host */
+
 // https://embedjournal.com/implementing-circular-buffer-embedded-c/
 typedef struct
 {
@@ -40,7 +42,7 @@ typedef struct
 } circ_bbuf_t;
 
 t_value _kbbuf[255] = {'\0'};
-static circ_bbuf_t kbbuf = {_kbbuf, 0, 0, 254};
+circ_bbuf_t kbbuf = {_kbbuf, 0, 0, 254};
 
 int circ_bbuf_push(circ_bbuf_t *c, t_value data)
 {
@@ -125,34 +127,20 @@ t_stat gfetch(t_addr offset, t_value *data)
     }
 
     case 0x1A: // RCV?
-        // t_value _c = 0;
-        // if (0 == circ_bbuf_pop(&kbbuf, &_c) {
-        //     *data = _c;
-        //     return SCPE_OK;
-        // }
-        // *data = '\0';
-        // t_stat status = sim_poll_kbd();
-        // switch (status)
-        // {
-        // case SCPE_OK:   // no char
-        // case SCPE_LOST: // Error
-        //     return status;
-        // default:
-        // *data = 0xFF;
+    {
+        t_stat status = sim_poll_kbd();
+        *data = 0;
+        switch (status)
         {
-            t_stat status = sim_poll_kbd();
-            *data = 0;
-            switch (status)
-            {
-            case SCPE_OK:   // no char
-            case SCPE_LOST: // Error
-                return status;
-            default:
-                circ_bbuf_push(&kbbuf, status & ~SCPE_KFLAG);
-                *data = 0xFF;
-            }
-            return SCPE_OK;
+        case SCPE_OK:   // no char
+        case SCPE_LOST: // Error
+            return status;
+        default:
+            circ_bbuf_push(&kbbuf, status & ~SCPE_KFLAG);
         }
+        *data = 0xFF;
+        return SCPE_OK;
+    }
 
     // return bit=0: Pushes the contents of I into TOP (with no pop of the Return Stack)
     // return bit=1: Pushes the contents of I into TOP then performs a subroutine return
@@ -351,17 +339,6 @@ t_stat gstore(t_addr offset, t_value data)
     case I_ALU:
         rs_push(cpr.pr, data);
         STREAM = TRUE;
-        /* @TODO: Replace with instruction test during stream instruction execution
-        23-Sep All stream instructions are NYI
-        Unsigned Mul    Unsigned div
-         U*' A89C        U/'     A41A
-        Signed Mul       /'      A45A
-         *'  A89D        U/1''   A458
-         *'' A49D       Sq. Root
-                         S1'     A51A
-                         S'      A55A
-                         S''     A558
-        */
         return SCPE_OK;
 
     case _CR:
@@ -537,22 +514,20 @@ t_stat gstore(t_addr offset, t_value data)
 
     case 0x19: // XMT
     {
-        // if (hostmode) /* invoke fsm for serving host mode */
-        // @TODO: SIMH virtual file write
-        // host_write(data);
-        // return;
-        // }
+        if (hostmode)
+        { /* invoke fsm for serving host mode */
+            return host_write(data);
+        }
         if (data)
         {
             // @TODO: SIMH virtual console write
             putchar(data);
             return SCPE_OK;
         }
-        //         else
-        //         {
-        //             hostmode = -1;
-        //         }
-        // #endif
+        else
+        {
+            hostmode = -1;
+        }
     }
 
     default:
@@ -566,4 +541,15 @@ t_stat gstore(t_addr offset, t_value data)
     }
 
     return SCPE_NXM;
+}
+
+t_stat host_write(t_value data)
+{
+    if (data == 0xFF)
+    {
+        return SCPE_EXIT;
+    }
+    hostmode = FALSE;
+
+    return SCPE_OK;
 }

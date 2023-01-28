@@ -31,6 +31,7 @@
 #include "rtx2001a_psb.h"
 #include "rtx2001a_rsb.h"
 #include "rtx2001a_debug.h"
+#include "rtx2001a_mb.h"
 
 char sim_name[] = "RTX2001A";
 
@@ -44,11 +45,6 @@ const char *sim_stop_messages[SCPE_BASE] = {
     "Breakpoint",
     "Invalid opcode",
 };
-
-t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
-{
-  return SCPE_OK;
-}
 
 t_bool build_dev_tab(void)
 {
@@ -224,5 +220,159 @@ t_stat parse_sym(CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
   {
     *val = (value & D16_MASK);
   }
+  return SCPE_OK;
+}
+
+#include <regex.h>
+
+#define BYTE_TO_INT(byte, value)          \
+  {                                       \
+    char *me = (char *)&byte;             \
+    if (*me >= '0' && *me <= '9')         \
+    {                                     \
+      value = (*me - (int)'0') << 4;      \
+    }                                     \
+    if (*me >= 'A' && *me <= 'F')         \
+    {                                     \
+      value = (*me + 10 - (int)'A') << 4; \
+    }                                     \
+    if (*me >= 'a' && *me <= 'f')         \
+    {                                     \
+      value = (*me + 10 - (int)'a') << 4; \
+    }                                     \
+    me += 1;                              \
+    if (*me >= '0' && *byte <= '9')       \
+    {                                     \
+      value |= (*byte - (int)'0');        \
+    }                                     \
+    if (*byte >= 'A' && *byte <= 'F')     \
+    {                                     \
+      value |= (*byte + 10 - (int)'A');   \
+    }                                     \
+    if (*byte >= 'a' && *byte <= 'f')     \
+    {                                     \
+      value |= (*byte + 10 - (int)'a');   \
+    }                                     \
+  }
+
+#define WORD_TO_INT(word, value) \
+  {                              \
+    int hi = 0;                  \
+    int lo = 0;                  \
+    char me2[4] = &word;         \
+    byte_to_int(me2, hi);        \
+    byte_to_int(me2[2], lo);     \
+    value = lo << 8 | hi;        \
+  }
+void byte_to_int(char *byte, int *value)
+{
+  if (*byte >= '0' && *byte <= '9')
+  {
+    *value = (*byte - (int)'0') << 4;
+  }
+  if (*byte >= 'A' && *byte <= 'F')
+  {
+    *value = (*byte + 10 - (int)'A') << 4;
+  }
+  if (*byte >= 'a' && *byte <= 'f')
+  {
+    *value = (*byte + 10 - (int)'a') << 4;
+  }
+  byte += 1;
+  if (*byte >= '0' && *byte <= '9')
+  {
+    *value |= (*byte - (int)'0');
+  }
+  if (*byte >= 'A' && *byte <= 'F')
+  {
+    *value |= (*byte + 10 - (int)'A');
+  }
+  if (*byte >= 'a' && *byte <= 'f')
+  {
+    *value |= (*byte + 10 - (int)'a');
+  }
+}
+
+void word_to_int(char *word, int *value)
+{
+  int hi = 0;
+  int lo = 0;
+  byte_to_int(word, &hi);
+  word += 2;
+  byte_to_int(word, &lo);
+  *value = hi << 8 | lo;
+}
+
+/*
+If flag = 0, load data from binary file fptr.
+If flag = 1, dump data to binary file fptr.
+For either command, buf contains any VM-specific arguments, and fnam contains the file name.
+*/
+t_stat sim_load(FILE *fptr, const char *buf, const char *fnam, t_bool flag)
+{
+  struct
+  {
+    char leader;
+    char len[2];
+  } header;
+
+  struct
+  {
+    char address[4];
+    char type[2];
+    char body[255];
+  } cargo;
+
+  int len;
+  int address;
+  fread(&header, sizeof(header), 1, fptr);
+  while (!feof(fptr))
+  {
+    if (':' != header.leader)
+    {
+      sim_messagef(SCPE_INCOMP, "input file not in proper .HEX format, ");
+      return SCPE_INCOMP;
+    }
+
+    byte_to_int(header.len, &len);
+
+    if (0 == len)
+    {
+      break;
+    }
+
+    memset(cargo.address, '\0', sizeof(cargo.address));
+    memset(cargo.type, '\0', sizeof(cargo.type));
+    memset(cargo.body, '\0', sizeof(cargo.body));
+    fread(&cargo, (len * 2) + 10, 1, fptr);
+    if (feof(fptr))
+    {
+      sim_messagef(SCPE_INCOMP, "unexpected EOF, ");
+      return SCPE_INCOMP;
+    }
+
+    word_to_int(cargo.address, &address);
+    int value;
+    for (int i = 0; i < len * 2; i++)
+    {
+      byte_to_int(&cargo.body[i], &value);
+      byte_store(address, value);
+      sim_printf("dep 0x%X %c", address, cargo.body[i]);
+      byte_to_int(&cargo.body[++i], &value);
+      byte_store(++address, value);
+      sim_printf("%c\n", cargo.body[i]);
+    }
+
+    header.leader = '\0';
+    memset(header.len, '\0', sizeof(header.len));
+    fread(&header, sizeof(header), 1, fptr);
+  }
+
+  if (':' != header.leader)
+  {
+    sim_messagef(SCPE_INCOMP, "input file not in proper .HEX format, ");
+    return SCPE_INCOMP;
+  }
+
   return SCPE_OK;
 }

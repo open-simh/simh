@@ -24,6 +24,8 @@
    in this Software without prior written authorization from Systasis Computer Systems.
 
    12-Aug-22   SYS      New simulator.
+
+   simh registered callbacks
 */
 
 #include "setjmp.h"
@@ -270,6 +272,7 @@ t_stat cpu_reset(DEVICE *dptr)
   // init debug support
   // sim_brk_types = DBG_ASB; // SWMASK('E'); //| DBG_ASB | DBG_PSB | DBG_MEB | DBG_RSB;
   sim_brk_dflt = SWMASK('E');
+  sim_vm_step_unit = "cycle";
   sim_brk_type_desc = cpu_breakpoints;
   sim_brk_types = SWMASK('E') | DBG_ASB_W | DBG_ASB_R | DBG_PSB_W | DBG_PSB_R | DBG_MEB_W | DBG_MEB_R | DBG_RSB_W | DBG_RSB_R;
   sim_vm_pc_value = &rtx2001a_pc_value;
