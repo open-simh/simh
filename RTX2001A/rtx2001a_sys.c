@@ -223,47 +223,6 @@ t_stat parse_sym(CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
   return SCPE_OK;
 }
 
-#include <regex.h>
-
-#define BYTE_TO_INT(byte, value)          \
-  {                                       \
-    char *me = (char *)&byte;             \
-    if (*me >= '0' && *me <= '9')         \
-    {                                     \
-      value = (*me - (int)'0') << 4;      \
-    }                                     \
-    if (*me >= 'A' && *me <= 'F')         \
-    {                                     \
-      value = (*me + 10 - (int)'A') << 4; \
-    }                                     \
-    if (*me >= 'a' && *me <= 'f')         \
-    {                                     \
-      value = (*me + 10 - (int)'a') << 4; \
-    }                                     \
-    me += 1;                              \
-    if (*me >= '0' && *byte <= '9')       \
-    {                                     \
-      value |= (*byte - (int)'0');        \
-    }                                     \
-    if (*byte >= 'A' && *byte <= 'F')     \
-    {                                     \
-      value |= (*byte + 10 - (int)'A');   \
-    }                                     \
-    if (*byte >= 'a' && *byte <= 'f')     \
-    {                                     \
-      value |= (*byte + 10 - (int)'a');   \
-    }                                     \
-  }
-
-#define WORD_TO_INT(word, value) \
-  {                              \
-    int hi = 0;                  \
-    int lo = 0;                  \
-    char me2[4] = &word;         \
-    byte_to_int(me2, hi);        \
-    byte_to_int(me2[2], lo);     \
-    value = lo << 8 | hi;        \
-  }
 void byte_to_int(char *byte, int *value)
 {
   if (*byte >= '0' && *byte <= '9')
@@ -325,7 +284,7 @@ t_stat sim_load(FILE *fptr, const char *buf, const char *fnam, t_bool flag)
 
   int len;
   int address;
-  fread(&header, sizeof(header), 1, fptr);
+  int bytesRead = fread(&header, sizeof(header), 1, fptr);
   while (!feof(fptr))
   {
     if (':' != header.leader)
@@ -344,7 +303,7 @@ t_stat sim_load(FILE *fptr, const char *buf, const char *fnam, t_bool flag)
     memset(cargo.address, '\0', sizeof(cargo.address));
     memset(cargo.type, '\0', sizeof(cargo.type));
     memset(cargo.body, '\0', sizeof(cargo.body));
-    fread(&cargo, (len * 2) + 10, 1, fptr);
+    bytesRead = fread(&cargo, (len * 2) + 10, 1, fptr);
     if (feof(fptr))
     {
       sim_messagef(SCPE_INCOMP, "unexpected EOF, ");
@@ -365,7 +324,7 @@ t_stat sim_load(FILE *fptr, const char *buf, const char *fnam, t_bool flag)
 
     header.leader = '\0';
     memset(header.len, '\0', sizeof(header.len));
-    fread(&header, sizeof(header), 1, fptr);
+    bytesRead = fread(&header, sizeof(header), 1, fptr);
   }
 
   if (':' != header.leader)

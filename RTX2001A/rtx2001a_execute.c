@@ -978,7 +978,7 @@ void (*dispatch_vector_2[NUMBER_OF_ROUTINES])() =
 
 t_stat execute(t_value instruction)
 {
-    machine_op opcode = 0;
+    machine_op opcode = (machine_op)NIL;
     t_stat status;
     if (SCPE_OK == (status = decode(instruction, &opcode)))
     {
@@ -1018,7 +1018,7 @@ void print_instruction(t_value instruction, t_value page, t_addr address)
 #define PREFIX \
     ((second_cycle && !STREAM) ? "2nd " : "")
 
-    machine_op opr = 0;
+    machine_op opr = (machine_op)NIL;
     if (SCPE_OK != decode(instruction, &opr))
     {
         return;

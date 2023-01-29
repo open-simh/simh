@@ -159,7 +159,7 @@ struct ConfigurationRegisterFields
     RTX_WORD il : 1;   // 15: Interrupt Latch
 };
 
-union ConfigurationRegister
+static union ConfigurationRegister
 {
     struct ConfigurationRegisterFields fields;
     RTX_WORD pr;
@@ -224,7 +224,7 @@ static BITFIELD imr_bits[] = { // Table 4.7, pg 51
     BITNCF(2),                 // 14-15: Always reads as O.
     ENDBITS};
 
-union InterruptMaskRegister
+static union InterruptMaskRegister
 {
     struct InterruptMaskRegisterFields fields;
     RTX_WORD pr;
@@ -244,7 +244,7 @@ struct StackPointerRegisterFields
     RTX_WORD mbz1 : 2;
 };
 
-union StackPointerRegister
+static union StackPointerRegister
 {
     struct StackPointerRegisterFields fields;
     RTX_WORD pr;
@@ -276,7 +276,7 @@ struct StackUnderflowRegisterFields
     RTX_WORD rsu : 5;  // 11-15: Return Stack Underflow Limit, 0 - 31 words from stack bottom
 };
 
-union StackUnderflowRegister
+static union StackUnderflowRegister
 {
     struct StackUnderflowRegisterFields fields;
     RTX_WORD pr;
@@ -310,7 +310,7 @@ struct InterruptVectorRegisterFields
     RTX_WORD vec : 5; // 10-15: Vector
 };
 
-union InterruptVectorRegister
+static union InterruptVectorRegister
 {
     struct InterruptVectorRegisterFields fields;
     RTX_WORD pr;
@@ -334,7 +334,7 @@ struct StackOverflowRegisterFields
     RTX_WORD mbz1 : 2; // 14-15: Reserved
 };
 
-union StackOverflowRegister
+static union StackOverflowRegister
 {
     struct StackOverflowRegisterFields fields;
     RTX_WORD pr;
@@ -364,7 +364,7 @@ static BITFIELD ipr_bits[] = { // Fig 10, pg 9
     BITNCF(11),                // 5-15: Reserved
     ENDBITS};
 
-union IndexPageRegister
+static union IndexPageRegister
 {
     struct IndexPageRegisterFields fields;
     RTX_WORD pr;
@@ -385,7 +385,7 @@ static BITFIELD pr_bits[] = { // Fig 10, pg 9
     BITNCF(12),               // 4-15: Reserved
     ENDBITS};
 
-union DataPageRegister
+static union DataPageRegister
 {
     struct PageRegisterFields fields;
     RTX_WORD pr;
@@ -395,14 +395,14 @@ typedef union DataPageRegister DPR;
 /**
  * User Page & Base Address Registers
  */
-union UserPageRegister
+static union UserPageRegister
 {
     struct PageRegisterFields fields;
     RTX_WORD pr;
 } upr;
 typedef union UserPageRegister UPR;
 
-union CodePageRegister
+static union CodePageRegister
 {
     struct PageRegisterFields fields;
     RTX_WORD pr;
@@ -426,7 +426,7 @@ struct InterruptBaseControlRegisterFields
     RTX_WORD ivb : 5;    // 10-15 RW Interrupt Vector Base, MA10 - MA15
 };
 
-union InterruptBaseControlRegister
+static union InterruptBaseControlRegister
 {
     struct InterruptBaseControlRegisterFields fields;
     RTX_WORD pr;
@@ -463,7 +463,7 @@ struct UserBaseAddressRegisterFields
     RTX_WORD adr : 10; // 6-15: User Memory address
 };
 
-union UserBaseAddressRegister
+static union UserBaseAddressRegister
 {
     struct UserBaseAddressRegisterFields fields;
     RTX_WORD pr;

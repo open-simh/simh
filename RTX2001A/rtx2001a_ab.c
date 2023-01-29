@@ -26,7 +26,6 @@
     9-Sep-22   SYS      ASIC bus routines
 */
 
-#include <unistd.h>
 #include "rtx2001a_ab.h"
 #include "rtx2001a_execute.h"
 
@@ -156,7 +155,7 @@ t_stat gfetch(t_addr offset, t_value *data)
         sim_debug(DBG_ASB_R, &cpu_dev, "I=0x%X\n", asic_file[I]);
         if (!EXIT)
         {
-            rs_pop(data);
+            rs_pop();
         }
         return SCPE_OK;
 
@@ -520,8 +519,8 @@ t_stat gstore(t_addr offset, t_value data)
         }
         if (data)
         {
-            // @TODO: SIMH virtual console write
             putchar(data);
+            // @TODO: SIMH virtual console write
             return SCPE_OK;
         }
         else

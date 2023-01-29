@@ -164,7 +164,7 @@ t_stat decode_alu(t_value instruction, machine_op *opcode)
  */
 t_stat decode_branch(t_value instruction, machine_op *opcode)
 {
-    *opcode = NIL;
+    *opcode = (machine_op)NIL;
     switch (instruction & 0xF800) // which type of branch instruction
     {
     case 0x8000:

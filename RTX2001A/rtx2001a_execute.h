@@ -69,7 +69,7 @@ extern void do_store_lit_2();
 extern void bad_insn(void);
 extern void D_swap();
 
-RTX_WORD clocks;
+extern RTX_WORD clocks;
 extern t_value STREAM;
 extern t_value stream_mode;
 extern t_value second_cycle;
