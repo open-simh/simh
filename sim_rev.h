@@ -31,7 +31,7 @@
 #define SIM_MAJOR       4
 #endif
 #ifndef SIM_MINOR
-#define SIM_MINOR       0
+#define SIM_MINOR       1
 #endif
 #ifndef SIM_PATCH
 #define SIM_PATCH       0

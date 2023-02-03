@@ -1,6 +1,6 @@
 /* sim_console.c: simulator console I/O library
 
-   Copyright (c) 1993-2014, Robert M Supnik
+   Copyright (c) 1993-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,15 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   30-Nov-22    RMS     Made definitions of sim_os_fd_isatty consistent (Dave Bryan)
+   27-Sep-22    RMS     Removed MacOS "Classic" and OS/2 support
+                        Added sim_ttisatty
+   14-Jun-19    JDB     Fixed argument passing in "sim_show_console"
+   01-Mar-19    JDB     SET CONSOLE LOG now closes prior log before opening
+   27-Dec-18    JDB     Added missing fall through comment in ControlHandler
+   18-Mar-18    RMS     Fixed deboff not to close stdout or stderr (Dave Bryan)
+   31-Mar-15    RMS     Backported parity feature from GitHub master
+   10-Nov-14    JDB     Added -N option to SET CONSOLE LOG and SET CONSOLE DEBUG
    02-Jan-14    RMS     Added tab stop routines
    18-Mar-12    RMS     Removed unused reference to sim_switches (Dave Bryan)
    07-Dec-11    MP      Added sim_ttisatty to support reasonable behaviour (i.e. 
@@ -117,6 +126,13 @@
    sim_set_noconsole_port       Enable automatic WRU console polling
    sim_set_stable_registers_state Declare that all registers are always stable
 
+   sim_ttinit   -       called once to get initial terminal state
+   sim_ttrun    -       called to put terminal into run state
+   sim_ttcmd    -       called to return terminal to command state
+   sim_ttclose  -       called once before the simulator exits
+   sim_ttisatty -       called to determine if running interactively
+   sim_os_poll_kbd -    poll for keyboard input
+   sim_os_putchar -     output character to console
 
    The first group is OS-independent; the second group is OS-dependent.
 
@@ -177,7 +193,7 @@ int32 sim_dbg_int_char = 0;                             /* SIGINT char under deb
 static t_bool sigint_message_issued = FALSE;
 int32 sim_brk_char = 000;                               /* break character */
 int32 sim_tt_pchar = 0x00002780;
-#if defined (_WIN32) || defined (__OS2__) || (defined (__MWERKS__) && defined (macintosh))
+#if defined (_WIN32)
 int32 sim_del_char = '\b';                              /* delete character */
 #else
 int32 sim_del_char = 0177;
@@ -308,6 +324,10 @@ static t_stat sim_con_detach (UNIT *uptr)
 {
 return sim_set_notelnet (0, NULL);
 }
+
+/* Forward declaratations */
+
+static t_stat sim_os_fd_isatty (int fd);
 
 /* Set/show data structures */
 
@@ -3735,284 +3755,6 @@ if (ch != 0177) {
     }
 return SCPE_OK;
 }
-
-/* OS/2 routines, from Bruce Ray and Holger Veit */
-
-#elif defined (__OS2__)
-
-#include <conio.h>
-
-static t_stat sim_os_ttinit (void)
-{
-return SCPE_OK;
-}
-
-static t_stat sim_os_ttrun (void)
-{
-return SCPE_OK;
-}
-
-static t_stat sim_os_ttcmd (void)
-{
-return SCPE_OK;
-}
-
-static t_stat sim_os_ttclose (void)
-{
-return SCPE_OK;
-}
-
-static t_bool sim_os_fd_isatty (int fd)
-{
-return 1;
-}
-
-static t_stat sim_os_poll_kbd (void)
-{
-int c;
-
-sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_poll_kbd()\n");
-
-#if defined (__EMX__)
-switch (c = _read_kbd(0,0,0)) {                         /* EMX has _read_kbd */
-
-    case -1:                                            /* no char*/
-        return SCPE_OK;
-
-    case 0:                                             /* char pending */
-        c = _read_kbd(0,1,0);
-        break;
-
-    default:                                            /* got char */
-        break;
-        }
-#else
-if (!kbhit ())
-    return SCPE_OK;
-c = getch();
-#endif
-if ((c & 0177) == sim_del_char)
-    c = 0177;
-if ((c & 0177) == sim_int_char)
-    return SCPE_STOP;
-if (sim_brk_char && ((c & 0177) == sim_brk_char))
-    return SCPE_BREAK;
-return c | SCPE_KFLAG;
-}
-
-static t_bool sim_os_poll_kbd_ready (int ms_timeout)   /* Don't know how to do this on this platform */
-{
-sim_os_ms_sleep (MIN(20,ms_timeout));           /* Wait a little */
-return TRUE;                                    /* force a poll */
-}
-
-static t_stat sim_os_putchar (int32 c)
-{
-if (c != 0177) {
-#if defined (__EMX__)
-    putchar (c);
-#else
-    putch (c);
-#endif
-    fflush (stdout);
-    }
-return SCPE_OK;
-}
-
-/* Metrowerks CodeWarrior Macintosh routines, from Louis Chretien and
-   Peter Schorn */
-
-#elif defined (__MWERKS__) && defined (macintosh)
-
-#include <console.h>
-#include <Mactypes.h>
-#include <string.h>
-#include <sioux.h>
-#include <unistd.h>
-#include <siouxglobals.h>
-#include <Traps.h>
-#include <LowMem.h>
-
-/* function prototypes */
-
-Boolean SIOUXIsAppWindow(WindowPtr window);
-void SIOUXDoMenuChoice(long menuValue);
-void SIOUXUpdateMenuItems(void);
-void SIOUXUpdateScrollbar(void);
-int ps_kbhit(void);
-int ps_getch(void);
-
-extern pSIOUXWin SIOUXTextWindow;
-static CursHandle iBeamCursorH = NULL;                  /* contains the iBeamCursor */
-
-static void updateCursor(void) {
-    WindowPtr window;
-    window = FrontWindow();
-    if (SIOUXIsAppWindow(window)) {
-        GrafPtr savePort;
-        Point localMouse;
-        GetPort(&savePort);
-        SetPort(window);
-#if TARGET_API_MAC_CARBON
-        GetGlobalMouse(&localMouse);
-#else
-        localMouse = LMGetMouseLocation();
-#endif
-        GlobalToLocal(&localMouse);
-        if (PtInRect(localMouse, &(*SIOUXTextWindow->edit)->viewRect) && iBeamCursorH) {
-            SetCursor(*iBeamCursorH);
-        }
-        else {
-            SetCursor(&qd.arrow);
-        }
-        TEIdle(SIOUXTextWindow->edit);
-        SetPort(savePort);
-    }
-    else {
-        SetCursor(&qd.arrow);
-        TEIdle(SIOUXTextWindow->edit);
-    }
-    return;
-}
-
-int ps_kbhit(void) {
-    EventRecord event;
-    int c;
-    updateCursor();
-    SIOUXUpdateScrollbar();
-    while (GetNextEvent(updateMask | osMask | mDownMask | mUpMask | activMask |
-             highLevelEventMask | diskEvt, &event)) {
-        SIOUXHandleOneEvent(&event);
-    }
-    if (SIOUXQuitting) {
-        exit(1);
-    }
-    if (EventAvail(keyDownMask,&event)) {
-        c = event.message&charCodeMask;
-        if ((event.modifiers & cmdKey) && (c > 0x20)) {
-            GetNextEvent(keyDownMask, &event);
-            SIOUXHandleOneEvent(&event);
-            if (SIOUXQuitting) {
-                exit(1);
-            }
-            return false;
-        }
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-int ps_getch(void) {
-    int c;
-    EventRecord event;
-    fflush(stdout);
-    updateCursor();
-    while(!GetNextEvent(keyDownMask,&event)) {
-        if (GetNextEvent(updateMask | osMask | mDownMask | mUpMask | activMask |
-             highLevelEventMask | diskEvt, &event)) {
-            SIOUXUpdateScrollbar();
-            SIOUXHandleOneEvent(&event);
-        }
-    }
-    if (SIOUXQuitting) {
-        exit(1);
-    }
-    c = event.message&charCodeMask;
-    if ((event.modifiers & cmdKey) && (c > 0x20)) {
-        SIOUXUpdateMenuItems();
-        SIOUXDoMenuChoice(MenuKey(c));
-    }
-    if (SIOUXQuitting) {
-        exit(1);
-    }
-   return c;
-}
-
-/* Note that this only works if the call to sim_ttinit comes before any output to the console */
-
-static t_stat sim_os_ttinit (void) 
-{
-    int i;
-
-    sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_ttinit()\n");
-
-    /* this blank will later be replaced by the number of characters */
-    char title[50] = " ";
-    unsigned char ptitle[50];
-    SIOUXSettings.autocloseonquit       = TRUE;
-    SIOUXSettings.asktosaveonclose = FALSE;
-    SIOUXSettings.showstatusline = FALSE;
-    SIOUXSettings.columns = 80;
-    SIOUXSettings.rows = 40;
-    SIOUXSettings.toppixel = 42;
-    SIOUXSettings.leftpixel     = 6;
-    iBeamCursorH = GetCursor(iBeamCursor);
-    strlcat(title, sim_name, sizeof(title));
-    strlcat(title, " Simulator", sizeof(title));
-    title[0] = strlen(title) - 1;                       /* Pascal string done */
-    for (i = 0; i <= title[0]; i++) {                   /* copy to unsigned char */
-        ptitle[i] = title[i];
-        }
-    SIOUXSetTitle(ptitle);
-    return SCPE_OK;
-}
-
-static t_stat sim_os_ttrun (void)
-{
-return SCPE_OK;
-}
-
-static t_stat sim_os_ttcmd (void)
-{
-return SCPE_OK;
-}
-
-static t_stat sim_os_ttclose (void)
-{
-return SCPE_OK;
-}
-
-static t_bool sim_os_fd_isatty (int fd)
-{
-return 1;
-}
-
-static t_stat sim_os_poll_kbd (void)
-{
-int c;
-
-sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_poll_kbd()\n");
-
-if (!ps_kbhit ())
-    return SCPE_OK;
-c = ps_getch();
-if ((c & 0177) == sim_del_char)
-    c = 0177;
-if ((c & 0177) == sim_int_char)
-    return SCPE_STOP;
-if (sim_brk_char && ((c & 0177) == sim_brk_char))
-    return SCPE_BREAK;
-return c | SCPE_KFLAG;
-}
-
-static t_bool sim_os_poll_kbd_ready (int ms_timeout)   /* Don't know how to do this on this platform */
-{
-sim_os_ms_sleep (MIN(20,ms_timeout));           /* Wait a little */
-return TRUE;                                    /* force a poll */
-}
-
-static t_stat sim_os_putchar (int32 c)
-{
-if (c != 0177) {
-    putchar (c);
-    fflush (stdout);
-    }
-return SCPE_OK;
-}
-
-/* BSD UNIX routines */
 
 #elif defined (BSDTTY)
 

@@ -23,6 +23,9 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   01-Oct-22    RMS     Replaced readline with editline due to licensing issues (Paul Koning)
+   15-Aug-22    RMS     Fixed inconsistent SIM_HAVE_DLOPEN naming (Walter Mueller)
+   06-Mar-22    RMS     Removed UNIT_RAW support
    21-Oct-21    RMS     Fixed bug in byte deposits if aincr > 1
    16-Feb-21    JDB     Rewrote get_rval, put_rval to support arrays of structures
    25-Jan-21    JDB     REG "size" field now determines access size
@@ -2734,10 +2737,6 @@ t_bool register_check = FALSE;
 t_stat stat = SCPE_OK;
 CTAB *docmdp = NULL;
 
-#if defined (__MWERKS__) && defined (macintosh)
-argc = ccommand (&argv);
-#endif
-
 /* Make sure that argv has at least 10 elements and that it ends in a NULL pointer */
 targv = (char **)calloc (1+MAX(10, argc), sizeof(*targv));
 for (i=0; i<argc; i++)
@@ -2962,7 +2961,6 @@ if (docmdp) {
     }
 if (SCPE_BARE_STATUS(stat) == SCPE_OPENERR)             /* didn't exist/can't open? */
     stat = SCPE_OK;
-
 if (SCPE_BARE_STATUS(stat) != SCPE_EXIT)
     process_stdin_commands (SCPE_BARE_STATUS(stat), argv, FALSE);
 
@@ -6625,7 +6623,7 @@ sprintf (vmin_s, "%d", vmin);
 setenv ("SIM_MINOR", vmin_s, 1);
 sprintf (vpat_s, "%d", vpat);
 setenv ("SIM_PATCH", vpat_s, 1);
-fprintf (st, "%s simulator V%d.%d-%d", sim_name, vmaj, vmin, vpat);
+fprintf (st, "%s simulator Open SIMH V%d.%d-%d", sim_name, vmaj, vmin, vpat);
 if (sim_vm_release != NULL) {                           /* if a release string is defined */
     setenv ("SIM_VM_RELEASE", sim_vm_release, 1);
     fprintf (st, " Release %s", sim_vm_release);        /*   then display it */
@@ -10287,6 +10285,7 @@ return read_line_p (NULL, cptr, size, stream);
 char *read_line_p (const char *prompt, char *cptr, int32 size, FILE *stream)
 {
 char *tptr;
+
 #if defined(HAVE_EDITLINE)
 if (prompt) {                                           /* interactive? */
     char *tmpc = readline (prompt);                     /* get cmd line */
@@ -10295,8 +10294,8 @@ if (prompt) {                                           /* interactive? */
     else {
         strlcpy (cptr, tmpc, size);                     /* copy result */
         free (tmpc) ;                                   /* free temp */
+        }
     }
-}
 else cptr = fgets (cptr, size, stream);                 /* get cmd line */
 #else
 if (prompt) {                                           /* interactive? */
@@ -10332,7 +10331,6 @@ if ((*cptr == ';') || (*cptr == '#')) {                 /* ignore comment */
 if (prompt && *cptr)                   /* Save non blank lines in history */
     add_history (cptr);
 #endif
-
 return cptr;
 }
 

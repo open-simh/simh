@@ -1,6 +1,6 @@
 /* vax_syslist.c: VAX device list
 
-   Copyright (c) 1998-2008, Robert M Supnik
+   Copyright (c) 1998-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,10 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
-   17-Oct-06    RMS     Re-ordered device list
-   17-May-06    RMS     Added CR11/CD11 support (John Dundas)
+   21-Sep-2022  RMS     Restored VH11
+   17-Feb-2020  RMS     Disabled VH11
+   17-Oct-2006  RMS     Re-ordered device list
+   17-May-2006  RMS     Added CR11/CD11 support (John Dundas)
    01-Oct-2004  RMS     Cloned from vax_sys.c
 */
 

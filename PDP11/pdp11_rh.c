@@ -573,7 +573,7 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
 massbus[mb].wc = (massbus[mb].wc + (bc >> 1)) & DMASK;   /* update wc */
 massbus[mb].ba = ba & DMASK;                             /* update ba */
 massbus[mb].bae = (ba >> 16) & ~AE_MBZ;                  /* upper 6b */
-massbus[mb].cs1 = (massbus[mb].cs1 & ~ CS1_UAE) |         /* update CS1 */
+massbus[mb].cs1 = (massbus[mb].cs1 & ~ CS1_UAE) |        /* update CS1 */
     ((massbus[mb].bae << CS1_V_UAE) & CS1_UAE);
 return i;
 }
