@@ -1,0 +1,89 @@
+name: Windows_Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Configuration'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+        - Release
+        - Debug
+      platform:
+        description: 'Platform'
+        required: true
+        default: 'Win32'
+        type: choice
+        options:
+        - Win32
+      architecture:
+        description: 'Architecture'
+        required: true
+        default: x64
+        type: choice
+        options:
+        - x64
+        - x86
+        - arm64
+      keep:
+        description: 'Disposition (with output = "artifact")'
+        required: true
+        default: 'Keep'
+        type: choice
+        options:
+        - 'Keep'
+        - 'Discard'
+      inspect:
+        description: 'List build directory contents'
+        required: true
+        default: false
+        type: boolean
+
+  pull_request:
+    types: closed
+    branches: [ 'master' ]
+
+#  [push,pull_request]:
+#    branches: [ 'master' ]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: 'Visual Studio Projects'
+  BUILD_CONFIGURATION: ${{ inputs.configuration || 'Release' }}
+  BUILD_PLATFORM: ${{ inputs.platform || 'Win32' }}
+  BUILD_ARCH: ${{ inputs.architecture || 'x64' }}
+  INSPECT: ${{ inputs.inspect || false }}
+  KEEP:    ${{ inputs.keep || 'onMerge' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-on-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: ${{ env.BUILD_ARCH }}
+    - name: Build Simulators
+      shell: cmd
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        msbuild "${{env.SOLUTION_FILE_PATH}}\Simh.ci.sln" -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}}
+    - name: Inspect Results
+      if: ${{ env.INSPECT == true }}
+      shell: cmd
+      run: dir /S BIN\NT
+    - name: Upload Results
+      if: ${{ env.KEEP != 'Discard'  && ( env.KEEP == 'Keep' || ( github.event_name == 'pull_request' && github.event.pull_request.merged == true ) ) }}
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: ${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}}
+        path: BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_CONFIGURATION}}\*.exe
+        if-no-files-found: error
+        retention-days: 90

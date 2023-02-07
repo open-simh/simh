@@ -43,6 +43,7 @@ ipch/
 # or other things we don't want git to manage.
 Visual Studio Projects/*
 !Visual Studio Projects/*.vcproj
+!Visual Studio Projects/*.vcxproj
 !Visual Studio Projects/*.sln
 !Visual Studio Projects/0ReadMe_Projects.txt
 **/*.code-workspace
