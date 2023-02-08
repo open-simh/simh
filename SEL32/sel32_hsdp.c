@@ -1,6 +1,6 @@
 /* sel32_hsdp.c: SEL-32 8064 High Speed Disk Processor
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
    Portions provided by Richard Cornwell and other SIMH contributers
 
    Permission is hereby granted, free of charge, to any person obtaining a
@@ -31,6 +31,8 @@
 #if NUM_DEVS_HSDP > 0
 
 #define UNIT_HSDP   UNIT_ATTABLE | UNIT_IDLE | UNIT_DISABLE
+
+extern  uint32  SPAD[];                         /* cpu SPAD memory */
 
 /* useful conversions */
 /* Fill STAR value from cyl, trk, sec data */
@@ -1226,19 +1228,19 @@ t_stat  hsdp_rsctl(UNIT *uptr) {
     int         cmd = uptr->CMD & DSK_CMDMSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
 
-    if ((uptr->CMD & DSK_CMDMSK) != 0) {    /* is unit busy */
+    if ((uptr->CMD & DSK_CMDMSK) != 0) {        /* is unit busy */
         sim_debug(DEBUG_CMD, dptr,
             "hsdp_rsctl RSCTL chsa %04x cmd %02x ccw_count %02x\n", chsa, cmd, chp->ccw_count);
-        sim_cancel(uptr);                   /* clear the input timer */
-        chp->ccw_count = 0;                 /* zero the count */
-        chp->chan_caw = 0;                  /* zero iocd address for diags */
-        chp->ccw_flags &= ~(FLAG_DC|FLAG_CC);/* stop any chaining */
+        sim_cancel(uptr);                       /* clear the input timer */
+        chp->ccw_count = 0;                     /* zero the count */
+        chp->chan_caw = 0;                      /* zero iocd address for diags */
+        chp->ccw_flags &= ~(FLAG_DC|FLAG_CC);   /* stop any chaining */
     }
-    uptr->CMD &= LMASK;                     /* make non-busy */
-    uptr->SNS2 |= (SNS_ONC|SNS_UNR);        /* on cylinder & ready */
+    uptr->CMD &= LMASK;                         /* make non-busy */
+    uptr->SNS2 |= (SNS_ONC|SNS_UNR);            /* on cylinder & ready */
     sim_debug(DEBUG_CMD, dptr,
         "hsdp_rsctl RSCTL I/O not busy chsa %04x cmd %02x\n", chsa, cmd);
-    return SCPE_OK;                         /* not busy */
+    return SCPE_OK;                             /* not busy */
 }
 
 /* Handle processing of hsdp requests. */
@@ -1247,13 +1249,15 @@ t_stat hsdp_srv(UNIT *uptr)
     uint16          chsa = GET_UADDR(uptr->CMD);
     DEVICE          *dptr = get_dev(uptr);
     CHANP           *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
+    DIB             *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
+    CHANP           *pchp = pdibp->chan_prg;    /* get channel chp */
     int             cmd = uptr->CMD & DSK_CMDMSK;
     int             type = GET_TYPE(uptr->flags);
     uint32          tcyl=0, trk=0, cyl=0, sec=0, tempt=0;
     int             unit = (uptr - dptr->units);
     int             len = chp->ccw_count;
     int             i,j,k;
-    uint32          mema, ecc, cecc, tstar;         /* memory address */
+    uint32          mema, ecc, cecc, tstar;     /* memory address */
     uint8           ch;
     uint16          ssize = hsdp_type[type].ssiz * 4;   /* disk sector size in bytes */
     uint32          tstart;
@@ -1298,7 +1302,7 @@ t_stat hsdp_srv(UNIT *uptr)
         mema = chp->ccw_addr;                   /* get inch or buffer addr */
         sim_debug(DEBUG_CMD, dptr,
             "hsdp_srv cmd CONT INC %06x chsa %04x addr %06x count %04x completed\n",
-            chp->chan_inch_addr, chsa, mema, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, mema, chp->ccw_count);
         /* to use this inch method, byte count must be 0x20 */
         if (len != 0x20) {
                 /* we have invalid count, error, bail out */
@@ -1357,7 +1361,7 @@ t_stat hsdp_srv(UNIT *uptr)
         mema = chp->ccw_addr;                   /* get inch or buffer addr */
         sim_debug(DEBUG_CMD, dptr,
             "hsdp_srv starting INCH %06x cmd, chsa %04x MemBuf %06x cnt %04x\n",
-            chp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
+            pchp->chan_inch_addr, chsa, chp->ccw_addr, chp->ccw_count);
 
         /* mema has IOCD word 1 contents.  For the disk processor it contains */
         /* a pointer to the INCH buffer followed by 8 drive attribute words that */
@@ -1434,7 +1438,7 @@ t_stat hsdp_srv(UNIT *uptr)
         uptr->CMD &= LMASK;                     /* remove old cmd */
         sim_debug(DEBUG_CMD, dptr,
             "hsdp_srv cmd INCH %06x chsa %04x addr %06x count %04x mode %08x completed\n",
-            chp->chan_inch_addr, chsa, mema, chp->ccw_count, tcyl);
+            pchp->chan_inch_addr, chsa, mema, chp->ccw_count, tcyl);
         chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* return OK */
         break;
 

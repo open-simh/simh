@@ -1,6 +1,6 @@
 /* sel32_mfp.c: SEL-32 Model 8002 MFP processor controller
 
-   Copyright (c) 2018-2022, James C. Bevier
+   Copyright (c) 2018-2023, James C. Bevier
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -202,8 +202,9 @@ t_stat mfp_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 
         mfp_chp[0].chan_inch_addr = mfp_chp[0].ccw_addr;   /* set inch buffer addr */
         mfp_chp[0].base_inch_addr = mfp_chp[0].ccw_addr;   /* set inch buffer addr */
-        mfp_chp[0].max_inch_addr = mfp_chp[0].ccw_addr + (128 * 8); /* set last inch buffer addr */
-
+        //???   mfp_chp[0].max_inch_addr = mfp_chp[0].ccw_addr + (127 * 8); /* set last inch buffer addr */
+        /* MFP manual says it uses 128 dbl wds (256 wds) but diag aborts if gtr than 1 dbl wd */
+        mfp_chp[0].max_inch_addr = mfp_chp[0].ccw_addr;     /* set last inch buffer addr */
         uptr->u3 |= MFP_INCH2;              /* save INCH command as 0xf0 */
         sim_activate(uptr, 40);             /* go on */
         return 0;                           /* no status change */
@@ -318,7 +319,8 @@ t_stat mfp_srv(UNIT *uptr)
         /* now call set_inch() function to write and test inch buffer addresses */
         /* the chp->ccw_addr location contains the inch address */
         /* 1-256 wd buffer is provided for 128 status dbl words */
-        tstart = set_inch(uptr, mema, 128); /* new address of 128 entries */
+///??   tstart = set_inch(uptr, mema, 128); /* new address of 128 entries */
+        tstart = set_inch(uptr, mema, 1);   /* new address of 1 entrie */
         if ((tstart == SCPE_MEM) || (tstart == SCPE_ARG)) { /* any error */
             /* we have error, bail out */
             uptr->u5 |= SNS_CMDREJ;
