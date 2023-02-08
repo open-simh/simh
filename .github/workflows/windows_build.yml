@@ -28,18 +28,22 @@ on:
         - x86
         - arm64
       keep:
-        description: 'Disposition (with output = "artifact")'
+        description: 'Disposition Keep: "artifact" | Publish: BIN\NT'
         required: true
         default: 'Keep'
         type: choice
         options:
-        - 'Keep'
         - 'Discard'
+        - 'Keep'
+        - 'Publish'
       inspect:
-        description: 'List build directory contents'
+        description: 'Build directory contents listing'
         required: true
-        default: false
-        type: boolean
+        default: 'exclude'
+        type: choice
+        options:
+        - Exclude
+        - Include
 
   pull_request:
     types: closed
@@ -49,23 +53,24 @@ on:
 #    branches: [ 'master' ]
 
 env:
-  # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: 'Visual Studio Projects'
-  BUILD_CONFIGURATION: ${{ inputs.configuration || 'Release' }}
-  BUILD_PLATFORM: ${{ inputs.platform || 'Win32' }}
-  BUILD_ARCH: ${{ inputs.architecture || 'x64' }}
-  INSPECT: ${{ inputs.inspect || false }}
-  KEEP:    ${{ inputs.keep || 'onMerge' }}
+  SOLUTION_FILE:       'Visual Studio Projects\Simh.ci.sln'
+  BUILD_CONFIGURATION: ${{ inputs.configuration      || 'Release' }}
+  BUILD_PLATFORM:      ${{ inputs.platform           || 'Win32' }}
+  BUILD_ARCH:          ${{ inputs.architecture       || 'x64' }}
+  INSPECT:             ${{ inputs.inspect            || 'Exclude' }}
+  KEEP:                ${{ inputs.keep               || 'onMerge' }}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-on-windows:
+    environment: open-simh-ci
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: 'Checkout branch'
+      uses: actions/checkout@v3
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.1
       with:
@@ -74,12 +79,12 @@ jobs:
       shell: cmd
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        msbuild "${{env.SOLUTION_FILE_PATH}}\Simh.ci.sln" -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}}
-    - name: Inspect Results
-      if: ${{ env.INSPECT == true }}
+        msbuild "${{env.SOLUTION_FILE}}" -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}}
+    - name: Inspect result tree
+      if: ${{ env.INSPECT == 'Include' }}
       shell: cmd
       run: dir /S BIN\NT
-    - name: Upload Results
+    - name: Upload Results as ZIP artifact
       if: ${{ env.KEEP != 'Discard'  && ( env.KEEP == 'Keep' || ( github.event_name == 'pull_request' && github.event.pull_request.merged == true ) ) }}
       uses: actions/upload-artifact@v3.1.2
       with:
@@ -87,3 +92,15 @@ jobs:
         path: BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_CONFIGURATION}}\*.exe
         if-no-files-found: error
         retention-days: 90
+    - name: Commit new executables to BIN
+      if: ${{ env.KEEP == 'Publish' }}
+      shell: cmd
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        mkdir BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}}
+        move  BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_CONFIGURATION}}\*.exe BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}}
+        git config user.name "${{ github.actor }}.${{ github.job }}"
+        git config user.email "admin@opensimh.org"
+        git add -f BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}}\*.exe
+        git commit -m "Update windows binaries for ${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}}"
+        git push
