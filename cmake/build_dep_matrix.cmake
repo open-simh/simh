@@ -72,6 +72,7 @@ function(BuildDepMatrix dep pretty)
     set(_saved_cmake_module_path ${CMAKE_MODULE_PATH})
     set(CMAKE_MODULE_PATH "")
 
+    ## message("${dep_cmds}")
     ExternalProject_Add_Step(${dep} build-dbg-release
         DEPENDEES configure
         WORKING_DIRECTORY <BINARY_DIR>
