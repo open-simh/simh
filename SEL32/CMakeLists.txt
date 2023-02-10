@@ -32,6 +32,7 @@ add_simulator(sel32
         sel32_mfp.c
         sel32_scsi.c
         sel32_ec.c
+        sel32_ipu.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
     DEFINES

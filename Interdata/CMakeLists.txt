@@ -33,6 +33,8 @@ add_simulator(id16
         ${ID16D}/id_ttp.c
     INCLUDES
         ${ID16D}
+    DEFINES
+        IFP_IN_MEM
     LABEL Interdata
     PKG_FAMILY interdata_family
     TEST id16)
