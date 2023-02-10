@@ -1,0 +1,13 @@
+name: SCP test
+
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  scp-test:
+    runs-on: windows-latest
+    steps:
+      run date -T
+
