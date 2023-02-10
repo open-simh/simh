@@ -25,9 +25,12 @@ function(BuildDepMatrix dep pretty)
     if (CMAKE_GENERATOR_TOOLSET)
         list(APPEND cmake_cfg_args "-T" "${CMAKE_GENERATOR_TOOLSET}")
     endif ()
+    string(REPLACE ";" "$<SEMICOLON>" _amend_cmake_prefix_path "${SIMH_PREFIX_PATH_LIST}")
+    string(REPLACE ";" "$<SEMICOLON>" _amend_cmake_include_path "${SIMH_INCLUDE_PATH_LIST}")
+
     list(APPEND cmake_cfg_args ${DEP_CMAKE_ARGS})
-    list(APPEND cmake_cfg_args "-DCMAKE_PREFIX_PATH=${SIMH_PREFIX_PATH_LIST}"
-                               "-DCMAKE_INCLUDE_PATH=${SIMH_INCLUDE_PATH_LIST}"
+    list(APPEND cmake_cfg_args -DCMAKE_PREFIX_PATH=${_amend_cmake_prefix_path}
+                               -DCMAKE_INCLUDE_PATH=${_amend_cmake_include_path}
                                ${_BDM_CMAKE_ARGS}
                                "<SOURCE_DIR>"
     )
@@ -69,6 +72,7 @@ function(BuildDepMatrix dep pretty)
     set(_saved_cmake_module_path ${CMAKE_MODULE_PATH})
     set(CMAKE_MODULE_PATH "")
 
+    ## message("${dep_cmds}")
     ExternalProject_Add_Step(${dep} build-dbg-release
         DEPENDEES configure
         WORKING_DIRECTORY <BINARY_DIR>
