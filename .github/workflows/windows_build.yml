@@ -1,0 +1,204 @@
+name: Windows_Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref/hash/tag - blank for head'
+        required: false
+        type: string
+      configuration:
+        description: 'Configuration'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+        - Release
+        - Debug
+      platform:
+        description: 'Platform'
+        required: true
+        default: 'Win32'
+        type: choice
+        options:
+        - Win32
+#       - ARM
+      architecture:
+        description: 'Architecture'
+        required: true
+        default: x64
+        type: choice
+        options:
+        - x64
+        - x86
+        - arm64
+      dispose:
+        description: 'Disposition'
+        required: true
+        default: 'Discard'
+        type: choice
+        options:
+        - 'Discard'
+        - 'Snapshot'
+        - 'Release'
+      inspect:
+        description: 'Build directory contents listing'
+        required: true
+        default: 'exclude'
+        type: choice
+        options:
+        - Exclude
+        - Include
+
+  pull_request:
+    types: closed
+    branches: [ 'master', 'Supnik-Current' ]
+
+  push:
+    branches: [ 'master', 'Supnik-Current' ]
+
+        #    min hr mday mon dow UTC
+  schedule:
+    - cron:  '23  8  *    *   1,3,5'   # x64 snapshots
+    - cron:  '13 16  *    *   2,4,6'   # x86 snapshots
+#   - cron:  '46 20  *    *   1,4,7'   # Arm snapshots
+
+        # GITHUB_SHA last commit GITHUB_REF refs/tags/name
+  release:
+    types: published
+
+env:
+  SOLUTION_FILE:       'Visual Studio Projects\Simh.ci.sln'
+  REF:                 ${{ inputs.ref            || github.sha     }}
+  BUILD_CONFIGURATION: ${{ inputs.configuration  || 'Release'      }}
+  BUILD_PLATFORM:      ${{ inputs.platform       || 'Win32'        }}
+  BUILD_ARCH:          ${{ inputs.architecture   || ( github.event_name == 'schedule' && ( ( contains(github.event.schedule, '16') && 'x86' ) || ( contains(github.event.schedule, '20') && 'arm64' ) ) ) || 'x64' }}
+  INSPECT:             ${{ inputs.inspect        || 'Exclude'      }}
+  DISPOSE:             ${{ inputs.dispose        || ( github.event_name == 'schedule' && 'Snapshot' ) || ( github.event_name == 'release' && 'Release' ) || 'Discard' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-on-windows:
+    environment: open-simh-ci
+    runs-on: windows-latest
+
+    steps:
+    - name: 'Verify configuration'
+      if: ( env.BUILD_PLATFORM == 'Win32' && env.BUILD_ARCH != 'x86' && env.BUILD_ARCH != 'x64' ) || ( env.BUILD_PLATFORM == 'ARM' && env.BUILD_ARCH != 'arm64' )
+      shell: cmd
+      run: |
+        echo ::error file=windows_build.yml,title=Invalid configuration::Platform ${{ env.BUILD_PLATFORM }} does not support Architecture ${{ env.BUILD_ARCH }}
+        exit 1
+    - name: 'Deal with CRLF files in repo'
+      run: git config --global core.autocrlf input
+    - name: 'Checkout branch'
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ env.REF }}
+    - name: Identify branch
+      shell: pwsh
+      run: |
+        $br="${{ github.ref_name || github.head_ref }}"
+        if ( $null -eq $br ) {
+        "DISPOSE=Discard" >>$env:GITHUB_ENV
+        "BRANCH=null"     >>$env:GITHUB_ENV
+        } else {
+        $br=$br.Trim()
+        if( $br -eq '' ) {
+        "DISPOSE=Discard" >>$env:GITHUB_ENV
+        "BRANCH=empty"    >>$env:GITHUB_ENV
+        } elseif ( $br -match '[Ss]upnik' ) {
+        "BRANCH=V3"       >>$env:GITHUB_ENV
+        } else {
+        "BRANCH=V4"       >>$env:GITHUB_ENV
+        }}
+    - name: Get external libraries
+      #(Required for V3, V4 will see and skip)
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/simh/windows-build/archive/windows-build.zip" -UseBasicParsing -OutFile windows-build.zip
+        Expand-Archive -Path .\windows-build.zip -DestinationPath .\windows-build.tmp
+        move .\windows-build.tmp\windows-build-windows-build ..\windows-build
+        del windows-build.tmp
+        del windows-build.zip
+    - name: Add MSBuild to PATH for Visual Studio
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: ${{ env.BUILD_ARCH }}
+    - name: Install PuTTY and 7-zip
+      run: |
+        choco install --no-progress putty
+        choco install --no-progress 7zip
+    - name: Build Simulators with Visual Studio
+      shell: cmd
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        msbuild "${{env.SOLUTION_FILE}}" -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}}
+    - name: Inspect result tree
+      if: env.INSPECT == 'Include'
+      shell: cmd
+      run: dir /S BIN\NT
+    - name: Compute archive name step 1
+      if: env.DISPOSE != 'Discard'
+      shell: pwsh
+      run: |
+        git log -1 --pretty="COMMIT=%H" >>$env:GITHUB_ENV
+        $(git log -1 --pretty="#=%aI").Replace("T","-").Replace("#","CDATE").Replace(":","-") >>$env:GITHUB_ENV
+        echo PACNAME=${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}} >>$env:GITHUB_ENV
+    - name: Compute archive name step 2
+      if: env.DISPOSE != 'Discard'
+      shell: pwsh
+      run: |
+        "TARNAME=${{env.CDATE}}-${{env.COMMIT}}-${{env.PACNAME}}.tar" >>$env:GITHUB_ENV
+    - name: Import signing key
+      if: env.DISPOSE != 'Discard'
+      uses: crazy-max/ghaction-import-gpg@v5
+      with:
+        gpg_private_key: ${{ secrets.GPG_KIT_SIGNING_KEY }}
+    - name: Create tar file for deployment
+      if: env.DISPOSE != 'Discard'
+      shell: cmd
+      run: |
+        mkdir "${{env.PACNAME}}"
+        move "BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_CONFIGURATION}}\*.exe" "${{env.PACNAME}}"
+        echo Built in ${{ github.repository }} by ${{ github.actor }} (${{ github.event_name }}) from ${{ github.ref_type }}/${{ github.ref_name }}>${{ env.TARNAME }}-contents.txt
+        echo In the archive, the files reside in ${{env.PACNAME}}\*>>${{ env.TARNAME }}-contents.txt
+        echo Dates/times are UTC>>${{ env.TARNAME }}-contents.txt
+        echo .>>${{ env.TARNAME }}-contents.txt
+        dir "${{env.PACNAME}}\*.exe"                                                                                                              >>${{ env.TARNAME }}-contents.txt
+        7z a -ttar   -r -- "${{ env.TARNAME }}"     "${{ env.PACNAME }}"
+        7z a -tbzip2 -r -- "${{ env.TARNAME }}.bz2" "${{ env.TARNAME }}"
+        del "${{ env.TARNAME }}"
+        gpg --output "${{ env.TARNAME }}.bz2.sig" --detach-sig "${{ env.TARNAME }}.bz2"
+    - name: Deploy new executables to kits server
+      id: scp-ppk
+      if: env.DISPOSE != 'Discard'
+      shell: pwsh
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      env:
+        SCP_DEPLOY_KEY: '${{ secrets.SCP_DEPLOY_KEY }}'
+      run: |
+        $fn = Join-Path -Path $env:RUNNER_TEMP -ChildPath "sdk.ppk";
+        $eb = [System.Convert]::FromBase64String($env:SCP_DEPLOY_KEY);
+        Set-Content $fn -Value $eb -AsByteStream;
+        "SDK=$fn" >>$env:GITHUB_OUTPUT
+        "KITS_HOST_KEY=" + "${{ vars.KITS_HOST_KEY }}".Trim() + "`n" >>$env:GITHUB_ENV
+    - name: Save as snapshot
+      if: ${{ env.DISPOSE == 'Snapshot' }}
+      shell: cmd
+      run: |
+        pscp -p -r -q -batch -noagent -i ${{ steps.scp-ppk.outputs.SDK }} -hostkey "${{ env.KITS_HOST_KEY }}" ${{ env.TARNAME }}.bz2 ${{ env.TARNAME }}.bz2.sig ${{ env.TARNAME }}-contents.txt simh-deploy@kits.opensimh.org:/var/www/kits/html/${{ env.BRANCH }}/Windows/Snapshots/${{ env.BUILD_ARCH }}/
+    - name: Save as release
+      if: env.DISPOSE == 'Release'
+      shell: cmd
+      run: |
+        pscp -p -r -q -batch -noagent -i ${{ steps.scp-ppk.outputs.SDK }} -hostkey "${{ env.KITS_HOST_KEY }}" ${{ env.TARNAME }}.bz2 ${{ env.TARNAME }}.bz2.sig ${{ env.TARNAME }}-contents.txt simh-deploy@kits.opensimh.org:/var/www/kits/html/${{ env.BRANCH }}/Windows/Releases/${{ env.BUILD_ARCH }}/
+    - name: cleanup ppk
+      env:
+        FN: ${{ steps.scp-ppk.outputs.SDK }}
+      shell: pwsh
+      if: always() && ( env.FN != '' )
+      run: |
+        Remove-Item -Path $env:FN;

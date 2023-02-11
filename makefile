@@ -112,15 +112,18 @@ ifneq (,${GREP_OPTIONS})
   $(error 1)
 endif
 ifneq ($(findstring Windows,${OS}),)
-  ifeq ($(findstring .exe,${SHELL}),.exe)
-    # MinGW
-    WIN32 := 1
-    # Tests don't run under MinGW
-    TESTS := 0
-  else # Msys or cygwin
-    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-      $(info *** This makefile can not be used with the Msys bash shell)
-      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+  # Cygwin can return SHELL := C:/cygwin/bin/sh.exe  cygwin is OK & NOT WIN32
+  ifeq ($(findstring /cygwin/,$(SHELL)),)
+    ifeq ($(findstring .exe,${SHELL}),.exe)
+      # MinGW
+      WIN32 := 1
+      # Tests don't run under MinGW
+      TESTS := 0
+    else # Msys or cygwin
+      ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+        $(info *** This makefile can not be used with the Msys bash shell)
+        $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+      endif
     endif
   endif
 endif
@@ -203,15 +206,17 @@ ifneq ($(NOVIDEO),)
   VIDEO_USEFUL =
 endif
 ifneq ($(findstring Windows,${OS}),)
-  ifeq ($(findstring .exe,${SHELL}),.exe)
-    # MinGW
-    WIN32 := 1
-    # Tests don't run under MinGW
-    TESTS := 0
-  else # Msys or cygwin
-    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-      $(info *** This makefile can not be used with the Msys bash shell)
-      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+  ifeq ($(findstring /cygwin/,$(SHELL)),)
+    ifeq ($(findstring .exe,${SHELL}),.exe)
+      # MinGW
+      WIN32 := 1
+      # Tests don't run under MinGW
+      TESTS := 0
+    else # Msys or cygwin
+      ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+        $(info *** This makefile can not be used with the Msys bash shell)
+        $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+      endif
     endif
   endif
 endif
