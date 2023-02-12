@@ -96,15 +96,18 @@ ifneq (,${GREP_OPTIONS})
   $(error 1)
 endif
 ifneq ($(findstring Windows,${OS}),)
-  ifeq ($(findstring .exe,${SHELL}),.exe)
-    # MinGW
-    WIN32 := 1
-    # Tests don't run under MinGW
-    TESTS := 0
-  else # Msys or cygwin
-    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-      $(info *** This makefile can not be used with the Msys bash shell)
-      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+  # Cygwin can return SHELL := C:/cygwin/bin/sh.exe  cygwin is OK & NOT WIN32
+  ifeq ($(findstring /cygwin/,$(SHELL)),)
+    ifeq ($(findstring .exe,${SHELL}),.exe)
+      # MinGW
+      WIN32 := 1
+      # Tests don't run under MinGW
+      TESTS := 0
+    else # Msys or cygwin
+      ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+        $(info *** This makefile can not be used with the Msys bash shell)
+        $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
+      endif
     endif
   endif
 endif
@@ -201,7 +204,7 @@ endif
 ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   ifeq (${GCC},)
     ifeq (,$(shell which gcc 2>/dev/null))
-      $(info *** Warning *** Using local cc since gcc isn't available locally.)
+      $(info *** Warning *** Using local cc since gcc is not available locally.)
       $(info *** Warning *** You may need to install gcc to build working simulators.)
       GCC = cc
     else
@@ -509,7 +512,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
     # Some gcc versions don't support LTO, so only use LTO when the compiler is known to support it
     ifeq (,$(NO_LTO))
       ifneq (,$(GCC_VERSION))
-        ifeq (,$(shell ${GCC} -v /dev/null 2>&1 | grep '\-\-enable-lto'))
+        ifeq (,$(shell ${GCC} -v /dev/null 2>&1 | grep -- '--enable-lto'))
           LTO_EXCLUDE_VERSIONS += $(GCC_VERSION)
         endif
       endif

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{D5D873F7-D286-43E7-958A-3D83DEADBEEF}</ProjectGuid>
+    <RootNamespace>VAX780</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>17.0.33015.44</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\VAX780\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\VAX780\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\VAX780\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\VAX780\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Message>Check for required build dependencies</Message>
+      <Command>if not exist ../../windows-build/winpcap/Wpdpack/Include/pcap.h goto _notice
+if not exist ../../windows-build/pthreads/pthread.h goto _notice
+goto _good
+
+:_notice
+echo ****************************************************
+echo ****************************************************
+echo **  The required build support is not available.  **
+echo ****************************************************
+echo ****************************************************
+type 0ReadMe_Projects.txt
+exit 1
+
+:_good
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>./;../;../VAX/;../pdp11/;../../windows-build/winpcap/Wpdpack/Include;../../windows-build/pthreads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_INT64;USE_ADDR64;VM_VAX;VAX_780;USE_SHARED;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;PTW32_STATIC_LIB;USE_READER_THREAD;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wpcap.lib;packet.lib;wsock32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)VAX780.exe</OutputFile>
+      <AdditionalLibraryDirectories>../../windows-build/winpcap/Wpdpack/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)VAX780.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <PreBuildEvent>
+      <Message>Check for required build dependencies</Message>
+      <Command>if not exist ../../windows-build/winpcap/Wpdpack/Include/pcap.h goto _notice
+if not exist ../../windows-build/pthreads/pthread.h goto _notice
+goto _good
+
+:_notice
+echo ****************************************************
+echo ****************************************************
+echo **  The required build support is not available.  **
+echo ****************************************************
+echo ****************************************************
+type 0ReadMe_Projects.txt
+exit 1
+
+:_good
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>./;../;../VAX/;../pdp11/;../../windows-build/winpcap/Wpdpack/Include;../../windows-build/pthreads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_INT64;USE_ADDR64;VM_VAX;VAX_780;USE_SHARED;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;PTW32_STATIC_LIB;USE_READER_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wpcap.lib;packet.lib;wsock32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)VAX780.exe</OutputFile>
+      <AdditionalLibraryDirectories>../../windows-build/winpcap/Wpdpack/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)VAX780.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Message>Check for required build dependencies</Message>
+      <Command>if not exist ../../windows-build/winpcap/Wpdpack/Include/pcap.h goto _notice
+if not exist ../../windows-build/pthreads/pthread.h goto _notice
+goto _good
+
+:_notice
+echo ****************************************************
+echo ****************************************************
+echo **  The required build support is not available.  **
+echo ****************************************************
+echo ****************************************************
+type 0ReadMe_Projects.txt
+exit 1
+
+:_good
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>./;../;../VAX/;../pdp11/;../../windows-build/winpcap/Wpdpack/Include;../../windows-build/pthreads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_INT64;USE_ADDR64;VM_VAX;VAX_780;USE_SHARED;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;PTW32_STATIC_LIB;USE_READER_THREAD;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wpcap.lib;packet.lib;wsock32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)VAX780.exe</OutputFile>
+      <AdditionalLibraryDirectories>../../windows-build/winpcap/Wpdpack/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <PreBuildEvent>
+      <Message>Check for required build dependencies</Message>
+      <Command>if not exist ../../windows-build/winpcap/Wpdpack/Include/pcap.h goto _notice
+if not exist ../../windows-build/pthreads/pthread.h goto _notice
+goto _good
+
+:_notice
+echo ****************************************************
+echo ****************************************************
+echo **  The required build support is not available.  **
+echo ****************************************************
+echo ****************************************************
+type 0ReadMe_Projects.txt
+exit 1
+
+:_good
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>./;../;../VAX/;../pdp11/;../../windows-build/winpcap/Wpdpack/Include;../../windows-build/pthreads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_INT64;USE_ADDR64;VM_VAX;VAX_780;USE_SHARED;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;PTW32_STATIC_LIB;USE_READER_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wpcap.lib;packet.lib;wsock32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)VAX780.exe</OutputFile>
+      <AdditionalLibraryDirectories>../../windows-build/winpcap/Wpdpack/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\windows-build\pthreads\pthread.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">HAVE_CONFIG_H;PTW32_BUILD_INLINED;PTW32_STATIC_LIB;__CLEANUP_C</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">HAVE_CONFIG_H;PTW32_BUILD_INLINED;PTW32_STATIC_LIB;__CLEANUP_C</PreprocessorDefinitions>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</WholeProgramOptimization>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">HAVE_CONFIG_H;PTW32_BUILD_INLINED;PTW32_STATIC_LIB;__CLEANUP_C</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">HAVE_CONFIG_H;PTW32_BUILD_INLINED;PTW32_STATIC_LIB;__CLEANUP_C</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\PDP11\pdp11_cr.c" />
+    <ClCompile Include="..\PDP11\pdp11_dz.c" />
+    <ClCompile Include="..\PDP11\pdp11_hk.c" />
+    <ClCompile Include="..\PDP11\pdp11_io_lib.c" />
+    <ClCompile Include="..\PDP11\pdp11_lp.c" />
+    <ClCompile Include="..\PDP11\pdp11_pt.c" />
+    <ClCompile Include="..\PDP11\pdp11_rl.c" />
+    <ClCompile Include="..\PDP11\pdp11_rp.c" />
+    <ClCompile Include="..\PDP11\pdp11_rq.c" />
+    <ClCompile Include="..\PDP11\pdp11_ry.c" />
+    <ClCompile Include="..\PDP11\pdp11_tq.c" />
+    <ClCompile Include="..\PDP11\pdp11_ts.c" />
+    <ClCompile Include="..\PDP11\pdp11_tu.c" />
+    <ClCompile Include="..\PDP11\pdp11_xu.c" />
+    <ClCompile Include="..\scp.c" />
+    <ClCompile Include="..\sim_console.c" />
+    <ClCompile Include="..\sim_ether.c" />
+    <ClCompile Include="..\sim_fio.c" />
+    <ClCompile Include="..\sim_sock.c" />
+    <ClCompile Include="..\sim_tape.c" />
+    <ClCompile Include="..\sim_timer.c" />
+    <ClCompile Include="..\sim_tmxr.c" />
+    <ClCompile Include="..\VAX\vax780_fload.c" />
+    <ClCompile Include="..\VAX\vax780_mba.c" />
+    <ClCompile Include="..\VAX\vax780_mem.c" />
+    <ClCompile Include="..\VAX\vax780_sbi.c" />
+    <ClCompile Include="..\VAX\vax780_stddev.c" />
+    <ClCompile Include="..\VAX\vax780_syslist.c" />
+    <ClCompile Include="..\VAX\vax780_uba.c" />
+    <ClCompile Include="..\VAX\vax_cis.c" />
+    <ClCompile Include="..\VAX\vax_cmode.c" />
+    <ClCompile Include="..\VAX\vax_cpu.c" />
+    <ClCompile Include="..\VAX\vax_cpu1.c" />
+    <ClCompile Include="..\VAX\vax_fpa.c" />
+    <ClCompile Include="..\VAX\vax_mmu.c" />
+    <ClCompile Include="..\VAX\vax_octa.c" />
+    <ClCompile Include="..\VAX\vax_sys.c" />
+    <ClCompile Include="..\VAX\vax_syscm.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\dec_dz.h" />
+    <ClInclude Include="..\PDP11\pdp11_io_lib.h" />
+    <ClInclude Include="..\PDP11\pdp11_mscp.h" />
+    <ClInclude Include="..\PDP11\pdp11_uqssp.h" />
+    <ClInclude Include="..\PDP11\pdp11_xu.h" />
+    <ClInclude Include="..\scp.h" />
+    <ClInclude Include="..\sim_console.h" />
+    <ClInclude Include="..\sim_defs.h" />
+    <ClInclude Include="..\sim_ether.h" />
+    <ClInclude Include="..\sim_fio.h" />
+    <ClInclude Include="..\sim_rev.h" />
+    <ClInclude Include="..\sim_sock.h" />
+    <ClInclude Include="..\sim_tape.h" />
+    <ClInclude Include="..\sim_timer.h" />
+    <ClInclude Include="..\sim_tmxr.h" />
+    <ClInclude Include="..\VAX\vax780_defs.h" />
+    <ClInclude Include="..\VAX\vaxmod_defs.h" />
+    <ClInclude Include="..\VAX\vax_defs.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
