@@ -41,14 +41,6 @@ on:
         - 'Discard'
         - 'Snapshot'
         - 'Release'
-      inspect:
-        description: 'Build directory contents listing'
-        required: true
-        default: 'exclude'
-        type: choice
-        options:
-        - Exclude
-        - Include
 
   pull_request:
     types: closed
@@ -73,7 +65,6 @@ env:
   BUILD_CONFIGURATION: ${{ inputs.configuration  || 'Release'      }}
   BUILD_PLATFORM:      ${{ inputs.platform       || 'Win32'        }}
   BUILD_ARCH:          ${{ inputs.architecture   || ( github.event_name == 'schedule' && ( ( contains(github.event.schedule, '16') && 'x86' ) || ( contains(github.event.schedule, '20') && 'arm64' ) ) ) || 'x64' }}
-  INSPECT:             ${{ inputs.inspect        || 'Exclude'      }}
   DISPOSE:             ${{ inputs.dispose        || ( github.event_name == 'schedule' && 'Snapshot' ) || ( github.event_name == 'release' && 'Release' ) || 'Discard' }}
 
 permissions:
@@ -127,51 +118,53 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
       with:
         msbuild-architecture: ${{ env.BUILD_ARCH }}
-    - name: Install PuTTY and 7-zip
+    - name: Install PuTTY
       run: |
         choco install --no-progress putty
-        choco install --no-progress 7zip
     - name: Build Simulators with Visual Studio
       shell: cmd
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
         msbuild "${{env.SOLUTION_FILE}}" -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}}
-    - name: Inspect result tree
-      if: env.INSPECT == 'Include'
-      shell: cmd
-      run: dir /S BIN\NT
-    - name: Compute archive name step 1
+    - name: Compute zipfile name step 1
       if: env.DISPOSE != 'Discard'
       shell: pwsh
       run: |
         git log -1 --pretty="COMMIT=%H" >>$env:GITHUB_ENV
         $(git log -1 --pretty="#=%aI").Replace("T","-").Replace("#","CDATE").Replace(":","-") >>$env:GITHUB_ENV
         echo PACNAME=${{env.BUILD_PLATFORM}}-${{env.BUILD_ARCH}}-${{env.BUILD_CONFIGURATION}} >>$env:GITHUB_ENV
-    - name: Compute archive name step 2
+    - name: Compute zipfile name step 2
       if: env.DISPOSE != 'Discard'
       shell: pwsh
       run: |
-        "TARNAME=${{env.CDATE}}-${{env.COMMIT}}-${{env.PACNAME}}.tar" >>$env:GITHUB_ENV
+        "ZIPNAME=${{env.CDATE}}-${{env.COMMIT}}-${{env.PACNAME}}.zip" >>$env:GITHUB_ENV
+    - name: Collect results for deployment
+      if: env.DISPOSE != 'Discard'
+      shell: cmd
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        mkdir "${{env.PACNAME}}"
+        copy "LICENSE.txt" "${{env.PACNAME}}\"
+        echo This software was created by the Open SIMH Project>"${{env.PACNAME}}\README.txt"
+        echo For more information, see https://opensimh.org>>"${{env.PACNAME}}\README.txt"
+        move "BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_CONFIGURATION}}\*.exe" "${{env.PACNAME}}"
+        echo Built in ${{ github.repository }} by ${{ github.actor }} (${{ github.event_name }}) from ${{ github.ref_type }}/${{ github.ref_name }}>${{ env.ZIPNAME }}-contents.txt
+        echo In the zip file, the files reside in ${{env.PACNAME}}\*>>${{ env.ZIPNAME }}-contents.txt
+        echo Dates/times are UTC>>${{ env.ZIPNAME }}-contents.txt
+        echo .>>${{ env.ZIPNAME }}-contents.txt
+        dir "${{env.PACNAME}}"   >>${{ env.ZIPNAME }}-contents.txt
     - name: Import signing key
       if: env.DISPOSE != 'Discard'
       uses: crazy-max/ghaction-import-gpg@v5
       with:
         gpg_private_key: ${{ secrets.GPG_KIT_SIGNING_KEY }}
-    - name: Create tar file for deployment
+    - name: Create and sign zip file
       if: env.DISPOSE != 'Discard'
-      shell: cmd
+      shell: pwsh
+      working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        mkdir "${{env.PACNAME}}"
-        move "BIN\NT\${{env.BUILD_PLATFORM}}-${{env.BUILD_CONFIGURATION}}\*.exe" "${{env.PACNAME}}"
-        echo Built in ${{ github.repository }} by ${{ github.actor }} (${{ github.event_name }}) from ${{ github.ref_type }}/${{ github.ref_name }}>${{ env.TARNAME }}-contents.txt
-        echo In the archive, the files reside in ${{env.PACNAME}}\*>>${{ env.TARNAME }}-contents.txt
-        echo Dates/times are UTC>>${{ env.TARNAME }}-contents.txt
-        echo .>>${{ env.TARNAME }}-contents.txt
-        dir "${{env.PACNAME}}\*.exe"                                                                                                              >>${{ env.TARNAME }}-contents.txt
-        7z a -ttar   -r -- "${{ env.TARNAME }}"     "${{ env.PACNAME }}"
-        7z a -tbzip2 -r -- "${{ env.TARNAME }}.bz2" "${{ env.TARNAME }}"
-        del "${{ env.TARNAME }}"
-        gpg --output "${{ env.TARNAME }}.bz2.sig" --detach-sig "${{ env.TARNAME }}.bz2"
+        Compress-Archive -Path "${{ env.PACNAME }}" -DestinationPath "${{ env.ZIPNAME }}"     
+        gpg --output "${{ env.ZIPNAME }}.sig" --detach-sig "${{ env.ZIPNAME }}"
     - name: Deploy new executables to kits server
       id: scp-ppk
       if: env.DISPOSE != 'Discard'
@@ -189,12 +182,12 @@ jobs:
       if: ${{ env.DISPOSE == 'Snapshot' }}
       shell: cmd
       run: |
-        pscp -p -r -q -batch -noagent -i ${{ steps.scp-ppk.outputs.SDK }} -hostkey "${{ env.KITS_HOST_KEY }}" ${{ env.TARNAME }}.bz2 ${{ env.TARNAME }}.bz2.sig ${{ env.TARNAME }}-contents.txt simh-deploy@kits.opensimh.org:/var/www/kits/html/${{ env.BRANCH }}/Windows/Snapshots/${{ env.BUILD_ARCH }}/
+        pscp -p -r -q -batch -noagent -i ${{ steps.scp-ppk.outputs.SDK }} -hostkey "${{ env.KITS_HOST_KEY }}" ${{ env.ZIPNAME }} ${{ env.ZIPNAME }}.sig ${{ env.ZIPNAME }}-contents.txt simh-deploy@kits.opensimh.org:/var/www/kits/html/${{ env.BRANCH }}/Windows/Snapshots/${{ env.BUILD_ARCH }}/
     - name: Save as release
       if: env.DISPOSE == 'Release'
       shell: cmd
       run: |
-        pscp -p -r -q -batch -noagent -i ${{ steps.scp-ppk.outputs.SDK }} -hostkey "${{ env.KITS_HOST_KEY }}" ${{ env.TARNAME }}.bz2 ${{ env.TARNAME }}.bz2.sig ${{ env.TARNAME }}-contents.txt simh-deploy@kits.opensimh.org:/var/www/kits/html/${{ env.BRANCH }}/Windows/Releases/${{ env.BUILD_ARCH }}/
+        pscp -p -r -q -batch -noagent -i ${{ steps.scp-ppk.outputs.SDK }} -hostkey "${{ env.KITS_HOST_KEY }}" ${{ env.ZIPNAME }} ${{ env.ZIPNAME }}.sig ${{ env.ZIPNAME }}-contents.txt simh-deploy@kits.opensimh.org:/var/www/kits/html/${{ env.BRANCH }}/Windows/Releases/${{ env.BUILD_ARCH }}/
     - name: cleanup ppk
       env:
         FN: ${{ steps.scp-ppk.outputs.SDK }}
