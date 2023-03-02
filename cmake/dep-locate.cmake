@@ -332,11 +332,10 @@ IF (WITH_VIDEO)
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
             INSTALL_COMMAND ""
-            ## Remove this patch when SDL_ttf bumps patch or minor release number:
             PATCH_COMMAND
                 git -c core.longpaths=true -c core.autocrlf=false --work-tree=. --git-dir=.git
                 apply
-                    "${SIMH_DEP_PATCHES}/SDL_ttf/0001-DEPRECATION-only-applies-to-3.17.patch"
+                    "${SIMH_DEP_PATCHES}/SDL_ttf/fix-pkgconfig.patch"
                     --ignore-whitespace --whitespace=nowarn --verbose
         )
 
