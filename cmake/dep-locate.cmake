@@ -122,7 +122,7 @@ list(APPEND PCRE_SOURCE_URL
     "https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.zip/download?use_mirror=freefr"
     "https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.zip/download?use_mirror=master"
 )
-set(PNG_SOURCE_URL      "https://github.com/glennrp/libpng/archive/refs/tags/v1.6.38.tar.gz")
+set(PNG_SOURCE_URL      "https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.tar.gz")
 ## Freetype also needs multiple URLs to chase a working mirror:
 list(APPEND FREETYPE_SOURCE_URL
     "https://github.com/freetype/freetype/archive/refs/tags/VER-2-12-1.zip"
@@ -136,8 +136,8 @@ list(APPEND FREETYPE_SOURCE_URL
     "https://download.savannah.gnu.org/releases/freetype/freetype-2.12.1.tar.xz"
     "https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-12-1/freetype-VER-2-12-1.zip"
 )
-set(SDL2_SOURCE_URL     "https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.26.1.zip")
-set(SDL2_TTF_SOURCE_URL "https://github.com/libsdl-org/SDL_ttf/archive/refs/tags/release-2.20.1.zip")
+set(SDL2_SOURCE_URL     "https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.26.3.zip")
+set(SDL2_TTF_SOURCE_URL "https://github.com/libsdl-org/SDL_ttf/archive/refs/tags/release-2.20.2.zip")
 
 ## Need to build ZLIB for both PCRE and libpng16:
 if ((WITH_REGEX OR WITH_VIDEO) AND NOT ZLIB_FOUND)
