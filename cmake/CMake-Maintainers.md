@@ -329,14 +329,19 @@ function's full documentation for usage and options are in [README-CMake.md][cma
 
 ### `find_package` support
 
-`find_package` is *CMake*'s functionality to find a package and set variables for compile defines,
-includes and link libraries, if found. *CMake* has a collection of `find_package` scripts that locate some
-well known packages, such as *ncurses*. SIMH provides six `find_package` scripts to locate the
-*libeditline*, *PCRE*, Windows `pthreads` and [Virtual Distributed Ethernet][vde_network].
+[`find_package`][find_package] is *CMake*'s functionality to find a package and set variables for compile
+defines, includes and link libraries, when found. *CMake* has [a collection][cmake_modules] of
+`find_package` modules for well known, commonly used packages.  *CMake* searches `${CMAKE_MODULE_PATH}`
+for modules outside of its packaged collection; SIMH adds `${CMAKE_SOURCE_DIR}/cmake` to
+`${CMAKE_MODULE_PATH}`.
 
-`Find<PackageName>.cmake` is *CMake*'s naming convention for `find_package` scripts. *CMake* searches
-`${CMAKE_MODULE_PATH}` for scripts outside of its packaged collection.  There are five (5) additional
-`find_package` scripts:
+The `Find<Package>.cmake` modules used by SIMH and provided by *CMake* include:
+
+- ZLIB: The zlib compression library
+- Freetype: The Freetype font library
+- PNG: The PNG graphics library
+
+SIMH includes six `find_package` scripts:
 
 - `FindEDITLINE.cmake`: Locates *libeditline*, adds *termcap* to the linker's library list. Applicable to
   non-Windows systems to provide command line history.
@@ -353,9 +358,9 @@ well known packages, such as *ncurses*. SIMH provides six `find_package` scripts
 
 - `FindVDE.cmake`: Locates the VDE networking headers and library if the `WITH_VDE` option is `True`.
 
-The [`find_package` documentation page][find_package] has all of the details with respect to how it works
-and where it looks for packages, e.g., searching `PATH` on Windows, *CMake* package configuration files
-(e.g., *SDL2* and *SDL2-ttf* provide their own *CMake* package cofiguration files.)
+In addition to `Find<Package>.cmake` modules, packages can also supply *CMake* configuration
+modules. SDL2 and SDL2-ttf generate and install *CMake* cofiguration files that are used in lieu of a
+`find_package` module.
 
 ### `platform-quirks.cmake`: Platform-specific settings/tweaks
 
@@ -551,6 +556,7 @@ unnecessary for SIMH.
 
 <!-- Reference links -->
 [cmake]: https://cmake.org
+[cmake_modules]: https://gitlab.kitware.com/cmake/cmake/-/tree/master/Modules
 [cmake_readme]: ../README-CMake.md
 [cpack]: https://cmake.org/cmake/help/latest/module/CPack.html
 [cpack_generators]: https://cmake.org/cmake/help/latest/manual/cpack-generators.7.html#manual:cpack-generators(7)
