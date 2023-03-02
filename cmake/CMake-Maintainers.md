@@ -2,22 +2,22 @@
 **Table of Contents**
 
 - [CMake Maintainer Walk-through](#cmake-maintainer-walk-through)
-    - [Introduction](#introduction)
-    - [*CMake* Basics](#cmake-basics)
-        - [`CMAKE_SOURCE_DIR` and `CMAKE_BINARY_DIR`](#cmake_source_dir-and-cmake_binary_dir)
-        - [Top-level `CMakeLists.txt`](#top-level-cmakeliststxt)
-        - [Build Configurations](#build-configurations)
-    - [Code Roadmap](#code-roadmap)
-    - [`${CMAKE_SOURCE_DIR}/CMakeLists.txt`](#cmake_source_dircmakeliststxt)
-    - [The `cmake` sub-directory](#the-cmake-sub-directory)
-        - [`add_simulator.cmake`](#add_simulatorcmake)
-        - [`find_package` support](#find_package-support)
-        - [`platform-quirks.cmake`: Platform-specific settings/tweaks](#platform-quirkscmake-platform-specific-settingstweaks)
-        - [`vcpkg.cmake`: vcpkg package installer/maintainer](#vcpkgcmake-vcpkg-package-installermaintainer)
-        - [`dep-locate.cmake`, `dep-link.cmake`: Dependency libraries](#dep-locatecmake-dep-linkcmake-dependency-libraries)
-        - [`simh-simulators.cmake`](#simh-simulatorscmake)
-        - [`generate.py`: Automagic `makefile` &rarr; CMake infrastructure](#generatepy-automagic-makefile-rarr-cmake-infrastructure)
-        - [CPack configuration](#cpack-configuration)
+  - [Introduction](#introduction)
+  - [*CMake* Basics](#cmake-basics)
+    - [`CMAKE_SOURCE_DIR` and `CMAKE_BINARY_DIR`](#cmake_source_dir-and-cmake_binary_dir)
+    - [Top-level `CMakeLists.txt`](#top-level-cmakeliststxt)
+    - [Build Configurations](#build-configurations)
+  - [Code Roadmap](#code-roadmap)
+  - [`${CMAKE_SOURCE_DIR}/CMakeLists.txt`](#cmake_source_dircmakeliststxt)
+  - [The `cmake` sub-directory](#the-cmake-sub-directory)
+    - [`add_simulator.cmake`](#add_simulatorcmake)
+    - [`find_package` support](#find_package-support)
+    - [`platform-quirks.cmake`: Platform-specific settings/tweaks](#platform-quirkscmake-platform-specific-settingstweaks)
+    - [`vcpkg.cmake`: vcpkg package installer/maintainer](#vcpkgcmake-vcpkg-package-installermaintainer)
+    - [`dep-locate.cmake`, `dep-link.cmake`: Dependency libraries](#dep-locatecmake-dep-linkcmake-dependency-libraries)
+    - [`simh-simulators.cmake`](#simh-simulatorscmake)
+    - [`generate.py`: Automagic `makefile` → CMake infrastructure](#generatepy-automagic-makefile--cmake-infrastructure)
+    - [CPack configuration](#cpack-configuration)
 
 <!-- markdown-toc end -->
 
@@ -329,7 +329,6 @@ function's full documentation for usage and options are in [README-CMake.md][cma
 
 ### `find_package` support
 
-<<<<<<< HEAD
 [`find_package`][find_package] is *CMake*'s functionality to find a package and set variables for compile
 defines, includes and link libraries, when found. *CMake* has [a collection][cmake_modules] of
 `find_package` modules for well known, commonly used packages.  *CMake* searches `${CMAKE_MODULE_PATH}`
@@ -343,16 +342,6 @@ The `Find<Package>.cmake` modules used by SIMH and provided by *CMake* include:
 - PNG: The PNG graphics library
 
 SIMH includes six `find_package` scripts:
-=======
-`find_package` is *CMake*'s functionality to find a package and set variables for compile defines,
-includes and link libraries, if found. *CMake* has a collection of `find_package` scripts that locate some
-well known packages, such as *ncurses*. SIMH provides six `find_package` scripts to locate the
-*libeditline*, *PCRE*, Windows `pthreads` and [Virtual Distributed Ethernet][vde_network].
-
-`Find<PackageName>.cmake` is *CMake*'s naming convention for `find_package` scripts. *CMake* searches
-`${CMAKE_MODULE_PATH}` for scripts outside of its packaged collection.  There are five (5) additional
-`find_package` scripts:
->>>>>>> 104939f0 (CMake: Maintainer documentation.)
 
 - `FindEDITLINE.cmake`: Locates *libeditline*, adds *termcap* to the linker's library list. Applicable to
   non-Windows systems to provide command line history.
@@ -369,15 +358,9 @@ well known packages, such as *ncurses*. SIMH provides six `find_package` scripts
 
 - `FindVDE.cmake`: Locates the VDE networking headers and library if the `WITH_VDE` option is `True`.
 
-<<<<<<< HEAD
 In addition to `Find<Package>.cmake` modules, packages can also supply *CMake* configuration
 modules. SDL2 and SDL2-ttf generate and install *CMake* cofiguration files that are used in lieu of a
 `find_package` module.
-=======
-The [`find_package` documentation page][find_package] has all of the details with respect to how it works
-and where it looks for packages, e.g., searching `PATH` on Windows, *CMake* package configuration files
-(e.g., *SDL2* and *SDL2-ttf* provide their own *CMake* package cofiguration files.)
->>>>>>> 104939f0 (CMake: Maintainer documentation.)
 
 ### `platform-quirks.cmake`: Platform-specific settings/tweaks
 
@@ -573,10 +556,7 @@ unnecessary for SIMH.
 
 <!-- Reference links -->
 [cmake]: https://cmake.org
-<<<<<<< HEAD
 [cmake_modules]: https://gitlab.kitware.com/cmake/cmake/-/tree/master/Modules
-=======
->>>>>>> 104939f0 (CMake: Maintainer documentation.)
 [cmake_readme]: ../README-CMake.md
 [cpack]: https://cmake.org/cmake/help/latest/module/CPack.html
 [cpack_generators]: https://cmake.org/cmake/help/latest/manual/cpack-generators.7.html#manual:cpack-generators(7)
