@@ -1,4 +1,6 @@
 .git-commit-id
+#ignore .vimrc
+.vimrc
 #ignore thumbnails created by windows
 Thumbs.db
 #ignore Desktop Services Store created by OSX
