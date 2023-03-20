@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{8215DBE5-87C4-4929-960C-30B28D73B9FE}</ProjectGuid>
+    <RootNamespace>Intel-MDS</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>17.0.33015.44</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <OutDir>..\BIN\NT\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>..\BIN\NT\Project\simh\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Message>Build Dependent ROM include File(s) &amp; Check for required build dependencies &amp; git commit id</Message>
+      <Command>Pre-Build-Event.cmd "$(TargetDir)$(TargetName).exe" LIBPCRE ROM BUILD LIBSDL</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../Intel-Systems/Intel-MDS/;../../windows-build/PCRE/include;./;../;../../windows-build/include;../../windows-build/include/SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>libcmtd.lib;wsock32.lib;winmm.lib;Iphlpapi.lib;pcrestaticd.lib;dxguid.lib;Imm32.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../windows-build/lib/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <StackReserveSize>10485760</StackReserveSize>
+      <StackCommitSize>10485760</StackCommitSize>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Message>Running Available Tests</Message>
+      <Command>Post-Build-Event.cmd Intel-Systems "$(TargetDir)$(TargetName).exe"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <PreBuildEvent>
+      <Message>Build Dependent ROM include File(s) &amp; Check for required build dependencies &amp; git commit id</Message>
+      <Command>Pre-Build-Event.cmd "$(TargetDir)$(TargetName).exe" LIBPCRE ROM BUILD LIBSDL</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../Intel-Systems/Intel-MDS/;../../windows-build/PCRE/include;./;../;../../windows-build/include;../../windows-build/include/SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>libcmtd.lib;wsock32.lib;winmm.lib;Iphlpapi.lib;pcrestaticd.lib;dxguid.lib;Imm32.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../windows-build/lib/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <StackReserveSize>10485760</StackReserveSize>
+      <StackCommitSize>10485760</StackCommitSize>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+    <PostBuildEvent>
+      <Message>Running Available Tests</Message>
+      <Command>Post-Build-Event.cmd Intel-Systems "$(TargetDir)$(TargetName).exe"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Message>Build Dependent ROM include File(s) &amp; Check for required build dependencies &amp; git commit id</Message>
+      <Command>Pre-Build-Event.cmd "$(TargetDir)$(TargetName).exe" LIBPCRE ROM BUILD LIBSDL</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>../Intel-Systems/Intel-MDS/;../../windows-build/PCRE/include;./;../;../../windows-build/include;../../windows-build/include/SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>libcmt.lib;wsock32.lib;winmm.lib;Iphlpapi.lib;pcrestatic.lib;dxguid.lib;Imm32.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../windows-build/lib/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <StackReserveSize>10485760</StackReserveSize>
+      <StackCommitSize>10485760</StackCommitSize>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Message>Running Available Tests</Message>
+      <Command>Post-Build-Event.cmd Intel-Systems "$(TargetDir)$(TargetName).exe"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <PreBuildEvent>
+      <Message>Build Dependent ROM include File(s) &amp; Check for required build dependencies &amp; git commit id</Message>
+      <Command>Pre-Build-Event.cmd "$(TargetDir)$(TargetName).exe" LIBPCRE ROM BUILD LIBSDL</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>../Intel-Systems/Intel-MDS/;../../windows-build/PCRE/include;./;../;../../windows-build/include;../../windows-build/include/SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SIM_BUILD_TOOL=simh-Visual-Studio-Project;_CRT_NONSTDC_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;SIM_NEED_GIT_COMMIT_ID;HAVE_PCRE_H;PCRE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/fixed:no %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>libcmt.lib;wsock32.lib;winmm.lib;Iphlpapi.lib;pcrestatic.lib;dxguid.lib;Imm32.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../windows-build/lib/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <StackReserveSize>10485760</StackReserveSize>
+      <StackCommitSize>10485760</StackCommitSize>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+    <PostBuildEvent>
+      <Message>Running Available Tests</Message>
+      <Command>Post-Build-Event.cmd Intel-Systems "$(TargetDir)$(TargetName).exe"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Intel-Systems\common\cpu.c" />
+    <ClCompile Include="..\Intel-Systems\common\front_panel.c" />
+    <ClCompile Include="..\Intel-Systems\common\i3214.c" />
+    <ClCompile Include="..\Intel-Systems\common\i8080.c" />
+    <ClCompile Include="..\Intel-Systems\common\i8251.c" />
+    <ClCompile Include="..\Intel-Systems\common\i8253.c" />
+    <ClCompile Include="..\Intel-Systems\common\i8255.c" />
+    <ClCompile Include="..\Intel-Systems\common\i8259.c" />
+    <ClCompile Include="..\Intel-Systems\common\ieprom.c" />
+    <ClCompile Include="..\Intel-Systems\common\ioc-cont.c" />
+    <ClCompile Include="..\Intel-Systems\common\ipc-cont.c" />
+    <ClCompile Include="..\Intel-Systems\common\iram8.c" />
+    <ClCompile Include="..\Intel-Systems\common\irq.c" />
+    <ClCompile Include="..\Intel-Systems\common\isbc064.c" />
+    <ClCompile Include="..\Intel-Systems\common\isbc201.c" />
+    <ClCompile Include="..\Intel-Systems\common\isbc202.c" />
+    <ClCompile Include="..\Intel-Systems\common\isbc206.c" />
+    <ClCompile Include="..\Intel-Systems\common\isbc208.c" />
+    <ClCompile Include="..\Intel-Systems\common\isbc464.c" />
+    <ClCompile Include="..\Intel-Systems\common\mem.c" />
+    <ClCompile Include="..\Intel-Systems\common\monitor.c" />
+    <ClCompile Include="..\Intel-Systems\common\multibus.c" />
+    <ClCompile Include="..\Intel-Systems\common\port.c" />
+    <ClCompile Include="..\Intel-Systems\common\sys.c" />
+    <ClCompile Include="..\Intel-Systems\common\zx200a.c" />
+    <ClCompile Include="..\Intel-Systems\Intel-MDS\imds_sys.c" />
+    <ClCompile Include="..\scp.c" />
+    <ClCompile Include="..\sim_console.c" />
+    <ClCompile Include="..\sim_disk.c" />
+    <ClCompile Include="..\sim_ether.c" />
+    <ClCompile Include="..\sim_fio.c" />
+    <ClCompile Include="..\sim_serial.c" />
+    <ClCompile Include="..\sim_sock.c" />
+    <ClCompile Include="..\sim_tape.c" />
+    <ClCompile Include="..\sim_timer.c" />
+    <ClCompile Include="..\sim_tmxr.c" />
+    <ClCompile Include="..\sim_video.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Intel-Systems\Intel-MDS\system_defs.h" />
+    <ClInclude Include="..\scp.h" />
+    <ClInclude Include="..\sim_console.h" />
+    <ClInclude Include="..\sim_defs.h" />
+    <ClInclude Include="..\sim_disk.h" />
+    <ClInclude Include="..\sim_ether.h" />
+    <ClInclude Include="..\sim_fio.h" />
+    <ClInclude Include="..\sim_rev.h" />
+    <ClInclude Include="..\sim_serial.h" />
+    <ClInclude Include="..\sim_sock.h" />
+    <ClInclude Include="..\sim_tape.h" />
+    <ClInclude Include="..\sim_timer.h" />
+    <ClInclude Include="..\sim_tmxr.h" />
+    <ClInclude Include="..\sim_video.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="BuildROMs.vcxproj">
+      <Project>{d40f3af1-eee7-4432-9807-2ad287b490f8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

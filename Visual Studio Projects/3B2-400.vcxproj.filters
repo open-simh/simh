@@ -1,0 +1,321 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{804273c0-117b-4d45-9782-c647c2778f15}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+    </Filter>
+    <Filter Include="Source Files\slirp">
+      <UniqueIdentifier>{217c5327-3a11-4389-8e35-e72d613e708b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{09860348-bbf0-4b13-b37f-d5c8e09d3444}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{28791ec5-0a98-44f4-ac44-2c71f223bf69}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\3B2\3b2_cpu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_ctc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_dmac.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_id.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_if.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_iu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_mau.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_mem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_ni.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_ports.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_rev2_csr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_rev2_mmu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_rev2_sys.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_stddev.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_sys.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3B2\3b2_timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\windows-build\pthreads\pthread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_console.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_disk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_ether.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_fio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_serial.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_sock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_tape.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_tmxr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_video.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\arp_table.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\bootp.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\cksum.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\dnssearch.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp_glue\glib_qemu_stubs.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\if.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\ip_icmp.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\ip_input.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\ip_output.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\mbuf.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\misc.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\sbuf.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp_glue\sim_slirp.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\slirp.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\socket.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\tcp_input.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\tcp_output.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\tcp_subr.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\tcp_timer.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\tftp.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\slirp\udp.c">
+      <Filter>Source Files\slirp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\slirp\bootp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\debug.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\if.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\ip.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\ip_icmp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\libslirp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\main.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\mbuf.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\misc.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\sbuf.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\slirp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\slirp_config.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\socket.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\tcp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\tcp_timer.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\tcp_var.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\tcpip.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\tftp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\slirp\udp.h">
+      <Filter>Source Files\slirp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_cpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_csr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_ctc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_dmac.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_id.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_if.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_iu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_mau.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_mem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_mmu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_ni.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_ports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_stddev.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_sys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3B2\3b2_timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_disk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_ether.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_fio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_rev.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_serial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_sock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_tape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_tmxr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sim_video.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
