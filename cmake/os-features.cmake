@@ -156,10 +156,10 @@ if (have_dlfcn_h)
     cmake_pop_check_state()
 endif (have_dlfcn_h)
 
-if (NOT MSVC)
+if (NOT MSVC AND (WIN32 AND NOT CMAKE_C_COMPILER_ID MATCHES ".*Clang"))
     # Need the math library on non-Windows platforms
     target_link_libraries(os_features INTERFACE m)
-endif (NOT MSVC)
+endif ()
 
 set(HAVE_TAP_NETWORK False)
 set(HAVE_BSDTUNTAP False)
