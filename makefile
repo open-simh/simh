@@ -1439,6 +1439,11 @@ PDP1 = ${PDP1D}/pdp1_lp.c ${PDP1D}/pdp1_cpu.c ${PDP1D}/pdp1_stddev.c \
 PDP1_OPT = -I ${PDP1D} ${DISPLAY_OPT} $(PDP1_DISPLAY_OPT)
 
 
+ND100D = ${SIMHD}/ND100
+ND100 = ${ND100D}/nd100_sys.c ${ND100D}/nd100_cpu.c ${ND100D}/nd100_floppy.c \
+	${ND100D}/nd100_stddev.c ${ND100D}/nd100_mm.c
+ND100_OPT = -I ${ND100D}
+
 NOVAD = ${SIMHD}/NOVA
 NOVA = ${NOVAD}/nova_sys.c ${NOVAD}/nova_cpu.c ${NOVAD}/nova_dkp.c \
 	${NOVAD}/nova_dsk.c ${NOVAD}/nova_lp.c ${NOVAD}/nova_mta.c \
@@ -2187,7 +2192,7 @@ ALL = pdp1 pdp4 pdp7 pdp8 pdp9 pdp15 pdp11 pdp10 \
 	microvax2000 infoserver100 infoserver150vxt microvax3100 microvax3100e \
 	vaxstation3100m30 vaxstation3100m38 vaxstation3100m76 vaxstation4000m60 \
 	microvax3100m80 vaxstation4000vlc infoserver1000 \
-	nova eclipse hp2100 hp3000 i1401 i1620 s3 altair altairz80 gri \
+	nd100 nova eclipse hp2100 hp3000 i1401 i1620 s3 altair altairz80 gri \
 	i7094 ibm1130 id16 id32 sds lgp h316 cdc1700 \
 	swtp6800mp-a swtp6800mp-a2 tx-0 ssem b5500 intel-mds \
 	scelbi 3b2 3b2-700 i701 i704 i7010 i7070 i7080 i7090 \
@@ -2518,6 +2523,15 @@ ${BIN}vax8600${EXE} : ${VAX8600} ${SIM} ${BUILD_ROMS}
 	${CC} ${VAX8600} ${SIM} ${VAX8600_OPT} ${CC_OUTSPEC} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
+endif
+
+nd100 : ${BIN}nd100${EXE}
+
+${BIN}nd100${EXE} : ${ND100} ${SIM}
+	${MKDIRBIN}
+	${CC} ${ND100} ${SIM} ${ND100_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+ifneq (,$(call find_test,${ND100D},nd100))
+	$@ $(call find_test,${ND100D},nd100) ${TEST_ARG}
 endif
 
 nova : ${BIN}nova${EXE}
