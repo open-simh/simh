@@ -18,6 +18,8 @@ add_simulator(altairz80
     SOURCES
         altairz80_cpu.c
         altairz80_cpu_nommu.c
+        sol20.c
+        s100_vdm1.c
         mmd.c
         s100_dj2d.c
         s100_djhdc.c
@@ -70,6 +72,7 @@ add_simulator(altairz80
         m68ksim.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
+    FEATURE_VIDEO
     LABEL AltairZ80
     PKG_FAMILY altairz80_family
     TEST altairz80)
