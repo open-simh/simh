@@ -207,6 +207,12 @@
     <ClCompile Include="..\AltairZ80\wd179x.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\AltairZ80\s100_vdm1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AltairZ80\sol20.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\AltairZ80\altairz80_defs.h">
