@@ -163,7 +163,7 @@ t_stat show_writelock (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 const char *sim_dname (DEVICE *dptr);
 const char *sim_uname (UNIT *dptr);
 const char *sim_set_uname (UNIT *uptr, const char *uname);
-t_stat get_yn (const char *ques, t_stat deflt);
+t_bool get_yn (const char *ques, t_bool deflt);
 void sim_srand (unsigned int seed);
 int sim_rand (void);
 #ifdef RAND_MAX
