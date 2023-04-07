@@ -4339,7 +4339,7 @@ strlcpy (argline, cptr, arg_size);
 cp = argline + (arg_size / 2);
 strlcpy (cp, cptr, arg_size / 2);
 argv[0] = argline;                  /* argv[0] points to unparsed arguments */
-argv[argc + 1] = NULL;              /* make sure the argument list always ends with a NULL */
+argv[argc] = NULL;                  /* make sure the argument list always ends with a NULL */
 while (*cp) {
     while (sim_isspace (*cp))       /* skip blanks */
         cp++;
