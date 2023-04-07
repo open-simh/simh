@@ -136,6 +136,9 @@ extern int sim_vax_snprintf(char *buf, size_t buf_size, const char *fmt, ...);
 #include <errno.h>
 #include <limits.h>
 #include <ctype.h>
+#include <math.h>
+#include <setjmp.h>
+
 
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE 1
