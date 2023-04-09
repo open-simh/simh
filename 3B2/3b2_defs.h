@@ -158,6 +158,7 @@ extern DEVICE timer_dev;
 extern DEVICE tod_dev;
 extern DEVICE tti_dev;
 extern DEVICE tto_dev;
+extern DEVICE lpt_dev;
 #if defined(REV3)
 extern DEVICE flt_dev;
 extern DEVICE ha_dev;

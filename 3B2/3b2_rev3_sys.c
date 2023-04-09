@@ -60,6 +60,7 @@ DEVICE *sim_devices[] = {
     &if_dev,
     &ha_dev,
     &ports_dev,
+    &lpt_dev,
     &ni_dev,
     NULL
 };
@@ -76,5 +77,6 @@ void full_reset()
     ha_reset(&ha_dev);
     csr_reset(&csr_dev);
     ports_reset(&ports_dev);
+    lpt_reset(&lpt_dev);
     ni_reset(&ni_dev);
 }

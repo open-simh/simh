@@ -140,9 +140,6 @@
  *
  ***********************************************************************/
 
-#define MMUBASE 0x40000
-#define MMUSIZE 0x1000
-
 #define MMU_SRS  0x04       /* Section RAM array size (words) */
 #define MMU_SDCS 0x20       /* Segment Descriptor Cache H/L array size
                                (words) */

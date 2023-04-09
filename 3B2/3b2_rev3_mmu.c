@@ -600,6 +600,10 @@ void mmu_write(uint32 pa, uint32 val, size_t size)
         /* Flush all PDC cache entries for this section */
         for (i = 0; i < MMU_PDCS; i++) {
             if (((mmu_state.pdch[i] >> 24) & 0x3) == index) {
+                sim_debug(MMU_CACHE_DBG, &mmu_dev,
+                          "Flushing MMU PDC entry at index %d "
+                          "(pdc_lo=%08x pdc_hi=%08x)\n",
+                          i, mmu_state.pdcl[i], mmu_state.pdch[i]);
                 mmu_state.pdch[i] &= ~(PDC_G_MASK);
             }
         }
@@ -1041,8 +1045,9 @@ uint32 mmu_xlate_addr(uint32 va, uint8 r_acc)
 
     succ = mmu_decode_va(va, r_acc, TRUE, &pa);
 
+    mmu_state.var = va;
+
     if (succ == SCPE_OK) {
-        mmu_state.var = va;
         return pa;
     } else {
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);

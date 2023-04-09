@@ -846,9 +846,9 @@ t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32 val, CONST void *desc)
     fprintf(st, "---------------------\n");
     for (slot = 0; slot < CIO_SLOTS; slot++) {
         if (cio[slot].populated) {
-            fprintf(st, "   %2d       %s\n", slot, cio[slot].name);
+            fprintf(st, "   %2d       %s\n", slot + 1, cio[slot].name);
         } else {
-            fprintf(st, "   %2d       -\n", slot);
+            fprintf(st, "   %2d       -\n", slot + 1);
         }
     }
 

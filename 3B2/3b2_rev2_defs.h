@@ -97,6 +97,8 @@
 #define MEMID_1M        2
 #define MEMID_2M        1
 #define MEMID_4M        3
+#define MMUBASE         0x40000
+#define MMUSIZE         0x1000
 
 /* DMA Controller */
 #define DMACBASE        0x48000

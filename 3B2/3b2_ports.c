@@ -51,8 +51,6 @@
 #include "3b2_mem.h"
 #include "3b2_stddev.h"
 
-#define IO_SCHED  1000
-
 /* Device and units for PORTS cards
  * --------------------------------
  *
@@ -100,36 +98,33 @@
 #define PORTS_DIAG_CRC5 0x4be7bccc  /* Used by SVR 2.0.5 */
 #define PORTS_DIAG_CRC6 0x3197f6dd  /* Used by SVR 2.0.5 */
 
-#define PORTS_DFLT_LINES 4
-#define PORTS_DFLT_CARDS 1
-
 #define LN(slot,port)   (ports_slot_ln[(slot)] + (port))
 #define LSLOT(ln)       (ports_ln_slot[ln])
-/* #define LN(slot,port)   ((PORTS_LINES * ((slot) - ports_base_slot)) + (port)) */
-/* #define LSLOT(ln)       (((ln) / PORTS_LINES) + ports_base_slot) */
 #define LPORT(ln)       ((ln) % PORTS_LINES)
 
-int8    ports_base_slot;            /* First slot in our contiguous block */
-uint8   ports_int_slot;             /* Interrupting card ID   */
-uint8   ports_int_subdev;          /* Interrupting subdevice */
-t_bool  ports_conf = FALSE;  /* Have PORTS cards been configured? */
-uint32  ports_crc;           /* CRC32 of downloaded memory */
+int8    ports_base_slot;          /* First slot in our contiguous block */
+uint8   ports_int_slot;           /* Interrupting card ID   */
+uint8   ports_int_subdev;         /* Interrupting subdevice */
+t_bool  ports_conf = FALSE;       /* Have PORTS cards been configured? */
+uint32  ports_crc;                /* CRC32 of downloaded memory */
 
-/* Mapping of line number to CIO card slot. Up to 32 lines spread over
-   8 slots are supported. */
+/* Mapping of line number to CIO card slot. Up to 32 lines spread over 8
+   slots are supported. */
 uint8 ports_ln_slot[MAX_LINES];
 
 /* Mapping of slot number to base line number belonging to the card in
-   that slot. I.e., if there are two PORTS cards, one in slot 3 and
-   one in slot 5, index 3 will have starting line 0, index 5 will have
-   starting line 4. */
+   that slot. I.e., if there are two PORTS cards, one in slot 3 and one in
+   slot 5, index 3 will have starting line 0, index 5 will have starting
+   line 4. */
 uint32 ports_slot_ln[CIO_SLOTS];
 
 /* PORTS-specific state for each slot */
 PORTS_LINE_STATE *ports_state = NULL;
 
-/* Baud rates determined by the low nybble
- * of the PORT_OPTIONS cflag */
+/* Line-printer state (only one is supported) */
+PORTS_LINE_STATE lpt_state;
+
+/* Baud rates determined by the low nybble of the PORT_OPTIONS cflag */
 CONST char *ports_baud[16] = {
     "75",    "110",  "134",  "150",
     "300",   "600",  "1200", "2000",
@@ -199,12 +194,61 @@ DEVICE ports_dev = {
     NULL,                          /* device description */
 };
 
+UNIT lpt_unit = {
+    UDATA(NULL, UNIT_SEQ|UNIT_ATTABLE|UNIT_TEXT, 0), SERIAL_OUT_WAIT
+};
+
+DEVICE lpt_dev = {
+    "LPT",                  /* name */
+    &lpt_unit,              /* units */
+    NULL,                   /* registers */
+    NULL,                   /* modifiers */
+    1,                      /* # units */
+    16,                     /* address radix */
+    32,                     /* address width */
+    1,                      /* address incr. */
+    16,                     /* data radix */
+    8,                      /* data width */
+    NULL,                   /* examine routine */
+    NULL,                   /* deposit routine */
+    &lpt_reset,             /* reset routine */
+    NULL,                   /* boot routine */
+    &lpt_attach,            /* attach routine */
+    &lpt_detach,            /* detach routine */
+    NULL,                   /* context */
+    DEV_DISABLE|DEV_DIS,    /* flags */
+    0,                      /* debug control flags */
+    NULL,                   /* debug flag names */
+    NULL,                   /* memory size change */
+    NULL,                   /* logical name */
+    &lpt_help,              /* help routine */
+    NULL,                   /* attach help routine */
+    NULL,                   /* help context */
+    &lpt_description        /* device description */
+};
 
 static void cio_irq(uint8 slot, uint8 dev, int32 delay)
 {
     ports_int_slot = slot;
     ports_int_subdev = dev & 0xf;
     sim_activate(&ports_unit[2], delay);
+}
+
+static void lpt_out(uint8 c)
+{
+    if (!lpt_state.conn) {
+        return;
+    }
+
+    fputc(c, lpt_unit.fileref);
+
+    if (ferror(lpt_unit.fileref)) {
+        sim_perror("LPT I/O error");
+        clearerr(lpt_unit.fileref);
+        return;
+    }
+
+    lpt_unit.pos++;
 }
 
 /*
@@ -276,10 +320,22 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
     PORTS_OPTIONS opts;
     char line_config[16];
     uint8 app_data[4] = {0};
+    PORTS_LINE_STATE *state;
 
     centry.address = rentry->address;
     cio[slot].op = rentry->opcode;
-    ln = LN(slot, rentry->subdevice & 0xf);
+
+    if ((rentry->subdevice & 7) == PORTS_CENTRONICS) {
+        ln = 0;
+        state = &lpt_state;
+    } else {
+        ln = LN(slot, rentry->subdevice & 7);
+        state = &ports_state[ln];
+    }
+
+    sim_debug(TRACE_DBG, &ports_dev,
+              "[ports_cmd] Command: slot %d, subdev %d, opcode 0x%02x\n",
+              slot, rentry->subdevice, rentry->opcode);
 
     switch(rentry->opcode) {
     case CIO_DLM:
@@ -378,10 +434,10 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
         sim_debug(TRACE_DBG, &ports_dev,  "    PPC Options: vtime=%02x\n", opts.vtime);
         sim_debug(TRACE_DBG, &ports_dev,  "    PPC Options: vcount=%02x\n", opts.vcount);
 
-        ports_state[ln].iflag = opts.iflag;
-        ports_state[ln].oflag = opts.oflag;
+        state->iflag = opts.iflag;
+        state->oflag = opts.oflag;
 
-        if ((rentry->subdevice & 0xf) < PORTS_LINES) {
+        if ((rentry->subdevice & 7) < PORTS_LINES) {
             /* Adjust baud rate */
             sprintf(line_config, "%s-8N1",
                     ports_baud[opts.cflag&0xf]);
@@ -409,8 +465,7 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
 
         centry.opcode = CIO_ULM;
 
-        /* TODO: It's unknown what the value 0x50 means, but this
-         * is what a real board sends. */
+        /* 0x50 (80 decimal) is the expected PROM version */
         app_data[0] = 0x50;
         cio_cqueue(slot, CIO_STAT, PPQESIZE, &centry, app_data);
         cio_irq(slot, rentry->subdevice, DELAY_VERS);
@@ -421,7 +476,9 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
                   "[ports_cmd] PPC CONNECT - subdevice = %02x\n",
                   rentry->subdevice);
 
-        ports_state[ln].conn = TRUE;
+        if (rentry->subdevice < PORTS_LINES) {
+            ports_state[ln].conn = TRUE;
+        }
 
         centry.opcode = PPC_CONN;
         centry.subdevice = rentry->subdevice;
@@ -437,11 +494,10 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
                   "[ports_cmd] PPC XMIT - subdevice = %02x, address=%08x, byte_count=%d\n",
                   rentry->subdevice, rentry->address, rentry->byte_count);
 
-        /* Set state for xmit */
-        ports_state[ln].tx_addr = rentry->address;
-        ports_state[ln].tx_req_addr = rentry->address;
-        ports_state[ln].tx_chars = rentry->byte_count + 1;
-        ports_state[ln].tx_req_chars = rentry->byte_count + 1;
+        state->tx_addr = rentry->address;
+        state->tx_req_addr = state->tx_addr;
+        state->tx_chars = rentry->byte_count + 1;
+        state->tx_req_chars = state->tx_chars;
 
         sim_activate_after(&ports_unit[1], ports_unit[1].wait);
 
@@ -490,34 +546,41 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
 /*
  * Update the connection status of the given port.
  */
-static void ports_update_conn(uint32 ln)
+static void ports_update_conn(uint8 slot, uint8 subdev)
 {
     cio_entry centry = {0};
-    uint8 slot;
     uint8 app_data[4] = {0};
+    uint32 ln = LN(slot, subdev);
 
-    slot = LSLOT(ln);
-
-    /* If the card hasn't sysgened, there's no way to write a
-     * completion queue entry */
+    /* If the card hasn't sysgened, there's no way to write a completion
+     * queue entry */
     if (cio[slot].sysgen_s != CIO_SYSGEN) {
         return;
     }
 
-    if (ports_ldsc[ln].conn) {
+    sim_debug(TRACE_DBG, &ports_dev, "[ports_update_conn] slot=%d, subdev=%d\n", slot, subdev);
+
+    if (subdev == PORTS_CENTRONICS) {
+        if (!lpt_state.conn) {
+            return;
+        }
         app_data[0] = AC_CON;
-        ports_state[ln].conn = TRUE;
     } else {
-        if (ports_state[ln].conn) {
-            app_data[0] = AC_DIS;
-            ports_state[ln].conn = FALSE;
+        if (ports_ldsc[ln].conn) {
+            app_data[0] = AC_CON;
+            ports_state[ln].conn = TRUE;
         } else {
-            app_data[0] = 0;
+            if (ports_state[ln].conn) {
+                app_data[0] = AC_DIS;
+                ports_state[ln].conn = FALSE;
+            } else {
+                app_data[0] = 0;
+            }
         }
     }
 
     centry.opcode = PPC_ASYNC;
-    centry.subdevice = LPORT(ln);
+    centry.subdevice = subdev;
     cio_cqueue(slot, CIO_CMD, PPQESIZE, &centry, app_data);
 
     /* Interrupt */
@@ -556,7 +619,7 @@ void ports_full(uint8 slot)
     cio_entry rqe = {0};
     uint8 app_data[4] = {0};
 
-    for (i = 0; i < PORTS_LINES; i++) {
+    for (i = 0; i < PORTS_RCV_QUEUE; i++) {
         if (cio_rqueue(slot, i, PPQESIZE, &rqe, app_data) == SCPE_OK) {
             ports_cmd(slot, &rqe, app_data);
         }
@@ -576,7 +639,7 @@ t_stat ports_reset(DEVICE *dptr)
         sim_set_uname(&ports_unit[1], "PORTS-XMT");
         sim_set_uname(&ports_unit[2], "PORTS-CIO");
 
-        ports_desc.lines = PORTS_DFLT_LINES;
+        ports_desc.lines = PORTS_LINES;
         ports_desc.ldsc = ports_ldsc =
             (TMLN *)calloc(ports_desc.lines, sizeof(*ports_ldsc));
     }
@@ -641,11 +704,13 @@ t_stat ports_cio_svc(UNIT *uptr)
     switch (cio[ports_int_slot].op) {
     case PPC_CONN:
         cio[ports_int_slot].op = PPC_ASYNC;
-        ports_ldsc[LN(ports_int_slot, ports_int_subdev)].rcve = 1;
+        if (ports_int_subdev < PORTS_LINES) {
+            ports_ldsc[LN(ports_int_slot, ports_int_subdev)].rcve = 1;
+        }
         sim_activate(&ports_unit[2], DELAY_ASYNC);
         break;
     case PPC_ASYNC:
-        ports_update_conn(LN(ports_int_slot, ports_int_subdev));
+        ports_update_conn(ports_int_slot, ports_int_subdev);
         break;
     default:
         break;
@@ -670,14 +735,16 @@ t_stat ports_rcv_svc(UNIT *uptr)
 
     ln = tmxr_poll_conn(&ports_desc);
     if (ln >= 0) {
-        ports_update_conn(ln);
+        /* Possibly connect a newly opened port */
+        ports_update_conn(LSLOT(ln), LPORT(ln));
     }
 
     for (ln = 0; ln < ports_desc.lines; ln++) {
         slot = LSLOT(ln);
 
         if (!ports_ldsc[ln].conn && ports_state[ln].conn) {
-            ports_update_conn(ln);
+            /* Disconnect a connected line, it has been dropped */
+            ports_update_conn(LSLOT(ln), LPORT(ln));
         } else if (ports_ldsc[ln].conn && ports_state[ln].conn) {
             temp = tmxr_getc_ln(&ports_ldsc[ln]);
 
@@ -728,7 +795,7 @@ t_stat ports_xmt_svc(UNIT *uptr)
     uint8 app_data[4] = {0};
     uint32 wait = 0x7fffffff;
 
-    /* Scan all lines for output */
+    /* Scan all MUX lines for output */
     for (ln = 0; ln < ports_desc.lines; ln++) {
         slot = LSLOT(ln);
         if (ports_ldsc[ln].conn && ports_state[ln].tx_chars > 0) {
@@ -748,30 +815,53 @@ t_stat ports_xmt_svc(UNIT *uptr)
                     /* Indicate that we're in a CRLF translation */
                     ports_state[ln].crlf = TRUE;
                 }
+            } else {
+                ports_state[ln].crlf = FALSE;
 
-                break;
+                if (tmxr_putc_ln(&ports_ldsc[ln], c) == SCPE_OK) {
+                    wait = MIN(wait, ports_ldsc[ln].txdeltausecs);
+                    ports_state[ln].tx_chars--;
+                    ports_state[ln].tx_addr++;
+                }
+
+                if (ports_state[ln].tx_chars == 0) {
+                    centry.byte_count = ports_state[ln].tx_req_chars;
+                    centry.subdevice = LPORT(ln);
+                    centry.opcode = PPC_XMIT;
+                    centry.address = ports_state[ln].tx_req_addr;
+                    app_data[0] = GC_FLU;
+                    cio_cqueue(slot, CIO_STAT, PPQESIZE, &centry, app_data);
+                    CIO_SET_INT(slot);
+                }
             }
+        }
+    }
 
-            ports_state[ln].crlf = FALSE;
+    /* Scan LPT line for output */
+    if (lpt_state.conn && lpt_state.tx_chars > 0) {
+        tx = TRUE;
+        /* This is a hack -- we just want the slot of the first installed
+           PORTS board */
+        slot = LSLOT(0);
+        wait = MIN(wait, SERIAL_OUT_WAIT);
+        c = pread_b(lpt_state.tx_addr, BUS_PER);
 
-            if (tmxr_putc_ln(&ports_ldsc[ln], c) == SCPE_OK) {
-                wait = MIN(wait, ports_ldsc[ln].txdeltausecs);
-                ports_state[ln].tx_chars--;
-                ports_state[ln].tx_addr++;
-                sim_debug(IO_DBG, &ports_dev,
-                          "[ports_xmt_svc] [LINE %d] XMIT:         %02x (%c)\n",
-                          ln, c, c);
-            }
-
-            if (ports_state[ln].tx_chars == 0) {
-                sim_debug(TRACE_DBG, &ports_dev,
-                          "[ports_xmt_svc] Done with xmit, card=%d port=%d. Interrupting.\n",
-                          slot, LPORT(ln));
-                centry.byte_count = ports_state[ln].tx_req_chars;
-                centry.subdevice = LPORT(ln);
+        /* The PORTS card optionally handles NL->CRLF */
+        if (c == 0xa && (lpt_state.oflag & ONLCR) && !(lpt_state.crlf)) {
+            /* Indicate that we're in a CRLF translation */
+            lpt_state.crlf = TRUE;
+            lpt_out(0xd);
+        } else {
+            lpt_state.crlf = FALSE;
+            lpt_state.tx_chars--;
+            lpt_state.tx_addr++;
+            lpt_out(c);
+            if (lpt_state.tx_chars == 0) {
+                centry.byte_count = lpt_state.tx_req_chars;
+                centry.subdevice = PORTS_CENTRONICS;
                 centry.opcode = PPC_XMIT;
-                centry.address = ports_state[ln].tx_req_addr;
-                app_data[0] = RC_FLU;
+                centry.address = lpt_state.tx_req_addr;
+                app_data[0] = GC_FLU;
                 cio_cqueue(slot, CIO_STAT, PPQESIZE, &centry, app_data);
                 CIO_SET_INT(slot);
             }
@@ -835,4 +925,60 @@ t_stat ports_detach(UNIT *uptr)
     tmxr_clear_modem_control_passthru(&ports_desc);
 
     return SCPE_OK;
+}
+
+t_stat lpt_reset(DEVICE *dptr)
+{
+    /* No-op */
+    return SCPE_OK;
+}
+
+t_stat lpt_attach(UNIT *uptr, const char *cptr)
+{
+    t_stat reason;
+
+    if (ports_dev.flags & DEV_DIS) {
+        return SCPE_NOFNC;
+    }
+
+    if ((reason = attach_unit(uptr, cptr)) == SCPE_OK) {
+        lpt_state.conn = TRUE;
+    }
+
+    return reason;
+}
+
+t_stat lpt_detach(UNIT *uptr)
+{
+    lpt_state.conn = FALSE;
+    return detach_unit(uptr);
+}
+
+t_stat lpt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+{
+    fprintf(st, "Line Printer (LPT)\n\n");
+    fprintf(st, "The line printer (LPT) simulates an AT&T 470 120cps line printer\n");
+    fprintf(st, "connected to the Centronics port of the first installed PORTS card. It\n");
+    fprintf(st, "writes text output to an attached file on disk. To use the LPT device,\n");
+    fprintf(st, "first ENABLE it, then ATTACH it to a disk file to be used for text \n");
+    fprintf(st, "output, for example:\n\n");
+    fprintf(st, "  SET LPT ENABLE\n");
+    fprintf(st, "  ATTACH LPT my_output.txt\n\n");
+    fprintf(st, "To use this device under System V UNIX, set up a printer attached to\n");
+    fprintf(st, "TTY number 5 of the first installed PORTS card.\n\n");
+    fprintf(st, "For example, if the first installed PORTS card has created TTY devices\n");
+    fprintf(st, "/dev/tty21 through /dev/tty25 (where /dev/tty2* indicates that the PORTS\n");
+    fprintf(st, "card is in backplane slot 2), the printer will be on TTY device /dev/tty25.\n\n");
+    fprintf(st, "Please note that the LPT requires at least one PORTS card be configured. It\n");
+    fprintf(st, "will not allow attaching to an output file unless a PORTS card is enabled.\n");
+    fprintf(st, "If you see the output\n\n");
+    fprintf(st, "  Command not allowed\n\n");
+    fprintf(st, "when trying to attach the LPT device, it means you have not enabled at\n");
+    fprintf(st, "least one PORTS card.\n");
+    return SCPE_OK;
+}
+
+const char *lpt_description(DEVICE *dptr)
+{
+    return "AT&T 470 120cps Dot Matrix Printer";
 }

@@ -506,7 +506,16 @@ static void ha_boot_tape(UNIT *uptr, uint8 tc)
         return;
     }
 
-    r = sim_tape_rdrecf(uptr, buf, &sectsread, HA_BLKSZ); /* Read block 0 */
+    r = sim_tape_sprecf(uptr, &sectsread);                /* Skip block 0 */
+
+    if (r != SCPE_OK) {
+        sim_debug(HA_TRACE, &ha_dev,
+                  "[ha_boot_tape] Could not skip block 0.\n");
+        HA_STAT(tc, HA_CKCON, CIO_SUCCESS);
+        return;
+    }
+
+    r = sim_tape_rdrecf(uptr, buf, &sectsread, HA_BLKSZ); /* Read block 1 */
 
     if (r != SCPE_OK) {
         sim_debug(HA_TRACE, &ha_dev,
@@ -522,8 +531,6 @@ static void ha_boot_tape(UNIT *uptr, uint8 tc)
     sim_debug(HA_TRACE, &ha_dev,
               "[ha_boot_tape] Transfered 512 bytes to 0x%08x\n",
               HA_BOOT_ADDR);
-
-    r = sim_tape_sprecf(uptr, &sectsread);           /* Skip block 1 */
 
     HA_STAT(tc, HA_GOOD, CIO_SUCCESS);
 
