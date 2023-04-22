@@ -77,6 +77,10 @@ cpack_add_component(lgp_family
     DISPLAY_NAME "LGP"
     DESCRIPTION "Librascope systems. Simulators: lgp"
 )
+cpack_add_component(norsk_family
+    DISPLAY_NAME "ND simulators"
+    DESCRIPTION "Norsk Data systems simulator family. Simulators: nd100"
+)
 cpack_add_component(pdp10_family
     DISPLAY_NAME "DEC PDP-10 collection"
     DESCRIPTION "DEC PDP-10 architecture simulators and variants. Simulators: pdp10, pdp10-ka, pdp10-ki, pdp10-kl, pdp10-ks"

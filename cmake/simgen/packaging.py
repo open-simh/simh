@@ -160,6 +160,9 @@ swtp_family = PkgFamily("swtp_family", "SWTP simulators",
     """Southwest Technical Products (SWTP) system simulators"""
 )
 
+norsk_family = PkgFamily("norsk_family", "ND simulators",
+    """Norsk Data systems simulator family""")
+
 
 package_info["3b2"] = SIMHPackaging(att3b2_family)
 package_info["3b2-700"] = SIMHPackaging(att3b2_family)
@@ -198,6 +201,7 @@ package_info["microvax2000"] = SIMHPackaging(vax_family)
 package_info["microvax3100"] = SIMHPackaging(vax_family)
 package_info["microvax3100e"] = SIMHPackaging(vax_family)
 package_info["microvax3100m80"] = SIMHPackaging(vax_family)
+package_info["nd100"] = SIMHPackaging(norsk_family)
 package_info["nova"] = SIMHPackaging(dgnova_family)
 package_info["pdp1"] = SIMHPackaging(decpdp_family)
 ## Don't install pdp10 per Rob Cromwell
