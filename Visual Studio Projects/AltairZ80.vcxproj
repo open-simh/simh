@@ -251,6 +251,9 @@
     <ClCompile Include="..\AltairZ80\i86_decode.c" />
     <ClCompile Include="..\AltairZ80\i86_ops.c" />
     <ClCompile Include="..\AltairZ80\i86_prim_ops.c" />
+    <ClCompile Include="..\AltairZ80\ibc.c" />
+    <ClCompile Include="..\AltairZ80\ibc_mcc_hdc.c" />
+    <ClCompile Include="..\AltairZ80\ibc_smd_hdc.c" />
     <ClCompile Include="..\AltairZ80\insnsd.c" />
     <ClCompile Include="..\AltairZ80\m68ksim.c" />
     <ClCompile Include="..\AltairZ80\m68k\m68kasm.c" />
