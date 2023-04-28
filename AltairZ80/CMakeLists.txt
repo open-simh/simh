@@ -39,6 +39,9 @@ add_simulator(altairz80
         i8272.c
         insnsd.c
         altairz80_mhdsk.c
+        ibc.c
+        ibc_mcc_hdc.c
+        ibc_smd_hdc.c
         mfdc.c
         n8vem.c
         vfdhd.c
