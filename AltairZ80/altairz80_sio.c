@@ -49,8 +49,6 @@
     to the data port writes the character to the device.
 */
 
-#include <ctype.h>
-
 #include "altairz80_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -770,11 +768,6 @@ static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
     pollConnection();
     if (io == 0) { /* IN */
         if (sio_unit.u4) {                                  /* attached to a file?                      */
-            ch = sim_poll_kbd();                            /* yes, check for stop condition first      */
-            if ((ch == SCPE_OK) && stop_cpu) {
-                sim_interval = 0;                           /* detect stop condition as soon as possible*/
-                return spi.sio_cannot_read | spi.sio_can_write; /* do not consume stop character        */
-            }
             if (sio_unit.u3)                                /* character available?                     */
                 return spi.sio_can_read | spi.sio_can_write;
             ch = getc(sio_unit.fileref);
@@ -788,15 +781,15 @@ static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
             }
         }
         if (sio_unit.flags & UNIT_ATT) {                    /* attached to a port?                      */
-            ch = sim_poll_kbd();                            /* yes, check for stop condition first      */
-            if ((ch == SCPE_OK) && stop_cpu) {
-                sim_interval = 0;                           /* detect stop condition as soon as possible*/
-                return spi.sio_cannot_read | spi.sio_can_write; /* do not consume stop character        */
-            }
             if (tmxr_rqln(&TerminalLines[spi.terminalLine]))
                 result = spi.sio_can_read;
             else {
                 result = spi.sio_cannot_read;
+#if defined (_WIN32) || defined (_VMS) || defined (__CYGWIN__) || (defined(USE_SIM_VIDEO) && defined(HAVE_LIBSDL))
+                sim_poll_kbd();                             /* check for WRU                            */
+#else
+                /* The WRU character is detected by signal while running. Polling is not needed.        */
+#endif
                 checkSleep();
             }
             return result |                                 /* read possible if character available     */
@@ -1142,17 +1135,11 @@ static t_stat sio_dev_set_interruptoff(UNIT *uptr, int32 value, CONST char *cptr
 }
 
 static t_stat sio_svc(UNIT *uptr) {
-    int32 sio_status;
     int32 ch;
     const SIO_PORT_INFO spi = lookupPortInfo(kbdIrqPort, &ch);
     ASSURE(spi.port == kbdIrqPort);
-
-    sio_status = sio0s(kbdIrqPort, 0, 0);
-
-    if (sio_status & spi.sio_can_read) {
+    if (sio0s(kbdIrqPort, 0, 0) & spi.sio_can_read)
         keyboardInterrupt = TRUE;
-    }
-
     if (sio_unit.flags & UNIT_SIO_INTERRUPT)
         sim_activate(&sio_unit, sio_unit.wait);             /* activate unit    */
     return SCPE_OK;
@@ -1483,18 +1470,18 @@ static int32 simh_in(const int32 port) {
     switch(lastCommand) {
         case readURLCmd:
             if (isInReadPhase) {
-            if (showAvailability) {
-                if (resultPointer < resultLength)
-                    result = 1;
-                else {
-                    if (urlResult != NULL)
-                        free(urlResult);
-                    urlResult = NULL;
-                    lastCommand = 0;
-                }
-            } else if (resultPointer < resultLength)
-                result = urlResult[resultPointer++];
-            showAvailability = 1 - showAvailability;
+                if (showAvailability) {
+                    if (resultPointer < resultLength)
+                        result = 1;
+                    else {
+                        if (urlResult != NULL)
+                            free(urlResult);
+                        urlResult = NULL;
+                        lastCommand = 0;
+                    }
+                } else if (resultPointer < resultLength)
+                    result = urlResult[resultPointer++];
+                showAvailability = 1 - showAvailability;
             } else
                 lastCommand = 0;
             break;
