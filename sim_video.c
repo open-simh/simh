@@ -27,6 +27,9 @@
    11-Jun-2013  MB      First version
 */
 
+#if defined(HAVE_LIBPNG) && defined(USE_SIM_VIDEO) && defined(HAVE_LIBSDL)
+#include <png.h>
+#endif
 #include "sim_video.h"
 #include "scp.h"
 
@@ -148,7 +151,6 @@ static char tmp_key_name[40];
  * http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
  */
 #include <SDL.h>
-#include <png.h>
 #include <zlib.h>
 
 #define SUCCESS 0
@@ -1812,10 +1814,12 @@ if (!vptr->vid_texture) {
 
 vptr->vid_format = SDL_AllocFormat (SDL_PIXELFORMAT_ARGB8888);
 
+#ifdef SDL_WINDOW_RESIZABLE
 if (vptr->vid_flags & SIM_VID_RESIZABLE) {
     SDL_SetWindowResizable(vptr->vid_window, SDL_TRUE);
     SDL_RenderSetIntegerScale(vptr->vid_renderer, SDL_TRUE);
 }
+#endif
 
 SDL_StopTextInput ();
 
