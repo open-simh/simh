@@ -408,6 +408,7 @@ add_simulator(vax730
         vax730_mem.c
         vax730_uba.c
         vax730_rb.c
+        vax_uw.c
         vax730_syslist.c
         ${PDP11D}/pdp11_rl.c
         ${PDP11D}/pdp11_rq.c
@@ -455,6 +456,7 @@ add_simulator(vax750
         vax750_mem.c
         vax750_uba.c
         vax7x0_mba.c
+        vax_uw.c
         vax750_syslist.c
         ${PDP11D}/pdp11_rl.c
         ${PDP11D}/pdp11_rq.c
@@ -505,6 +507,7 @@ add_simulator(vax780
         vax780_uba.c
         vax7x0_mba.c
         vax780_fload.c
+        vax_uw.c
         vax780_syslist.c
         ${PDP11D}/pdp11_rl.c
         ${PDP11D}/pdp11_rq.c
