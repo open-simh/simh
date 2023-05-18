@@ -1,0 +1,40 @@
+name: Release packaging
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'simh-*'
+
+
+jobs:
+  build:
+    uses: ./.github/workflows/cmake-builds.yml
+
+  release:
+    runs-on: ubuntu-22.04
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make staging directory
+        run: |
+          rm -rf work/open-simh/open-simh/staging/
+          mkdir -p work/open-simh/open-simh/staging/
+      - name: Download packages
+        uses: actions/download-artifact@v3
+        with:
+          path: ~/work/open-simh/open-simh/staging/
+      - name: Show it!
+        run: |
+          ls -lR ~/work/open-simh/open-simh/staging/
+          echo "----"
+          pwd
+          echo "----"
+          ls -CF
+      - name: Craft release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: cmake/GitHub-release.md
+          files: |
+            staging/*/simh-*
+

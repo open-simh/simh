@@ -1,4 +1,5 @@
 .git-commit-id
+.git-commit-id.h
 #ignore thumbnails created by windows
 Thumbs.db
 #ignore Desktop Services Store created by OSX
@@ -38,6 +39,10 @@ _ReSharper*/
 *#
 BIN/
 ipch/
+# Visual Studio, Visual Code directories:
+.vscode/
+.vs/
+build/
 # We only care about specific files in the Visual Studio Projects 
 # folder.  Things which are there on the fly to support debugging 
 # or other things we don't want git to manage.
@@ -49,3 +54,8 @@ Visual Studio Projects/~AutoRecover.*
 !Visual Studio Projects/0ReadMe_Projects.txt
 **/*.code-workspace
 **/.vscode/
+# Visual Studio artifacts in CMake mode
+out/
+CMakeSettings.json
+## Staging area for cmake install (default install prefix)
+SIMH-install

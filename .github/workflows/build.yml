@@ -1,16 +1,28 @@
 name: Build
 
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
+    branches:
+      - '*'
+    tags:
+      - '!v*'
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  build:
+  cmake-builds:
+    uses: ./.github/workflows/cmake-builds.yml
+
+  makefile:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        ## macos-10.15: Runner seems to be officially disabled, results in canceled
+        ## builds. Leaving this "as-is".
+        ##
         os: [macos-12, ubuntu-20.04]
         simulators:
           # These are supposed to match ALL in makefile.
@@ -22,14 +34,14 @@ jobs:
           - besm6 imlac tt2500 microvax3900 microvax1 rtvax1000 vaxstation3100m76 vaxstation4000m60
           - scelbi 3b2 i701 i704 i7010 i7070 i7080 i7090 sigma uc15 i650 sel32 intel-mds ibm1130
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         if: ${{runner.os == 'macOS'}}
         run: sh -ex .travis/deps.sh osx
       - name: Install dependencies
         if: ${{runner.os == 'Linux'}}
         run: sh -ex .travis/deps.sh linux
-      - name: Build
+      - name: makefile build
         env:
           SIM: ${{matrix.simulators}}
         run: make LTO=1 OPTIMIZE=-O3 $SIM

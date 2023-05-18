@@ -1,0 +1,14 @@
+{
+    "name": "simh",
+    "version-string": "4.0.0",
+    "description": [
+        "SIMH: The historical computer architecture simulation suite."
+    ],
+    "dependencies": [
+        "pthreads",
+        "pcre",
+        "libpng",
+        "sdl2",
+        "sdl2-ttf"
+    ]
+}
