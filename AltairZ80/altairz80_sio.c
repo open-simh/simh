@@ -50,7 +50,6 @@
 */
 
 #include "altairz80_defs.h"
-#include "sim_sock.h"
 #include "sim_tmxr.h"
 
 uint8 *URLContents(const char *URL, uint32 *length);
