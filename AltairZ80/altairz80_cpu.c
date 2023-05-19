@@ -6863,11 +6863,12 @@ static int32 bankseldev(const int32 port, const int32 io, const int32 data) {
 static void cpu_set_chiptype_short(const int32 value) {
     if ((chiptype == value) || (value < 0) || (value >= NUM_CHIP_TYPE))
         return; /* nothing to do */
-    chiptype = (ChipType)value;
     if (((chiptype == CHIP_TYPE_8080) && (value == CHIP_TYPE_Z80)) ||
         ((chiptype == CHIP_TYPE_Z80) && (value == CHIP_TYPE_8080))) {
+        chiptype = (ChipType)value;
         return;
     }
+    chiptype = (ChipType)value;
     switch (chiptype) {
         case CHIP_TYPE_8080:
         case CHIP_TYPE_Z80:
