@@ -324,6 +324,7 @@
     <ClCompile Include="..\VAX\vax_octa.c" />
     <ClCompile Include="..\VAX\vax_sys.c" />
     <ClCompile Include="..\VAX\vax_syscm.c" />
+    <ClCompile Include="..\VAX\vax_uw.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\PDP11\pdp11_cr_dat.h" />
