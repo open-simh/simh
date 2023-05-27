@@ -25,7 +25,7 @@
 */
 
 #include "altairz80_defs.h"
-#include "sim_sock.h"
+#include "sim_tmxr.h"
 
 /* Debug flags */
 #define ACCEPT_MSG  (1 << 0)
@@ -53,26 +53,20 @@ extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_typ
                                int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
 
 #define MAX_CONNECTIONS 2   /* maximal number of server connections */
-#define BUFFER_LENGTH   512 /* length of input and output buffer    */
+
+TMLN net_ldsc[MAX_CONNECTIONS];
+TMXR net_desc = {MAX_CONNECTIONS, 0, 0, net_ldsc};
 
 static struct {
     int32   Z80StatusPort;              /* Z80 status port associated with this ioSocket, read only             */
     int32   Z80DataPort;                /* Z80 data port associated with this ioSocket, read only               */
-    SOCKET  masterSocket;               /* server master socket, only defined at [1]                            */
-    SOCKET  ioSocket;                   /* accepted server socket or connected client socket, 0 iff free        */
-    char    inputBuffer[BUFFER_LENGTH]; /* buffer for input characters read from ioSocket                       */
-    int32   inputPosRead;               /* position of next character to read from buffer                       */
-    int32   inputPosWrite;              /* position of next character to append to input buffer from ioSocket   */
-    int32   inputSize;                  /* number of characters in circular input buffer                        */
-    char    outputBuffer[BUFFER_LENGTH];/* buffer for output characters to be written to ioSocket               */
-    int32   outputPosRead;              /* position of next character to write to ioSocket                      */
-    int32   outputPosWrite;             /* position of next character to append to output buffer                */
-    int32   outputSize;                 /* number of characters in circular output buffer                       */
+    int32   line;                       /* tmxr line */
+    char    lastChar;                   /* last character received */
 } serviceDescriptor[MAX_CONNECTIONS + 1] = {    /* serviceDescriptor[0] holds the information for a client      */
 /*  stat    dat ms  ios in      inPR    inPW    inS out     outPR   outPW   outS */
-    {0x32,  0x33, 0,  0,  {0},    0,      0,      0,  {0},    0,      0,      0}, /* client Z80 port 50 and 51  */
-    {0x28,  0x29, 0,  0,  {0},    0,      0,      0,  {0},    0,      0,      0}, /* server Z80 port 40 and 41  */
-    {0x2a,  0x2b, 0,  0,  {0},    0,      0,      0,  {0},    0,      0,      0}  /* server Z80 port 42 and 43  */
+    {0x32,  0x33}, /* client Z80 port 50 and 51  */
+    {0x28,  0x29}, /* server Z80 port 40 and 41  */
+    {0x2a,  0x2b}  /* server Z80 port 42 and 43  */
 };
 
 static UNIT net_unit = {
@@ -132,12 +126,8 @@ static t_stat set_net(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
 }
 
 static void serviceDescriptor_reset(const uint32 i) {
-    serviceDescriptor[i].inputPosRead   = 0;
-    serviceDescriptor[i].inputPosWrite  = 0;
-    serviceDescriptor[i].inputSize      = 0;
-    serviceDescriptor[i].outputPosRead  = 0;
-    serviceDescriptor[i].outputPosWrite = 0;
-    serviceDescriptor[i].outputSize     = 0;
+    tmxr_reset_ln (&net_ldsc[serviceDescriptor[i].line]);
+    serviceDescriptor[i].lastChar = 0;
 }
 
 static t_stat net_reset(DEVICE *dptr) {
@@ -155,108 +145,41 @@ static t_stat net_reset(DEVICE *dptr) {
 }
 
 static t_stat net_attach(UNIT *uptr, CONST char *cptr) {
-    uint32 i;
-    char host[CBUFSIZE], port[CBUFSIZE];
-
-    if (sim_parse_addr (cptr, host, sizeof(host), "localhost", port, sizeof(port), "3000", NULL))
-        return SCPE_ARG;
+    net_detach (uptr);
     net_reset(&net_dev);
-    for (i = 0; i <= MAX_CONNECTIONS; i++)
-        serviceDescriptor[i].ioSocket = 0;
+    net_desc.notelnet = TRUE;
     if (net_unit.flags & UNIT_SERVER) {
+        int32 i;
+        for (i = 0; i < MAX_CONNECTIONS; i++)
+            serviceDescriptor[i].line = i;
         net_unit.wait = NET_INIT_POLL_SERVER;
-        serviceDescriptor[1].masterSocket = sim_master_sock(cptr, NULL);
-        if (serviceDescriptor[1].masterSocket == INVALID_SOCKET)
-            return SCPE_IOERR;
     } else {
+        char connection[CBUFSIZE];
+
         net_unit.wait = NET_INIT_POLL_CLIENT;
-        serviceDescriptor[0].ioSocket = sim_connect_sock_ex(NULL, cptr, "localhost", "3000", SIM_SOCK_OPT_NODELAY);
-        if (serviceDescriptor[0].ioSocket == INVALID_SOCKET)
-            return SCPE_IOERR;
+        snprintf (connection, sizeof (connection), "Line=0, Connect=%s", cptr);
+        cptr = connection;
     }
-    net_unit.flags |= UNIT_ATT;
-    net_unit.filename = (char *) calloc(1, strlen(cptr)+1);         /* alloc name buf */
-    if (net_unit.filename == NULL)
-        return SCPE_MEM;
-    strcpy(net_unit.filename, cptr);                                /* save name */
-    return SCPE_OK;
+    return tmxr_attach (&net_desc, uptr, cptr);
 }
 
 static t_stat net_detach(UNIT *uptr) {
-    uint32 i;
     if (!(net_unit.flags & UNIT_ATT))
         return SCPE_OK;       /* if not attached simply return */
-    if (net_unit.flags & UNIT_SERVER)
-        sim_close_sock(serviceDescriptor[1].masterSocket);
-    for (i = 0; i <= MAX_CONNECTIONS; i++)
-        if (serviceDescriptor[i].ioSocket)
-            sim_close_sock(serviceDescriptor[i].ioSocket);
-    free(net_unit.filename);                                /* free port string */
-    net_unit.filename = NULL;
-    net_unit.flags &= ~UNIT_ATT;                            /* not attached */
-    return SCPE_OK;
+    return tmxr_detach (&net_desc, uptr);
 }
 
-/* cannot use sim_check_conn to check whether read will return an error */
 static t_stat net_svc(UNIT *uptr) {
-    int32 i, j, k, r;
-    SOCKET s;
-    static char svcBuffer[BUFFER_LENGTH];
-    if (net_unit.flags & UNIT_ATT) { /* cannot remove due to following else */
-        sim_activate(&net_unit, net_unit.wait);             /* continue poll */
-        if (net_unit.flags & UNIT_SERVER) {
-            for (i = 1; i <= MAX_CONNECTIONS; i++)
-                if (serviceDescriptor[i].ioSocket == 0) {
-                    s = sim_accept_conn(serviceDescriptor[1].masterSocket, NULL);
-                    if (s != INVALID_SOCKET) {
-                        serviceDescriptor[i].ioSocket = s;
-                        sim_debug(ACCEPT_MSG, &net_dev, "NET: " ADDRESS_FORMAT " Accepted connection %i with socket %i.\n", PCX, i, s);
-                    }
-                }
-        } else if (serviceDescriptor[0].ioSocket == 0) {
-            serviceDescriptor[0].ioSocket = sim_connect_sock(net_unit.filename, "localhost", "3000");
-            if (serviceDescriptor[0].ioSocket == INVALID_SOCKET)
-                return SCPE_IOERR;
-            sim_printf("\rWaiting for server ... Type g<return> (possibly twice) when ready\n");
-            return SCPE_STOP;
+    int32 newln;
+    if (net_unit.flags & UNIT_ATT) {
+        newln = tmxr_poll_conn (&net_desc);         /* check for new connection */
+        if (newln >= 0) {
+            net_desc.ldsc[newln].rcve = 1;
+            sim_debug(ACCEPT_MSG, &net_dev, "NET: " ADDRESS_FORMAT "  connection established with %s %i\n", PCX, net_ldsc[newln].ipad, newln);
         }
-        for (i = 0; i <= MAX_CONNECTIONS; i++)
-            if (serviceDescriptor[i].ioSocket) {
-                if (serviceDescriptor[i].inputSize < BUFFER_LENGTH) { /* there is space left in inputBuffer */
-                    r = sim_read_sock(serviceDescriptor[i].ioSocket, svcBuffer,
-                        BUFFER_LENGTH - serviceDescriptor[i].inputSize);
-                    if (r == -1) {
-                        sim_debug(DROP_MSG, &net_dev, "NET: " ADDRESS_FORMAT " Drop connection %i with socket %i.\n", PCX, i, serviceDescriptor[i].ioSocket);
-                        sim_close_sock(serviceDescriptor[i].ioSocket);
-                        serviceDescriptor[i].ioSocket = 0;
-                        serviceDescriptor_reset(i);
-                        continue;
-                    } else {
-                        for (j = 0; j < r; j++) {
-                            serviceDescriptor[i].inputBuffer[serviceDescriptor[i].inputPosWrite++] = svcBuffer[j];
-                            if (serviceDescriptor[i].inputPosWrite == BUFFER_LENGTH)
-                                serviceDescriptor[i].inputPosWrite = 0;
-                        }
-                        serviceDescriptor[i].inputSize += r;
-                    }
-                }
-                if (serviceDescriptor[i].outputSize > 0) { /* there is something to write in outputBuffer */
-                    k = serviceDescriptor[i].outputPosRead;
-                    for (j = 0; j < serviceDescriptor[i].outputSize; j++) {
-                        svcBuffer[j] = serviceDescriptor[i].outputBuffer[k++];
-                        if (k == BUFFER_LENGTH)
-                            k = 0;
-                    }
-                    r = sim_write_sock(serviceDescriptor[i].ioSocket, svcBuffer, serviceDescriptor[i].outputSize);
-                    if (r >= 0) {
-                        serviceDescriptor[i].outputSize -= r;
-                        serviceDescriptor[i].outputPosRead += r;
-                        if (serviceDescriptor[i].outputPosRead >= BUFFER_LENGTH)
-                            serviceDescriptor[i].outputPosRead -= BUFFER_LENGTH;
-                    } else
-                        sim_printf("write %i\n", r);
-                }
-            }
+        tmxr_poll_rx (&net_desc);                   /* get recieved data */
+        tmxr_poll_tx (&net_desc);                   /* send any pending output data */
+        sim_activate(&net_unit, net_unit.wait);     /* continue poll */\
     }
     return SCPE_OK;
 }
@@ -268,45 +191,43 @@ int32 netStatus(const int32 port, const int32 io, const int32 data) {
     net_svc(&net_unit);
     if (io == 0)    /* IN   */
         for (i = 0; i <= MAX_CONNECTIONS; i++)
-            if (serviceDescriptor[i].Z80StatusPort == port)
-                return (serviceDescriptor[i].inputSize > 0 ? 1 : 0) |
-                    (serviceDescriptor[i].outputSize < BUFFER_LENGTH ? 2 : 0);
+            if (serviceDescriptor[i].Z80StatusPort == port) {
+                int32 line = serviceDescriptor[i].line;
+                return ((tmxr_rqln (&net_ldsc[line]) > 0) ? 1 : 0) |
+                       ((tmxr_tqln (&net_ldsc[line]) < net_ldsc[line].txbsz) ? 2 : 0);
+            }
     return 0;
 }
 
 int32 netData(const int32 port, const int32 io, const int32 data) {
     uint32 i;
-    char result;
+    int32 result;
     if ((net_unit.flags & UNIT_ATT) == 0)
         return 0;
     net_svc(&net_unit);
     for (i = 0; i <= MAX_CONNECTIONS; i++)
         if (serviceDescriptor[i].Z80DataPort == port) {
             if (io == 0) {  /* IN   */
-                if (serviceDescriptor[i].inputSize == 0) {
+                result = tmxr_getc_ln (&net_ldsc[serviceDescriptor[i].line]);
+                if (result == 0) {
                     sim_printf("re-read from %i\n", port);
-                    result = serviceDescriptor[i].inputBuffer[serviceDescriptor[i].inputPosRead > 0 ?
-                        serviceDescriptor[i].inputPosRead - 1 : BUFFER_LENGTH - 1];
+                    result = serviceDescriptor[i].lastChar;
                 } else {
-                    result = serviceDescriptor[i].inputBuffer[serviceDescriptor[i].inputPosRead++];
-                    if (serviceDescriptor[i].inputPosRead == BUFFER_LENGTH)
-                        serviceDescriptor[i].inputPosRead = 0;
-                    serviceDescriptor[i].inputSize--;
+                    result &= ~TMXR_VALID;
+                    serviceDescriptor[i].lastChar = result;
                 }
                 sim_debug(IN_MSG, &net_dev, "NET: " ADDRESS_FORMAT "  IN(%i)=%03xh (%c)\n", PCX, port, (result & 0xff), (32 <= (result & 0xff)) && ((result & 0xff) <= 127) ? (result & 0xff) : '?');
                 return result;
             } else {          /* OUT  */
-                if (serviceDescriptor[i].outputSize == BUFFER_LENGTH) {
-                    sim_printf("over-write %i to %i\n", data, port);
-                    serviceDescriptor[i].outputBuffer[serviceDescriptor[i].outputPosWrite > 0 ?
-                        serviceDescriptor[i].outputPosWrite - 1 : BUFFER_LENGTH - 1] = data;
+                result = tmxr_putc_ln (&net_ldsc[serviceDescriptor[i].line], data);
+                if (result == SCPE_STALL) {
+                    sim_printf("buffer full %i to %i ignored\n", data, port);
                 } else {
-                    serviceDescriptor[i].outputBuffer[serviceDescriptor[i].outputPosWrite++] = data;
-                    if (serviceDescriptor[i].outputPosWrite== BUFFER_LENGTH)
-                        serviceDescriptor[i].outputPosWrite = 0;
-                    serviceDescriptor[i].outputSize++;
+                    if (result == SCPE_LOST)
+                        sim_printf("data dropped (no connection) %i to %i\n", data, port);
                 }
                 sim_debug(OUT_MSG, &net_dev, "NET: " ADDRESS_FORMAT " OUT(%i)=%03xh (%c)\n", PCX, port, data, (32 <= data) && (data <= 127) ? data : '?');
+                tmxr_send_buffered_data (&net_ldsc[serviceDescriptor[i].line]);
                 return 0;
             }
         }
