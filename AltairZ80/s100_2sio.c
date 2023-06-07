@@ -65,7 +65,7 @@
    We get many calls on how to interface terminals to the 2SIO. The
    problem is that the Asynchronous Communications Interface Adapter's
    (ACIA) handshaking signals make interfacing with the 2SIO a
-   somewhat complicated matter. An explaination of the signals and
+   somewhat complicated matter. An explanation of the signals and
    their function should make the job easier. The three handshaking
    signals--Data Carrier Detect (DCD), Request to Send (RTS) and
    Clear to Send (CTS)--permit limited control of a modem or
@@ -79,8 +79,8 @@
    section is inhibited and no data can be received by the ACIA.
 
    Information from the two input signals, CTS and DCD, is present in
-   the ACIA status register. Bit 2 represents *DCD, and bit 3 repre-
-   sents *CTS. When bit 2 is high, DCD is inactive. When bit 3 is high,
+   the ACIA status register. Bit 2 represents *DCD, and bit 3
+   represents *CTS. When bit 2 is high, DCD is inactive. When bit 3 is high,
    CTS is inactive. When bit 2 goes low, valid data is sent to the ACIA.
    When bit 3 goes low, data can be transmitted.
 
@@ -230,6 +230,8 @@ static TMXR m2sio1_tmxr = {                     /* multiplexer descriptor */
 #define UNIT_M2SIO_DTR        (1 << UNIT_V_M2SIO_DTR)
 #define UNIT_V_M2SIO_DCD      (UNIT_V_UF + 2)     /* Force DCD active low          */
 #define UNIT_M2SIO_DCD        (1 << UNIT_V_M2SIO_DCD)
+#define UNIT_V_M2SIO_CTS      (UNIT_V_UF + 3)     /* Force CTS active low          */
+#define UNIT_M2SIO_CTS        (1 << UNIT_V_M2SIO_CTS)
 
 static MTAB m2sio_mod[] = {
     { MTAB_XTD|MTAB_VDV,    0,                      "IOBASE",  "IOBASE",
@@ -246,6 +248,10 @@ static MTAB m2sio_mod[] = {
         "Force DCD active low" },
     { UNIT_M2SIO_DCD,       0,                  "NODCD",     "NODCD",     NULL, NULL, NULL,
         "DCD follows status line (default)" },
+    { UNIT_M2SIO_CTS,       UNIT_M2SIO_CTS,     "CTS",       "CTS",       NULL, NULL, NULL,
+        "Force CTS active low" },
+    { UNIT_M2SIO_CTS,       0,                  "NOCTS",     "NOCTS",     NULL, NULL, NULL,
+        "CTS follows status line (default)" },
     { MTAB_XTD|MTAB_VDV|MTAB_VALR,  0,   "BAUD",  "BAUD",  &m2sio_set_baud, &m2sio_show_baud,
         NULL, "Set baud rate (default=9600)" },
     { 0 }
@@ -395,7 +401,7 @@ static t_stat m2sio_reset(DEVICE *dptr, int32 (*routine)(const int32, const int3
     c = getClockFrequency() / 5;
     dptr->units[0].wait = (c && c < 1000) ? c : 1000;
 
-    /* Enable TMXR modem control passthru */
+    /* Enable TMXR modem control passthrough */
     tmxr_set_modem_control_passthru(xptr->tmxr);
 
     /* Reset status registers */
@@ -440,7 +446,7 @@ static t_stat m2sio_svc(UNIT *uptr)
         tmxr_set_get_modem_bits(xptr->tmln, 0, 0, &s);
         stb = xptr->stb;
         xptr->stb &= ~M2SIO_CTS;
-        xptr->stb |= (s & TMXR_MDM_CTS) ? 0 : M2SIO_CTS;     /* Active Low */
+        xptr->stb |= ((s & TMXR_MDM_CTS) || (uptr->flags & UNIT_M2SIO_CTS)) ? 0 : M2SIO_CTS;     /* Active Low */
         if ((stb ^ xptr->stb) & M2SIO_CTS) {
             sim_debug(STATUS_MSG, uptr->dptr, "CTS state changed to %s.\n", (xptr->stb & M2SIO_CTS) ? "LOW" : "HIGH");
         }
@@ -665,7 +671,7 @@ static t_stat m2sio_config_line(UNIT *uptr)
         ** to run irrelevant, old software, that use TMXR and
         ** rely on some semblance of timing (Remote CP/M, BYE,
         ** RBBS, PCGET/PUT, Xmodem, MEX, Modem7, or most
-        ** other communications software), on contemprary
+        ** other communications software), on contemporary
         ** hardware.
         **
         ** Serial ports are self-limiting and sockets will run
