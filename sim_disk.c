@@ -2439,6 +2439,8 @@ time_t now = time (NULL);
 t_offset total_sectors;
 t_offset highwater;
 
+return SCPE_OK;
+
 if ((dptr = find_dev_from_unit (uptr)) == NULL)
     return SCPE_NOATT;
 if (uptr->flags & UNIT_RO)
@@ -2501,6 +2503,8 @@ struct simh_disk_footer *f;
 t_offset total_sectors;
 t_offset highwater;
 t_offset footer_highwater;
+
+return SCPE_OK;
 
 if ((dptr = find_dev_from_unit (uptr)) == NULL)
     return SCPE_NOATT;
