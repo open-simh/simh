@@ -697,11 +697,11 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       endif
     endif
   endif
+  ifeq (cygwin,$(OSTYPE))
+    LIBEXTSAVE := ${LIBEXT}
+    LIBEXT = dll.a
+  endif
   ifneq (,$(VIDEO_USEFUL))
-    ifeq (cygwin,$(OSTYPE))
-      LIBEXTSAVE := ${LIBEXT}
-      LIBEXT = dll.a
-    endif
     ifneq (,$(call find_include,SDL2/SDL))
       ifneq (,$(call find_lib,SDL2))
         ifneq (,$(shell which sdl2-config))
@@ -782,14 +782,6 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         endif
       endif
     endif
-    ifeq (cygwin,$(OSTYPE))
-      LIBEXT = $(LIBEXTSAVE)
-      LIBPATH += /usr/lib/w32api
-      ifneq (,$(call find_lib,winmm))
-        OS_CCDEFS += -DHAVE_WINMM
-        OS_LDFLAGS += -lwinmm
-      endif
-    endif
     ifeq (,$(findstring HAVE_LIBSDL,$(VIDEO_CCDEFS)))
       $(info *** Info ***)
       $(info *** Info *** The simulator$(BUILD_MULTIPLE) you are building could provide more functionality)
@@ -829,6 +821,14 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         endif
       endif
       $(info *** Info ***)
+    endif
+  endif
+  ifeq (cygwin,$(OSTYPE))
+    LIBEXT = $(LIBEXTSAVE)
+    LIBPATH += /usr/lib/w32api
+    ifneq (,$(call find_lib,winmm􀀌􀀋))
+      OS_CCDEFS += -DHAVE_WINMM
+      OS_LDFLAGS += -lwinmm
     endif
   endif
   ifneq (,$(NETWORK_USEFUL))
@@ -1312,9 +1312,9 @@ endif
 ifneq (,$(UNSUPPORTED_BUILD))
   CFLAGS_GIT += -DSIM_BUILD=Unsupported=$(UNSUPPORTED_BUILD)
 endif
-OPTIMIZE ?= -O2
+OPTIMIZE ?= -O2 -DNDEBUG=1
 ifneq ($(DEBUG),)
-  CFLAGS_G = -g -ggdb -g3
+  CFLAGS_G = -g -ggdb -g3 -D_DEBUG=1
   CFLAGS_O = -O0
   BUILD_FEATURES = - debugging support
   LTO =
