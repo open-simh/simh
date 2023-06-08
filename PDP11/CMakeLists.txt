@@ -65,6 +65,7 @@ add_simulator(pdp11
         pdp11_daz.c
         pdp11_tv.c
         pdp11_mb.c
+        pdp11_rr.c
         ${DISPLAYNG}
         ${DISPLAYVT}
     INCLUDES
