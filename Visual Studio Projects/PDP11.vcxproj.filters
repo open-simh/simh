@@ -117,6 +117,9 @@
     <ClCompile Include="..\PDP11\pdp11_rp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\PDP11\pdp11_rr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\PDP11\pdp11_rq.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -284,6 +284,7 @@
     <ClCompile Include="..\PDP11\pdp11_rl.c" />
     <ClCompile Include="..\PDP11\pdp11_rom.c" />
     <ClCompile Include="..\PDP11\pdp11_rp.c" />
+    <ClCompile Include="..\PDP11\pdp11_rr.c" />
     <ClCompile Include="..\PDP11\pdp11_rq.c" />
     <ClCompile Include="..\PDP11\pdp11_rs.c" />
     <ClCompile Include="..\PDP11\pdp11_rx.c" />
