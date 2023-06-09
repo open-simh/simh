@@ -5,7 +5,7 @@
   - [Why CMake?](#why-cmake)
   - [Before You Begin Building...](#before-you-begin-building)
     - [Toolchains and Tools](#toolchains-and-tools)
-      - [Ninja: "file recompation: Permission denied"](#ninja-file-recompation-permission-denied)
+      - [Ninja: "failed recompaction: Permission denied"](#ninja-file-recompation-permission-denied)
       - [Windows XP-compatible/Server 2003 binaries](#windows-xp-compatibleserver-2003-binaries)
     - [Feature Libraries](#feature-libraries)
       - [Linux, macOS and MinGW-w64](#linux-macos-and-mingw-w64)
@@ -160,7 +160,7 @@ Before you begin building the simulators, you need the following:
   Unix Makefiles and Visual Studio's `msbuild`.
 
 
-#### Ninja: "file recompation: Permission denied"
+#### Ninja: "failed recompaction: Permission denied"
 
 This is a long-standing issue with [Ninja][ninja] on Windows when `ninja` is
 recursively invoked. You are very likely to encounter this error message when
@@ -1035,7 +1035,7 @@ within the IDE. The walkthrough provides directions for VS 2022 and VS 2019.
    on the keyboard, to start the dependecy feature library superbuild.
 
      - When all dependency feature libraries have been built, the build process
-       __will__ unexpectedly terminate with a _"file recompation: Permission
+       __will__ unexpectedly terminate with a _"failed recompaction: Permission
        denied"_ error (see [this `ninja` note](#ninja-file-recompation-permission-denied).)
 
        Choose `Delete Cache and Reconfigure` from the `Project` menu. This will
