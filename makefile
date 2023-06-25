@@ -826,7 +826,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   ifeq (cygwin,$(OSTYPE))
     LIBEXT = $(LIBEXTSAVE)
     LIBPATH += /usr/lib/w32api
-    ifneq (,$(call find_lib,winmm􀀌􀀋))
+    ifneq (,$(call find_lib,winmm))
       OS_CCDEFS += -DHAVE_WINMM
       OS_LDFLAGS += -lwinmm
     endif
