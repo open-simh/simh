@@ -141,35 +141,60 @@ jobs:
 
           & ${vswhere} -property installationPath | `
             Foreach-Object -process {
-              Write-Debug ("Executing: " + $vsinstaller + " " + ($Params -join " "))
-              & $vsInstaller modify --installPath "$_" --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 `
-                --add Microsoft.VisualStudio.Component.WinXP --quiet `
-                2> $vsInstallErr | Write-Output
+              ## --quiet: Don't open/show UI
+              ## --force: Terminate any VS instances forcibly
+              ## --norestart: Delay reboot after install, if needed
+              ## --installWhileDownloading: Self-explanitory.
+              $Params = @(
+                  "modify",
+                  "--installPath", "$_",
+                  "--add", "Microsoft.VisualStudio.Component.VC.v141.x86.x64",
+                  "--add", "Microsoft.VisualStudio.Component.WinXP",
+                  "--quiet", "--force", "--norestart", "--installWhileDownloading"
+                  )
 
-              Write-Debug ('Looking for running VS installer processes')
-              $vsinstallerProcesses = @('vs_installershell', 'vs_installerservice')
+              & $vsInstaller $Params 2> $vsInstallErr > $vsInstallOut
+
+              $vsinstallerProcesses = @('vs_installer', 'vs_installershell', 'vs_installerservice')
+              $vsInstallerStartup = $true
+              $vsInstallerStartCount = 10
+
               do
               {
+                  Write-Debug ('Looking for running VS installer processes')
                   $vsInstallerRemaining = Get-Process -Name $vsinstallerProcesses -ErrorAction SilentlyContinue | Where-Object { $null -ne $_ -and -not $_.HasExited }
                   $vsInstallerProcessCount = ($vsInstallerRemaining | Measure-Object).Count
                   if ($vsInstallerProcessCount -gt 0)
                   {
+                      ## Installer processes are present, so obviously not starting up.
+                      $vsInstallerStartup = $false
                       try
                       {
-                          Write-Debug "Found $vsInstallerProcessCount still running Visual Studio installer processes which are known to exit asynchronously:"
+                          Write-Debug "Found $vsInstallerProcessCount running Visual Studio installer processes which are known to exit asynchronously:"
                           $vsInstallerRemaining | Sort-Object -Property Name, Id | ForEach-Object { '[{0}] {1}' -f $_.Id, $_.Name } | Write-Debug
                           Write-Debug ('Giving the processes some time to exit')
-                          $vsInstallerRemaining | Wait-Process -Timeout 1 -ErrorAction SilentlyContinue
-                          Write-Debug ('Looking for running VS installer processes')
+                          $vsInstallerRemaining | Wait-Process -Timeout 45 -ErrorAction SilentlyContinue
                       }
                       finally
                       {
                           $vsInstallerRemaining | ForEach-Object { $_.Dispose() }
                           $vsInstallerRemaining = $null
                       }
+                  } else {
+                    if ($vsInstallerStartup) {
+                      if ($vsInstallerStartCount -gt 0) {
+                        Write-Debug "No VS installer processes detected; sleeping with $vsInstallerStartCount tries remaining."
+                        Start-Sleep -Seconds 10.0
+                        $vsInstallerStartCount -= 1
+                      } else {
+                        $vsInstallerStartup = $false
+                        Write-Debug "VS installer never started? Exiting."
+                        Exit 99
+                      }
+                    }
                   }
               }
-              while ($vsInstallerProcessCount -gt 0)
+              while (($vsInstallerStartup -and $vsInstallerStartCount -gt 0) -or $vsInstallerProcessCount -gt 0)
             }
 
           if ((Test-Path $vsInstallOut -PathType Leaf) -and (Get-Item $vsInstallOut).length -gt 0kb)
