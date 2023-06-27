@@ -1145,6 +1145,16 @@ struct MEMFILE {
                                                     sim_printf("%s failed at %s line %d\n", #_Expression, __FILE__, __LINE__);       \
                                                     abort();}
 
+#if defined(assert)
+#error "Don't use assert().  It is advised to use ASSURE(expression) instead"
+#else
+#define assert(_Expression) do {                                                                                                \
+                                fprintf (stderr, "Don't use assert().  It is advised to use ASSURE(expression) instead.\n");  \
+                                abort();                                                                                        \
+                                } while (1)
+#endif
+
+
 /* Asynch/Threaded I/O support */
 
 #if defined (SIM_ASYNCH_IO)
