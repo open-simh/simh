@@ -13,14 +13,15 @@ environment:
     ## The matrix is ordered by relative popularity/priority:
     ##-
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-      SIMH_BUILD_FLAVOR: ninja
-
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
       SIMH_BUILD_FLAVOR: vs2022
+      ## Static library support available in this vcpkg install.
+      VCPKG_ROOT: C:\Tools\vcpkg
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       SIMH_BUILD_FLAVOR: vs2019
+      ## Static library support available in this vcpkg install.
+      VCPKG_ROOT: C:\Tools\vcpkg
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       SIMH_BUILD_FLAVOR: vs2017
@@ -28,32 +29,39 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
       SIMH_BUILD_FLAVOR: vs2022-xp
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      SIMH_BUILD_FLAVOR: vs2019-xp
+    ## These Appveyor VM images exist, aren't strictly needed to build XP-compatible
+    ## executables.
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      SIMH_BUILD_FLAVOR: vs2017-xp
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    #   SIMH_BUILD_FLAVOR: vs2019-xp
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      SIMH_BUILD_FLAVOR: vs2015
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    #   SIMH_BUILD_FLAVOR: vs2017-xp
+
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    #   SIMH_BUILD_FLAVOR: vs2015
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      SIMH_BUILD_FLAVOR: ninja
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
       SIMH_BUILD_FLAVOR: unix
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
-      SIMH_BUILD_FLAVOR: unix
+    ## Older image -- still needed?
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
+    #   SIMH_BUILD_FLAVOR: unix
 
     ## These images have cmake 3.12, which is too old. Could build if
     ## cmake were upgraded in the image in the before_build stanza, but
-    ## that subverts the purpose of the image.
+    ## that subverts the image's purpose.
 
     # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
     #   SIMH_BUILD_FLAVOR: vs2013
     #
-    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2012
     #   SIMH_BUILD_FLAVOR: vs2012
     #
-    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2008
     #   SIMH_BUILD_FLAVOR: vs2008
     
     ## - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
@@ -89,11 +97,10 @@ build:
   verbosity: minimal
 
 before_build:
-  - ps: |
-      if ($isWindows) {
-        if (${env:SIMH_BUILD_FLAVOR} -eq "ninja") { choco install ninja; }
-        if (!(Test-Path -Path cmake\dependencies)) { New-Item -ItemType Directory -Path cmake\dependencies }
-      }
+  - cmd: |
+      if "%SIMH_BUILD_FLAVOR%"=="ninja" ( choco install ninja )
+      if not exist "cmake\dependencies" ( mkdir "cmake\dependencies" )
+
   - sh: |
       case "${APPVEYOR_BUILD_WORKER_IMAGE}" in
       Ubuntu*)
@@ -112,17 +119,18 @@ before_build:
       esac
 
 build_script:
-  # Run the cmake-builder script all the way through: generate, build, test.
-  - ps: |
-      if ($isWindows) {
-          $ErrorActionPreference="Stop"
-          $WarningPreference="Continue"
-        if (!([string]::IsNullOrEmpty($env:MINGW))) { $env:PATH=$(@(${env:MINGW}, ${env:PATH}) -join ";"); };
-        cmake\cmake-builder.ps1 `
-            -flavor ${env:SIMH_BUILD_FLAVOR} `
-            -config ${env:CONFIGURATION} `
-            -lto -parallel -clean -notest -noinstall -verbose
-      }
+  ## Need to use cmd, per Appveyor support. PowerShell has issues with output.
+  ## Specifically, when CMake prints the "old CMake version, won't CPack" warning,
+  ## Appveyor terminates the build injudiciously. The workaround is cmd.
+  ##
+  ## LTO works reliably on VS 2022 and 2019. Hangs while building SEL32 on VS 2017.
+  - cmd: |
+      SETLOCAL EnableExtensions
+      if not "%MINGW%"=="" ( set "PATH=%MINGW%;%PATH%" )
+      if "%SIMH_BUILD_FLAVOR%"=="vs2022" set LTO=-lto
+      if "%SIMH_BUILD_FLAVOR%"=="vs2019" set LTO=-lto
+      powershell -File .\cmake\cmake-builder.ps1 -flavor %SIMH_BUILD_FLAVOR% -config %CONFIGURATION% %LTO% -parallel -clean -notest -noinstall -verbose
+
   - sh: |
       case "${APPVEYOR_BUILD_WORKER_IMAGE}" in
       Ubuntu1604)
@@ -137,11 +145,15 @@ build_script:
           --verbose --parallel --clean --notest --noinstall
 
 test_script:
-  - ps: |
-      if ($isWindows) {
-        Write-Output "cmake\cmake-builder.ps1 -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}"
-        cmake\cmake-builder.ps1 -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}
-      }
+  #   - ps: |
+  #       if ($isWindows) {
+  #         Write-Output "cmake\cmake-builder.ps1 -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}"
+  #         cmake\cmake-builder.ps1 -testonly -config ${env:CONFIGURATION} -flavor ${env:SIMH_BUILD_FLAVOR}
+  #       }
+
+  - cmd: |
+      powershell -File .\cmake\cmake-builder.ps1 -flavor %SIMH_BUILD_FLAVOR% -config %CONFIGURATION% -testonly
+
   - sh: |
       cmake/cmake-builder.sh --testonly --config ${CONFIGURATION} --flavor ${SIMH_BUILD_FLAVOR}
 
