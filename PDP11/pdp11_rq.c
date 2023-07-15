@@ -172,6 +172,7 @@ extern int32 MMR2;
 #define unit_plug       u4                              /* drive unit plug value */
 #define io_status       u5                              /* io status from callback */
 #define io_complete     u6                              /* io completion flag */
+/* we can re-use filebuf because we don't set UNIT_BUFABLE in flags */
 #define rqxb            filebuf                         /* xfer buffer */
 #define RQ_RMV(u)       ((drv_tab[GET_DTYPE (u->flags)].flgs & RQDF_RMV)? \
                         UF_RMV: 0)
