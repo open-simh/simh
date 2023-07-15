@@ -3381,11 +3381,11 @@ if ((uptr->flags & UNIT_BUF) && (uptr->filebuf)) {
         sim_disk_wrsect (uptr, 0, (uint8 *)uptr->filebuf, NULL, (cap + ctx->sector_size - 1) / ctx->sector_size);
         }
     uptr->flags = uptr->flags & ~UNIT_BUF;
+    free (uptr->filebuf);                               /* free buffers */
+    uptr->filebuf = NULL;
+    free (uptr->filebuf2);
+    uptr->filebuf2 = NULL;
     }
-free (uptr->filebuf);                                   /* free buffers */
-uptr->filebuf = NULL;
-free (uptr->filebuf2);
-uptr->filebuf2 = NULL;
 
 update_disk_footer (uptr);                              /* Update meta data if highwater has changed */
 
