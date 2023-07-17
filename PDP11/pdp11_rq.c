@@ -122,6 +122,12 @@ extern int32 MMR2;
 #error "Assertion failure: RQ_NUMCT exceeds 4"
 #endif
 
+#if defined (VAX_610)
+#define MICROVAX1       1
+#else
+#define MICROVAX1       0
+#endif
+
 #include "pdp11_uqssp.h"
 #include "pdp11_mscp.h"
 #include "sim_disk.h"
@@ -137,13 +143,7 @@ extern int32 MMR2;
 #define RQ_SH_UN        010                             /* show unit q's */
 #define RQ_SH_ALL       017                             /* show all */
 
-#define RQ_CLASS        1                               /* RQ class */
-#define RQU_UQPM        6                               /* UB port model */
-#define RQQ_UQPM        19                              /* QB port model */
-#define RQ_UQPM         (UNIBUS? RQU_UQPM: RQQ_UQPM)
-#define RQU_MODEL       6                               /* UB MSCP ctrl model (UDA50A) */
-#define RQQ_MODEL       19                              /* QB MSCP ctrl model (RQDX3) */
-#define RQ_MODEL        (UNIBUS? RQU_MODEL: RQQ_MODEL)
+#define RQ_CLASS        1                               /* RQ class: Mass storage controllers */
 #define RQ_HVER         1                               /* hardware version */
 #define RQ_SVER         3                               /* software version */
 #define RQ_DHTMO        60                              /* def host timeout */
@@ -753,31 +753,35 @@ x  RA73 70(+1)  21      2667+   21      1       ?       3920490
 
 // AFAIK the UNIBUS KLESI and QBUS KLESI used the same controller type ...
 #define KLESI_CTYPE     1               // RC25 controller (UNIBUS and QBUS both)
-#define KLESI_UQPM      1
-#define KLESI_MODEL     1
+#define KLESI_UQPM      3
+#define KLESI_MODEL     3
 
 #define RUX50_CTYPE     2               // UNIBUS RX50-only controller
-#define RUX50_UQPM      2
-#define RUX50_MODEL     2
+#define RUX50_UQPM      10		// this should be 10 according to the MSCP spec
+#define RUX50_MODEL     10
 
 #define UDA50_CTYPE     3               // UNIBUS SDI (RAxx) controller
-#define UDA50_UQPM      6
+#define UDA50_UQPM      6               // really type of UDA50A; UDA50 is 2
 #define UDA50_MODEL     6
 
-#define RQDX3_CTYPE     4               // QBUS RX50/RDxx controller
+#define RQDX1_CTYPE     4               // QBUS RX50/RDxx controller,
+#define RQDX1_UQPM      7               // first version; RQDX2 has the same id
+#define RQDX1_MODEL     7
+
+#define RQDX3_CTYPE     5               // QBUS RX50/RDxx controller
 #define RQDX3_UQPM      19
 #define RQDX3_MODEL     19
 
-#define KDA50_CTYPE     5               // QBUS SDI (RAxx) controller
-#define KDA50_UQPM      13
+#define KDA50_CTYPE     6               // QBUS SDI (RAxx) controller
+#define KDA50_UQPM      13              // KDA50-Q
 #define KDA50_MODEL     13
 
-#define KRQ50_CTYPE     6               // QBUS RRD40/50 CDROM controller
+#define KRQ50_CTYPE     7               // QBUS RRD40/50 CDROM controller
 #define KRQ50_UQPM      16
 #define KRQ50_MODEL     16
 
-#define KRU50_CTYPE     7               // UNIBUS RRD40/50 CDROM controller
-#define KRU50_UQPM      26
+#define KRU50_CTYPE     8               // UNIBUS RRD40/50 CDROM controller
+#define KRU50_UQPM      26              // unassigned in appendix C
 #define KRU50_MODEL     26
 
 struct drvtyp {
@@ -884,6 +888,7 @@ static struct ctlrtyp ctlr_tab[] = {
     RQ_CTLR (KLESI),
     RQ_CTLR (RUX50),
     RQ_CTLR (UDA50),
+    RQ_CTLR (RQDX1),
     RQ_CTLR (RQDX3),
     RQ_CTLR (KDA50),
     RQ_CTLR (KRQ50),
@@ -1120,10 +1125,12 @@ MTAB rq_mod[] = {
       NULL, &rq_show_ctrl, NULL, "Display all unit queues" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, RQ_SH_ALL, "ALL", NULL,
       NULL, &rq_show_ctrl, NULL, "Display complete controller state" },
+    { MTAB_XTD|MTAB_VDV, RQDX1_CTYPE, NULL, "RQDX1",
+      &rq_set_ctype, NULL, NULL, "Set RQDX1/2 (QBUS RX50/RDnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, RQDX3_CTYPE, NULL, "RQDX3",
       &rq_set_ctype, NULL, NULL, "Set RQDX3 (QBUS RX50/RDnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, UDA50_CTYPE, NULL, "UDA50",
-      &rq_set_ctype, NULL, NULL, "Set UDA50 (UNIBUS SDI RAnn) Controller Type" },
+      &rq_set_ctype, NULL, NULL, "Set UDA50A (UNIBUS SDI RAnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, KDA50_CTYPE, NULL, "KDA50",
       &rq_set_ctype, NULL, NULL, "Set KDA50 (QBUS SDI RAnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, KRQ50_CTYPE, NULL, "KRQ50",
@@ -3100,7 +3107,8 @@ if (cidx < 0)                                           /* not found??? */
 cp = rq_ctxmap[cidx];                                   /* get context */
 cp->cnum = cidx;                                        /* init index */
 if (cp->ctype == DEFAULT_CTYPE)
-    cp->ctype = (UNIBUS? UDA50_CTYPE : RQDX3_CTYPE);
+    cp->ctype = (UNIBUS    ? UDA50_CTYPE :
+                 MICROVAX1 ? RQDX1_CTYPE : RQDX3_CTYPE);
 
 if (!plugs_inited ) {
 #if !defined (VM_VAX)
@@ -3419,9 +3427,9 @@ fprintf (st, "UDA50 MSCP Disk Controller (%s)\n\n", dptr->name);
 fprintf (st, "The simulator implements four MSCP disk controllers, RQ, RQB, RQC, RQD.\n");
 fprintf (st, "Initially, RQB, RQC, and RQD are disabled.  Each RQ controller simulates\n");
 fprintf (st, "an MSCP disk controller with four drives.  The MSCP controller type can be\n");
-fprintf (st, "specified as one of RQDX3, UDA50, KDA50, KRQ50, KLESI or RUX50.  RQ options\n");
-fprintf (st, "include the ability to set units write enabled or write locked, and to set\n");
-fprintf (st, "the drive type to one of many disk types:\n");
+fprintf (st, "specified as one of RQDX1, RQDX3, UDA50, KDA50, KRQ50, KLESI or RUX50.\n");
+fprintf (st, "RQ options include the ability to set units write enabled or write locked,\n");
+fprintf (st, "and to set the drive type to one of many disk types:\n");
 fprint_set_help (st, dptr);
 fprintf (st, "set RQn RAUSER{=n}        Set disk type to RA82 with n MB's\n");
 fprintf (st, "                          (1MB is 1000000 bytes)\n");
