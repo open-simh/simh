@@ -34,8 +34,8 @@ jobs:
     - name: Upload DEB
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-x86_64-${{matrix.os}}.deb
-        path: cmake/build-ninja/simh-4.0.0-x86_64-${{matrix.os}}.deb
+        name: simh-4.1.0-x86_64-${{matrix.os}}.deb
+        path: cmake/build-ninja/simh-4.1.0-x86_64-${{matrix.os}}.deb
 
 
   cmake-macOS:
@@ -68,13 +68,13 @@ jobs:
     - name: Upload ZIP
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-x86_64.${{matrix.os}}.zip
-        path: cmake/build-xcode/simh-4.0.0-x86_64.${{matrix.os}}.zip
+        name: simh-4.1.0-x86_64.${{matrix.os}}.zip
+        path: cmake/build-xcode/simh-4.1.0-x86_64.${{matrix.os}}.zip
     - name: Upload DMG
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-x86_64.${{matrix.os}}.dmg
-        path: cmake/build-xcode/simh-4.0.0-x86_64.${{matrix.os}}.dmg
+        name: simh-4.1.0-x86_64.${{matrix.os}}.dmg
+        path: cmake/build-xcode/simh-4.1.0-x86_64.${{matrix.os}}.dmg
 
 
   ## This looks like it's doing the right thing on the Github CI/CD pipeline because
@@ -248,13 +248,13 @@ jobs:
     - name: Upload ZIP
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-win32-vs2022xp.zip
-        path: cmake/build-vs2022-xp/simh-4.0.0-win32-xp.zip
+        name: simh-4.1.0-win32-vs2022xp.zip
+        path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.zip
     - name: Upload MSI
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-win32-vs2022xp.zip
-        path: cmake/build-vs2022-xp/simh-4.0.0-win32-xp.msi     
+        name: simh-4.1.0-win32-vs2022xp.zip
+        path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.msi     
 
   cmake-vs2022:
     name: VS 2022 Win10 native VCPKG
@@ -295,15 +295,15 @@ jobs:
     - name: Upload ZIP
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-win32-vs2022.zip
-        path: cmake/build-vs2022/simh-4.0.0-win32-native.zip
+        name: simh-4.1.0-win32-vs2022.zip
+        path: cmake/build-vs2022/simh-4.1.0-win32-native.zip
     - name: Upload EXE installer
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-win32-vs2022.exe
-        path: cmake/build-vs2022/simh-4.0.0-win32-native.exe
+        name: simh-4.1.0-win32-vs2022.exe
+        path: cmake/build-vs2022/simh-4.1.0-win32-native.exe
     - name: Upload MSI installer
       uses: actions/upload-artifact@v3
       with:
-        name: simh-4.0.0-win32-vs2022.msi
-        path: cmake/build-vs2022/simh-4.0.0-win32-native.msi
+        name: simh-4.1.0-win32-vs2022.msi
+        path: cmake/build-vs2022/simh-4.1.0-win32-native.msi

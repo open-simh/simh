@@ -41,7 +41,7 @@ Options:
 --cppcheck        Enable cppcheck static code analysis rules
 
 --cpack_suffix    Specify CPack's packaging suffix, e.g., "ubuntu-22.04"
-                  to produce the "simh-4.0.0-ubuntu-22.04.deb" Debian
+                  to produce the "simh-4.1.0-ubuntu-22.04.deb" Debian
                   package.
 
 --verbose         Turn on verbose build output
