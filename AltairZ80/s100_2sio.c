@@ -230,6 +230,8 @@ static TMXR m2sio1_tmxr = {                     /* multiplexer descriptor */
 #define UNIT_M2SIO_DTR        (1 << UNIT_V_M2SIO_DTR)
 #define UNIT_V_M2SIO_DCD      (UNIT_V_UF + 2)     /* Force DCD active low          */
 #define UNIT_M2SIO_DCD        (1 << UNIT_V_M2SIO_DCD)
+#define UNIT_V_M2SIO_CTS      (UNIT_V_UF + 3)     /* Force CTS active low          */
+#define UNIT_M2SIO_CTS        (1 << UNIT_V_M2SIO_CTS)
 
 static MTAB m2sio_mod[] = {
     { MTAB_XTD|MTAB_VDV,    0,                      "IOBASE",  "IOBASE",
@@ -246,6 +248,10 @@ static MTAB m2sio_mod[] = {
         "Force DCD active low" },
     { UNIT_M2SIO_DCD,       0,                  "NODCD",     "NODCD",     NULL, NULL, NULL,
         "DCD follows status line (default)" },
+    { UNIT_M2SIO_CTS,       UNIT_M2SIO_CTS,     "CTS",       "CTS",       NULL, NULL, NULL,
+        "Force CTS active low" },
+    { UNIT_M2SIO_CTS,       0,                  "NOCTS",     "NOCTS",     NULL, NULL, NULL,
+        "CTS follows status line (default)" },
     { MTAB_XTD|MTAB_VDV|MTAB_VALR,  0,   "BAUD",  "BAUD",  &m2sio_set_baud, &m2sio_show_baud,
         NULL, "Set baud rate (default=9600)" },
     { 0 }
@@ -440,7 +446,7 @@ static t_stat m2sio_svc(UNIT *uptr)
         tmxr_set_get_modem_bits(xptr->tmln, 0, 0, &s);
         stb = xptr->stb;
         xptr->stb &= ~M2SIO_CTS;
-        xptr->stb |= (s & TMXR_MDM_CTS) ? 0 : M2SIO_CTS;     /* Active Low */
+        xptr->stb |= ((s & TMXR_MDM_CTS) || (uptr->flags & UNIT_M2SIO_CTS)) ? 0 : M2SIO_CTS;     /* Active Low */
         if ((stb ^ xptr->stb) & M2SIO_CTS) {
             sim_debug(STATUS_MSG, uptr->dptr, "CTS state changed to %s.\n", (xptr->stb & M2SIO_CTS) ? "LOW" : "HIGH");
         }
