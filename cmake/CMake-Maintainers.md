@@ -130,6 +130,8 @@ open-simh                            This is CMAKE_SOURCE_DIR
 |   |                                CMakeLists.txt from the makefile
 |   +-- git-commit-id.cmake          CMake script to update .git-commit-id and
 |   |                                .git-commit-id.h
+|   +-- github_v141_xp.ps1           Visual Studio "XP toolkit" installer PowerShell
+|   |                                script
 |   +-- installer-customizations     Installer-specific customization files
 |   +-- os-features.cmake            Operating system feature probes, e.g., -lm
 |   +-- patches                      Patches applied to external dependency libs
@@ -142,8 +144,6 @@ open-simh                            This is CMAKE_SOURCE_DIR
 |   |                                CPack components (simulator "families")
 |   +-- simh-simulators.cmake        Simulator add_subdirectory includes, variable
 |   |                                definitions
-|   +-- v141_xp_install.ps1          Experimental Powershell script to install XP
-|   |                                compatibility support in Visual Studio (unused)
 |   +-- vcpkg-setup.cmake            vcpkg package manager setup code
 ```
 
