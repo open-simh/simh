@@ -121,101 +121,8 @@ jobs:
               Where-Object { $_ -notlike "*\Strawberry\*" -and $_ -notlike "*/Strawberry/*" }) -join ';'
           $env:Path = $fixPATH
 
-          #+
-          # Update the existing Github Visual Studio installation in-place. `vswhere` may find multiple
-          # VS installations, so iterate through them all.
-          #
-          # This is Grey Magic. `vs_installer` exits almost immediately if you run it from the command
-          # line. However, `vs_installer`'s subprocesses are well known and we look for them and wait
-          # for them to terminate.
-          #
-          # GH Actions does something strange with stdout and stderr, so you won't get any
-          # indication of failure or output that shows you that something is happening.  
-          #
-          # The waiting code was adapted from the Chocolatey VS installer scripts.
-          #-
-          $vswhere = "${env:ProgramFiles} (x86)\Microsoft Visual Studio\Installer\vswhere"
-          $vsinstaller = "${env:ProgramFiles} (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-          $vsInstallOut = "$env:TEMP\vsinstall-out.txt"
-          $vsInstallErr = "$env:TEMP\vsinstall-err.txt"
-
-          & ${vswhere} -property installationPath | `
-            Foreach-Object -process {
-              ## --quiet: Don't open/show UI
-              ## --force: Terminate any VS instances forcibly
-              ## --norestart: Delay reboot after install, if needed
-              ## --installWhileDownloading: Self-explanitory.
-              $Params = @(
-                  "modify",
-                  "--installPath", "$_",
-                  "--add", "Microsoft.VisualStudio.Component.VC.v141.x86.x64",
-                  "--add", "Microsoft.VisualStudio.Component.WinXP",
-                  "--quiet", "--force", "--norestart", "--installWhileDownloading"
-                  )
-
-              & $vsInstaller $Params 2> $vsInstallErr > $vsInstallOut
-
-              $vsinstallerProcesses = @('vs_installer', 'vs_installershell', 'vs_installerservice')
-              $vsInstallerStartup = $true
-              $vsInstallerStartCount = 10
-
-              do
-              {
-                  Write-Debug ('Looking for running VS installer processes')
-                  $vsInstallerRemaining = Get-Process -Name $vsinstallerProcesses -ErrorAction SilentlyContinue | Where-Object { $null -ne $_ -and -not $_.HasExited }
-                  $vsInstallerProcessCount = ($vsInstallerRemaining | Measure-Object).Count
-                  if ($vsInstallerProcessCount -gt 0)
-                  {
-                      ## Installer processes are present, so obviously not starting up.
-                      $vsInstallerStartup = $false
-                      try
-                      {
-                          Write-Debug "Found $vsInstallerProcessCount running Visual Studio installer processes which are known to exit asynchronously:"
-                          $vsInstallerRemaining | Sort-Object -Property Name, Id | ForEach-Object { '[{0}] {1}' -f $_.Id, $_.Name } | Write-Debug
-                          Write-Debug ('Giving the processes some time to exit')
-                          $vsInstallerRemaining | Wait-Process -Timeout 45 -ErrorAction SilentlyContinue
-                      }
-                      finally
-                      {
-                          $vsInstallerRemaining | ForEach-Object { $_.Dispose() }
-                          $vsInstallerRemaining = $null
-                      }
-                  } else {
-                    if ($vsInstallerStartup) {
-                      if ($vsInstallerStartCount -gt 0) {
-                        Write-Debug "No VS installer processes detected; sleeping with $vsInstallerStartCount tries remaining."
-                        Start-Sleep -Seconds 10.0
-                        $vsInstallerStartCount -= 1
-                      } else {
-                        $vsInstallerStartup = $false
-                        Write-Debug "VS installer never started? Exiting."
-                        Exit 99
-                      }
-                    }
-                  }
-              }
-              while (($vsInstallerStartup -and $vsInstallerStartCount -gt 0) -or $vsInstallerProcessCount -gt 0)
-            }
-
-          if ((Test-Path $vsInstallOut -PathType Leaf) -and (Get-Item $vsInstallOut).length -gt 0kb)
-          {
-            Write-Output "-- vsinstaller output:"
-            Get-Content $vsInstallOut
-          }
-          else
-          {
-            Write-Debug "-- No vsinstaller output."
-          }
-
-          if ((Test-Path $vsInstallErr -PathType Leaf) -and (Get-Item $vsInstallErr).length -gt 0kb)
-          {
-            Write-Output "-- vsinstaller error output:"
-            Get-Content $vsInstallErr
-          }
-          else
-          {
-            Write-Debug "-- No vsinstaller error/diag output."
-          }
+          ## Install the XP toolkit, aka v141_xp. This script is specific to the Github environment.
+          ./cmake/github_v141_xp.ps1
 
           #+
           # The GH Windows runner image documentation says that the VSSetup module is installed, from
@@ -223,7 +130,15 @@ jobs:
           # paranoia, ensuring that we really, truly and honestly have WinXP support.
           #-
           Write-Debug "Get-VSSetupInstance/Select-VSSetupInstance"
-          Get-VSSetupInstance -All | Select-VSSetupInstance -Require 'Microsoft.VisualStudio.Component.WinXP' -Latest
+          $instances=$(Get-VSSetupInstance -All | Select-VSSetupInstance -Require 'Microsoft.VisualStudio.Component.WinXP' -Latest)
+          if ($null -eq $instances)
+          {
+            throw "v141_xp didn't install correctly or incomplete install."
+          }
+          else
+          {
+            $instances | Write-Output
+          }
 
           ## Don't use LTO for XP. XP compatibility comes from VS2017 -- MS is
           ## at VS2022. There are likely legacy bugs that have been fixed.
