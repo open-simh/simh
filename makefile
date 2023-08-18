@@ -607,14 +607,39 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       LIBEXT = $(LIBEXTSAVE)
     endif
   endif
-  # Find PCRE RegEx library.
-  ifneq (,$(call find_include,pcre))
-    ifneq (,$(call find_lib,pcre))
-      OS_CCDEFS += -DHAVE_PCRE_H
-      OS_LDFLAGS += -lpcre
-      $(info using libpcre: $(call find_lib,pcre) $(call find_include,pcre))
-      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre))
-        OS_LDFLAGS += -L$(dir $(call find_lib,pcre))
+  ## RegEx: Prefer the PCRE library over PCRE2 for historical reasons. Only detect
+  ## and use PCRE2 if USE_PCRE2 is set as a command line variable or in the
+  ## environment.
+  FALLBACK_PCRE=yes
+  ifdef USE_PCRE2
+    # Find the PCRE2 RegEx library
+    ifneq (,$(call find_include,pcre2))
+      PCRE2_LIB=pcre2-8
+      ifneq (,$(call find_lib,${PCRE2_LIB}))
+	OS_CCDEFS += -DHAVE_PCRE2_H
+	OS_LDFLAGS += -l${PCRE2_LIB}
+        $(info using libpcre2-8: $(call find_lib,${PCRE2_LIB}) $(call find_include,pcre2))
+	ifeq ($(LD_SEARCH_NEEDED),$(call need_search,${PCRE2_LIB}))
+	  OS_LDFLAGS += -L$(dir $(call find_lib,${{PCRE2_LIB}}))
+	endif
+	FALLBACK_PCRE=
+      endif
+    endif
+    ifneq ($(FALLBACK_PCRE),)
+      $(info *** Info *** PCRE2 not detected, falling back to PCRE)
+    endif
+  endif
+  # Find PCRE RegEx library, either because we didn't want PCRE2 or we didn't
+  # find PCRE2.
+  ifneq (${FALLBACK_PCRE},)
+    ifneq (,$(call find_include,pcre))
+      ifneq (,$(call find_lib,pcre))
+	OS_CCDEFS += -DHAVE_PCRE_H
+	OS_LDFLAGS += -lpcre
+        $(info using libpcre: $(call find_lib,pcre) $(call find_include,pcre))
+	ifeq ($(LD_SEARCH_NEEDED),$(call need_search,pcre))
+	  OS_LDFLAGS += -L$(dir $(call find_lib,pcre))
+	endif
       endif
     endif
   endif

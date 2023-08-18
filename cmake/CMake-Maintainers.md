@@ -221,9 +221,7 @@ The top-level `CMakeLists.txt` drives CMake's configure/generate phase, which ha
     is separate for the time being for functional clarity.
   - `thread_lib` (`pthreads-dep.cmake`): Platform threading support. Usually empty for Linux and macOS
     platforms, adds the _PThreads4W_ external dependency for Windows native and XP platforms.
-  - `simh_regexp`: Regular expression support, if the `WITH_REGEX` option is `True`. PCRE is effectively
-    the only regular expression library that ends up in the `simh_regexp` interface library at the
-    moment. There is support for PCRE2, but it requires changes to `scp.c` to actually make it useful.
+  - `simh_regexp`: Regular expression support, if the `WITH_REGEX` option is `True`.
   - `simh_video`: Graphics, input controller and sound support, based on [SDL2][libsdl2], if the
     `WITH_VIDEO` option is `True`. Empty interface library if `WITH_VIDEO` is `False`. `simh_video` also
     pulls in `libpng` and `SDL_ttf`, along with their dependencies.
@@ -352,9 +350,7 @@ SIMH includes six `find_package` scripts:
   capture library; `libpcap` and it's Win32 equivalent are dynamically loaded at run time. The headers are
   only needed for `libpcap`'s function prototypes.
 
-- `FindPCRE.cmake`, `FindPCRE2.cmake`: Locate PCRE and PCRE2 libraries and headers. SIMH does not support
-  PCRE2 yet, however, finding the PCRE2 headers and library are included to make PCRE2 support easier at
-  some point in the future.
+- `FindPCRE.cmake`, `FindPCRE2.cmake`: Locate PCRE and PCRE2 libraries and headers.
 
 - `FindPTW.cmake`: "PTW" is shorthand for the Windows PThreads4w POSIX threads compatibility library.
 
