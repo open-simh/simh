@@ -288,14 +288,14 @@ MTAB                mt_mod[] = {
 
 UNIT                mta_unit[] = {
     /* Unit data layout for MT devices */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1000)},       /* 0 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1001)},       /* 1 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1002)},       /* 2 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1003)},       /* 3 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1004)},       /* 4 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1005)},       /* 5 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1006)},       /* 6 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1007)},       /* 7 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1000)},       /* 0 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1001)},       /* 1 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1002)},       /* 2 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1003)},       /* 3 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1004)},       /* 4 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1005)},       /* 5 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1006)},       /* 6 */
+    {UDATA(&mt_srv, UNIT_MT, 0), 0, UNIT_ADDR(0x1007)},       /* 7 */
 };
 
 /* channel program information */
@@ -337,14 +337,14 @@ DEVICE          mta_dev = {
 CHANP           mtb_chp[NUM_UNITS_MT] = {0};
 
 UNIT            mtb_unit[] = {
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1800)},       /* 0 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1801)},       /* 1 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1802)},       /* 2 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1803)},       /* 3 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1804)},       /* 4 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1805)},       /* 5 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1806)},       /* 6 */
-    {UDATA(&mt_srv, UNIT_MT|UNIT_IDLE, 0), 0, UNIT_ADDR(0x1807)},       /* 7 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1800)},       /* 0 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1801)},       /* 1 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1802)},       /* 2 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1803)},       /* 3 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1804)},       /* 4 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1805)},       /* 5 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1806)},       /* 6 */
+    {UDATA(&mt_srv, UNIT_MT|0), 0, UNIT_ADDR(0x1807)},       /* 7 */
 };
 
 /* device information block */
@@ -377,6 +377,15 @@ DEVICE          mtb_dev = {
     NULL, NULL, &mt_help, NULL, NULL, &mt_description
 };
 #endif
+
+/* table with filenames of attached units */
+struct attfileinfo {
+    uint16 chsa;
+    char *att_file;
+    struct attfileinfo *next;
+};
+
+struct attfileinfo *att_files = (struct attfileinfo *) NULL;
 
 /* load in the IOCD and process the commands */
 /* return = 0 OK */
@@ -826,10 +835,21 @@ t_stat mt_srv(UNIT *uptr)
     uint32      mema, m, skip;
     uint16      len;
     uint8       ch;
+    struct attfileinfo *afi;
 
     sim_debug(DEBUG_CMD, dptr,
         "mt_srv unit %02x cmd %02x POS %x hwmark %03x\n",
         unit, cmd, uptr->POS, uptr->hwmark);
+
+    /* reattach tapedev that has been set offline */
+    if ((uptr->SNS & SNS_ONLN) == 0) {
+        afi = att_files;
+        while (afi != (struct attfileinfo *) NULL && afi->chsa != chsa)
+            afi = afi->next;
+        /* only when valid entry found */
+        if (afi != (struct attfileinfo *) NULL && afi->att_file[0] != '\0')
+            mt_attach(uptr, afi->att_file);
+    }
 
     switch (cmd) {
     case MT_CMDMSK:   /* 0x0ff for inch 0x00 */ /* INCH is for channel, nothing for us */
@@ -1176,7 +1196,7 @@ rewrite:
     case MT_BSR:    /* 0x53 */              /* Backspace record */
         sim_debug(DEBUG_CMD, dptr, "mt_srv cmd 0x53 BSR unit %02x POS %x SNS %08x\n",
             unit, uptr->POS, uptr->SNS);
-        switch (uptr->POS ) {
+        switch (uptr->POS) {
         case 0:
             if (sim_tape_bot(uptr)) {
                 uptr->CMD &= ~MT_CMDMSK;
@@ -1251,7 +1271,7 @@ rewrite:
 #endif
             uptr->SNS &= ~(SNS_LOAD|SNS_EOT|SNS_FMRKDT);    /* reset BOT, EOT, EOF */
 #ifdef NBSF
-            /* using the backspace file call does not work with MPX */
+            /* using the backspace file call on simh does not work with MPX */
             r = sim_tape_spfiler(uptr, skip, &reclen);
             uptr->POS++;
 #else
@@ -1551,6 +1571,7 @@ t_stat mt_attach(UNIT *uptr, CONST char *file)
     DEVICE      *dptr = get_dev(uptr);      /* get device pointer */
     t_stat      r;
     DIB         *dibp = 0;
+    struct attfileinfo *afi;
 
     if (dptr->flags & DEV_DIS) {
         fprintf(sim_deb, "ERROR===ERROR\nMT device %s disabled on system, aborting\r\n",
@@ -1586,6 +1607,31 @@ t_stat mt_attach(UNIT *uptr, CONST char *file)
         return SCPE_UNATT;                  /* error */
     }
     set_devattn(chsa, SNS_DEVEND);          /* ready int???? */
+
+    /* store filename of attached device */
+    afi = att_files;
+    while (afi != (struct attfileinfo *) NULL && afi->chsa != chsa)
+        afi = afi->next;
+    /* only when valid entry found */
+    if (afi != (struct attfileinfo *) NULL) {
+        /* clear filename if previously stored filename differs */
+        if (strcmp(file, afi->att_file) != 0)
+            afi->att_file[0] = '\0';
+    } else {
+        /* create new entry */
+        afi = att_files;
+        att_files = malloc(sizeof(struct attfileinfo));
+        if (att_files != (struct attfileinfo *) NULL)
+            att_files->next = afi;
+        afi = att_files;
+
+        /* forget it if malloc failed */
+        if (afi != (struct attfileinfo *) NULL) {
+            afi->chsa = chsa;
+            afi->att_file = strdup(file);
+        }
+     }
+
     return SCPE_OK;                         /* return good status */
 }
 

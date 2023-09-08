@@ -38,14 +38,11 @@
 
 /* define CPUONLY to run without IPU */
 //#define CPUONLY                         /* run on CPU only */
+/* undefine CPUONLY to run with IPU */
 #undef CPUONLY                          /* run with cpu/ipu on system */
 
-/* undefine CPUONLY to run with IPU */
 /* define USE_IPU_THREAD to use IPU thread code instead of fork code */
-/* define USE_POSIX_SEM for POSIX semaphores otherwise use pthread mutex */
-/* forked mode IPU must only use semaphores */
 #ifndef CPUONLY
-//#define USE_POSIX_SEM                   /* use POSIX semaphores, else pthread mutex */
 //#undef  USE_IPU_THREAD                  /* run IPU as a forked sel32 */
 #define USE_IPU_THREAD                  /* run IPU in sel32_ipu.c thread */
 #endif
@@ -55,13 +52,18 @@
 #define DEFINE_IPU_MODELS               /* IPU devices must be define for IPU */
 #ifndef USE_IPU_THREAD
 #define USE_POSIX_SEM                   /* forked mode IPU can only use semaphores */
+/* include signal.h when using fork for 2nd SIMH */
+#include <signal.h>
+#else
+#undef USE_POSIX_SEM                    /* make sure no POSIX semaphores for IPU thread code */
 #endif
-#else /* CPUONLY */
-#undef  USE_IPU_THREAD                  /* make sure IPU code undefined for CPUONLY */
+#else /* NOT CPUONLY */
+#undef USE_IPU_THREAD                   /* make sure IPU code undefined for CPUONLY */
 #undef DEFINE_IPU_MODELS                /* make sure IPU models undefine too */
+#undef USE_POSIX_SEM                    /* make sure no POSIX semaphores for CPU only */
 #endif /* CPU_ONLY */
 
-/* use correct variable type for thread IPU */
+/* use correct variable type for IPU thread */
 #ifdef USE_IPU_THREAD
 #ifdef USE_IPU_CODE
 #define LOCAL static                    /* IPU in thread needs static variables */
@@ -118,10 +120,10 @@ struct ipcom {
 #define STOP_IONRDY     1               /* I/O dev not ready */
 #define STOP_HALT       2               /* HALT */
 #define STOP_IBKPT      3               /* breakpoint */
-#define STOP_UUO        4               /* invalid opcode */
+#define STOP_RESET      4               /* cpu doing reset */
 #define STOP_INVINS     5               /* invalid instr */
 #define STOP_INVIOP     6               /* invalid I/O op */
-#define STOP_INDLIM     7               /* indirect limit */
+#define STOP_WAITING    7               /* waiting for cpu to run */
 #define STOP_XECLIM     8               /* XEC limit */
 #define STOP_IOCHECK    9               /* IOCHECK */
 #define STOP_MMTRP      10              /* mm in trap */
@@ -377,18 +379,6 @@ extern  DIB     *dib_chan[MAX_CHAN];    /* Pointer to channel mux dib */
 #define DEV_V_UF2       (DEV_V_UF+1)    /* current usage */
 #define DEV_BUF_NUM(x)  (((x) & 07) << DEV_V_UF2)
 #define GET_DEV_BUF(x)  (((x) >> DEV_V_UF2) & 07)
-
-#ifdef NOT_USED_NOW
-//#define DEV_V_ADDR        DEV_V_UF              /* Pointer to device address (16) */
-//#define DEV_V_DADDR       (DEV_V_UF + 8)        /* Device address */
-//#define DEV_ADDR_MASK     (0x7f << DEV_V_DADDR) /* 24 bits shift */
-//#define DEV_V_UADDR       (DEV_V_UF)            /* Device address in Unit */
-//#define DEV_UADDR         (1 << DEV_V_UADDR)
-//#define GET_DADDR(x)      (0x7f & ((x) >> DEV_V_ADDR))
-//#define DEV_ADDR(x)       ((x) << DEV_V_ADDR)
-//#define PROTECT_V         UNIT_V_UF+15
-//#define PROTECT           (1 << PROTECT_V)
-#endif
 
 /* defined in rightmost 8 bits of upper 16 bits of uptr->flags */
 /* allow 255 type disks */

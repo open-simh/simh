@@ -80,9 +80,7 @@
 
 uint32  channels        = MAX_CHAN;             /* maximum number of channels */
 int     subchannels     = SUB_CHANS;            /* maximum number of subchannel devices */
-//int     irq_pend        = 0;                    /* pending interrupt flag */
 
-//extern  uint32  *M;                             /* cpu/ipu main memory */
 extern  uint32  SPAD[];                         /* cpu SPAD memory */
 extern  uint32  CPUSTATUS;                      /* CPU status word */
 extern  uint32  INTS[];                         /* Interrupt status flags */
@@ -518,6 +516,7 @@ int32 load_ccw(CHANP *chp, int32 tic_ok)
     sim_debug(DEBUG_XIO, &cpu_dev,
         "load_ccw @%06x entry chan_status[%02x]=%04x\n",
         chp->chan_caw, chan, chp->chan_status);
+
 #ifdef TEST_FOR_IOCL_CHANGE
     /* see if iocla or iocd has changed since start */
     if (!loading && (chp->chan_info & INFO_SIOCD)) {  /* see if 1st IOCD in channel prog */
@@ -1401,9 +1400,6 @@ missing:
     }
 #endif
 
-    /* 05122021 cpu halts in diag if this code is enabled */
-    /* disabling this code allows TE to be echoed at debugger prompt */
-#ifndef TEST_FOR_HSDP_PUT_BACK_05122021
     /* channel not busy and ready to go, check for any status ready */
     /* see if any status ready to post */
     if (FIFO_Num(chsa&0x7f00)) {
@@ -1439,7 +1435,6 @@ missing:
     sim_debug(DEBUG_IRQ, &cpu_dev,
         "SIOT chsa %04x Nothing to post FIFO #%1x irq %02x inch %06x chan_icba %06x icb+20 %08x\n",
          chsa, FIFO_Num(chsa), inta, incha, chan_icb, RMW(chan_icb+20));
-#endif
 
     /* check for a Command or data chain operation in progresss */
     if ((chp->chan_byte & BUFF_BUSY) && (chp->chan_byte != BUFF_POST)) {
@@ -1602,7 +1597,8 @@ missing:
         /* we have an error or user requested interrupt, return status */
         sim_debug(DEBUG_EXP, &cpu_dev, "startxio store csw CC2 chan %04x status %08x\n",
             chan, chp->chan_status);
-/*NOTE*//* if we have an error, we would loop forever if the CC bit was set */
+        /* NOTE */
+        /* if we have an error, we would loop forever if the CC bit was set */
         /* the only way to stop was to do a kill */
         chp->ccw_flags &= ~(FLAG_DC|FLAG_CC);   /* reset chaining bits */
         /* DIAG's want CC1 with memory access error */
@@ -2067,7 +2063,7 @@ missing:
     }
     sim_debug(DEBUG_XIO, &cpu_dev, "RSCHNL return CC1 lchsa %02x chan %02x inta %04x\n",
         lchsa, chan, inta);
-    *status = CC1BIT;                           /* request accepted, no status, so CC1 TRY THIS */
+    *status = CC1BIT;                           /* request accepted, no status, so CC1 */
     return SCPE_OK;                             /* All OK */
 }
 
@@ -2136,7 +2132,8 @@ missing:
     if ((dptr->flags & DEV_DIS) || ((uptr->flags & UNIT_DIS) && 
         ((uptr->flags & UNIT_SUBCHAN) == 0))) {
         sim_debug(DEBUG_EXP, &cpu_dev,
-            "HIO chsa %04x device/unit disabled, CC3 returned flags %08x\n", chsa, uptr->flags);
+            "HIO chsa %04x device/unit disabled, CC3 returned flags %08x\n",
+            chsa, uptr->flags);
         *status = CC3BIT;                       /* not attached, so error CC3 */
         return SCPE_OK;                         /* not found, CC3 */
     }
@@ -2218,7 +2215,7 @@ missing:
             "HIO END3 chsa %04x cmd %02x ccw_flags %04x status %04x\n",
             chsa, chp->ccw_cmd, chp->ccw_flags, *status);
 
-#ifndef GIVE_INT_ON_NOT_BUSY_121420_03082021
+        /* GIVE_INT_ON_NOT_BUSY */
         chp->chan_byte = BUFF_DONE;             /* we are done */
         sim_debug(DEBUG_EXP, &cpu_dev,
             "HIO BUFF_DONE2 chp %p chan_byte %04x\n", chp, chp->chan_byte);
@@ -2235,7 +2232,6 @@ missing:
         chp->chan_status = 0;                   /* no status anymore */
         chp->ccw_cmd = 0;                       /* no command anymore */
         irq_pend = 1;                           /* flag to test for int condition */
-#endif
         return SCPE_OK;                         /* No CC's all OK  */
     }
 
@@ -2356,7 +2352,8 @@ missing:
     if ((dptr->flags & DEV_DIS) || ((uptr->flags & UNIT_DIS) && 
         ((uptr->flags & UNIT_SUBCHAN) == 0))) {
         sim_debug(DEBUG_EXP, &cpu_dev,
-            "GRIO chsa %04x device/unit disabled, CC3 returned flags %08x\n", chsa, uptr->flags);
+            "GRIO chsa %04x device/unit disabled, CC3 returned flags %08x\n",
+            chsa, uptr->flags);
         *status = CC3BIT;                       /* not attached, so error CC3 */
         return SCPE_OK;                         /* not found, CC3 */
     }
@@ -2370,7 +2367,6 @@ missing:
         return SCPE_OK;                         /* CC4 all OK  */
     }
 
-// NOW ON 05142021 */
     /* device does not have stop_io entry, so stop the I/O */
     /* check for a Command or data chain operation in progresss */
     /* set the return to CC3BIT & CC4BIT causes infinite loop in MPX1X */
@@ -2416,8 +2412,6 @@ missing:
 
     /* If this is console, debugger wants CC3 & CC4 = 0 */
     if (chan == 0x7e) {
-        /* returning No CC's causes MPX1X to loop forever */
-        /* so restore returning CC1 */
         *status = 0;                            /* return no CC's */
     } else {
         /* diags want unsupported transaction for disk */
@@ -2531,7 +2525,8 @@ t_stat chan_boot(uint16 chsa, DEVICE *dptr) {
     UNIT    *uptr = find_unit_ptr(chsa);        /* find pointer to unit on channel */
     CHANP   *chp = 0;
 
-    sim_debug(DEBUG_EXP, &cpu_dev, "Channel Boot chan/device addr %04x SNS %08x\n", chsa, uptr->u5);
+    sim_debug(DEBUG_EXP, &cpu_dev,
+        "Channel Boot chan/device addr %04x SNS %08x\n", chsa, uptr->u5);
     fflush(sim_deb);
 
     if (dibp == 0)                              /* if no channel or device, error */
@@ -2626,8 +2621,9 @@ uint32 cont_chan(uint16 chsa)
             /* we have an error or user requested interrupt, return status */
             sim_debug(DEBUG_EXP, &cpu_dev, "cont_chan error, store csw chsa %04x status %08x\n",
                 chsa, chp->chan_status);
-/*NOTE*/    /* if we have an error, we would loop forever if the CC bit was set */
-            /* the only way to stop was to do a kill */
+            /* NOTE */
+            /* if we have an error, we would loop forever if the CC bit was set */
+            /* the only way to stop was to do a kill of sel32 */
             chp->ccw_flags &= ~(FLAG_DC|FLAG_CC);   /* reset chaining bits */
             /* DIAG's want CC1 with memory access error */
             if (chp->chan_status & STATUS_PCHK) {

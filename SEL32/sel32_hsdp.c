@@ -30,7 +30,7 @@
 
 #if NUM_DEVS_HSDP > 0
 
-#define UNIT_HSDP   UNIT_ATTABLE | UNIT_IDLE | UNIT_DISABLE
+#define UNIT_HSDP   UNIT_ATTABLE|UNIT_DISABLE
 
 extern  uint32  SPAD[];                         /* cpu SPAD memory */
 
@@ -1126,11 +1126,9 @@ t_stat hsdp_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
         uptr->SNS &= ~SNS_CMDREJ;               /* not rejected yet */
         uptr->CMD |= DSK_INCH2;                 /* use 0xF0 for inch, just need int */
 #ifdef FAST_FOR_UTX
-//      sim_activate(uptr, 20);                 /* start things off */
         sim_activate(uptr, 30);                 /* start things off */
 #else
         sim_activate(uptr, 250);                /* start things off */
-//      sim_activate(uptr, 500);                /* start things off */
 #endif
         return SCPE_OK;                         /* good to go */
         break;
@@ -1164,12 +1162,9 @@ t_stat hsdp_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
             "hsdp_startcmd starting disk cmd %02x chsa %04x\n",
             cmd, chsa);
 #ifdef FAST_FOR_UTX
-//      sim_activate(uptr, 20);                 /* start things off */
-//      sim_activate(uptr, 30);                 /* start things off */
         sim_activate(uptr, 25);                 /* start things off */
 #else
         sim_activate(uptr, 250);                /* start things off */
-//      sim_activate(uptr, 500);                /* start things off */
 #endif
         return SCPE_OK;                         /* good to go */
         break;
@@ -1331,7 +1326,6 @@ t_stat hsdp_srv(UNIT *uptr)
             if (((i+1)%4) == 0) {               /* see if we have a word yet */
 #ifndef FOR_TESTING
                 int dn = i/4;                   /* get drive number */
-//              UNIT *up = uptr0[dn];           /* get our unit pointer */
                 UNIT *uptr0 = dptr->units;      /* get unit 0 pointer */
 #endif
                 /* drive attribute registers */
@@ -1447,8 +1441,6 @@ t_stat hsdp_srv(UNIT *uptr)
             /* Do a fake wait to kill some time */
             uptr->CMD |= DSK_WAITING;           /* show waiting for NOP */
             sim_debug(DEBUG_CMD, dptr, "hsdp_srv cmd NOP stalling for 50 cnts\n");
-//          sim_activate(uptr, 250);            /* start waiting */
-//          sim_activate(uptr, 50);             /* start waiting */
             sim_activate(uptr, 350);             /* start waiting */
             break;
         }
@@ -1469,7 +1461,6 @@ t_stat hsdp_srv(UNIT *uptr)
         trk = (uptr->CHS >> 8) & 0xff;          /* get trk/head */
         sec = uptr->CHS & 0xff;                 /* set sec */
 
-//      ch = ((sec * 2) % SPT(type)) & 0x3f;    /* get index cnt */
         ch = ((2*SPT(type))-1) & 0x3f;          /* get index cnt */
         uptr->SNS2 = (uptr->SNS2 & 0xc0ff) | ((((uint32)ch) & 0x3f) << 8);
         sim_debug(DEBUG_CMD, dptr,
@@ -1525,7 +1516,7 @@ t_stat hsdp_srv(UNIT *uptr)
             "hsdp_srv IHA unit=%02x STAR %08x %04x/%02x/%02x\n",
             unit, uptr->CHS, cyl, trk, sec);
         /* get alternate track if this one is defective */
-//sim_debug(DEBUG_CMD, dptr, "Dpatrk1 %08x label\n", uptr->CHS);
+//      sim_debug(DEBUG_CMD, dptr, "Dpatrk1 %08x label\n", uptr->CHS);
         tempt = get_dpatrk(uptr, uptr->CHS, lbuf);
         /* file offset in bytes to std or alt track */
         tstart = STAR2SEC(tempt, SPT(type), SPC(type)) * SSB(type);
@@ -1829,10 +1820,6 @@ iha_error:
             sim_debug(DEBUG_CMD, dptr,
                 "hsdp_srv LSC0 %02x AF test/incr cyl %04x trk %02x sec %02x\n",
                 uptr->LSC, (tstar>>16)&0xffff, (tstar>>8)&0xff, tstar&0xff);
-//#define DO_DYNAMIC_DEBUG
-#ifdef DO_DYNAMIC_DEBUG
-// cpu_dev.dctrl |= DEBUG_INST|DEBUG_TRAP|DEBUG_CMD|DEBUG_DETAIL;   /* start instruction trace */
-#endif
         }
 
         sim_debug(DEBUG_CMD, dptr,
@@ -1905,12 +1892,8 @@ iha_error:
             unit, cyl, trk, buf[3], tcyl, k);
 #ifdef FAST_FOR_UTX
             sim_activate(uptr, 15);
-//          sim_activate(uptr, 20);             /* start things off */
-//          sim_activate(uptr, 20+k);           /* start us off */
 #else
-//          sim_activate(uptr, 150);            /* start things off */
             sim_activate(uptr, 200+k);          /* start us off */
-//          sim_activate(uptr, 400+k);          /* start us off */
 #endif
         break;
 
@@ -1961,8 +1944,6 @@ iha_error:
 
     case DSK_FMT:                               /* 0x0B Format for no skip */
         /* buffer must be on halfword boundry if not STATUS_PCHK and SNS_CMDREJ status */
-//      chp->chan_status |= STATUS_PCHK;        /* program check for invalid cmd */
-//      uptr->SNS |= SNS_CMDREJ;                /* cmd rejected */
         /* byte count can not exceed 20160 for the track */
         uptr->CMD &= LMASK;                     /* remove old status bits & cmd */
         sim_debug(DEBUG_CMD, dptr,
@@ -2178,7 +2159,6 @@ iha_error:
 
             /* see if we are done reading data */
             if (test_write_byte_end(chsa)) {
-                /* EOM reached, abort */
                 sim_debug(DEBUG_CMD, dptr,
                     "HSDP Read complete for read from disk @ %04x/%02x/%02x\n",
                     STAR2CYL(uptr->CHS), (uptr->CHS >> 8)&0xff, (uptr->CHS&0xff));
@@ -2191,12 +2171,9 @@ iha_error:
                 "HSDP sector read complete, %x bytes to go from diskfile /%04x/%02x/%02x\n",
                 chp->ccw_count, STAR2CYL(uptr->CHS), ((uptr->CHS) >> 8)&0xff, (uptr->CHS&0xff));
 #ifdef FAST_FOR_UTX
-//          sim_activate(uptr, 10);             /* wait to read next sector */
             sim_activate(uptr, 15);             /* wait to read next sector */
-//          sim_activate(uptr, 20);             /* wait to read next sector */
 #else
             sim_activate(uptr, 150);            /* wait to read next sector */
-//          sim_activate(uptr, 300);            /* wait to read next sector */
 #endif
             break;
         }
@@ -2422,11 +2399,9 @@ iha_error:
             }
 
 #ifdef FAST_FOR_UTX
-//          sim_activate(uptr, 10);             /* keep writing */
             sim_activate(uptr, 15);             /* keep writing */
 #else
-            sim_activate(uptr, 150);            /* wait to read next sector */
-//          sim_activate(uptr, 300);            /* wait to read next sector */
+            sim_activate(uptr, 150);            /* wait to write next sector */
 #endif
             break;
          }
@@ -2950,7 +2925,7 @@ t_stat hsdp_reset(DEVICE *dptr)
 {
     int     cn, unit;
 
-    for(unit=0; unit < NUM_UNITS_HSDP; unit++) {
+    for (unit=0; unit < NUM_UNITS_HSDP; unit++) {
         for (cn=0; cn<TRK_CACHE; cn++) {
             tkl_label[unit].tkl[cn].track = 0;
             tkl_label[unit].tkl[cn].age = 0;

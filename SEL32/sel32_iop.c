@@ -35,7 +35,7 @@
 
 #if NUM_DEVS_IOP > 0
 
-#define UNIT_IOP    UNIT_IDLE | UNIT_DISABLE
+#define UNIT_IOP    UNIT_DISABLE
 
 /* forward definitions */
 t_stat  iop_preio(UNIT *uptr, uint16 chan);
@@ -265,7 +265,7 @@ t_stat iop_srv(UNIT *uptr)
         /* the chp->ccw_addr location contains the inch address */
         /* 1-256 wd buffer is provided for 128 status dbl words */
 //??    tstart = set_inch(uptr, mema, 128); /* new address of 128 entries */
-        tstart = set_inch(uptr, mema, 1);   /* new address of 128 entries */
+        tstart = set_inch(uptr, mema, 1);   /* new address of 128 entry */
         if ((tstart == SCPE_MEM) || (tstart == SCPE_ARG)) { /* any error */
             /* we have error, bail out */
             uptr->u5 |= SNS_CMDREJ;

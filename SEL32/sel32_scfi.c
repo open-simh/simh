@@ -30,7 +30,7 @@
 
 #if NUM_DEVS_SCFI > 0
 
-#define UNIT_SCFI   UNIT_ATTABLE | UNIT_IDLE | UNIT_DISABLE
+#define UNIT_SCFI   UNIT_ATTABLE|UNIT_DISABLE
 
 extern  uint32  SPAD[];                         /* cpu SPAD memory */
 

@@ -36,7 +36,7 @@
 
 #if NUM_DEVS_MFP > 0
 
-#define UNIT_MFP    UNIT_IDLE | UNIT_DISABLE
+#define UNIT_MFP    UNIT_DISABLE
 
 /* forward definitions */
 t_stat  mfp_preio(UNIT *uptr, uint16 chan);
@@ -102,7 +102,8 @@ UNIT            mfp_unit[] = {
     {UDATA(&mfp_srv, UNIT_MFP, 0), 0, UNIT_ADDR(0x7600)}, /* Channel controller */
 };
 
-//DIB mfp_dib = {NULL, mfp_startcmd, NULL, NULL, NULL, mfp_ini, mfp_unit, mfp_chp, NUM_UNITS_MFP, 0xff, 0x7600,0,0,0};
+//DIB mfp_dib = {NULL, mfp_startcmd, NULL, NULL, NULL, mfp_ini, mfp_unit,
+//  mfp_chp, NUM_UNITS_MFP, 0xff, 0x7600,0,0,0};
 DIB             mfp_dib = {
     mfp_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
     mfp_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
@@ -320,7 +321,7 @@ t_stat mfp_srv(UNIT *uptr)
         /* the chp->ccw_addr location contains the inch address */
         /* 1-256 wd buffer is provided for 128 status dbl words */
 ///??   tstart = set_inch(uptr, mema, 128); /* new address of 128 entries */
-        tstart = set_inch(uptr, mema, 1);   /* new address of 1 entrie */
+        tstart = set_inch(uptr, mema, 1);   /* new address of 1 entry */
         if ((tstart == SCPE_MEM) || (tstart == SCPE_ARG)) { /* any error */
             /* we have error, bail out */
             uptr->u5 |= SNS_CMDREJ;

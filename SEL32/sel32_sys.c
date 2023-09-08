@@ -305,10 +305,10 @@ const char *sim_stop_messages[SCPE_BASE] = {
        "IO device not ready",
        "HALT instruction",
        "Breakpoint",
-       "Unknown Opcode",
+       "IPU Reset request",
        "Invalid instruction",
        "Invalid I/O operation",
-       "Nested indirects exceed limit",
+       "Waiting for CPU to run",
        "I/O Check opcode",
        "Memory management trap during trap",
 };
@@ -534,7 +534,6 @@ t_stat load_tap (FILE *fileref)
  *
  ***********************************************
  *
- * *END
  * *END     Defines the last record of the Initial Configuration Load file.
  *
  ***********************************************
@@ -640,21 +639,21 @@ t_stat load_icl(FILE *fileref)
     /* read file input records until the end */
     while (fgets(&buf[0], 120, fileref) != 0) {
         /* skip any white spaces */
-        for(cp = &buf[0]; *cp == ' ' || *cp == '\t'; cp++);
+        for (cp = &buf[0]; *cp == ' ' || *cp == '\t'; cp++);
         if (*cp++ != '*')
             continue;                       /* if line does not start with *, ignore */
-        if(sim_strncasecmp(cp, "END", 3) == 0) {
+        if (sim_strncasecmp(cp, "END", 3) == 0) {
             return SCPE_OK;                 /* we are done */
         }
         else
-        if(sim_strncasecmp(cp, "DEV", 3) == 0) {
+        if (sim_strncasecmp(cp, "DEV", 3) == 0) {
             /* process device entry */
             /*
             |----+----+----+----+----+----+----+----|
             |Flgs|CLS |0|Int Lev|0|Phy Adr|Sub Addr |
             |----+----+----+----+----+----+----+----|
             */
-            for(cp += 3; *cp == ' ' || *cp == '\t'; cp++);  /* skip white spaces */
+            for (cp += 3; *cp == ' ' || *cp == '\t'; cp++);  /* skip white spaces */
             if (get_2hex(cp, &dev) != SCPE_OK)      /* get the device address */
                 return SCPE_ARG;            /* unknown input, argument error */
             if (dev > 0x7f)                 /* devices are 0-7f (0-127) */
@@ -715,14 +714,14 @@ t_stat load_icl(FILE *fileref)
             SPAD[sa] = intr;                /* put the device interrupt entry into the spad */
         }
         else
-        if(sim_strncasecmp(cp, "INT", 3) == 0) {
+        if (sim_strncasecmp(cp, "INT", 3) == 0) {
             /* process interrupt entry */
             /*
             |----+----+----+----+----+----+----+----|
             |   Flags |1RRR|SSSS|      Int IVL      |
             |----+----+----+----+----+----+----+----|
             */
-            for(cp += 3; *cp == ' ' || *cp == '\t'; cp++);  /* skip white spaces */
+            for (cp += 3; *cp == ' ' || *cp == '\t'; cp++);  /* skip white spaces */
             if (get_2hex(cp, &intr) != SCPE_OK) /* get the interrupt level value */
                 return SCPE_ARG;            /* unknown input, argument error */
             if (intr > 0x6f)                /* ints are 0-6f (0-111) */
@@ -1263,7 +1262,6 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
     int         l = 4;                      /* default to full words */
     int         rdx = 16;                   /* default radex is hex */
     uint32      num;
-//  uint32      tmp=*val;                   /* for debug */
 
     if (sw & SIM_SW_STOP) {                 /* special processing for step */
         if (PSD[0] & 0x02000000) {          /* bit 6 is base mode */
@@ -1306,7 +1304,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 
     if (sw & SWMASK ('C')) {
         fputc('\'', of);                    /* opening apostorphe */
-        for(i = 0; i < l; i++) {
+        for (i = 0; i < l; i++) {
             int ch = val[i] & 0xff;         /* get the char */
             if (ch >= 0x20 && ch <= 0x7f)   /* see if printable */
                 fprintf(of, "%c", ch);      /* output the ascii char */
@@ -1429,7 +1427,7 @@ t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
     /* process a character string */
     if (sw & SWMASK ('C')) {
         cptr = get_glyph_quoted(cptr, gbuf, 0); /* Get string */
-        for(i = 0; gbuf[i] != 0; i++) {
+        for (i = 0; gbuf[i] != 0; i++) {
             val[i] = gbuf[i];               /* copy in the string */
         }
         return -(i - 1);
