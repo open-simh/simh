@@ -37,7 +37,7 @@
 extern  uint32      CPUSTATUS;
 extern  uint32      attention_trap;
 
-#define UNIT_CON    UNIT_IDLE | UNIT_DISABLE
+#define UNIT_CON    UNIT_DISABLE
 #define CON_WAIT    1000
 #define CMD     u3
 /* Held in u3 is the device command and status */
@@ -116,7 +116,7 @@ MTAB    con_mod[] = {
 };
 
 UNIT            con_unit[] = {
-    {UDATA(&con_srvi, UNIT_CON, 0), CON_WAIT, UNIT_ADDR(0x7EFC)},   /* 0 Input */
+    {UDATA(&con_srvi, UNIT_CON|UNIT_IDLE, 0), CON_WAIT, UNIT_ADDR(0x7EFC)},   /* 0 Input */
     {UDATA(&con_srvo, UNIT_CON, 0), CON_WAIT, UNIT_ADDR(0x7EFD)},   /* 1 Output */
 };
 
@@ -144,6 +144,7 @@ DIB             con_dib = {
 DEVICE  con_dev = {
     "CON", con_unit, NULL, con_mod,
     NUM_UNITS_CON, 8, 15, 1, 8, 8,
+    // We must always have a consol
 //  NULL, NULL, &con_reset, NULL, &con_attach, &con_detach,
     NULL, NULL, &con_reset, NULL, NULL, NULL,
     &con_dib, DEV_DIS|DEV_DISABLE|DEV_DEBUG, 0, dev_debug
@@ -262,8 +263,7 @@ t_stat con_startcmd(UNIT *uptr, uint16 chan, uint8 cmd) {
         uptr->CMD |= CON_READ;              /* show read mode */
         uptr->SNS |= (SNS_RDY|SNS_ONLN);    /* status is online & ready */
         /* input is polled, so no start needed */
-        sim_cancel(uptr);                   /* stop input poll */
-        sim_activate(uptr, 250);            /* start us off */
+        sim_activate_abs(uptr, 250);        /* start us off */
         return SCPE_OK;                     /* no status change */
         break;
 
@@ -288,9 +288,8 @@ t_stat con_startcmd(UNIT *uptr, uint16 chan, uint8 cmd) {
         /* Starting Syslog Daemon */
         /* ioi: sio at 801 failed, cc=2, retry=0 */
         /* panic: ioi: sio - bad cc */
-        sim_activate(uptr, 200);            /* start us off */
-//fail  sim_activate(uptr, 230);            /* start us off */
-//fail  sim_activate(uptr, 250);            /* start us off */
+//11523 sim_activate(uptr, 200);            /* start us off */
+        sim_activate_abs(uptr, 200);        /* start us off */
         return SCPE_OK;                     /* no status change */
         break;
 
@@ -304,10 +303,10 @@ t_stat con_startcmd(UNIT *uptr, uint16 chan, uint8 cmd) {
             (CPUSTATUS & ONIPU)?"IPU":"CPU", uptr->CMD, chsa, cmd);
         /* input is polled, so no start needed */
         if (unit == 1) {                    /* doing output */
-            sim_activate(uptr, 250);        /* start us off */
+//11523     sim_activate(uptr, 250);        /* start us off */
+            sim_activate_abs(uptr, 250);    /* start us off */
         } else {
-            sim_cancel(uptr);               /* stop input poll */
-            sim_activate(uptr, 250);        /* start us off */
+            sim_activate_abs(uptr, 250);    /* start us off */
         }
         return SCPE_OK;                     /* no status change */
         break;
@@ -350,9 +349,7 @@ t_stat con_srvo(UNIT *uptr) {
             unit, uptr->CMD, cmd, con_data[unit].incnt, uptr->u4, mema, M[mema>>2]);
 
         /* now call set_inch() function to write and test inch buffer addresses */
-        /* 1-256 wd buffer is provided for 128 status dbl words */
-//TRY   tstart = set_inch(uptr, mema, 128); /* new address & 128 entries */
-        tstart = set_inch(uptr, mema, 1); /* new address & 128 entries */
+        tstart = set_inch(uptr, mema, 1); /* new address & 1 entry */
         if ((tstart == SCPE_MEM) || (tstart == SCPE_ARG)) { /* any error */
             /* we have error, bail out */
             uptr->SNS |= SNS_CMDREJ;
@@ -363,13 +360,13 @@ t_stat con_srvo(UNIT *uptr) {
             break;
         }
         sim_debug(DEBUG_CMD, dptr,
-            "con_srvo INCH CMD %08x chsa %04x len %02x inch %06x in2 %06x\n", uptr->CMD, chsa, len, mema, M[mema>>2]);
+            "con_srvo INCH CMD %08x chsa %04x len %02x inch %06x in2 %06x\n",
+            uptr->CMD, chsa, len, mema, M[mema>>2]);
         /* WARNING, if SNS_DEVEND is not set, diags fail by looping in CON diag */
         chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* return OK */
         break;
 
     case CON_NOP:       /* 0x03 */          /* NOP has do nothing */
-//ZZ    uptr->CMD &= ~CON_MSK;              /* remove old CMD */
         uptr->CMD &= LMASK;                 /* nothing left, command complete */
         sim_debug(DEBUG_CMD, dptr,
             "con_srvo NOP CMD %08x chsa %04x cmd = %02x\n", uptr->CMD, chsa, cmd);
@@ -433,8 +430,7 @@ t_stat con_srvi(UNIT *uptr) {
             unit, uptr->CMD, cmd, con_data[unit].incnt, uptr->u4, mema, M[mema>>2]);
 
         /* now call set_inch() function to write and test inch buffer addresses */
-//TRY   tstart = set_inch(uptr, mema, 128); /* new address & 128 entries */
-        tstart = set_inch(uptr, mema, 1); /* new address & 128 entries */
+        tstart = set_inch(uptr, mema, 1); /* new address & 1 entry */
         if ((tstart == SCPE_MEM) || (tstart == SCPE_ARG)) { /* any error */
             /* we have error, bail out */
             uptr->SNS |= SNS_CMDREJ;
@@ -447,14 +443,14 @@ t_stat con_srvi(UNIT *uptr) {
         con_data[unit].incnt = 0;           /* buffer empty */
         uptr->u4 = 0;                       /* no I/O yet */
         sim_debug(DEBUG_CMD, dptr,
-            "con_srvi INCH CMD %08x chsa %04x len %02x inch %06x in2 %06x\n", uptr->CMD, chsa, len, mema, M[mema>>2]);
+            "con_srvi INCH CMD %08x chsa %04x len %02x inch %06x in2 %06x\n",
+            uptr->CMD, chsa, len, mema, M[mema>>2]);
         /* WARNING, if SNS_DEVEND is not set, diags fail by looping in CON diag */
         chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* return OK */
         /* drop through to poll input */
         break;
 
     case CON_NOP:       /* 0x03 */          /* NOP has do nothing */
-//ZZ    uptr->CMD &= ~CON_MSK;              /* remove old CMD */
         uptr->CMD &= LMASK;                 /* nothing left, command complete */
         sim_debug(DEBUG_CMD, dptr,
             "con_srvi NOP CMD %08x chsa %04x cmd = %02x\n", uptr->CMD, chsa, cmd);
@@ -552,10 +548,8 @@ t_stat con_srvi(UNIT *uptr) {
                 atbuf = (ch)<<8;            /* start anew */
                 uptr->CMD |= CON_ATAT;      /* show getting @ */
             }
-#ifndef TEST4MPX
             if (ch == '\n')                 /* convert newline */
                 ch = '\r';                  /* make newline into carriage return */ 
-#endif
             if (isprint(ch))
                 sim_debug(DEBUG_CMD, dptr,
                 "con_srvi handle readch unit %02x: CMD %08x read %02x [%c] u4 %02x incnt %02x r %x\n",
@@ -581,12 +575,8 @@ t_stat con_srvi(UNIT *uptr) {
                 sim_debug(DEBUG_CMD, dptr,
                 "con_srvi readch unit %02x: CMD %08x read %02x u4 %02x incnt %02x\n",
                 unit, uptr->CMD, ch, uptr->u4, con_data[unit].incnt);
-//JB        sim_clock_coschedule(uptr, 1000);
-//JB        sim_activate(uptr, 30);         /* do this again */
-//??        sim_activate(uptr, 300);        /* do this again */
+
             sim_activate(uptr, 500);        /* do this again */
-//01172021  sim_activate(uptr, 400);        /* do this again */
-//          sim_activate(uptr, 800);        /* do this again */
             return SCPE_OK;
         }
         /* not looking for input, look for attn or wakeup */
@@ -614,11 +604,7 @@ t_stat con_srvi(UNIT *uptr) {
                     uptr->u4 = 0;           /* no input count */
                     con_data[unit].incnt = 0;   /* no input data */
                 }
-//              sim_activate(uptr, wait_time);  /* do this again */
-//??            sim_activate(uptr, 400);    /* do this again */
                 sim_activate(uptr, 500);    /* do this again */
-//JB            sim_clock_coschedule(uptr, 1000);
-//              sim_activate(uptr, 4000);   /* do this again */
                 return SCPE_OK;
             }
             /* char not for us, so keep looking */
@@ -649,9 +635,7 @@ t_stat con_srvi(UNIT *uptr) {
             "con_srvi readch2 unit %02x: CMD %08x read %02x u4 %02x incnt %02x r %x\n",
             unit, uptr->CMD, ch, uptr->u4, con_data[unit].incnt, r);
     }
-//X sim_activate(uptr, wait_time);          /* do this again */
     sim_clock_coschedule(uptr, 1000);       /* continue poll */
-//JBsim_clock_coschedule(uptr, 1000);
     return SCPE_OK;
 }
 

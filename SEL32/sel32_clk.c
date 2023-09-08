@@ -62,7 +62,6 @@ int32 rtc_lvl = 0x18;                       /* rtc interrupt level */
 
 /* clock can be enabled / disabled */
 /* default to 60 HZ RTC */
-//718UNIT rtc_unit = { UDATA (&rtc_srv, UNIT_IDLE, 0), 16666, UNIT_ADDR(0x7F06)};
 UNIT rtc_unit = { UDATA (&rtc_srv, UNIT_CLK, 0), 16666, UNIT_ADDR(0x7F06)};
 
 REG rtc_reg[] = {
@@ -111,10 +110,6 @@ t_stat rtc_srv (UNIT *uptr)
 #endif
     /* if clock disabled, do not do interrupts */
     if (((rtc_dev.flags & DEV_DIS) == 0) && rtc_pie) {
-        int lev = rtc_lvl;
-        sim_debug(DEBUG_CMD, &rtc_dev,
-            "RT Clock mfp INTS[%02x] %08x SPAD[%02x] %08x\n",
-            lev, INTS[lev], lev+0x80, SPAD[lev+0x80]);
         sim_debug(DEBUG_CMD, &rtc_dev,
             "RT Clock int INTS[%02x] %08x SPAD[%02x] %08x\n",
             rtc_lvl, INTS[rtc_lvl], rtc_lvl+0x80, SPAD[rtc_lvl+0x80]);
@@ -142,7 +137,6 @@ t_stat rtc_srv (UNIT *uptr)
             "RT Clock int INTS[%02x] %08x SPAD[%02x] %08x\n",
             rtc_lvl, INTS[rtc_lvl], rtc_lvl+0x80, SPAD[rtc_lvl+0x80]);
     }
-//  temp = sim_rtcn_calb(rtc_tps, TMR_RTC);     /* timer 0 for RTC */
     sim_rtcn_calb(rtc_tps, TMR_RTC);            /* timer 0 for RTC */
     sim_activate_after(uptr, 1000000/rtc_tps);  /* reactivate 16666 tics / sec */
     return SCPE_OK;
@@ -161,7 +155,7 @@ void rtc_setup(uint32 ss, uint32 level)
     if (ss == 1) {                          /* starting? */
         INTS[level] |= INTS_ENAB;           /* make sure enabled */
         SPAD[level+0x80] |= SINT_ENAB;      /* in spad too */
-        sim_activate(&rtc_unit, 20);        /* start us off */
+        sim_activate(&rtc_unit, 20);        /* start us off, will be ignored if active  */
         sim_debug(DEBUG_CMD, &rtc_dev,
             "RT Clock setup enable int %02x rtc_pie %01x ss %01x\n",
             rtc_lvl, rtc_pie, ss);
@@ -182,7 +176,8 @@ t_stat rtc_reset(DEVICE *dptr)
 {
     rtc_pie = 0;                            /* disable pulse */
     /* initialize clock calibration */
-    sim_activate (&rtc_unit, rtc_unit.wait);    /* activate unit */
+    sim_rtcn_init_unit(&rtc_unit, rtc_unit.wait, TMR_RTC);
+    sim_activate(&rtc_unit, rtc_unit.wait); /* activate unit, ignored for second reset  */
     return SCPE_OK;
 }
 
@@ -282,7 +277,6 @@ DEVICE itm_dev = {
     NULL, NULL, &itm_reset,                 /* examine, deposit, reset */
     NULL, NULL, NULL,                       /* boot, attach, detach */
     /* dib, dev flags, debug flags, debug */
-//  NULL, DEV_DEBUG|DEV_DIS|DEV_DISABLE, 0, dev_debug,
     NULL, DEV_DEBUG, 0, dev_debug,          /* dib, dev flags, debug flags, debug */
     NULL, NULL, &itm_help,                  /* ?, ?, help */
     NULL, NULL, &itm_desc,                  /* ?, ?, description */
@@ -299,10 +293,9 @@ DEVICE itm_dev = {
 t_stat itm_srv (UNIT *uptr)
 {
     if (itm_pie) {                          /* interrupt enabled? */
-        time_t result = time(NULL);
         sim_debug(DEBUG_CMD, &itm_dev,
-            "Intv Timer expired status %08x lev %02x cnt %x @ time %08x\n",
-            INTS[itm_lvl], itm_lvl, itm_cnt, (uint32)result);
+            "Intv Timer expired status %08x lev %02x cnt %x\n",
+            INTS[itm_lvl], itm_lvl, itm_cnt);
         if (((INTS[itm_lvl] & INTS_ENAB) || /* make sure enabled */
             (SPAD[itm_lvl+0x80] & SINT_ENAB)) &&    /* in spad too */
             (((INTS[itm_lvl] & INTS_ACT) == 0) ||   /* and not active */
@@ -421,17 +414,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
                 sim_activate_after_abs_d(&itm_unit, ((double)cnt*1000000)/rtc_tps);
             else {
                 /* use interval timer freq */
-#ifdef MAYBE_CHANGE_FOR_MPX3X
-                /* tsm does not run if fake time cnt is used */
-///             if (cnt == 0)
-///                 cnt = 0x52f0;
-                /* this fixes an extra interrupt being generated on context switch */
-                /* the value is load for the new task anyway */
-                /* need to verify that UTX likes it too */
-/*4MPX3X*/      sim_activate_after_abs_d(&itm_unit, ((double)(cnt+1)*itm_tick_size_x_100)/100.0);
-#else
                 sim_activate_after_abs_d(&itm_unit, ((double)cnt*itm_tick_size_x_100)/100.0);
-#endif
             }
             itm_run = 1;                    /* set timer running */
         }
@@ -607,7 +590,6 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
                 /* get simulated negative start time in counts */
                 temp = temp - itm_strt;     /* make into a negative number */
             } 
-//extra     sim_cancel (&itm_unit);         /* cancel timer */
         }
         sim_debug(DEBUG_CMD, &itm_dev,
             "Intv 0x%02x temp value %08x (%08d)\n", cmd, temp, temp);
@@ -657,18 +639,10 @@ void itm_setup(uint32 ss, uint32 level)
     itm_cnt = 0;                            /* no count reset value */
     sim_cancel (&itm_unit);                 /* not running yet */
     if (ss == 1) {                          /* starting? */
-#ifdef NOT_HERE_112422
-        INTS[level] |= INTS_ENAB;           /* make sure enabled */
-        SPAD[level+0x80] |= SINT_ENAB;      /* in spad too */
-#endif
         sim_debug(DEBUG_CMD, &itm_dev,
             "Intv Timer setup enable int %02x value %08x itm_pie %01x ss %01x\n",
             itm_lvl, itm_cnt, itm_pie, ss);
     } else {
-#ifdef NOT_HERE_112422
-        INTS[level] &= ~INTS_ENAB;          /* make sure disabled */
-        SPAD[level+0x80] &= ~SINT_ENAB;     /* in spad too */
-#endif
         sim_debug(DEBUG_CMD, &itm_dev,
             "Intv Timer setup disable int %02x value %08x itm_pie %01x ss %01x\n",
             itm_lvl, itm_cnt, itm_pie, ss);

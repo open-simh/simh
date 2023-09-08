@@ -27,6 +27,7 @@
 #	FreeBSD 12.1
 #	OpenBSD 6.7
 #	NetBSD 9.1
+#	Linux ArmBian 5.19.17-meson64 (odroid n2+)
 
 #		CHANGE HISTORY
 #	2021/4/8	avoid setting PATH in scripts for root
@@ -34,11 +35,22 @@
 #			Corrected: bridge create and fwdelay done twice for NetBSD
 #			FreeBSD: tapX opened by userland program not by ifconfig
 #	2021/11/17	check for existance of br0 done too lousy. Done better.
+#	2021/12/29	Linux: when nmcli available: permanent setup using NetManager.
+#	2023/4/19	Let ResetNet also remove tap2, tap3 as requested
+#	2023/7/28	When nmcli is used check that br0 does not already exist
+#			Use $nmcli in SetupNet and in the generated scripts too
+#			Text changed to be more clear: we are building br0/tap0 with an external i/f
+#			When nmcli used: code to delete current ext i/f is same CMD construct as other
+#			When nmcli used and ResetNet created: let it remove orphaned connections too
+#			When nmcli used and ResetNet created: recreate original interface by type and name
+#			When nmcli used: correctly detect WiFi interfaces and ignore it for now
+#	2023/7/30	User prompted for loading saved params from SnetSaved.interface file
+#			Entered params only saved when no SnetSaved.interface file exists.
+#			Removal of generated script /tmp/SNjob.pid after exec now optional.
 #
 
-# uncomment next line if you need more than one tap = run multiple SIMHs...
-#OPSMODE="expert"
-# ... by editting the saved params file followed by rerun of this script
+JOBFILE="/tmp/SNjob.$$"
+TMPFILE="/tmp/SNtmp.$$"
 
 OS=`uname -s`
 case $OS in
@@ -90,8 +102,15 @@ case $OS in
 
 	;;
  "Linux")
+	NETMAN=`whereis -b nmcli | awk '{ if($2 != "") print 1; else print 0; }'`
+	
 	# List of Utils
-	LOU="ip brctl tunctl netstat"
+	if test ${NETMAN} -eq 1
+	then
+		LOU="nmcli ip netstat"
+	else
+		LOU="ip brctl tunctl netstat"
+	fi
 
 	# set $util to path of util for all in $LOU
 	for U in $LOU
@@ -104,50 +123,69 @@ case $OS in
 			}'`"
 	done
 
-	ERR=0
-	# check brctl to exist
-	if test $brctl = "void"
+	if test ${NETMAN} -eq 0
 	then
-		echo 'No brctl program -- please install package bridge-utils'
-		ERR=1
-	fi
+		ERR=0
+		# check brctl to exist
+		if test $brctl = "void"
+		then
+			echo 'No brctl program -- please install package bridge-utils'
+			ERR=1
+		fi
 
-	# check tunctl to exist
-	if test $tunctl = "void"
-	then
-		echo 'No tunctl program -- please install package uml-utilities'
-		ERR=1
-	fi
+		# check tunctl to exist
+		if test $tunctl = "void"
+		then
+			echo 'No tunctl program -- please install package uml-utilities'
+			ERR=1
+		fi
 
-	# quit when either not installed
-	if test $ERR -eq 1
-	then
-		exit 1
+		# quit when either not installed
+		if test $ERR -eq 1
+		then
+			exit 1
+		fi
 	fi
 
 	# make list of all interfaces ignoring lo
-	AVL_IF=`$ip link show |
-		grep '^[0-9]' |
-		awk -F: '{ print $2 }' |
-		grep -v 'lo' |
-		sed '1,$s/^ //'`
+	if test ${NETMAN} -eq 0
+	then
+		AVL_IF=`$ip link show |
+			grep '^[0-9]' |
+			awk -F: '{ print $2 }' |
+			grep -v 'lo' |
+			sed '1,$s/^ //'`
+	else
+		AVL_IF=`$nmcli -t con show | awk -F: '{print $4}'`
+	fi
 
 	# found br0 in active interfaces?
 	L=`echo $AVL_IF | tr ' ' '\012' | grep '^br0$' | wc -l`
 	if test $L -ne 0
 	then
 		echo "$0: br0 already configured."
-		echo "-- if you configured br0 statically don't use this script"
-		echo "-- otherwise if you do not want permanent settings"
-		echo "-- and want br0 configured differently reboot first"
+		if test ${NETMAN} -eq 0
+		then
+			echo "-- if you configured br0 statically don't use this script"
+			echo "-- otherwise if you do not want permanent settings"
+			echo "-- and want br0 configured differently reboot first"
+		else
+			echo "-- most likely br0/tap0 are configured statically - no need to use this script"
+			echo "-- otherwise if you want br0 configured differently run ResetNet first"
+		fi
 		exit 1
 	fi
 
+	# take tap0 out
+	AVL_IF=`echo $AVL_IF | sed 's/ tap0//'`
+
+	# take wlan out
+	## AVL_IF=`echo $AVL_IF | sed 's/ wlan0//'`
 	;;
 esac
 
 # let user chose the interface he/she wants to use
-echo "  Available networkinterfaces"
+echo "  Available network interfaces to construct bridge br0"
 N=0
 for I in $AVL_IF
 do
@@ -176,7 +214,7 @@ do
 	fi
 
 	# did we see wlan? alas...
-	L=`echo $I | grep wlan | wc -l`
+	L=`echo $I | grep 'wl[xa]' | wc -l`
 	if test $L -gt 0
 	then
 		M="$M (wlan not supported)"
@@ -192,7 +230,13 @@ do
 	fi
 done
 # take wlan out
-AVL_IF=`echo $AVL_IF | sed 's/wlan.//'`
+AVL_IF=`echo $AVL_IF | sed 's/wl[xa][^ ]*//'`
+
+if test $N -eq 0
+then
+	echo "* No external interfaces suitable for bridge setup"
+	exit 1
+fi
 
 if test $N -gt 1
 then
@@ -219,8 +263,21 @@ done
 # see if there are saved params for this interface
 if test -r SnetSaved.$ACT_IF
 then
-	. ./SnetSaved.$ACT_IF
-	echo "Saved params loaded from SnetSaved.$ACT_IF" 
+	echo 'There are saved params in 'SnetSaved.$ACT_IF
+	echo -n 'Do you want to load this file? (y/n)'
+	read ANSWER
+	case "x$ANSWER" in
+	 "xy" | "xY" | "xyes" | "xYes" )
+		. ./SnetSaved.$ACT_IF
+		echo "Saved params loaded from SnetSaved.$ACT_IF" 
+		;;
+	 "xn" | "xN" | "xno" | "xNo" )
+		echo "Params will be stored in SnetSaved.$ACT_IF" 
+		;;
+	* )
+		echo 'Illegal answer: ' $ANSWER ' -- assume No'
+		;;
+	esac
 fi
 
 echo ""
@@ -317,8 +374,18 @@ fi
 if test "x${NrTaps}" = "x"
 then
 	NrTaps=1
+	echo -n "Number of taps to create..........  "
+	read NrTaps
+	case "x$NrTaps" in
+	 "x1" | "x2" | "x3" | "x4" | "x5" | "x6" | "x7" | "x8" | "x9" )
+		 ;;
+	 * )
+		 echo "Assume 1 tap"
+		 ;;
+	esac
+else
+	echo "Number of taps to create.......... " $NrTaps
 fi
-echo "Number of taps to create.......... " $NrTaps
 
 
 # the user who needs access to the tap
@@ -340,14 +407,31 @@ then
 fi
 echo "User who runs SIMH on the taps.... " $SimhUser
 
-# only save params when in expert OPSMODE
-if test "X$OPSMODE" = "Xexpert"
+if test "x${RemoveJF}" = "x"
 then
-	if test ! -r SnetSaved.$ACT_IF
-	then
-		cat - > SnetSaved.$ACT_IF <<EOF
+	RemoveJF="Yes"
+	echo -n "Remove /tmp-script after running..  "
+	read RemoveJF
+	case "x$RemoveJF" in
+	 "xy" | "xY" | "xyes" | "xYes" )
+		 RemoveJF="Yes"
+		 ;;
+	 "xn" | "xN" | "xno" | "xNo" )
+		 RemoveJF="No"
+		 ;;
+	 * )
+		 echo "Assume Yes"
+		 ;;
+	esac
+else
+	echo "Remove /tmp-script after running.. " $RemoveJF
+fi
+
+if test ! -r SnetSaved.$ACT_IF
+then
+	cat - > SnetSaved.$ACT_IF <<EOF
 #
-# expert users: edit your params and rerun the SetupNet script
+# edit your params and rerun the SetupNet script
 #
 
 # ipnr including mask
@@ -360,18 +444,17 @@ DEFRT=$DEFRT
 NrTaps=$NrTaps
 # username of the user running the SIMH emulators
 SimhUser=$SimhUser
+# remove generated script /tmp/SN... after running
+RemoveJF=$RemoveJF
 EOF
-
-		L=`ls -l SnetSaved.$ACT_IF | grep root | wc -l`
-		if test $L -eq 1
-		then
-			chown $SimhUser SnetSaved.$ACT_IF
-		fi
-	fi
+	echo '-- Params saved in SnetSaved.'$ACT_IF
 fi
 
-JOBFILE="/tmp/SNjob.$$"
-TMPFILE="/tmp/SNtmp.$$"
+L=`ls -l SnetSaved.$ACT_IF | grep root | wc -l`
+if test $L -eq 1
+then
+	chown $SimhUser SnetSaved.$ACT_IF
+fi
 
 cat - > $JOBFILE <<\EOF
 #!/bin/sh
@@ -393,75 +476,167 @@ EOF
 
 case $OS in
  "Linux")
-	echo "CMD=\"$brctl addbr br0\"" >> $JOBFILE
+	if test ${NETMAN} -eq 1
+	then
+		IfList="tun0"
+		Nr=0
+		while test $Nr -lt ${NrTaps}
+		do
+			IfList="${IfList} tap${Nr}"
+			Nr=`expr ${Nr} + 1`
+		done
+		IfList="${IfList} br0 ${ACT_IF}"
+
+		for I in ${IfList}
+		do
+			C=`$nmcli -t con show |
+				awk -F\\: "{ if(\\$4 == \"\$I\") printf(\"$nmcli con del %s\", \\$2);}"`
+			if test ! "x$C" = "x" 
+			then
+				echo 'CMD="'${C}'"' >> $JOBFILE
+				cat $TMPFILE >> $JOBFILE
+			fi
+		done
+
+		IfList=""
+		Nr=0
+		while test $Nr -lt ${NrTaps}
+		do
+			IfList="${IfList} tap${Nr}"
+			Nr=`expr ${Nr} + 1`
+		done
+		IfList="${IfList} br0 ${ACT_IF}"
+
+		cat - <<EOF > ResetNet
+#!/bin/sh
+
+nmcli=$nmcli
+export nmcli
+ACT_IF=$ACT_IF
+export ACT_IF
+EOF
+		cat - <<\EOF >> ResetNet
+LINE=`$nmcli -t con show | grep $ACT_IF`
+IFNAME=`echo $LINE | awk -F: '{ print $1 }'`
+IFTYPE=`echo $LINE | awk -F: '{ print $3 }'`
+EOF
+
+		cat - <<EOF >> ResetNet
+for I in ${IfList}
+EOF
+
+		cat - <<\EOF >> ResetNet
+do
+	$nmcli -t con show |
+		awk -F\: "{ if(\$4 == \"$I\") printf(\"$nmcli con del '%s'\\n\", \$2);}" |
+		sh
+done
+
+# remove orphaned connections: those without associated device
+$nmcli -t con show |
+	awk -F\: "{ if(\$4 == \"\") printf(\"$nmcli con del '%s'\\n\", \$2);}" |
+	sh
+EOF
+
+		cat - <<\EOF >> ResetNet
+
+# restore the base external network that we removed from the bridge br0
+$nmcli con add type $IFTYPE ifname $ACT_IF con-name "$IFNAME"
+EOF
+		chmod 755 ResetNet
+	fi
+
+	if test ${NETMAN} -eq 1
+	then
+		echo "CMD=\"$nmcli con add type bridge ifname br0 con-name br0\"" >> $JOBFILE
+	else
+		echo "CMD=\"$brctl addbr br0\"" >> $JOBFILE
+	fi
 	cat $TMPFILE >> $JOBFILE
 
+	if test ${NETMAN} -eq 1
+	then
+		echo "CMD=\"$nmcli con add type bridge-slave ifname ${ACT_IF} con-name ${ACT_IF} master br0\"">> $JOBFILE
+		cat $TMPFILE >> $JOBFILE
+	fi
+
+	SimhUID=`id -u ${SimhUser}`
 	N=0
 	while test $N -lt $NrTaps
 	do
-		echo "CMD=\"$tunctl -t tap${N} -u ${SimhUser}\"" >> $JOBFILE
+		if test ${NETMAN} -eq 1
+		then
+			echo "CMD=\"$nmcli con add type tun ifname tap${N} con-name tuntap${N} slave-type bridge master br0 mode tap owner ${SimhUID}\"" >> $JOBFILE
+		else
+			echo "CMD=\"$tunctl -t tap${N} -u ${SimhUser}\"" >> $JOBFILE
+		fi
+
 		cat $TMPFILE >> $JOBFILE
 
 		N=`expr $N + 1`
 	done
 
-	echo "CMD=\"$brctl addif br0 ${ACT_IF}\"" >> $JOBFILE
-	cat $TMPFILE >> $JOBFILE
-
-	echo "CMD=\"$brctl setfd br0 0\"" >> $JOBFILE
-	cat $TMPFILE >> $JOBFILE
-
-	echo "CMD=\"$ip link set ${ACT_IF} down\"" >> $JOBFILE
-	cat $TMPFILE >> $JOBFILE
-
-	if ! test "$IPNR" = "not configured"
+	if test ${NETMAN} -eq 0
 	then
-		echo "CMD=\"$ip addr add ${IPNR} dev br0\"" >> $JOBFILE
+		echo "CMD=\"$brctl addif br0 ${ACT_IF}\"" >> $JOBFILE
 		cat $TMPFILE >> $JOBFILE
+
+		echo "CMD=\"$brctl setfd br0 0\"" >> $JOBFILE
+		cat $TMPFILE >> $JOBFILE
+
+		echo "CMD=\"$ip link set ${ACT_IF} down\"" >> $JOBFILE
+		cat $TMPFILE >> $JOBFILE
+
+		if ! test "$IPNR" = "not configured"
+		then
+			echo "CMD=\"$ip addr add ${IPNR} dev br0\"" >> $JOBFILE
+			cat $TMPFILE >> $JOBFILE
+		fi
+
+		if ! test "$IPNR" = "not configured"
+		then
+			## if test ! "x$DEFRT" = "x"
+			## then
+				## echo "CMD=\"$ip route del default via ${DEFRT} dev ${ACT_IF}\"" >> $JOBFILE
+				## cat $TMPFILE >> $JOBFILE
+			## fi
+			echo "CMD=\"$ip addr del ${IPNR} dev ${ACT_IF}\"" >> $JOBFILE
+			cat $TMPFILE >> $JOBFILE
+		fi
+
+		echo "CMD=\"$ip link set ${ACT_IF} up\"" >> $JOBFILE
+		cat $TMPFILE >> $JOBFILE
+
+		echo "CMD=\"$ip link set br0 up\"" >> $JOBFILE
+		cat $TMPFILE >> $JOBFILE
+
+
+		if test ! "x$DEFRT" = "x"
+		then
+			echo "CMD=\"$ip route add default via ${DEFRT} dev br0\"" >> $JOBFILE
+			cat $TMPFILE >> $JOBFILE
+		fi
+
+		ipfwd=`cat /proc/sys/net/ipv4/ip_forward`
+		if test $IPFWD -ne $ipfwd
+		then
+			echo "CMD=\"echo ${IPFWD} > /proc/sys/net/ipv4/ip_forward\"" >> $JOBFILE
+			cat $TMPFILE >> $JOBFILE
+		fi
+
+		N=0
+		while test $N -lt $NrTaps
+		do
+			echo "CMD=\"$brctl addif br0 tap${N}\"" >> $JOBFILE
+			cat $TMPFILE >> $JOBFILE
+
+			echo "CMD=\"$ip link set tap${N} up\"" >> $JOBFILE
+			cat $TMPFILE >> $JOBFILE
+
+			N=`expr $N + 1`
+		done
 	fi
 
-	if ! test "$IPNR" = "not configured"
-	then
-		## if test ! "x$DEFRT" = "x"
-		## then
-			## echo "CMD=\"$ip route del default via ${DEFRT} dev ${ACT_IF}\"" >> $JOBFILE
-			## cat $TMPFILE >> $JOBFILE
-		## fi
-		echo "CMD=\"$ip addr del ${IPNR} dev ${ACT_IF}\"" >> $JOBFILE
-		cat $TMPFILE >> $JOBFILE
-	fi
-
-	echo "CMD=\"$ip link set ${ACT_IF} up\"" >> $JOBFILE
-	cat $TMPFILE >> $JOBFILE
-
-	echo "CMD=\"$ip link set br0 up\"" >> $JOBFILE
-	cat $TMPFILE >> $JOBFILE
-
-
-	if test ! "x$DEFRT" = "x"
-	then
-		echo "CMD=\"$ip route add default via ${DEFRT} dev br0\"" >> $JOBFILE
-		cat $TMPFILE >> $JOBFILE
-	fi
-
-	ipfwd=`cat /proc/sys/net/ipv4/ip_forward`
-	if test $IPFWD -ne $ipfwd
-	then
-		echo "CMD=\"echo ${IPFWD} > /proc/sys/net/ipv4/ip_forward\"" >> $JOBFILE
-		cat $TMPFILE >> $JOBFILE
-	fi
-
-	N=0
-	while test $N -lt $NrTaps
-	do
-		echo "CMD=\"$brctl addif br0 tap${N}\"" >> $JOBFILE
-		cat $TMPFILE >> $JOBFILE
-
-		echo "CMD=\"$ip link set tap${N} up\"" >> $JOBFILE
-		cat $TMPFILE >> $JOBFILE
-
-		N=`expr $N + 1`
-	done
 	BRIDGE="br0"
 	EXAMPLE="tap:tap0"
 
@@ -604,14 +779,22 @@ echo ""
 echo 'Use unique IPnrs on your SIMH hosts within the'
 echo 'same network and set a default route if needed'
 
-rm -f $JOBFILE
 EOF
 
-if test "X$OPSMODE" = "Xexpert"
+	if test ${NETMAN} -eq 1
+	then
+		cat - >> $JOBFILE <<EOF
+echo
+echo ' ** IMPORTANT ** '
+echo 'To RESET your network settings use: sudo sh ./ResetNet'
+EOF
+	fi
+
+if test ${RemoveJF} = "Yes"
 then
-	echo ""
-	echo "-- To change the params above edit SnetSaved.$ACT_IF"
-	echo "-- and rerun this script before executing the job"
+	cat - >> $JOBFILE <<EOF
+rm -f $JOBFILE
+EOF
 fi
 
 L=`ls -l $JOBFILE | grep root | wc -l`

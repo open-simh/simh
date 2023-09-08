@@ -31,13 +31,7 @@
 
 /* Constants */
 #define COM_LINES       8                   /* lines defined */
-//Change from 500 to 5000 12/02/2021
-//Change from 5000 to 4000 12/02/2021
-//#define COML_WAIT       500
 #define COML_WAIT       4000
-//Change from 1000 to 5000 12/02/2021
-//#define COM_WAIT        5000
-//#define COM_WAIT        1000
 #define COM_WAIT        5000
 #define COM_NUMLIN      com_desc.lines      /* curr # lines */
 
@@ -302,7 +296,7 @@ DEVICE          com_dev = {
     &tmxr_ex, &tmxr_dep, &com_reset, NULL, &com_attach, &com_detach,
     /* ctxt is the DIB pointer */
     &com_dib, DEV_MUX|DEV_DISABLE|DEV_DEBUG, 0, dev_debug,
-    NULL, NULL, NULL, NULL, NULL, &com_description
+    NULL, NULL, NULL, NULL, NULL, &com_description,
 };
 
 /* COML data structures
@@ -312,11 +306,8 @@ DEVICE          com_dev = {
     coml_mod    COM modifiers list
 */
 
-/*#define UNIT_COML UNIT_ATTABLE|UNIT_DISABLE|UNIT_IDLE */
-//#define UNIT_COML UNIT_IDLE|UNIT_DISABLE|TT_MODE_UC
-//#define UNIT_COML UNIT_IDLE|UNIT_DISABLE|TT_MODE_7P
-//#define UNIT_COML UNIT_IDLE|UNIT_DISABLE|TT_MODE_8B
-#define UNIT_COML UNIT_IDLE|UNIT_DISABLE|TT_MODE_7B
+//#define UNIT_COML UNIT_IDLE|UNIT_DISABLE|TT_MODE_7B
+#define UNIT_COML UNIT_DISABLE|TT_MODE_7B
 
 /* channel program information */
 CHANP           coml_chp[COM_LINES*2] = {0};
@@ -468,7 +459,6 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 {
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
-//  int         unit = (uptr - dptr->units) & 0x7;  /* make 0-7 */
     UNIT        *ruptr = &dptr->units[unit&7];  /* read uptr */
     UNIT        *wuptr = &dptr->units[(unit&7)+8];  /* write uptr */
     uint16      chsa = (((uptr->CMD & LMASK) >> 16) | (chan << 8));
@@ -503,7 +493,6 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 
         /* see if DSR is set, if not give unit check error */
         if (((ruptr->SNS & SNS_DSRS) == 0) || ((ruptr->SNS & SNS_CONN) == 0)) {
-//YY    if ((com_ldsc[unit&7].conn == 0) ||
             ruptr->SNS &= ~SNS_RDY;             /* status is not ready */
             wuptr->SNS &= ~SNS_RDY;             /* status is not ready */
             ruptr->SNS |= SNS_CMDREJ;           /* command reject */
@@ -537,7 +526,6 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 
         /* see if DSR is set, if not give unit check error */
         if (((ruptr->SNS & SNS_DSRS) == 0) || ((ruptr->SNS & SNS_CONN) == 0)) {
-//XX    if (com_ldsc[unit&7].conn == 0) {
             ruptr->SNS &= ~SNS_RDY;             /* status is not ready */
             wuptr->SNS &= ~SNS_RDY;             /* status is not ready */
             ruptr->SNS |= SNS_CMDREJ;           /* command reject */
@@ -583,7 +571,6 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
         unit &= 0x7;                            /* make unit 0-7 */
         /* status is in SNS (u5) */
         /* ACE is in ACE (u4) */
-///*MPX*/ uptr->SNS = 0x03813401;
 
         sim_debug(DEBUG_CMD, dptr,
             "coml_startcmd SENSE chsa %04x: unit %02x Cmd Sense SNS %08x ACE %08x\n",
@@ -622,10 +609,7 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
         /* byte 7 ACE parameters (Revision Level 0x4?) */
 //      Firmware 0x44 supports RTS flow control */
 //      Firmware 0x45 supports DCD modem control */
-//      ch = 0x44;                              /* ACE firmware byte 1 */
-//      ch = 0x45;                              /* ACE firmware byte 1 */
         ch = 0x43;                              /* ACE firmware byte 1 */
-//      ch = 0x40;                              /* ACE firmware byte 1 */
         chan_write_byte(chsa, &ch);             /* write status */
 
         ruptr->SNS &= ~SNS_RING;                /* reset ring attention status */
@@ -640,7 +624,6 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
         wuptr->SNS &= ~SNS_MRING;               /* reset ring attention status */
         wuptr->SNS &= ~SNS_ASCIICD;             /* reset ASCII attention status */
         wuptr->SNS &= ~SNS_DELDSR;              /* reset attention status */
-//1X    wuptr->SNS &= ~SNS_RLSDS;               /* reset rec'd line signal detect */
         wuptr->SNS &= ~SNS_CMDREJ;              /* command reject */
 /*MPX*/ wuptr->SNS &= ~SNS_DELTA;               /* reset attention status */
 
@@ -818,7 +801,6 @@ t_stat comc_srv(UNIT *uptr)
     uint8   ch;
     DEVICE *dptr = get_dev(uptr);
     int32   newln, ln, c;
-//  int     cmd = uptr->CMD & 0xff;
     uint16  chsa = GET_UADDR(coml_unit[0].CMD); /* get channel/sub-addr */
 
     /* see if comc attached */
@@ -875,7 +857,7 @@ t_stat comc_srv(UNIT *uptr)
         uint16  chsa = GET_UADDR(nuptr->CMD);   /* get channel/sub-addr */
 
         if (com_ldsc[ln].conn)                  /* connected? */
-            sim_debug(DEBUG_CMD, &com_dev,
+            sim_debug(DEBUG_DETAIL, &com_dev,
                 "comc_srv conn poll input chsa %04x line %02x SNS %08x ACE %08x\n",
                 chsa, ln, nuptr->SNS, nuptr->ACE);
 
@@ -950,12 +932,7 @@ t_stat comc_srv(UNIT *uptr)
 
     sim_debug(DEBUG_DETAIL, &com_dev,
         "comc_srv POLL DONE on chsa %04x\n", chsa);
-    /* this says to use 200, but simh really uses 50000 for cnt */
-    /* changed 12/02/2021 from 200 to 5000 */
-//  return sim_clock_coschedule(uptr, 200);     /* continue poll */
     return sim_clock_coschedule(uptr, 5000);    /* continue poll */
-//  return sim_activate(uptr, 10000);           /* continue poll */
-//  return sim_activate(uptr, 5000);            /* continue poll */
 }
 
 /* Unit service - input transfers */
@@ -983,6 +960,8 @@ t_stat comi_srv(UNIT *uptr)
 
             if (uptr->CNT != com_data[ln].incnt) { /* input available */
                 /* process any characters */
+                if (ch == 0x7f)                     /* if rub out, make backspace */
+                    ch = 0x08;
                 /* this fixes mpx1x time entry on startup */
                 if (uptr->CMD & COM_EKO) {      /* ECHO requested */
                     /* echo the char out */
@@ -991,8 +970,10 @@ t_stat comi_srv(UNIT *uptr)
                         "comi_srv echo char %02x on chsa %04x line %02x cmd %02x ACE %08x\n",
                         ch, chsa, ln, cmd, uptr->ACE);
 //                  cc = sim_tt_outcvt(c, TT_GET_MODE(coml_unit[ln].flags));
-                    tmxr_putc_ln(&com_ldsc[ln], ch); /* output char */
-                    tmxr_poll_tx(&com_desc);    /* poll xmt to send */
+                    if (ch != 0x08 && ch != 0x7f) {
+                        tmxr_putc_ln(&com_ldsc[ln], ch); /* output char */
+                        tmxr_poll_tx(&com_desc);    /* poll xmt to send */
+                    }
                 }
                 if (chan_write_byte(chsa, &ch)) {   /* write byte to memory */
                     /* write error */
@@ -1019,7 +1000,6 @@ t_stat comi_srv(UNIT *uptr)
                 cc = ch & 0x7f;                 /* clear parity bit */
                 /* Special char detected? (7 bit read only) */
                 if (cc == ((uptr->ACE >> 8) & 0xff)) { /* is it spec char */
-//                  uptr->CMD |= COM_SCD;       /* set special char detected */
                     uptr->SNS |= SNS_SPCLCD;    /* set special char detected */
                     sim_debug(DEBUG_CMD, &com_dev,
                         "comi_srv user ACE %02x wakeup on chsa %04x line %02x cmd %02x ACE %08x\n",
@@ -1056,8 +1036,7 @@ t_stat comi_srv(UNIT *uptr)
                     if (uptr->CNT == com_data[ln].incnt) {  /* input empty */
                         uptr->CMD &= ~COM_INPUT;    /* no input available */
                     }
-/* change 02DEC21*/ sim_activate(uptr, uptr->wait); /* wait */
-// change 02DEC21*/ sim_clock_coschedule(uptr, 1000);   /* continue poll */
+                    sim_activate(uptr, uptr->wait); /* wait */
                     return SCPE_OK;
                 }
                 /* command is completed */
@@ -1071,8 +1050,7 @@ t_stat comi_srv(UNIT *uptr)
                 chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* we done */
             }
         }
-// change 02DEC21   sim_activate(uptr, uptr->wait); /* wait */
-/* change 02DEC21*/ sim_clock_coschedule(uptr, 1000);   /* continue poll */
+        sim_clock_coschedule(uptr, 1000);       /* continue poll */
         return SCPE_OK;
     }
     /* not connected, so dump chars on ground */
@@ -1115,7 +1093,6 @@ t_stat como_srv(UNIT *uptr)
             uptr->CMD &= LMASK;                 /* nothing left, command complete */
             ruptr->SNS &= SNS_DSRS;             /* reset DSR */
             ruptr->SNS |= SNS_DELDSR;           /* give change status */
-//          chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* done */
             chan_end(chsa, SNS_CHNEND|SNS_DEVEND|SNS_UNITCHK);   /* error return */
             return SCPE_OK;                     /* return */
     }
@@ -1212,7 +1189,6 @@ t_stat coml_haltio(UNIT *uptr) {
         uptr->CNT = 0;                          /* no I/O yet */
         com_data[unit].incnt = 0;               /* no input data */
         sim_cancel(uptr);                       /* stop timer */
-//      uptr->SNS |= (SNS_RDY|SNS_CONN);        /* status is online & ready */
         sim_debug(DEBUG_CMD, &coml_dev,
             "coml_haltio HIO I/O stop chsa %04x cmd = %02x\n", chsa, cmd);
         chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* force end */
@@ -1221,7 +1197,6 @@ t_stat coml_haltio(UNIT *uptr) {
     uptr->CNT = 0;                              /* no I/O yet */
     com_data[unit].incnt = 0;                   /* no input data */
     uptr->CMD &= LMASK;                         /* make non-busy */
-//  uptr->SNS |= (SNS_RDY|SNS_CONN);            /* status is online & ready */
     return SCPE_OK;                             /* not busy */
 }
 
