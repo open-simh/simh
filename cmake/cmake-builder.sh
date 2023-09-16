@@ -82,6 +82,7 @@ cmakeSFlag=
 ## MacOS workaround: MacOS has an older getopt installed in /usr/bin, brew
 ## has an updated version that installs in a custom place.
 [[ -d /usr/local/opt/gnu-getopt/bin ]] && PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
+[[ -d /opt/homebrew/opt/gnu-getopt/bin ]] && PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"
 [[ -d /usr/local/opt/coreutils/libexec/gnubin ]] && PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 
 getopt_prog=
@@ -292,7 +293,7 @@ if [[ "x${simhTopDir}" = x ]]; then
   echo "Did this really happen?"
   exit 1
 else
-  buildSubdir=$(${realpath} "${simhTopDir}/cmake/${buildSubdir}")
+  buildSubdir=$(${realpath} "${simhTopDir}/cmake/")"/${buildSubdir}"
   echo "${scriptName}: SIMH top-evel directory: ${simhTopDir}"
   echo "${scriptName}: Build directory:         ${buildSubdir}"
 fi
