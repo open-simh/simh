@@ -13119,8 +13119,6 @@ else {
     ep->match = match_buf;
     ep->size = match_size;
     }
-ep->match_pattern = (char *)malloc (strlen (match) + 1);
-strcpy (ep->match_pattern, match);
 if (ep->act) {                                          /* replace old action? */
     free (ep->act);                                     /* deallocate */
     ep->act = NULL;                                     /* now no action */
@@ -13243,6 +13241,7 @@ for (i=0; i < exp->size; i++) {
     if (ep->switches & EXP_TYP_REGEX) {
 #if defined (USE_REGEX)
         int *ovector = NULL;
+        int ovector_elts;
         int rc;
         char *cbuf = (char *)exp->buf;
         static size_t sim_exp_match_sub_count = 0;
@@ -13261,27 +13260,38 @@ for (i=0; i < exp->size; i++) {
                 }
             }
         ++regex_checks;
-        ovector = (int *)malloc (3 * (ep->re_nsub + 1) * sizeof (*ovector));
+        ovector_elts = 3 * (ep->re_nsub + 1);
+        ovector = (int *)calloc ((size_t) ovector_elts, sizeof(*ovector));
         if (sim_deb && exp->dptr && (exp->dptr->dctrl & exp->dbit)) {
             char *estr = sim_encode_quoted_string (exp->buf, exp->buf_ins);
             sim_debug (exp->dbit, exp->dptr, "Checking String: %s\n", estr);
             sim_debug (exp->dbit, exp->dptr, "Against RegEx Match Rule: %s\n", ep->match_pattern);
             free (estr);
             }
-        rc = pcre_exec (ep->regex, NULL, cbuf, exp->buf_ins, 0, PCRE_NOTBOL, ovector, 3 * (ep->re_nsub + 1));
+        rc = pcre_exec (ep->regex, NULL, cbuf, exp->buf_ins, 0, PCRE_NOTBOL, ovector, ovector_elts);
         if (rc >= 0) {
             size_t j;
             char *buf = (char *)malloc (1 + exp->buf_ins);
 
             for (j=0; j < (size_t)rc; j++) {
                 char env_name[32];
+                int end_offs = ovector[2 * j + 1], start_offs = ovector[2 * j];
 
                 sprintf (env_name, "_EXPECT_MATCH_GROUP_%d", (int)j);
-                memcpy (buf, &cbuf[ovector[2 * j]], ovector[2 * j + 1] - ovector[2 * j]);
-                buf[ovector[2 * j + 1] - ovector[2 * j]] = '\0';
-                setenv (env_name, buf, 1);      /* Make the match and substrings available as environment variables */
-                sim_debug (exp->dbit, exp->dptr, "%s=%s\n", env_name, buf);
-                }
+                if (start_offs >= 0 && end_offs >= start_offs) {
+                    memcpy (buf, &cbuf[start_offs], end_offs - start_offs);
+                    buf[end_offs - start_offs] = '\0';
+                    setenv (env_name, buf, 1);      /* Make the match and substrings available as environment variables */
+                    sim_debug (exp->dbit, exp->dptr, "%s=%s\n", env_name, buf);
+                    }
+                else {
+                    /* Substring was not captured by regexp: remove from the environment
+                     * (unsetenv is local static -- doesn't actually remove the variable from
+                     * the environment, sets it to an empty string.) */
+                    sim_debug (exp->dbit, exp->dptr, "unsetenv %s\n", env_name);
+                    unsetenv(env_name);
+                    }
+                } 
             for (; j<sim_exp_match_sub_count; j++) {
                 char env_name[32];
 

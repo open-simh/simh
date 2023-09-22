@@ -1,6 +1,6 @@
 {
     "name": "simh",
-    "version-string": "4.0.0",
+    "version-string": "4.1.0",
     "description": [
         "SIMH: The historical computer architecture simulation suite."
     ],

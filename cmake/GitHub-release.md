@@ -18,14 +18,14 @@ Welcome to SIMH's pre-built binaries!
   TO INSTALL. If you do, you are likely to get a Windows Defender popup box that
   will prevent you from installing SIMH. Instead, use a CMD or PowerShell
   command window and execute the `.exe` from the command line prompt. For
-  example, to install `simh-4.0.0-win32-native.exe`:
+  example, to install `simh-4.1.0-win32-native.exe`:
 
     ```
     ## PowerShell:
-    PS> .\simh-4.0.0-win32-native
+    PS> .\simh-4.1.0-win32-native
 
     ## CMD:
-    > .\simh-4.0.0-win32-native
+    > .\simh-4.1.0-win32-native
     ```
 
 - `.msi`: WiX toolkit-created Windows MSI installer.
@@ -37,5 +37,5 @@ Welcome to SIMH's pre-built binaries!
   or CMD command window:
 
     ```
-    > msiexec /qf /i simh-4.0.0-win32-native.msi
+    > msiexec /qf /i simh-4.1.0-win32-native.msi
     ```
