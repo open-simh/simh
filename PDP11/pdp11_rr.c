@@ -474,8 +474,8 @@ static MTAB rr_mod[] = {
 
 DEVICE rr_dev = {
     "RR", rr_unit, rr_reg, rr_mod, RP_NUMDR,
-    8/*address radix*/, 24/*address width*/, 1/*address increment*/,
-    8/*data radix*/, RPWRDSZ/*data width*/,
+    DEV_RDX/*address radix*/, 26/*address width*/, 1/*address increment*/,
+    DEV_RDX/*data radix*/, RPWRDSZ/*data width*/,
     NULL/*examine()*/, NULL/*deposit()*/,
     rr_reset, rr_boot, rr_attach, rr_detach,
     &rr_dib,
@@ -535,10 +535,10 @@ static t_stat rr_rd (int32 *data, int32 PA, int32 access)
         uptr = rr_dev.units + GET_DRIVE(rpcs);          /* selected unit */
         rpds &= RPDS_ATTN;                              /* attention bits */
         if (!(uptr->flags & UNIT_DIS)) {                /* not disabled? */
+            rpds |= RPDS_ONLN;
             if (GET_DTYPE(uptr->flags))
                 rpds |= RPDS_RP03;
             if (uptr->flags & UNIT_ATT) {               /* attached? */
-                rpds |= RPDS_ONLN;
                 if (uptr->flags & UNIT_WPRT)            /* write locked? */
                     rpds |= RPDS_WLK;
                 if (uptr->SEEKING)                      /* still seeking? */
@@ -1189,9 +1189,57 @@ static t_stat rr_set_wloa (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 /* Device bootstrap */
 
+#define BOOT_START      02000                           /* start */
+#define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
+#define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
+#define BOOT_CSR        (BOOT_START + 014)              /* CSR + 12 */
+#define BOOT_LEN        (sizeof (rr_boot_rom) / sizeof (rr_boot_rom[0]))
+
+static const uint16 rr_boot_rom[] = {
+/* EXPECTED M9312 REGISTER USE FOR BOOT PROMS:                                                         *
+ * R0     = UNIT NUMBER                                                                                *
+ * R1     = CONTROLLER CSR                                                                             *
+ * R2, R3 = TEMPORARIES                                                                                *
+ * R4     = ALWAYS POINTS TO PROM BASE + 20 (HELPS LOCATE BOOTED DEVICE DESIGNATION)                   *
+ * R5     = LAST COMMAND DATA (E.G. LOAD ADDR, EXAM DATA; OTHERWISE, JUNK)                             *
+ * R6(SP) = PC OF THE COMMAND START (IN M9312 POINTS TO WHERE THE BOOT COMMAND ORIGINATED FROM)        */
+/*                                              .TITLE RP11 BOOT M9312 STYLE - TONY LAWRENCE (C) 2023  */
+/*                                              .ASECT                                                 */
+/* 002000                                       .=2000                                                 */
+/* 002000 */ 0042120,                 /* START: .WORD   "PD             ; "DP" (DEVICE DESIGNATION)    */
+/* 002002 */ 0012706, BOOT_ENTRY,     /* BOOT:  MOV     #BOOT, SP       ; ENTRY POINT PC               */
+/* 002006 */ 0112700, 0000000,        /*        MOVB    #0, R0          ; UNIT NUMBER                  */
+/* 002012 */ 0012701, 0176726,        /*        MOV     #176726, R1     ; RPCS + 12                    */
+/* 002016 */ 0012704, BOOT_START+020, /*        MOV     #<START+20>, R4 ; BACKLINK TO ROM W/OFFSET 20  */
+/* 002022 */ 0005041,                 /*        CLR     -(R1)           ; DISK ADDRESS                 */
+/* 002024 */ 0005041,                 /*        CLR     -(R1)           ; CYLINDER ADDRESS             */
+/* 002026 */ 0005041,                 /*        CLR     -(R1)           ; MEMORY ADDRESS               */
+/* 002030 */ 0012741, 0177000,        /*        MOV     #-512., -(R1)   ; WORD COUNT                   */
+/* 002034 */ 0010003,                 /*        MOV     R0, R3                                         */
+/* 002036 */ 0000303,                 /*        SWAB    R3              ; MOVE UNIT# INTO POSITION     */
+/* 002040 */ 0052703, 0000005,        /*        BIS     #5, R3          ; COMBINE READ+GO FUNCTION     */
+/* 002044 */ 0010341,                 /*        MOV     R3, -(R1)       ; DO IT!                       */
+/* 002046 */ 0005005,                 /*        CLR     R5              ; M9312 USES FOR DISPLAY       */
+/* 002050 */ 0105711,                 /* 1$:    TSTB    (R1)            ; READY?                       */
+/* 002052 */ 0100376,                 /*        BPL     1$              ; BR IF NOT                    */
+/* 002054 */ 0005711,                 /*        TST     (R1)            ; ERROR?                       */
+/* 002056 */ 0100002,                 /*        BPL     2$              ; BR IF NOT                    */
+/* 002060 */ 0000005,                 /*        RESET                                                  */
+/* 002062 */ 0000747,                 /*        BR      BOOT            ; START OVER                   */
+/* 002064 */ 0105011,                 /* 2$:    CLRB    (R1)            ; CLEAR CONTROLLER             */
+/* 002066 */ 0005007                  /*        CLR     PC              ; JUMP TO BOOTSTRAP            */
+/*                                              .END                                                   */
+};
+
 static t_stat rr_boot (int32 unitno, DEVICE *dptr)
 {
-    return SCPE_NOFNC;
+    size_t i;
+    for (i = 0;  i < BOOT_LEN;  ++i)
+        WrMemW(BOOT_START + (2 * i), rr_boot_rom[i]);
+    WrMemW(BOOT_UNIT, unitno & (RP_NUMDR - 1));
+    WrMemW(BOOT_CSR, (rr_dib.ba & DMASK) + (014/*CSR*/ + 012));
+    cpu_set_boot(BOOT_ENTRY);
+    return SCPE_OK;
 }
 
 /* Misc */
