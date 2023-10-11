@@ -33,6 +33,14 @@
 #include "pdp11_defs.h"
 #include "sim_disk.h"
 
+/* const_assert() */
+
+#define _Cx(a, b)        a ## b
+#define _Ax(x)           _Cx(_assert, x)
+#define _Sx(n)           (((n) << 1) - 1)
+#define const_assert(c)  do { static const char _Ax(__LINE__)[-_Sx(!(c))] \
+                              = {!(c)};  (void) _Ax(__LINE__); } while (0)
+
 /* Constants */
 
 #define RPCONTR         uint16
@@ -69,13 +77,13 @@
 /* Parameters in the unit descriptor */
 #define CYL             u3                              /* current cylinder */
 #define HEAD            u4                              /* current track */
-#define FUNC            u5                              /* current func */
-#define STATUS          u6                              /* RPDS bits for the unit */
-#define SEEKING         us9                             /* seek cmd underway */
+#define FUNC            us9                             /* current func */
+#define STATUS          u5                              /* RPDS bits for the unit */
+#define SEEKING         u6                              /* seek cmd underway */
 
 /* 4 dummy UNIBUS registers followed by... */
 #define RP_IOFF         4
-/* 12 real UNIBUS registers, so 16 registers total */
+/* 12 real UNIBUS registers, so 16 registers total: 32 addresses */
 #define RP_IOLN         040
 
 /* RP02/RP03 particulars */
@@ -89,8 +97,7 @@ static struct drv_typ {
     int32               seek_max;                       /* maximal seek, 0.1ms */
 } drv_tab[] = {
     { RP_RP02, RP_NUMCY,   RP_NUMBL,   RP_SPARE,   200, 500, 800 },
-    { RP_RP03, RP_NUMCY*2, RP_NUMBL*2, RP_SPARE*2,  75, 290, 550 },
-    { NULL }
+    { RP_RP03, RP_NUMCY*2, RP_NUMBL*2, RP_SPARE*2,  75, 290, 550 }
 };
 
 /* RPDS 776710, selected drive status, read-only except for the attention bits */
@@ -217,6 +224,7 @@ static BITFIELD rp_cs_bits[] = {
 /* RPWC 776716, two's complement word count */
 /* For PDP-11 must be even for data, and in multiples of 3 for format */
 static BITFIELD rp_wc_bits[] = {
+#define RPWC_IMP        0177777                         /* implemented */
     BITFFMT(WC,16,%u),
     ENDBITS
 };
@@ -346,7 +354,7 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access);
 static int32  rr_inta (void);
 static t_stat rr_svc (UNIT *uptr);
 static t_stat rr_reset (DEVICE *dptr);
-static void   rr_go (int32 func);
+static void   rr_go (int16 func);
 static void   rr_set_done (int32 error);
 static void   rr_clr_done (void);
 static t_stat rr_boot (int32 unitno, DEVICE *dptr);
@@ -604,7 +612,8 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access)
 {
     /* offset by base then decode <4:1> */
     int32 rn = (((PA - rr_dib.ba) >> 1) & 017) - RP_IOFF;
-    int32 n, func, oval = rn < 0 ? 0 : *rr_regs[rn].valp;
+    int32 n, oval = rn < 0 ? 0 : *rr_regs[rn].valp;
+    int16 func;
 
     if (access == WRITEB  &&  2 <= rn  &&  rn <= 6)
         data = RR_DATOB(oval, data);
@@ -648,13 +657,13 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access)
             &&   (data & CSR_GO)) {                     /* ...and GO? */
             rr_go(func);                                /* new function! */
         } else if (!(rpcs & CSR_DONE)                   /* not ready? */
-            &&  ((data & CSR_GO)  ||  n)) {             /* ...and: GO or desel? */
+            &&  ((data & CSR_GO) | n)) {                /* ...and: GO or desel? */
             rper |= RPER_PGE;                           /* flag error */
         }
         break;
 
     case 3:                                             /* RPWC */
-        rpwc = data;
+        rpwc = data & RPWC_IMP;
         break;
 
     case 4:                                             /* RPBA */
@@ -682,9 +691,20 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access)
     return SCPE_OK;
 }
 
+/* Complete seek initiation */
+
+static t_stat rr_seek_init (UNIT *uptr)
+{
+    rr_set_done(0);                                     /* set done */
+    assert(uptr->SEEKING);
+    uptr->action = rr_svc;
+    sim_activate(uptr, uptr->SEEKING);                  /* seek ends then */
+    return SCPE_OK;
+}
+
 /* Initiate new function */
 
-static void rr_go (int32 func)
+static void rr_go (int16 func)
 {
     int32 i, type, cyl, head;
     t_bool rd, wr;
@@ -704,6 +724,7 @@ static void rr_go (int32 func)
         for (i = 0;  i < RP_NUMDR;  ++i) {
             uptr = rr_dev.units + i;
             sim_cancel(uptr);
+            uptr->action = rr_svc;
             uptr->SEEKING = 0;
             uptr->STATUS = 0;
             uptr->FUNC = 0;
@@ -720,6 +741,7 @@ static void rr_go (int32 func)
     rpcs &= ~(CSR_ERR | RPCS_HERR);                     /* clear summary */
     i = GET_DRIVE(rpcs);                                /* get drive no */
     uptr = rr_dev.units + i;                            /* selected unit */
+    assert(uptr->action == rr_svc);
     assert(uptr->SEEKING  ||  !uptr->FUNC);             /* SEEK underway or idle */
     uptr->STATUS &= ~(RPDS_DKER | RPDS_WLK);            /* clear drive errors */
 
@@ -815,20 +837,30 @@ static void rr_go (int32 func)
     else
         i  = drv_tab[type].seek_max;
     if (func == RPCS_HOME  ||  func == RPCS_SEEK) {     /* seek? */
-        uptr->SEEKING = 1;                              /* drive is seeking */
-        rr_set_done(0);                                 /* set done */
-        /* XXDP ZRPF-B test 0 fails because of the data race on INTFLG cleared
-         * _after_ initiating the SEEK.  This code interrupts right away (as so
-         * could the device) causing INTFLG set by ISR to 1, to be lost.  Hence,
-         * the test always sees INTFLG as 0, and cannot confirm the interrupt.
-         * INTFLG should have been cleared prior to SEEK.  Fixed in ZRPB-E. */
+        uptr->action = rr_seek_init;
+        uptr->SEEKING = i;                              /* drive is seeking */
+        i = 10;                                         /* enough for 16us */
+        /* XXDP ZRPF-B, Test 0 (cylinder positioning) fails because, even though
+         * it initializes INTFLG late (_after_ initiating the SEEK), the delayed
+         * CS_DONE here helps avoid the race (and an error) but only for the
+         * first iteration (cylinder 0).  The next and all subsequent iterations
+         * begin with clearing attention bits in RDPS with a BIC instruction,
+         * like so: "BIC @#RPDS, @#RPDS", resulting in bare 0 actually sent by
+         * ALU to the UNIBUS in DATO cycle to RPDS, and causing no bits reset.
+         * That, in turn, causes the interrupt to occur immediately when RPCS is
+         * written with the new SEEK/AIE function (the attention bit still set)
+         * for the next cylinder, and that causes INTFLG to get set by the ISR
+         * just prior to when the test clears it.  Thus, the test is unable to
+         * confirm the interrupt for all remaining cylinders.  ZRPB-E fixes both
+         * bugs by initializing INTFLG before firing up SEEK/AIE, and also by
+         * using the more correct "MOVB @#RPDS, @#RPDS", instead of BIC. */
     } else {
         if (cyl != uptr->CYL  ||  head != uptr->HEAD) {
             assert(func != RPCS_RD_NOSEEK  &&  func != RPCS_WR_NOSEEK);
             uptr->STATUS |= RPDS_SEEK;                  /* drive is seeking */
         }
         i += RP_ROT_12;                                 /* I/O takes longer */
-        /* XXDP ZRPB-E / ZRPF-B have two data race conditions in test 5 (data
+        /* XXDP ZRPB-E / ZRPF-B have two data race conditions in Test 5 (data
          * reliability), which in ZRPB-E can be worked around with the following
          * multiplier for all 15 steady patterns, but it does not help eliminate
          * the second race in the last (random) pattern test, despite showing no
@@ -881,7 +913,8 @@ static void rr_seek_done (UNIT *uptr, t_bool cancel)
 
 static t_stat rr_svc (UNIT *uptr)
 {
-    int32 func = uptr->FUNC, cyl, head, sect, da, wc, n;
+    int32 cyl, head, sect, da, wc, n;
+    int16 func = uptr->FUNC;
     t_seccnt todo, done;
     t_stat ioerr;
     uint32 ma;
@@ -1076,7 +1109,7 @@ static t_stat rr_svc (UNIT *uptr)
     if (wc) {                                           /* any xfer? */
         assert(done);
         rpwc += wc;
-        rpwc &= 0177777;
+        rpwc &= RPWC_IMP;
         ma   += wc << 1;
         rpba  = ma & RPBA_IMP;
         rpcs &= ~RPCS_MEX;
@@ -1179,7 +1212,7 @@ static t_stat rr_reset (DEVICE *dptr)
     int32 i;
 
     /* compile-time sanity check first */
-    assert(sizeof(rr_regs)/sizeof(rr_regs[0]) == RP_IOLN/2 - RP_IOFF);
+    const_assert(sizeof(rr_regs)/sizeof(rr_regs[0]) == RP_IOLN/2 - RP_IOFF);
 
     /* clear everything now */
     rpds = 0;
@@ -1193,6 +1226,7 @@ static t_stat rr_reset (DEVICE *dptr)
     for (i = 0;  i < RP_NUMDR;  ++i) {
         UNIT* uptr = rr_dev.units + i;
         sim_cancel(uptr);
+        uptr->action = rr_svc;
         uptr->SEEKING = 0;
         uptr->STATUS = 0;
         uptr->FUNC = 0;
@@ -1226,7 +1260,7 @@ static t_stat rr_attach (UNIT *uptr, CONST char *cptr)
 
 static t_stat rr_detach (UNIT *uptr)
 {
-    int32 func = uptr->FUNC;
+    int16 func = uptr->FUNC;
     rr_seek_done(uptr, 1/*cancel*/);
     if (func) {
         uptr->FUNC = 0;                                 /* idle now */
@@ -1241,6 +1275,7 @@ static t_stat rr_detach (UNIT *uptr)
     uptr->STATUS |= RPDS_UNSAFE;                        /* must reset before use */
     assert(!sim_is_active(uptr));
     assert(!uptr->SEEKING);
+    uptr->action = rr_svc;
     uptr->HEAD = 0;
     uptr->CYL = 0;
     return sim_disk_detach(uptr);
@@ -1311,7 +1346,7 @@ static t_stat rr_set_wloa (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 #define BOOT_LEN        (sizeof (rr_boot_rom) / sizeof (rr_boot_rom[0]))
 
 static const uint16 rr_boot_rom[] = {
-/* EXPECTED M9312 REGISTER USE FOR BOOT PROMS:                                                         *
+/* EXPECTED M9312 REGISTER USE FOR BOOT PROMS (IN THE BOOTED SOFTWARE):                                *
  * R0     = UNIT NUMBER                                                                                *
  * R1     = CONTROLLER CSR                                                                             *
  * R2, R3 = TEMPORARIES                                                                                *
@@ -1343,7 +1378,7 @@ static const uint16 rr_boot_rom[] = {
 /* 002062 */ 0000747,                 /*        BR      BOOT            ; START OVER                   */
 /* 002064 */ 0105011,                 /* 2$:    CLRB    (R1)            ; CLEAR CONTROLLER             */
 /* 002066 */ 0005007                  /*        CLR     PC              ; JUMP TO BOOTSTRAP            */
-/*                                              .END                                                   */
+/* 002070                                       .END                                                   */
 };
 
 static t_stat rr_boot (int32 unitno, DEVICE *dptr)
@@ -1381,7 +1416,7 @@ static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
     "Disk drive parameters (all decimal):\n\n"
     "        Cylinders    Heads  Sects/Trk     Capacity    Average access\n"
     "      Total   Spare                   Nominal  Usable    time, ms\n", st);
-    for (i = 0;  i < sizeof(drv_tab)/sizeof(drv_tab[0]) - 1;  ++i) {
+    for (i = 0;  i < sizeof(drv_tab)/sizeof(drv_tab[0]);  ++i) {
         uint32 spare = GET_DA(drv_tab[i].spare, RP_NUMSF, RP_NUMSC);
         uint32 total = drv_tab[i].size;
         fprintf(st, "%.6s: %5u   %5u  %5u  %5u"
