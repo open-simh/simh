@@ -1088,7 +1088,7 @@ if (!(opt_flags & SIM_SOCK_OPT_BLOCKING)) {
     if (sta == SOCKET_ERROR)                            /* fcntl error? */
         return sim_err_sock (newsock, "setnonblock");
     }
-sta = listen (newsock, 1);                              /* listen on socket */
+sta = listen (newsock, 64);                             /* listen on socket */
 if (sta == SOCKET_ERROR)                                /* listen error? */
     return sim_err_sock (newsock, "listen");
 return newsock;                                         /* got it! */
