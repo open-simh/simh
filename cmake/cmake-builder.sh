@@ -15,7 +15,6 @@ Options:
 --------
 --clean (-x)      Remove the build subdirectory
 --generate (-g)   Generate the build environment, don't compile/build
---regenerate (-r) Regenerate the build environment from scratch.
 --parallel (-p)   Enable build parallelism (parallel builds)
 --nonetwork       Build simulators without network support
 --novideo         Build simulators without video support
@@ -35,7 +34,8 @@ Options:
                     ucrt
 --config (-c)     Specifies the build configuration: 'Release' or 'Debug'
 
---target          Build a specific simulator (e.g., pdp11, vax, ...)
+--target          Build a specific simulator or simulators. Separate multiple
+                  targets with a comma, e.g. "--target pdp8,pdp11,vax750,altairz80,3b2"
 --lto             Enable Link Time Optimization (LTO) in Release builds
 --debugWall       Enable maximal warnings in Debug builds
 --cppcheck        Enable cppcheck static code analysis rules
@@ -64,7 +64,6 @@ testArgs=
 notest=no
 buildParallel=no
 generateOnly=
-regenerateFlag=
 testOnly=
 noinstall=
 installOnly=
@@ -151,7 +150,7 @@ if [[ "x${MSYSTEM}" != x ]]; then
   esac
 fi
 
-longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly,regenerate
+longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly
 longopts=${longopts},noinstall,installonly,verbose,target:,lto,debugWall,cppcheck,cpack_suffix:
 
 ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:cpg -- "$@")
@@ -252,11 +251,6 @@ while true; do
             generateOnly=yes
             shift
             ;;
-        -r | --regenerate)
-            generateOnly=yes
-            regenerateFlag=yes
-            shift
-            ;;
         --testonly)
             testOnly=yes
             shift
@@ -271,7 +265,7 @@ while true; do
             ;;
         --target)
             noinstall=yes
-            simTarget="$2"
+            simTarget="${simTarget} $2"
             shift 2
             ;;
         --)
@@ -317,18 +311,24 @@ if [[ x"$canParallel" = xyes ]] ; then
           buildArgs="${buildArgs} --parallel"
 	  buildPostArgs="${buildPostArgs} -j 8"
 	}
-        # Don't execute ctest in parallel...
-        # [ x${canTestParallel} = xyes ] && {
-        #    testArgs="${testArgs} --parallel 4"
-        # }
+
+    # Don't execute ctest in parallel...
+    # [ x${canTestParallel} = xyes ] && {
+    #    testArgs="${testArgs} --parallel 4"
+    # }
     fi
 else
     buildParallel=
 fi
 
 if [[ x"${simTarget}" != x ]]; then
-    buildArgs="${buildArgs} --target ${simTarget}"
-    testArgs="${testArgs} -R simh-${simTarget}\$"
+    simTests=""
+    for tgt in $(echo ${simTarget} | sed 's/,/ /g'); do
+        buildArgs="${buildArgs} --target ${tgt}"
+        [[ x"${simTests}" != x ]] && simTests="${simTests}|"
+        simTests="${simTests}${tgt}"
+    done
+    testArgs="${testArgs} -R simh-(${simTests})\$"
 fi
 
 buildArgs="${buildArgs} --config ${buildConfig}"
@@ -349,10 +349,10 @@ fi
 for ph in ${phases}; do
     case $ph in
     generate)
-	[ x$regenerateFlag = xyes ] && {
-	    echo "${scriptName}: Removing CMakeCache.txt and CMakeFiles"
-	    rm -rf ${buildSubdir}/CMakeCache.txt ${buildSubdir}/CMakefiles
-	}
+        ## Uncondintionally remove the CMake cache.
+        echo "${scriptName}: Removing CMakeCache.txt and CMakeFiles"
+        rm -rf ${buildSubdir}/CMakeCache.txt ${buildSubdir}/CMakefiles
+
         if [[ "x${cmakeSFlag}" != x ]]; then
           echo "${cmake} -G "\"${buildFlavor}\"" -DCMAKE_BUILD_TYPE="${buildConfig}" -S "${simhTopDir}" -B ${buildSubdir} ${generateArgs}"
           ${cmake} -G "${buildFlavor}" -DCMAKE_BUILD_TYPE="${buildConfig}" -S "${simhTopDir}" -B "${buildSubdir}" ${generateArgs} || { \
