@@ -92,9 +92,10 @@ param (
     [Parameter(Mandatory=$false)]
     [string] $cpack_suffix = "",
 
-    ## (optional) Simulator to build (e.g., 'vax', 'pdp11', 'pdp8', ...)
+    ## (optional) Build a specific simulator or simulators. Separate multiple
+    ## targets with a comma, ## e.g. "--target pdp8,pdp11,vax750,altairz80,3b2"
     [Parameter(Mandatory=$false)]
-    [string] $target         = "",
+    [string[]] $target     = "",
 
     ## The rest are flag arguments
 
@@ -130,11 +131,6 @@ param (
     ## Configure and generate the build environment. Don't compile, test or install.
     [Parameter(Mandatory=$false)]
     [switch] $generate       = $false,
-
-    ## Delete the CMake cache, configure and regenerate the build environment.
-    ## Don't compile, test or install.
-    [Parameter(Mandatory=$false)]
-    [switch] $regenerate     = $false,
 
     ## Only run the tests.
     [Parameter(Mandatory=$false)]
@@ -348,11 +344,6 @@ if ($null -eq $genInfo)
     Show-Help
 }
 
-if ($regenerate)
-{
-  $generate = $true;
-}
-
 if ($testonly)
 {
     $scriptPhases = @("test")
@@ -397,12 +388,9 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
         Write-Host "** ${scriptName}: ${buildDir} exists."
     }
 
-    ## Need to regenerate?
-    if ($regenerate)
-    {
-      Remove-Item          -Force -Path ${buildDir}/CMakeCache.txt -ErrorAction SilentlyContinue | Out-Null
-      Remove-Item -Recurse -Force -Path ${buildDir}/CMakeFiles     -ErrorAction SilentlyContinue | Out-Null
-    }
+    ## Unconditionally remove the CMake cache.
+    Remove-Item          -Force -Path ${buildDir}/CMakeCache.txt -ErrorAction SilentlyContinue | Out-Null
+    Remove-Item -Recurse -Force -Path ${buildDir}/CMakeFiles     -ErrorAction SilentlyContinue | Out-Null
    
     ## Where we do the heaving lifting:
     $generateArgs = @("-G", $genInfo.Generator)
@@ -454,7 +442,9 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
         $buildArgs += "-DWINAPI_DEPRECATION:Bool=TRUE"
     }
     if (![String]::IsNullOrEmpty($target)) {
-        $buildArgs += @("--target", "$target")
+        foreach ($targ in $target) {
+          $buildArgs += @("--target", "$targ")
+        }
     }
     
     $buildSpecificArgs = @()
@@ -511,7 +501,8 @@ foreach ($phase in $scriptPhases) {
             }
 
             if (![String]::IsNullOrEmpty($target)) {
-                $testArgs += @("-R", "simh-${target}`$")
+                $tests = "simh-(" + ($target -join "|") + ")`$"
+                $testArgs += @("-R", $tests)
             }
          
             $phaseCommand = ${ctestCmd}

@@ -90,7 +90,7 @@ Before you begin building the simulators, you need the following:
     `pacman`, `rpm`, ...)
 
       apt: `sudo apt install cmake cmake-data`
-      
+
       pacman: `sudo pacman install cmake`
 
   - macOS: Install `cmake` using your preferred external package management
@@ -100,14 +100,14 @@ Before you begin building the simulators, you need the following:
 
       MacPorts: `sudo port install cmake`
 
-  - Windows: 
-  
+  - Windows:
+
     - _Visual Studio IDE, Developer command or PowerShell console windows_: No
       additional software installation needed. Microsoft provides `cmake` that
       can be invoked from the command prompt or from within the VS IDE.
       Microsoft has bundled various version of `cmake` into Visual Studio since
       VS 2015.
-  
+
     - Otherwise, install `cmake` using your preferred Windows software package
       manager, such as [Chocolatey][chocolatey] or [Scoop][scoop]. You can also
       [download and install the `cmake` binary distribution][cmake_downloads]
@@ -119,7 +119,7 @@ Before you begin building the simulators, you need the following:
     `pacman`, `rpm`, ...)
 
       apt: `sudo apt install git`
-      
+
       pacman: `sudo pacman install git`
 
   - macOS: Install `git` using your preferred external package management
@@ -141,12 +141,12 @@ Before you begin building the simulators, you need the following:
     - _Visual Studio Developer command or PowerShell console windows_: Unlike
       `cmake`, `git`'s location is not added to `PATH` or `$env:PATH`. Use the
       VS IDE for `git`-related tasks (add, commit, branch, push, pull, etc.)
- 
+
     -  Otherwise, install `git` using your preferred Windows software package
        manager, such as [Chocolatey][chocolatey] or [Scoop][scoop]. You can also
        [download and install the `git` client][gitscm_downloads] directly.
 
-- GNU Make: 
+- GNU Make:
 
   - Required for Linux and macOS. Consult your appropriate package manager to
     install `make` if it is not already installed.
@@ -238,10 +238,10 @@ the [command line](#cmake-command-line) or [via the IDE](#xp-compatible-build-vi
 _VS2017_: There are two requirements that need to be satisfied:
 
 - `CMake` version 3.14 or higher. The `CMake` distributed with VS 2017 is
-  version 3.12. 
-  
+  version 3.12.
+
   - You will need to install a newer version of `CMake` (see above
-    for download links.) 
+    for download links.)
   - You will also need to ensure that the directory to the updated `cmake.exe` is on
     the front of your `PATH` (`cmd`) or `env:PATH` (`PowerShell`). If you are
     unsure what this means, do not proceed further.
@@ -274,19 +274,19 @@ feature libraries for and MinGW-64 Win64 native and Universal C Runtime (UCRT)
 binaries.
 
   - Linux apt-based distributions (e.g., Debian, Ubuntu):
-      
+
     ```bash
     $ sudo sh .travis/deps.sh linux
     ```
 
   - macOS Homebrew:
-      
+
     ```bash
     $ sudo sh .travis/deps.sh osx
     ```
 
   - MinGW-w64 Win64 console:
-  
+
     ```bash
     $ echo $MSYSTEM
     MINGW64
@@ -294,7 +294,7 @@ binaries.
     ```
 
   - MinGW-w64 UCRT console:
-  
+
     ```bash
     $ echo $MSYSTEM
     UCRT64
@@ -320,7 +320,7 @@ between the two strategies are:
      example, _"legacy"_ does not install `bzip2` as a `libpng` subdependency,
      which limits the compression methods available to `libpng` when capturing
      screenshots.
-     
+
   5. `vcpkg` installs more subdependencies, potentially increasing
      functionality. Continuing `libpng` as the example, `vcpkg` will install
      `bzip2` as a subdependency, which adds compression methods to `libpng` when
@@ -329,7 +329,7 @@ between the two strategies are:
 
   6. _"legacy"_ compiles the dependency libraries as part of the overall
      compile/build process.
-     
+
   7. `vcpkg` compiles and installs dependencies during the CMake configuration
      step, which makes the configuration process longer.
 
@@ -347,7 +347,7 @@ Setup and Usage:
     reconfigure SIMH to use these newly installed dependencies.
 
 - [`vcpkg`](https://vcpkg.io)
-  
+
   Simply set the `VCPKG_ROOT` environment variable to use the `vcpkg` strategy.
   `vcpkg` operates in [Manifest mode][vcpkg_manifest]; refer to the `vcpkg.json`
   manifest file.
@@ -355,7 +355,7 @@ Setup and Usage:
   The default platform triplets for  the Visual Studio compilers are
   `x86-windows-static` and `x64-windows-static`, depending on the architecture
   flag passed to CMake.
-  
+
   The `x64-mingw-dynamic` triplet is known to work from within a MinGW-w64
   console/terminal window using the GCC compiler.
 
@@ -371,10 +371,10 @@ Setup and Usage:
         PS C:\...> cd vcpkg
         PS C:\...\vcpkg> .\vcpkg\bootstrap-vcpkg.bat
         PS C:\...\vcpkg> cd ..\open-simh
-        PS C:\...\open-simh> 
+        PS C:\...\open-simh>
         ```
   Then set the `VCPKG_ROOT` environment variable to the `vcpkg` installaton directory.
-    
+
 [^1]: `vcpkg` does not support the `v141_xp` toolkit required to compile Windows
 XP binaries. Windows XP is a target platform that SIMH can hopefully deprecate
 in the future. For the time being, Windows XP is a target platform that is part
@@ -388,7 +388,7 @@ look for things, such as simulator executables.
 
 ```
 simh                      # Top-level SIMH source directory
-+-- CMakeLists.txt        # Top-level CMake configuration file 
++-- CMakeLists.txt        # Top-level CMake configuration file
 +-- BIN                   # Simulator executables (note 1)
 |   +-- Debug
 |   +-- Release
@@ -404,7 +404,7 @@ simh                      # Top-level SIMH source directory
 |   +-- build-unix        # Build directory for Unix Makefiles (note 2)
 |   +-- build-ninja       # Build directory for Ninja builder (note 2)
 |   +-- dependencies      # Install subdirectory for Windows dependency libraries
-|   |   +-- Windows-10-MSVC-19.34 
+|   |   +-- Windows-10-MSVC-19.34
 |   |   |   |...          # Feature library subdirectory for Windows legacy
 |   |   |   |...          # dependency superbuilds (note 3)
 |...
@@ -412,9 +412,9 @@ simh                      # Top-level SIMH source directory
 |   +-- build
 |   +-- install
 +-- 3b2
-|   +-- CMakeLists.txt    # 3b2 simulator CMake configuration file 
+|   +-- CMakeLists.txt    # 3b2 simulator CMake configuration file
 +-- alpha
-|   +-- CMakeLists.txt    # alpha simulator CMake configuration file 
+|   +-- CMakeLists.txt    # alpha simulator CMake configuration file
 |...
 +-- VAX
 |   +--  CMakeLists.txt   # VAX simulators family CMake configuration file
@@ -521,7 +521,6 @@ or video support.
     --------
     --clean (-x)      Remove the build subdirectory
     --generate (-g)   Generate the build environment, don't compile/build
-    --regenerate (-r) Regenerate the build environment from scratch.
     --parallel (-p)   Enable build parallelism (parallel builds)
     --nonetwork       Build simulators without network support
     --novideo         Build simulators without video support
@@ -541,7 +540,9 @@ or video support.
                         ucrt
     --config (-c)     Specifies the build configuration: 'Release' or 'Debug'
 
-    --target          Build a specific simulator (e.g., pdp11, vax, ...)
+    --target          Build a specific simulator or simulators. Separate multiple
+                      targets by separating with a comma,
+                      e.g. "--target pdp8,pdp11,vax750,altairz80,3b2"
     --lto             Enable Link Time Optimization (LTO) in Release builds
     --debugWall       Enable maximal warnings in Debug builds
     --cppcheck        Enable cppcheck static code analysis rules
@@ -703,7 +704,7 @@ $ cmake --build .
 $ ctest --build-config Release --output-on-failure --timeout 300
 ```
 
-Examples of other things you can do from the command line: 
+Examples of other things you can do from the command line:
 
 ```sh
 # To build a specific simulator, such as b5500, specify the
@@ -888,7 +889,7 @@ $ cmake-builder.sh --flavor unix --lto ...
 PS> cake-builder.ps1 -flavor mingw-unix -lto ...
 ```
 
-Setting `RELEASE_LTO` to `True` does two things: 
+Setting `RELEASE_LTO` to `True` does two things:
 
   1. It changes the optimization level to `-O3` and turns on link-time
      optimization (`-flto`).
@@ -967,7 +968,7 @@ within the IDE. The walkthrough provides directions for VS 2022 and VS 2019.
 
      - Choose `Open>CMake...` from the `File` menu. Open the `CMakeLists.txt` file
        in the source directory where `git` just checked out SIMH's source code.
-     
+
      - The _Output_ pane should switch to "CMake" and display CMake's
        configuration output. It should look similar to the following:
 
@@ -993,8 +994,8 @@ within the IDE. The walkthrough provides directions for VS 2022 and VS 2019.
        1> [CMake] -- Creating dependency library directory hierarchy
 
        [... snipped for brevity ...]
-       
-       1> [CMake] -- 
+
+       1> [CMake] --
        1> [CMake] -- Configuring done
        1> [CMake] -- Generating done
        1> [CMake] -- Build files have been written to: C:/Users/bsm21317/play/open-simh-gitlab/out/build/x64-Debug
@@ -1041,7 +1042,7 @@ within the IDE. The walkthrough provides directions for VS 2022 and VS 2019.
        Choose `Delete Cache and Reconfigure` from the `Project` menu. This will
        cause CMake to reconfigure the project and detect the dependency feature
        libraries.
-       
+
        When reconfiguration is complete, choose `Build All` from the `Build` menu,
        or equivalently chord `Ctrl-Shift-B` on the keyboard and restart building
        the simulator suite.
@@ -1071,7 +1072,7 @@ within the IDE. The walkthrough provides directions for VS 2022 and VS 2019.
   - Click on the "Show advanced settings" link.
 
   - Change the "CMake generator" to "Visual Studio 16 2019" for VS 2019 or
-    "Visual Studio 17 2022" for VS 2022 from the "CMake generator" dropdown. 
+    "Visual Studio 17 2022" for VS 2022 from the "CMake generator" dropdown.
 
   - Save `CMakeSettings.json` (`File>Save` or `Ctrl-S`)
 
@@ -1144,14 +1145,14 @@ add_simulator(3b2
 
 - The first argument is the simulator's executable name: `3b2`. This generates
   an executable named `3b2` on Unix platforms or `3b2.exe` on Windows.
-  
+
 - Argument list keywords: `SOURCES`, `INCLUDES`, `DEFINES`, `LABEL` and `TEST`.
 
     - `SOURCES`: The source files that comprise the simulator. The file names
       are relative to the simulator's source directory. In the `3b2`'s case,
       this is relative to the `3B2/` subdirectory where `3B2/CMakeLists.txt` is
-      located. 
-      
+      located.
+
       [CMake][cmake] sets the variable `CMAKE_CURRENT_SOURCE_DIR` to the same
       directory from which `CMakeLists.txt` is being read.
 
@@ -1323,7 +1324,7 @@ endif()
 2. Add your source to the `MySimulator` directory.
 
 3. Create the `CMakeLists.txt` file that invokes `add_simulator`.
-  
+
 4. Include your new simulator in the `cmake/simh-simulators.cmake` file.
 
     ```cmake
@@ -1357,7 +1358,7 @@ _Note:_ The `cmake/generate.py` script is not automatically run by `cmake` when
 the `makefile` is newer than the top-level `CMakeLists.txt`. If you have done a
 `git pull` and you get undefined symbols when a simulator is linked, the
 solution is `cmake/generate.py` to update the affected simulator
-`CMakeLists.txt` file. 
+`CMakeLists.txt` file.
 
 ```sh
 ## You have to be in the cmake subdirectory to run the generate.py script
