@@ -278,7 +278,7 @@ void ch_validate (const uint8 *p, int count)
     sim_debug (DBG_TRC, &ch_dev, "Checksum: %05o\n", chksum);
 }
 
-void ch_receive (void)
+int ch_receive (void)
 {
   size_t count;
   const uint8 *p;
@@ -286,10 +286,10 @@ void ch_receive (void)
   tmxr_poll_rx (&ch_tmxr);
   if (tmxr_get_packet_ln (&ch_lines[0], &p, &count) != SCPE_OK) {
     sim_debug (DBG_ERR, &ch_dev, "TMXR error receiving packet\n");
-    return;
+    return 0;
   }
   if (p == NULL)
-    return;
+    return 0;
 
   sim_debug (DBG_PKT, &ch_dev, "Received UDP packet, %d bytes\n", (int)count);
   if ((status & RXD) == 0) {
@@ -308,6 +308,8 @@ void ch_receive (void)
     if ((status & LOST) < LOST)
       status += 01000;
   }
+
+  return 1;
 }
 
 t_stat ch_rd (int32 *data, int32 PA, int32 access)
@@ -410,11 +412,16 @@ t_stat ch_wr (int32 data, int32 PA, int32 access)
 
 t_stat ch_svc(UNIT *uptr)
 {
+  if (ch_lines[0].conn) {
+    if (ch_receive ()) {
+      sim_activate_after (uptr, 300);
+      return SCPE_OK;
+    }
+  } else {
+    if (tmxr_poll_conn (&ch_tmxr) != -1)
+      ch_lines[0].rcve = TRUE;
+  }
   sim_clock_coschedule (uptr, 1000);
-  if (tmxr_poll_conn (&ch_tmxr) != -1)
-    ch_lines[0].rcve = TRUE;
-  if (ch_lines[0].conn)
-    ch_receive ();
   return SCPE_OK;
 }
 
