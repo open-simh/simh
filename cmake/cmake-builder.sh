@@ -153,7 +153,7 @@ fi
 longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly
 longopts=${longopts},noinstall,installonly,verbose,target:,lto,debugWall,cppcheck,cpack_suffix:
 
-ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:cpg -- "$@")
+ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:c:pg -- "$@")
 if [ $? -ne 0 ] ; then
     showHelp "${scriptName}: Usage error (use -h for help.)"
 fi
