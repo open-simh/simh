@@ -158,7 +158,7 @@ extern int32 MMR2;
 #define UNIT_V_ONL      (DKUF_V_UF + 0)                 /* online */
 #define UNIT_V_ATP      (UNIT_V_ONL + 1)                /* attn pending */
 #define UNIT_V_DTYPE    (UNIT_V_ATP + 1)                /* drive type */
-#define UNIT_W_DTYPE    5                               /* 5b drive type encode */
+#define UNIT_W_DTYPE    6                               /* 6b drive type encode */
 #define UNIT_M_DTYPE    ((1u << UNIT_W_DTYPE) - 1)
 #define UNIT_ONL        (1 << UNIT_V_ONL)
 #define UNIT_ATP        (1 << UNIT_V_ATP)
@@ -248,36 +248,60 @@ struct rqpkt {
 
 /* The RQDX3 supports multiple disk drive types (x = not implemented):
 
-   type sec     surf    cyl     tpg     gpc     RCT     LBNs
-        
-   RX50 10      1       80      5       16      -       800
-   RX33 15      2       80      2       1       -       2400
-   RD51 18      4       306     4       1       36*4    21600
-   RD31 17      4       615     4       1       3*8     41560
-   RD52 17      8       512     8       1       4*8     60480
-   RD32 17      6       820     6       1       4*8     83204
-x  RD33 17      7       1170    ?       ?       ?       138565
-   RD53 17      8       1024    8       1       5*8     138672
-   RD54 17      15      1225    15      1       7*8     311200
+   type  sec  surf  cyl   tpg  gpc  RCT   LBNs    notes
+   RX18  9    1     40    9    1    -     360
+   RX50  10   1     80    5    16   -     800
+   RX33  15   2     80    2    1    -     2400
+x  RD50  17   4     153   ?    ?    ?     ?       Seagate ST-506
+   RD51  18   4     306   4    1    36*4  21600   Seagate ST-412
+   RD31  17   4     615   4    1    3*8   41560   Seagate ST-225
+   RD52  17   8     512   8    1    4*8   60480   Quantum 540, ATASI 3046, Evotek ET3540
+   RD32  17   6     820   6    1    4*8   83204   Seagate ST-251
+   RD33  17   7     1170  7    1    5*8   138565  Microscience HH-1090
+   RD53  17   8     1024  8    1    5*8   138672  Micropolis 1325, Micropolis 1335
+   RD54  17   15    1225  15   1    7*8   311200  Maxtor XT-2190
 
    The simulator also supports larger drives that only existed
-   on SDI controllers.
+   on SDI controllers (UDA50/UDA50A, KDA50, KDB50).
 
-   RA60 42(+1)  6       1600    6       1       1008    400176
-x  RA70 33(+1)  11      1507+   11      1       ?       547041
-   RA80 31      14      546      ?      ?       ?       237212
-   RA81 51(+1)  14      1258    14      1       2856    891072
-   RA82 57(+1)  15      1435    15      1       3420    1216665
-   RA71 51(+1)  14      1921    14      1       1428    1367310         
-   RA72 51(+1)  20      1921    20      1       2040    1953300
-   RA90 69(+1)  13      2656    13      1       1794    2376153
-   RA92 73(+1)  13      3101    13      1       949     2940951
-x  RA73 70(+1)  21      2667+   21      1       ?       3920490
+   type  sec  surf  cyl   tpg  gpc  RCT   LBNs
+   RA60  42+  6     1600  6    1    1008  400176
+   RA80  31   14    546   ?    ?    ?     237212
+   RA81  51+  14    1258  14   1    2856  891072
+   RA82  57+  15    1435  15   1    3420  1216665
+   RA70  33+  11   >1507  11   1    ?     547041
+   RA71  51+  14    1921  14   1    1428  1367310         
+   RA72  51+  20    1921  20   1    2040  1953300
+   RA73  70+  21   >2667  21   1    ?     3920490
+   RA90  69+  13    2656  13   1    1794  2376153
+   RA92  73+  13    3101  13   1    949   2940951
+   ESE20 4    128   480   ?    ?    ?     245760
+   ESE52 4    128   465   ?    ?    ?     238080
+   ESE56 4    128   465   ?    ?    ?     1196544
+   ESE58 4    128   465   ?    ?    ?     1915392
 
    LESI attached RC25 disks (one removable, one fixed)
-   type  sec     surf    cyl     tpg     gpc     RCT     LBNs
-   RC25  31      2        821    ?       ?       ?       50902
-   RCF25 31      2        821    ?       ?       ?       50902
+
+   type  sec  surf  cyl   tpg  gpc  RCT   LBNs
+   RC25  31   2     821   ?    ?    ?     50902
+   RCF25 31   2     821   ?    ?    ?     50902
+
+   DSSI attached ISEs, as the simulation currently stands the DSSI
+   devices are accessed in a pseudo-KFQSA manner -- the ISEs are
+   accessed as Storage System Port (SSP) devices, like the RQDX3 or
+   UDA50/KDA50; however the exact function of the KFQSA is not, neither
+   are the SHAC or EDA640 controllers.
+
+   type  sec  surf  cyl   tpg  gpc  RCT   LBNs
+   RF30  37   6     1320  ?    ?    ?     293040
+   RF31  50   8     1861  ?    ?    ?     744400
+   RF35  57   14    1861  ?    ?    ?     1485078
+x  RF36  ?    ?     ?     ?    ?    ?     ?
+   RF71  37   16    1320  ?    ?    ?     781440
+   RF72  50   21    1861  ?    ?    ?     1954050
+   RF73  71   21    2621  ?    ?    ?     3907911
+x  RF74  ?    ?     ?     ?    ?    ?     ?
+x  RF75  ?    ?     ?     ?    ?    ?     ?
 
    Each drive can be a different type.  The drive field in the
    unit flags specified the drive type and thus, indirectly,
@@ -353,7 +377,7 @@ x  RA73 70(+1)  21      2667+   21      1       ?       3920490
 #define RD31_MED        0x2564401F
 #define RD31_FLGS       0
 
-#define RD52_DTYPE      4                               /* Quantum params */
+#define RD52_DTYPE      4
 #define RD52_SECT       17
 #define RD52_SURF       8
 #define RD52_CYL        512
@@ -747,6 +771,117 @@ x  RA73 70(+1)  21      2667+   21      1       ?       3920490
 #define RF73_MED        0x22646049
 #define RF73_FLGS       RQDF_DSSI
 
+/* The ESE20 and the ESE5x information comes from the "ESE50 Solid State
+ * Disk User Guide" (EK-ESE50-UG.B01), and the "ESE20 Solid State Disk"
+ * brochure.
+ *
+ * The ESE5x models are named using their "media name" from the MSCP
+ * reference document.
+ */
+#define ESE20_DTYPE     28
+#define ESE20_SECT      4
+#define ESE20_SURF      128
+#define ESE20_CYL       480
+#define ESE20_TPG       ESE20_SURF
+#define ESE20_GPC       1
+#define ESE20_XBN       0
+#define ESE20_DBN       0
+#define ESE20_LBN       245760
+#define ESE20_RCTS      0
+#define ESE20_RCTC      1
+#define ESE20_RBN       0
+#define ESE20_MOD       25
+#define ESE20_MED       0x254B3294
+#define ESE20_FLGS      RQDF_SDI
+
+#define ESE52_DTYPE     29
+#define ESE52_SECT      4
+#define ESE52_SURF      128
+#define ESE52_CYL       465
+#define ESE52_TPG       ESE52_SURF
+#define ESE52_GPC       1
+#define ESE52_XBN       0
+#define ESE52_DBN       0
+#define ESE52_LBN       238080
+#define ESE52_RCTS      0
+#define ESE52_RCTC      1
+#define ESE52_RBN       0
+#define ESE52_MOD       31
+#define ESE52_MED       0x254B32B4
+#define ESE52_FLGS      RQDF_SDI
+
+#define ESE56_DTYPE     30
+#define ESE56_SECT      4
+#define ESE56_SURF      128
+#define ESE56_CYL       2337
+#define ESE56_TPG       ESE56_SURF
+#define ESE56_GPC       1
+#define ESE56_XBN       0
+#define ESE56_DBN       0
+#define ESE56_LBN       1196544
+#define ESE56_RCTS      0
+#define ESE56_RCTC      1
+#define ESE56_RBN       0
+#define ESE56_MOD       48
+#define ESE56_MED       0x254B32B8
+#define ESE56_FLGS      RQDF_SDI
+
+#define ESE58_DTYPE     31
+#define ESE58_SECT      4
+#define ESE58_SURF      128
+#define ESE58_CYL       3741
+#define ESE58_TPG       ESE58_SURF
+#define ESE58_GPC       1
+#define ESE58_XBN       0
+#define ESE58_DBN       0
+#define ESE58_LBN       1915392
+#define ESE58_RCTS      0
+#define ESE58_RCTC      1
+#define ESE58_RBN       0
+#define ESE58_MOD       49
+#define ESE58_MED       0x254B32BA
+#define ESE58_FLGS      RQDF_SDI
+
+/* The RD33 information comes from the Ultrix-32 v4.5 disktab file and
+ * from Phil Budne's "dec.disks" file.
+ */
+#define RD33_DTYPE      32
+#define RD33_SECT       17
+#define RD33_SURF       7
+#define RD33_CYL        1170
+#define RD33_TPG        RD33_SURF
+#define RD33_GPC        1
+#define RD33_XBN        54
+#define RD33_DBN        65
+#define RD33_LBN        138635
+#define RD33_RCTS       5
+#define RD33_RCTC       8
+#define RD33_RBN        317
+#define RD33_MOD        24
+#define RD33_MED        0x25644021
+#define RD33_FLGS       0
+
+/* The RX18 information comes from the VT-180 Series Technical Manual
+ * (EK-VT18X-TM-001) and from the MSCP specification document as well as
+ * references in the RSX-11/M+ documentation to the RX18 existing as a
+ * device attachable to the RUX50.
+ */
+#define RX18_DTYPE      33
+#define RX18_SECT       9
+#define RX18_SURF       1
+#define RX18_CYL        40
+#define RX18_TPG        RD33_SURF
+#define RX18_GPC        1
+#define RX18_XBN        0
+#define RX18_DBN        0
+#define RX18_LBN        360
+#define RX18_RCTS       0
+#define RX18_RCTC       0
+#define RX18_RBN        0
+#define RX18_MOD        17
+#define RX18_MED        0x25658012
+#define RX18_FLGS       RQDF_RMV
+
 /* Controller parameters */
 
 #define DEFAULT_CTYPE   0
@@ -760,9 +895,9 @@ x  RA73 70(+1)  21      2667+   21      1       ?       3920490
 #define RUX50_UQPM      10		// this should be 10 according to the MSCP spec
 #define RUX50_MODEL     10
 
-#define UDA50_CTYPE     3               // UNIBUS SDI (RAxx) controller
-#define UDA50_UQPM      6               // really type of UDA50A; UDA50 is 2
-#define UDA50_MODEL     6
+#define UDA50A_CTYPE    3               // UNIBUS SDI (RAxx) controller
+#define UDA50A_UQPM     6               // The new model - SIMH default model
+#define UDA50A_MODEL    6
 
 #define RQDX1_CTYPE     4               // QBUS RX50/RDxx controller,
 #define RQDX1_UQPM      7               // first version; RQDX2 has the same id
@@ -783,6 +918,14 @@ x  RA73 70(+1)  21      2667+   21      1       ?       3920490
 #define KRU50_CTYPE     8               // UNIBUS RRD40/50 CDROM controller
 #define KRU50_UQPM      26              // unassigned in appendix C
 #define KRU50_MODEL     26
+
+#define RQDX4_CTYPE     9               // QBUS RXxx/RDxx controller
+#define RQDX4_UQPM      20              // CSS, Reading Special
+#define RQDX4_MODEL     20
+
+#define UDA50_CTYPE     10              // Old UNIBUS SDI (RAxx) controller
+#define UDA50_UQPM      2
+#define UDA50_MODEL     2
 
 struct drvtyp {
     uint16      sect;                                   /* sectors */
@@ -834,9 +977,16 @@ static struct drvtyp drv_tab[] = {
     RQ_DRV (RA73),
     RQ_DRV (RF30),
     RQ_DRV (RF31),
+    RQ_DRV (RF35),
     RQ_DRV (RF71),
     RQ_DRV (RF72),
     RQ_DRV (RF73),
+    RQ_DRV (ESE20),
+    RQ_DRV (ESE52),
+    RQ_DRV (ESE56),
+    RQ_DRV (ESE58),
+    RQ_DRV (RD33),
+    RQ_DRV (RX18),
     { 0 }
     };
 
@@ -868,9 +1018,16 @@ static const char *drv_types[] = {
     RQ_DRV (RA73),
     RQ_DRV (RF30),
     RQ_DRV (RF31),
+    RQ_DRV (RF35),
     RQ_DRV (RF71),
     RQ_DRV (RF72),
     RQ_DRV (RF73),
+    RQ_DRV (ESE20),
+    RQ_DRV (ESE52),
+    RQ_DRV (ESE56),
+    RQ_DRV (ESE58),
+    RQ_DRV (RD33),
+    RQ_DRV (RX18),
     NULL
     };
 
@@ -887,12 +1044,14 @@ static struct ctlrtyp ctlr_tab[] = {
     { 0, 0, "DEFAULT" },
     RQ_CTLR (KLESI),
     RQ_CTLR (RUX50),
-    RQ_CTLR (UDA50),
+    RQ_CTLR (UDA50A),
     RQ_CTLR (RQDX1),
     RQ_CTLR (RQDX3),
     RQ_CTLR (KDA50),
     RQ_CTLR (KRQ50),
     RQ_CTLR (KRU50),
+    RQ_CTLR (RQDX4),
+    RQ_CTLR (UDA50),
     { 0 }
     };
 
@@ -1129,7 +1288,11 @@ MTAB rq_mod[] = {
       &rq_set_ctype, NULL, NULL, "Set RQDX1/2 (QBUS RX50/RDnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, RQDX3_CTYPE, NULL, "RQDX3",
       &rq_set_ctype, NULL, NULL, "Set RQDX3 (QBUS RX50/RDnn) Controller Type" },
+    { MTAB_XTD|MTAB_VDV, RQDX4_CTYPE, NULL, "RQDX4",
+      &rq_set_ctype, NULL, NULL, "Set RQDX4 (QBUS RX50/RDnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, UDA50_CTYPE, NULL, "UDA50",
+      &rq_set_ctype, NULL, NULL, "Set UDA50 (UNIBUS SDI RAnn) Controller Type" },
+    { MTAB_XTD|MTAB_VDV, UDA50A_CTYPE, NULL, "UDA50A",
       &rq_set_ctype, NULL, NULL, "Set UDA50A (UNIBUS SDI RAnn) Controller Type" },
     { MTAB_XTD|MTAB_VDV, KDA50_CTYPE, NULL, "KDA50",
       &rq_set_ctype, NULL, NULL, "Set KDA50 (QBUS SDI RAnn) Controller Type" },
@@ -1143,6 +1306,8 @@ MTAB rq_mod[] = {
       &rq_set_ctype, NULL, NULL, "Set RUX50 (UNIBUS RX50) Controller Type" },
     { MTAB_XTD|MTAB_VUN|MTAB_NMO, 0, "UNITQ", NULL,
       NULL, &rq_show_unitq, NULL, "Display unit queue" },
+    { MTAB_XTD|MTAB_VUN, RX18_DTYPE, NULL, "RX18",
+      &rq_set_type, NULL, NULL, "Set RX18 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RX50_DTYPE, NULL, "RX50",
       &rq_set_type, NULL, NULL, "Set RX50 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RX33_DTYPE, NULL, "RX33",
@@ -1151,6 +1316,8 @@ MTAB rq_mod[] = {
       &rq_set_type, NULL, NULL, "Set RD31 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RD32_DTYPE, NULL, "RD32",
       &rq_set_type, NULL, NULL, "Set RD32 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, RD33_DTYPE, NULL, "RD33",
+      &rq_set_type, NULL, NULL, "Set RD33 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RD51_DTYPE, NULL, "RD51",
       &rq_set_type, NULL, NULL, "Set RD51 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RD52_DTYPE, NULL, "RD52",
@@ -1159,16 +1326,18 @@ MTAB rq_mod[] = {
       &rq_set_type, NULL, NULL, "Set RD53 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RD54_DTYPE, NULL, "RD54",
       &rq_set_type, NULL, NULL, "Set RD54 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, RRD40_DTYPE, NULL, "RRD40",
+      &rq_set_type, NULL, NULL, "Set RRD40 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RA60_DTYPE, NULL, "RA60",
       &rq_set_type, NULL, NULL, "Set RA60 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, RA80_DTYPE, NULL, "RA80",
+      &rq_set_type, NULL, NULL, "Set RA80 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RA81_DTYPE, NULL, "RA81",
       &rq_set_type, NULL, NULL, "Set RA81 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RA82_DTYPE, NULL, "RA82",
       &rq_set_type, NULL, NULL, "Set RA82 Disk Type" },
-    { MTAB_XTD|MTAB_VUN, RRD40_DTYPE, NULL, "RRD40",
-      &rq_set_type, NULL, NULL, "Set RRD40 Disk Type" },
-    { MTAB_XTD|MTAB_VUN, RRD40_DTYPE, NULL, "CDROM",
-      &rq_set_type, NULL, NULL, "Set CDROM Disk Type" },
+    { MTAB_XTD|MTAB_VUN, ESE20_DTYPE, NULL, "ESE20",
+      &rq_set_type, NULL, NULL, "Set ESE20 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RA70_DTYPE, NULL, "RA70",
       &rq_set_type, NULL, NULL, "Set RA70 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RA71_DTYPE, NULL, "RA71",
@@ -1181,12 +1350,16 @@ MTAB rq_mod[] = {
       &rq_set_type, NULL, NULL, "Set RA90 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RA92_DTYPE, NULL, "RA92",
       &rq_set_type, NULL, NULL, "Set RA92 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, ESE52_DTYPE, NULL, "ESE52",
+      &rq_set_type, NULL, NULL, "Set ESE52 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, ESE56_DTYPE, NULL, "ESE56",
+      &rq_set_type, NULL, NULL, "Set ESE56 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, ESE58_DTYPE, NULL, "ESE58",
+      &rq_set_type, NULL, NULL, "Set ESE58 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RC25_DTYPE, NULL, "RC25",
       &rq_set_type, NULL, NULL, "Set RC25 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RCF25_DTYPE, NULL, "RCF25",
       &rq_set_type, NULL, NULL, "Set RCF25 Disk Type" },
-    { MTAB_XTD|MTAB_VUN, RA80_DTYPE, NULL, "RA80",
-      &rq_set_type, NULL, NULL, "Set RA80 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RF30_DTYPE, NULL, "RF30",
       &rq_set_type, NULL, NULL, "Set RF30 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RF31_DTYPE, NULL, "RF31",
@@ -1199,6 +1372,8 @@ MTAB rq_mod[] = {
       &rq_set_type, NULL, NULL, "Set RF72 Disk Type" },
     { MTAB_XTD|MTAB_VUN, RF73_DTYPE, NULL, "RF73",
       &rq_set_type, NULL, NULL, "Set RF73 Disk Type" },
+    { MTAB_XTD|MTAB_VUN, RRD40_DTYPE, NULL, "CDROM",
+      &rq_set_type, NULL, NULL, "Set CDROM Disk Type" },
     { MTAB_XTD|MTAB_VUN|MTAB_VALR, RA8U_DTYPE, NULL, "RAUSER=SizeInMB",
       &rq_set_type, NULL, NULL, "Set RAUSER Disk Type and its size" },
     { MTAB_XTD|MTAB_VUN, RA8U_DTYPE, NULL, "RA8U",
@@ -3107,7 +3282,7 @@ if (cidx < 0)                                           /* not found??? */
 cp = rq_ctxmap[cidx];                                   /* get context */
 cp->cnum = cidx;                                        /* init index */
 if (cp->ctype == DEFAULT_CTYPE)
-    cp->ctype = (UNIBUS    ? UDA50_CTYPE :
+    cp->ctype = (UNIBUS    ? UDA50A_CTYPE :
                  MICROVAX1 ? RQDX1_CTYPE : RQDX3_CTYPE);
 
 if (!plugs_inited ) {
@@ -3423,11 +3598,12 @@ return SCPE_OK;
 
 t_stat rq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 {
-fprintf (st, "UDA50 MSCP Disk Controller (%s)\n\n", dptr->name);
+fprintf (st, "UDA50A MSCP Disk Controller (%s)\n\n", dptr->name);
 fprintf (st, "The simulator implements four MSCP disk controllers, RQ, RQB, RQC, RQD.\n");
 fprintf (st, "Initially, RQB, RQC, and RQD are disabled.  Each RQ controller simulates\n");
 fprintf (st, "an MSCP disk controller with four drives.  The MSCP controller type can be\n");
-fprintf (st, "specified as one of RQDX1, RQDX3, UDA50, KDA50, KRQ50, KLESI or RUX50.\n");
+fprintf (st, "specified as one of RQDX1, RQDX3, RQDX4, KDA50, UDA50, UDA50A, KRQ50,\n");
+fprintf (st, "KRU50, KLESI or RUX50.\n");
 fprintf (st, "RQ options include the ability to set units write enabled or write locked,\n");
 fprintf (st, "and to set the drive type to one of many disk types:\n");
 fprint_set_help (st, dptr);
