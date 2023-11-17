@@ -538,7 +538,7 @@ drives on the same controller.
 static t_stat rr_rd (int32 *data, int32 PA, int32 access)
 {
     /* offset by base then decode <4:1> */
-    int32 rn = (((PA - rr_dib.ba) >> 1) & 017) - RP_IOFF;
+    int32 rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
     UNIT* uptr;
 
     switch (rn) {
@@ -611,7 +611,7 @@ static t_stat rr_rd (int32 *data, int32 PA, int32 access)
 static t_stat rr_wr (int32 data, int32 PA, int32 access)
 {
     /* offset by base then decode <4:1> */
-    int32 rn = (((PA - rr_dib.ba) >> 1) & 017) - RP_IOFF;
+    int32 rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
     int32 n, oval = rn < 0 ? 0 : *rr_regs[rn].valp;
     int16 func;
 
@@ -794,31 +794,8 @@ static void rr_go (int16 func)
             rper |= RPER_NXC;
     }
 
-    if (wr) {
-        if ((wloa & RPWLOA_ON)  &&  !rper/*valid DA*/  &&
-            (i <= GET_WLOADRV(wloa)  ||  cyl <= GET_WLOACYL(wloa))) {
-            uptr->STATUS |= RPDS_WLK;                   /* DA write-locked */
-            rper |= RPER_WPV;
-        } else if (uptr->flags & UNIT_WPRT)             /* write and locked? */
-            rper |= RPER_WPV;
-    }
-
-    if (rpcs & RPCS_HDR) {                              /* format and ... */
-        if (!(rpcs & RPCS_MODE))                        /* ... not 18b? */
-            rper |= RPER_MODE;
-        else if (!(rd | wr)  ||                         /* ... or not R/W? or ... */
-            (rd  &&  -((int16) rpwc) != 3)  ||          /* rd hdr: wc m.b. 3 */
-            (wr  &&  -((int16) rpwc)  % 3)) {           /* wr hdr: wc m.b. mult of 3 */
-            rper |= RPER_PGE;
-        }
-    } else if (rd | wr) {                               /* regular R/W and ... */
-        if (rpcs & RPCS_MODE)                           /* ... 18b? */
-            rper |= RPER_MODE;
-#if 0   /* per doc, rpwc must be even; but DOS/Batch uses odd wc xfers (?!) */
-        else if (rpwc & 1)                              /* ... or odd wc? */
-            rper |= RPER_PGE;
-#endif
-    }
+    if (wr  &&  (uptr->flags & UNIT_WPRT))              /* write and locked? */
+        rper |= RPER_WPV;
 
     if (rper) {                                         /* any errors? */
         rr_set_done(0);                                 /* set done (w/errors) */
@@ -913,7 +890,7 @@ static void rr_seek_done (UNIT *uptr, t_bool cancel)
 
 static t_stat rr_svc (UNIT *uptr)
 {
-    int32 cyl, head, sect, da, wc, n;
+    int32 n, cyl, head, sect, da, wc;
     int16 func = uptr->FUNC;
     t_seccnt todo, done;
     t_stat ioerr;
@@ -941,37 +918,46 @@ static t_stat rr_svc (UNIT *uptr)
 
     wr = func == RPCS_WRITE  ||  func == RPCS_WR_NOSEEK;
 
-    sect = GET_SECT(rpda);                              /* get sect */
-    if (sect >= RP_NUMSC)                               /* bad sector? */
-        rper |= RPER_NXS;
+    n = (int32)(uptr - rr_dev.units);                   /* get drive no */
 
-    if (wr  &&  (uptr->flags & UNIT_WPRT))              /* write and locked? */
-        rper |= RPER_WPV;
+    sect = GET_SECT(rpda);                              /* get sect */
+    if (sect >= RP_NUMSC)                               /* sect out of range? */
+        rper |= RPER_NXS;
+    head = uptr->HEAD;
+    cyl  = uptr->CYL;
+
+    if (wr) {
+        if ((wloa & RPWLOA_ON)  &&  !rper/*valid DA*/  &&
+            (n <= GET_WLOADRV(wloa)  ||  cyl <= GET_WLOACYL(wloa))) {
+            uptr->STATUS |= RPDS_WLK;                   /* DA write-locked */
+            rper |= RPER_WPV;
+        } else if (uptr->flags & UNIT_WPRT)             /* write and locked? */
+            rper |= RPER_WPV;
+    }
 
     if (rper) {                                         /* control in error? */
         rr_set_done(0);
         return SCPE_OK;
     }
     /* rper == 0: drive remained selected */
-    assert((int32)(uptr - rr_dev.units) == GET_DRIVE(rpcs));
+    assert(n == GET_DRIVE(rpcs));
 
     wc = 0200000 - rpwc;                                /* get wd cnt */
     assert(wc <= RP_MAXFR);
-    head = uptr->HEAD;
-    cyl  = uptr->CYL;
     n = GET_DTYPE(uptr->flags);                         /* get drive type */
     assert(cyl < drv_tab[n].cyl  &&  head < RP_NUMSF);
     da = GET_DA(cyl, head, sect);                       /* form full disk addr */
     assert(da < drv_tab[n].size);
     n = drv_tab[n].size - da;                           /* sectors available */
+
     if (rpcs & RPCS_HDR) {                              /* header ops? */
         if (!(rpcs & RPCS_MODE))                        /* yes: 18b mode? */
             rper |= RPER_MODE;                          /* must be in 18b mode */
         else if ((!wr  &&  wc != 3)  ||  (wr  &&  wc % 3)) /* DEC-11-HRPCA-C-D 3.8 */
             rper |= RPER_PGE;
-        else if (wr)                                    /* a typo in doc??? */
+        else if (wr)
             n *= 3;                                     /* 3 wds per sector */
-        else
+        else                                            /* a typo in doc??? */
             n  = 3;                                     /* can only read 3 wds */
     } else {                                            /* no: regular R/W */
         /* RP11 can actually handle the PDP-10/-15 (18b) mode on PDP-11 using 3
@@ -1040,6 +1026,7 @@ static t_stat rr_svc (UNIT *uptr)
             n = RP_SIZE(done);                          /* words read */
             sim_disk_data_trace(uptr, (uint8*) rpxb, da, n * sizeof(*rpxb), "rr_read",
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
+            assert(done <= todo);
             if (done >= todo)
                 ioerr = 0;                              /* good stuff */
             else if (ioerr)
@@ -1086,6 +1073,7 @@ static t_stat rr_svc (UNIT *uptr)
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
             todo = m / RP_NUMWD;                        /* sectors to write */
             ioerr = sim_disk_wrsect(uptr, da, (uint8*) rpxb, &done, todo);
+            assert(done <= todo);
             if (done < todo) {                          /* short write? */
                 wc = RP_SIZE(done);                     /* words written */
                 rper |= RPER_FMTE;                      /* report as FMTE */
