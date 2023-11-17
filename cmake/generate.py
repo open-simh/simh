@@ -22,7 +22,6 @@ import pprint
 import simgen.cmake_container as SCC
 import simgen.parse_makefile as SPM
 import simgen.packaging as SPKG
-## from simgen.text_file import TextFile
 
 
 def process_makefile(makefile_dir, debug=0):
