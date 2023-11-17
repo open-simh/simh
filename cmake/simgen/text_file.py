@@ -2,12 +2,7 @@
 
 provides the TextFile class, which gives an interface to text files
 that (optionally) takes care of stripping comments, ignoring blank
-lines, and joining lines with backslashes.
-
-NOTE: This Python source code is adapted from the distutils module.
-Given that the future of distutils is uncertain, keep and maintain
-a local copy here.
-"""
+lines, and joining lines with backslashes."""
 
 import sys, io
 

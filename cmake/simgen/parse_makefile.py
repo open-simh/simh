@@ -23,7 +23,9 @@ def parse_makefile(fn, g_vars=None, g_rules=None, g_actions=None):
     Collects all of the variable definitions, rules and actions associated with rules.
 
     """
-    from distutils.text_file import TextFile
+    ## Python 3.11 and onward dropped distuitls, so import our local copy.
+    from simgen.text_file import TextFile
+
     fp = TextFile(fn, strip_comments=1, skip_blanks=1, join_lines=1, errors="surrogateescape")
 
     if g_vars is None:
