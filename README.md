@@ -9,3 +9,8 @@ The Open SIMH code base was taken from a code base maintained by Mark Pizzolato 
 ## PLEASE NOTE
 
 **Do not** contribute material taken from `github.com/simh/simh` unless you are the author of the material in question.
+
+<a href="https://scan.coverity.com/projects/open-simh-simh">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/29458/badge.svg"/>
+</a>
