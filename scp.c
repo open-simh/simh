@@ -13622,9 +13622,18 @@ if (sim_deb_switches & SWMASK ('F')) {              /* filtering disabled? */
     }
 AIO_LOCK;
 if (debug_line_offset + len + 1 > debug_line_bufsize) {
+    /* realloc(NULL, size) == malloc(size). Really. It is. Initialize
+     * the malloc()-ed space. */
+    int do_init = (NULL == debug_line_buf) || (NULL == debug_line_buf_last);
+
     debug_line_bufsize += MAX(1024, debug_line_offset + len + 1);
     debug_line_buf = (char *)realloc (debug_line_buf, debug_line_bufsize);
     debug_line_buf_last = (char *)realloc (debug_line_buf_last, debug_line_bufsize);
+
+    if (do_init) {
+        memset(debug_line_buf, 0, debug_line_bufsize);
+        memset(debug_line_buf_list, 0, debug_line_bufsize);
+        }
     }
 memcpy (&debug_line_buf[debug_line_offset], buf, len);
 debug_line_buf[debug_line_offset + len] = '\0';
