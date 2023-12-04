@@ -140,6 +140,7 @@ add_simulator(infoserver100
         VAX_411
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -169,6 +170,7 @@ add_simulator(infoserver1000
         VM_VAX
         IS_1000
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -186,6 +188,7 @@ add_simulator(infoserver150vxt
         VAX_412
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -230,6 +233,7 @@ add_simulator(microvax1
         VAX_610
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -246,6 +250,7 @@ add_simulator(microvax2
         VAX_630
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -283,6 +288,7 @@ add_simulator(microvax2000
         VAX_410
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -300,6 +306,7 @@ add_simulator(microvax3100
         VAX_41A
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -317,6 +324,7 @@ add_simulator(microvax3100e
         VAX_41D
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -332,6 +340,7 @@ add_simulator(microvax3100m80
         VAX_440
         VAX_47
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -362,6 +371,7 @@ add_simulator(vax
         VM_VAX
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -435,6 +445,7 @@ add_simulator(vax730
         VM_VAX
         VAX_730
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -485,6 +496,7 @@ add_simulator(vax750
         VM_VAX
         VAX_750
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -536,6 +548,7 @@ add_simulator(vax780
         VM_VAX
         VAX_780
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -584,6 +597,7 @@ add_simulator(vax8200
         VM_VAX
         VAX_820
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -633,6 +647,7 @@ add_simulator(vax8600
         VM_VAX
         VAX_860
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -650,6 +665,7 @@ add_simulator(vaxstation3100m30
         VAX_42A
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -667,6 +683,7 @@ add_simulator(vaxstation3100m38
         VAX_42B
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -702,6 +719,7 @@ add_simulator(vaxstation3100m76
         VAX_43
     FEATURE_FULL64
     FEATURE_VIDEO
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -717,6 +735,7 @@ add_simulator(vaxstation4000m60
         VAX_440
         VAX_46
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family
@@ -732,6 +751,7 @@ add_simulator(vaxstation4000vlc
         VAX_440
         VAX_48
     FEATURE_FULL64
+    USES_AIO
     BUILDROMS
     LABEL VAX
     PKG_FAMILY vax_family

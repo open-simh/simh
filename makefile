@@ -98,10 +98,14 @@
 #
 # CC Command (and platform available options).  (Poor man's autoconf)
 #
+
+OS_CCDEFS=
+AIO_CCDEFS=
+
 ifneq (,${GREP_OPTIONS})
   $(info GREP_OPTIONS is defined in your environment.)
   $(info )
-  $(info This variable interfers with the proper operation of this script.)
+  $(info This variable interferes with the proper operation of this script.)
   $(info )
   $(info The GREP_OPTIONS environment variable feature of grep is deprecated)
   $(info for exactly this reason and will be removed from future versions of)
@@ -361,7 +365,8 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   LTO_EXCLUDE_VERSIONS = 
   PCAPLIB = pcap
   ifeq (agcc,$(findstring agcc,${GCC})) # Android target build?
-    OS_CCDEFS += -D_GNU_SOURCE -DSIM_ASYNCH_IO 
+    OS_CCDEFS += -D_GNU_SOURCE
+    AIO_CCDEFS += -DSIM_ASYNCH_IO
     OS_LDFLAGS = -lm
   else # Non-Android (or Native Android) Builds
     ifeq (,$(INCLUDES)$(LIBRARIES))
@@ -573,23 +578,23 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   endif
   ifneq (,$(call find_include,pthread))
     ifneq (,$(call find_lib,pthread))
-      OS_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+      AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
       OS_LDFLAGS += -lpthread
       $(info using libpthread: $(call find_lib,pthread) $(call find_include,pthread))
     else
       LIBEXTSAVE := ${LIBEXT}
       LIBEXT = a
       ifneq (,$(call find_lib,pthread))
-        OS_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+        AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
         OS_LDFLAGS += -lpthread
         $(info using libpthread: $(call find_lib,pthread) $(call find_include,pthread))
       else
         ifneq (,$(findstring Haiku,$(OSTYPE)))
-          OS_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+          AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
           $(info using libpthread: $(call find_include,pthread))
         else
           ifeq (Darwin,$(OSTYPE))
-            OS_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+            AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
             OS_LDFLAGS += -lpthread
             $(info using macOS libpthread: $(call find_include,pthread))
           endif
@@ -1131,11 +1136,13 @@ else
   $(info include paths are: ${INCPATH})
   # Give preference to any MinGW provided threading (if available)
   ifneq (,$(call find_include,pthread))
-    PTHREADS_CCDEFS = -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+    PTHREADS_CCDEFS =
+    AIO_CCDEFS = -DUSE_READER_THREAD -DSIM_ASYNCH_IO
     PTHREADS_LDFLAGS = -lpthread
   else
     ifeq (pthreads,$(shell if exist ..\windows-build\pthreads\Pre-built.2\include\pthread.h echo pthreads))
-      PTHREADS_CCDEFS = -DUSE_READER_THREAD -DPTW32_STATIC_LIB -D_POSIX_C_SOURCE -I../windows-build/pthreads/Pre-built.2/include -DSIM_ASYNCH_IO
+      PTHREADS_CCDEFS = -DPTW32_STATIC_LIB -D_POSIX_C_SOURCE -I../windows-build/pthreads/Pre-built.2/include
+      AIO_CCDEFS = -DUSE_READER_THREAD -DSIM_ASYNCH_IO
       PTHREADS_LDFLAGS = -lpthreadGC2 -L..\windows-build\pthreads\Pre-built.2\lib
     endif
   endif
@@ -1495,7 +1502,7 @@ PDP11 = ${PDP11D}/pdp11_fp.c ${PDP11D}/pdp11_cpu.c ${PDP11D}/pdp11_dz.c \
 	${PDP11D}/pdp11_ng.c ${PDP11D}/pdp11_daz.c ${PDP11D}/pdp11_tv.c \
 	${PDP11D}/pdp11_mb.c ${PDP11D}/pdp11_rr.c \
 	${DISPLAYL} ${DISPLAYNG} ${DISPLAYVT}
-PDP11_OPT = -DVM_PDP11 -I ${PDP11D} ${NETWORK_OPT} ${DISPLAY_OPT}
+PDP11_OPT = -DVM_PDP11 -I ${PDP11D} ${NETWORK_OPT} ${DISPLAY_OPT} ${AIO_CCDEFS}
 
 
 UC15D = ${SIMHD}/PDP11
@@ -1519,7 +1526,7 @@ VAX = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c ${VAXD}/vax_io.c \
 	${PDP11D}/pdp11_dz.c ${PDP11D}/pdp11_lp.c ${PDP11D}/pdp11_tq.c \
 	${PDP11D}/pdp11_xq.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_dup.c
-VAX_OPT = -DVM_VAX -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS}
+VAX_OPT = -DVM_VAX -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
 
 
 VAX410 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1530,7 +1537,7 @@ VAX410 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax4xx_rd.c ${VAXD}/vax4xx_rz80.c ${VAXD}/vax_xs.c \
 	${VAXD}/vax4xx_va.c ${VAXD}/vax4xx_vc.c ${VAXD}/vax_lk.c \
 	${VAXD}/vax_vs.c ${VAXD}/vax_gpx.c
-VAX410_OPT = -DVM_VAX -DVAX_410 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS}
+VAX410_OPT = -DVM_VAX -DVAX_410 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
 
 
 VAX420 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1541,7 +1548,8 @@ VAX420 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax4xx_rd.c ${VAXD}/vax4xx_rz80.c ${VAXD}/vax_xs.c \
 	${VAXD}/vax4xx_va.c ${VAXD}/vax4xx_vc.c ${VAXD}/vax4xx_ve.c \
 	${VAXD}/vax_lk.c ${VAXD}/vax_vs.c ${VAXD}/vax_gpx.c
-VAX420_OPT = -DVM_VAX -DVAX_420 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS}
+VAX420_OPT = -DVM_VAX -DVAX_420 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} \
+	     ${AIO_CCDEFS}
 VAX411_OPT = ${VAX420_OPT} -DVAX_411
 VAX412_OPT = ${VAX420_OPT} -DVAX_412
 VAX41A_OPT = ${VAX420_OPT} -DVAX_41A
@@ -1557,7 +1565,7 @@ VAX43 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax43_sysdev.c ${VAXD}/vax43_syslist.c ${VAXD}/vax4xx_dz.c \
 	${VAXD}/vax4xx_rz80.c ${VAXD}/vax_xs.c ${VAXD}/vax4xx_vc.c \
 	${VAXD}/vax4xx_ve.c ${VAXD}/vax_lk.c ${VAXD}/vax_vs.c
-VAX43_OPT = -DVM_VAX -DVAX_43 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS}
+VAX43_OPT = -DVM_VAX -DVAX_43 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
 
 
 VAX440 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1566,7 +1574,7 @@ VAX440 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax_watch.c ${VAXD}/vax_nar.c ${VAXD}/vax4xx_stddev.c \
 	${VAXD}/vax440_sysdev.c ${VAXD}/vax440_syslist.c ${VAXD}/vax4xx_dz.c \
 	${VAXD}/vax_xs.c ${VAXD}/vax_lk.c ${VAXD}/vax_vs.c ${VAXD}/vax4xx_rz94.c
-VAX440_OPT = -DVM_VAX -DVAX_440 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} ${NETWORK_OPT}
+VAX440_OPT = -DVM_VAX -DVAX_440 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} ${NETWORK_OPT} ${AIO_CCDEFS}
 VAX46_OPT = ${VAX440_OPT} -DVAX_46
 VAX47_OPT = ${VAX440_OPT} -DVAX_47
 VAX48_OPT = ${VAX440_OPT} -DVAX_48
@@ -1578,7 +1586,7 @@ IS1000 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax_watch.c ${VAXD}/vax_nar.c ${VAXD}/vax_xs.c \
 	${VAXD}/vax4xx_rz94.c ${VAXD}/vax4nn_stddev.c \
 	${VAXD}/is1000_sysdev.c ${VAXD}/is1000_syslist.c
-IS1000_OPT = -DVM_VAX -DIS_1000 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} ${NETWORK_OPT}
+IS1000_OPT = -DVM_VAX -DIS_1000 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 
 VAX610 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1591,7 +1599,8 @@ VAX610 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_dz.c ${PDP11D}/pdp11_lp.c ${PDP11D}/pdp11_tq.c \
 	${PDP11D}/pdp11_xq.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c
-VAX610_OPT = -DVM_VAX -DVAX_610 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS}
+VAX610_OPT = -DVM_VAX -DVAX_610 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} \
+	     ${AIO_CCDEFS}
 
 
 VAX630 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1606,7 +1615,8 @@ VAX630 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_xq.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_dup.c
 VAX620_OPT = -DVM_VAX -DVAX_620 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
-VAX630_OPT = -DVM_VAX -DVAX_630 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS}
+VAX630_OPT = -DVM_VAX -DVAX_630 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} \
+	     ${AIO_CCDEFS}
 
 
 VAX730 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1621,7 +1631,7 @@ VAX730 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_hk.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_dmc.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c ${PDP11D}/pdp11_dup.c
-VAX730_OPT = -DVM_VAX -DVAX_730 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
+VAX730_OPT = -DVM_VAX -DVAX_730 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 
 VAX750 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1637,7 +1647,7 @@ VAX750 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_dmc.c ${PDP11D}/pdp11_dup.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c
-VAX750_OPT = -DVM_VAX -DVAX_750 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
+VAX750_OPT = -DVM_VAX -DVAX_750 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 
 VAX780 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1653,7 +1663,7 @@ VAX780 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_dmc.c ${PDP11D}/pdp11_dup.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c
-VAX780_OPT = -DVM_VAX -DVAX_780 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
+VAX780_OPT = -DVM_VAX -DVAX_780 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 
 VAX8200 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1668,7 +1678,7 @@ VAX8200 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_hk.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_dmc.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c ${PDP11D}/pdp11_dup.c
-VAX8200_OPT = -DVM_VAX -DVAX_820 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
+VAX8200_OPT = -DVM_VAX -DVAX_820 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 
 VAX8600 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1684,7 +1694,7 @@ VAX8600 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_dmc.c ${PDP11D}/pdp11_dup.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c
-VAX8600_OPT = -DVM_VAX -DVAX_860 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
+VAX8600_OPT = -DVM_VAX -DVAX_860 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 
 PDP10D = ${SIMHD}/PDP10
@@ -1703,7 +1713,7 @@ IMLAC = ${IMLACD}/imlac_sys.c ${IMLACD}/imlac_cpu.c \
 	${IMLACD}/imlac_dp.c ${IMLACD}/imlac_crt.c ${IMLACD}/imlac_kbd.c \
 	${IMLACD}/imlac_tty.c ${IMLACD}/imlac_pt.c ${IMLACD}/imlac_bel.c \
 	${DISPLAYL}
-IMLAC_OPT = -I ${IMLACD} ${DISPLAY_OPT}
+IMLAC_OPT = -I ${IMLACD} ${DISPLAY_OPT} ${AIO_CCDEFS}
 
 
 STUBD = ${SIMHD}/stub
@@ -1716,7 +1726,7 @@ TT2500 = ${TT2500D}/tt2500_sys.c ${TT2500D}/tt2500_cpu.c \
 	${TT2500D}/tt2500_dpy.c ${TT2500D}/tt2500_crt.c ${TT2500D}/tt2500_tv.c \
 	${TT2500D}/tt2500_key.c ${TT2500D}/tt2500_uart.c ${TT2500D}/tt2500_rom.c \
 	${DISPLAYL}
-TT2500_OPT = -I ${TT2500D} ${DISPLAY_OPT}
+TT2500_OPT = -I ${TT2500D} ${DISPLAY_OPT} ${AIO_CCDEFS}
 
 
 PDP8D = ${SIMHD}/PDP8
@@ -2038,7 +2048,8 @@ PDP6 = ${PDP6D}/kx10_cpu.c ${PDP6D}/kx10_sys.c ${PDP6D}/kx10_cty.c \
 	${PDP6D}/kx10_cp.c ${PDP6D}/pdp6_dct.c ${PDP6D}/pdp6_dtc.c \
 	${PDP6D}/pdp6_mtc.c ${PDP6D}/pdp6_dsk.c ${PDP6D}/pdp6_dcs.c \
 	${PDP6D}/kx10_dpy.c ${PDP6D}/pdp6_slave.c ${DISPLAYL} ${DISPLAY340}
-PDP6_OPT = -DPDP6=1 -DUSE_INT64 -I ${PDP6D} -DUSE_SIM_CARD ${DISPLAY_OPT} ${PDP6_DISPLAY_OPT}
+PDP6_OPT = -DPDP6=1 -DUSE_INT64 -I ${PDP6D} -DUSE_SIM_CARD ${DISPLAY_OPT} ${PDP6_DISPLAY_OPT} \
+	   ${AIO_CCDEFS}
 
 KA10D = ${SIMHD}/PDP10
 ifneq (,${DISPLAY_OPT})
@@ -2115,7 +2126,7 @@ ATT3B2M400 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_dmac.c ${ATT3B2D}/3b2_io.c \
     ${ATT3B2D}/3b2_ports.c ${ATT3B2D}/3b2_ctc.c \
     ${ATT3B2D}/3b2_ni.c
-ATT3B2M400_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV2 -I ${ATT3B2D} ${NETWORK_OPT}
+ATT3B2M400_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV2 -I ${ATT3B2D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 ATT3B2M700 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_rev3_sys.c ${ATT3B2D}/3b2_rev3_mmu.c \
@@ -2125,7 +2136,7 @@ ATT3B2M700 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_if.c ${ATT3B2D}/3b2_dmac.c \
     ${ATT3B2D}/3b2_io.c ${ATT3B2D}/3b2_ports.c \
     ${ATT3B2D}/3b2_scsi.c ${ATT3B2D}/3b2_ni.c
-ATT3B2M700_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV3 -I ${ATT3B2D} ${NETWORK_OPT}
+ATT3B2M700_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV3 -I ${ATT3B2D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 SIGMAD = ${SIMHD}/sigma
 SIGMA = ${SIGMAD}/sigma_cpu.c ${SIGMAD}/sigma_sys.c ${SIGMAD}/sigma_cis.c \

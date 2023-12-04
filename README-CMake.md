@@ -1189,13 +1189,15 @@ add_simulator(3b2
       convention `[sim]_test.ini` -- the argument to the `TEST` parameter is the
       `[sim]` portion of the test script's name.
 
-- Option keywords: These determine which of [six (6) simulator core libraries](#simulator-core-libraries) is
+- Option keywords: These determine which of [simulator core libraries](#simulator-core-libraries) is
   linked with the simulator.
 
   - `FEATURE_INT64`: 64-bit integers, 32-bit pointers
   - `FEATURE_FULL64`: 64-bit integers, 64-bit pointers
   - `FEATURE_VIDEO`: Simulator video support.
   - `FEATURE_DISPLAY`: Video display support.
+  - `USES_AIO`: Asynchronous I/O support (primarily useful for simulator
+    network devices.)
 
 - `PKG_FAMILY` option: This option adds the simulator to a package "family" or
   simulator packaging group, e.g., "DEC PDP simulators". The default package
@@ -1213,14 +1215,31 @@ The `CMake` build infrastructure avoids repeatedly compiling the simulator
 libraries that represents the combination of required features: 32/64 bit
 support and video:
 
-| Library          | Video | Integer size | Address size | `add_simulator` flags |
-| :--------------- | :---: | -----------: | -----------: | :-------------------- |
-| simhcore.a       | N     | 32           | 32           |                       |
-| simhi64.a        | N     | 64           | 32           | `FEATURE_INT64`       |
-| simhz64.a        | N     | 64           | 64           | `FEATURE_FULL64`      |
-| simhcore_video.a | Y     | 32           | 32           | `FEATURE_VIDEO`       |
-| simhi64_video.a  | Y     | 64           | 32           | `FEATURE_INT64`, `FEATURE_VIDEO` |
-| simhz64_video.a  | Y     | 64           | 64           | `FEATURE_FULL64`, `FEATURE_VIDEO` |
+| Library           | Video | Integer size | Address size | `add_simulator` flags |
+| :---------------- | :---: | -----------: | -----------: | :-------------------- |
+| simhcore.a        | N     | 32           | 32           |                       |
+| simhi64.a         | N     | 64           | 32           | `FEATURE_INT64`       |
+| simhz64.a         | N     | 64           | 64           | `FEATURE_FULL64`      |
+| simhcore\_video.a | Y     | 32           | 32           | `FEATURE_VIDEO`       |
+| simhi64\_video.a  | Y     | 64           | 32           | `FEATURE_INT64`, `FEATURE_VIDEO` |
+| simhz64\_video.a  | Y     | 64           | 64           | `FEATURE_FULL64`, `FEATURE_VIDEO` |
+
+In addition to these six libraries, there are six asynchronous I/O (AIO)
+variants that are built and linked into a simulator when the `USES_AIO` feature
+flag is present in `add_simulator()`'s arguments:
+
+| Library variant        | Description |
+| :--------------------- | :---------: |
+| simhcore\_aio.a        | simhcore.a with AIO support.        |
+| simhi64\_aio.a         | simhi64.a with AIO support.         |
+| simhz64\_aio.a         | simhz64.a with AIO support.         |
+| simhcore\_video\_aio.a | simhcore\_video.a with AIO support. |
+| simhi64\_video\_aio.a  | simhi64\_video.a with AIO support.  |
+| simhz64\_video\_aio.a  | simhz64\_video.a with AIO support.  |
+
+The `EXCLUDE_FROM_ALL` property is set on each of theses libraries in CMake to
+avoid building the entire matrix. Practically speaking, 10 out of the 12 total
+libraries actually build for the entire simulator suite.
 
 Internally, these core libraries are [`CMake` interface libraries][cmake_interface_library] -- when they
 are added to a simulator's executable via `target_link_libraries`, the simulator
@@ -1264,6 +1283,10 @@ add_simulator(simulator_name
     ## Simulator needs display support (-DUSE_DISPLAY). Use
     ## in conjunction with FEATURE_VIDEO
     FEATURE_DISPLAY
+
+    ## Simulator uses asynchronous I/O, i.e., calls AIO_CHECK_EVENT
+    ## in its sim_instr() instruction simulation loop:
+    USES_AIO
 
     ## Packaging "family" (group) to which the simulator belongs,
     ## for packagers that support grouping (Windows: NSIS .exe,

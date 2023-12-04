@@ -45,8 +45,22 @@ install_ucrt64() {
 	mingw-w64-ucrt-x86_64-libpcap
 }
 
+install_clang64() {
+    pacman -S --needed mingw-w64-clang-x86_64-ninja \
+	mingw-w64-clang-x86_64-cmake \
+	mingw-w64-clang-x86_64-extra-cmake-modules \
+        mingw-w64-clang-x86_64-clang \
+	mingw-w64-clang-x86_64-make \
+        mingw-w64-clang-x86_64-pcre \
+	mingw-w64-clang-x86_64-freetype \
+        mingw-w64-clang-x86_64-SDL2 \
+	mingw-w64-clang-x86_64-SDL2_ttf \
+	mingw-w64-clang-x86_64-libpcap
+}
+
+
 case "$1" in
-  osx|linux|mingw64|ucrt64)
+  osx|linux|mingw64|ucrt64|clang64)
     install_"$1"
     ;;
   *)

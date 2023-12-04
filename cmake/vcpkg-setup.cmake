@@ -16,12 +16,12 @@ if (NOT DEFINED VCPKG_TARGET_TRIPLET)
         if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
             ## Default to x64, unless otherwise directed:
             set(SIMH_VCPKG_ARCH "x64")
-            if(CMAKE_GENERATOR_PLATFORM MATCHES "Win32")
+            if(CMAKE_GENERATOR_PLATFORM MATCHES "[Ww][Ii][Nn]32")
                 set(SIMH_VCPKG_ARCH "x86")
-            elseif(CMAKE_GENERATOR_PLATFORM MATCHES "ARM")
-                set(SIMH_VCPKG_ARCH "arm")
-            elseif(CMAKE_GENERATOR_PLATFORM MATCHES "ARM64")
+            elseif(CMAKE_GENERATOR_PLATFORM MATCHES "[Aa][Rr][Mm]64")
                 set(SIMH_VCPKG_ARCH "arm64")
+            elseif(CMAKE_GENERATOR_PLATFORM MATCHES "[Aa][Rr][Mm]")
+                set(SIMH_VCPKG_ARCH "arm")
             endif()
 
             if (MSVC OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
@@ -79,8 +79,10 @@ message(STATUS "Executing deferred vcpkg toolchain initialization.\n"
 ## Initialize vcpkg after CMake detects the compiler and we've to set the platform triplet.
 ## VCPKG_INSTALL_OPTIONS are additional args to 'vcpkg install'. Don't need to see the
 ## usage instructions each time...
-list(APPEND VCPKG_INSTALL_OPTIONS
-    "--no-print-usage"
-)
+if (NOT ("--no-print-usage" IN_LIST VCPKG_INSTALL_OPTIONS))
+    list(APPEND VCPKG_INSTALL_OPTIONS
+        "--no-print-usage"
+    )
+endif ()
 
 include(${SIMH_CMAKE_TOOLCHAIN_FILE})

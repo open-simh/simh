@@ -28,6 +28,7 @@ add_simulator(tt2500
         ${CMAKE_CURRENT_SOURCE_DIR}
     FEATURE_VIDEO
     FEATURE_DISPLAY
+    USES_AIO
     LABEL tt2500
     PKG_FAMILY default_family
     TEST tt2500)

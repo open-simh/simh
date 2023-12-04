@@ -7,23 +7,18 @@ showHelp()
     cat <<EOF
 Configure and build simh simulators on Linux and *nix-like platforms.
 
-Subdirectories:
-cmake/build-unix:  Makefile-based build simulators
-cmake/build-ninja: Ninja build-based simulators
-
-Options:
---------
+-Compile/Build options:
+-----------------------
 --clean (-x)      Remove the build subdirectory
 --generate (-g)   Generate the build environment, don't compile/build
+--cache           '--generate' and show CMake's variable cache
 --parallel (-p)   Enable build parallelism (parallel builds)
---nonetwork       Build simulators without network support
---novideo         Build simulators without video support
 --notest          Do not execute 'ctest' test cases
 --noinstall       Do not install SIMH simulators.
 --testonly        Do not build, execute the 'ctest' test cases
 --installonly     Do not build, install the SIMH simulators
 
---flavor (-f)     Specifies the build flavor. Valid flavors are:
+--flavor (-f)     [Required] Specifies the build flavor. Valid flavors are:
                     unix
                     ninja
                     xcode
@@ -46,6 +41,19 @@ Options:
 
 --verbose         Turn on verbose build output
 
+SIMH feature control options:
+-----------------------------
+--nonetwork       Build simulators without network support
+--novideo         Build simulators without video support
+--no-aio          Build simulators without AIO (asynchronous I/O). NOTE: This will
+                  impact certain devices' functionality, notably networking.
+--no-aio-intrinsics
+                  Do not use compiler/platform intrinsics to implement AIO
+                  functions (aka "lock-free" AIO), reverts to lock-based AIO
+                  if threading libraries are detected.
+
+Other options:
+--------------
 --help (-h)       Print this help.
 EOF
 
@@ -57,8 +65,8 @@ generateArgs=
 buildArgs=
 buildPostArgs=""
 buildClean=
-buildFlavor="Unix Makefiles"
-buildSubdir=build-unix
+buildFlavor=
+buildSubdir=
 buildConfig=Release
 testArgs=
 notest=no
@@ -152,6 +160,7 @@ fi
 
 longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly
 longopts=${longopts},noinstall,installonly,verbose,target:,lto,debugWall,cppcheck,cpack_suffix:
+longopts=${longopts},cache,no-aio,no-aio-intrinsics
 
 ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:c:pg -- "$@")
 if [ $? -ne 0 ] ; then
@@ -219,6 +228,14 @@ while true; do
             generateArgs="${generateArgs} -DWITH_VIDEO:Bool=Off"
             shift
             ;;
+        --no-aio)
+            generateArgs="${generateArgs} -DWITH_ASYNC:Bool=Off"
+            shift
+            ;;
+        --no-aio-intrinsics)
+            generateArgs="${generateArgs} -DDONT_USE_AIO_INTRINSICS:Bool=On"
+            shift
+            ;;
         --notest)
             notest=yes
             shift
@@ -251,6 +268,11 @@ while true; do
             generateOnly=yes
             shift
             ;;
+        --cache)
+            generateOnly=yes
+            generateArgs="${generateArgs} -LA"
+            shift
+            ;;
         --testonly)
             testOnly=yes
             shift
@@ -276,6 +298,14 @@ while true; do
     esac
 done
 
+# Sanity check: buildSubdir should be set, unless the '-f' flag wasn't present.
+if [ "x${buildSubdir}" = x ]; then
+  echo ""
+  echo "${scriptName}: Build flavor is NOT SET -- see the \"--flavor\"/\"-f\" flag in the help."
+  echo ""
+  showHelp
+fi
+
 ## Determine the SIMH top-level source directory:
 simhTopDir=$(${dirname} $(${realpath} $0))
 while [ "x${simhTopDir}" != x -a ! -f "${simhTopDir}/CMakeLists.txt" ]; do
@@ -296,6 +326,7 @@ if [[ x"$buildClean" != x ]]; then
     echo "${scriptName}: Cleaning ${buildSubdir}"
     rm -rf ${buildSubdir}
 fi
+
 if [[ ! -d ${buildSubdir} ]]; then
     mkdir ${buildSubdir}
 fi
