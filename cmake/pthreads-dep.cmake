@@ -7,6 +7,7 @@
 #~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 
 add_library(thread_lib INTERFACE)
+set(AIO_FLAGS)
 
 if (WITH_ASYNC)
     include(ExternalProject)
@@ -64,12 +65,12 @@ if (WITH_ASYNC)
         set(THREADING_PKG_STATUS "Platform-detected threading support")
     endif ()
 
-    if (THREADS_FOUND OR PTW_FOUND)
-        target_compile_definitions(thread_lib INTERFACE USE_READER_THREAD SIM_ASYNCH_IO)
+    if (THREADS_FOUND OR PTW_FOUND OR PThreads4W_FOUND)
+        set(AIO_FLAGS USE_READER_THREAD SIM_ASYNCH_IO)
     else ()
-        target_compile_definitions(thread_lib INTERFACE DONT_USE_READER_THREAD)
+        set(AIO_FLAGS DONT_USE_READER_THREAD)
     endif ()
-else (WITH_ASYNC)
+else()
     target_compile_definitions(thread_lib INTERFACE DONT_USE_READER_THREAD)
     set(THREADING_PKG_STATUS "asynchronous I/O disabled.")
-endif (WITH_ASYNC)
+endif()

@@ -14,12 +14,14 @@ class SIMHBasicSimulator:
         self.int64 = False
         self.full64 = False
         self.buildrom = buildrom
-        ## self.has_display -> True if there is a specific display used by the simulator.
+        ## self.has_display    -> True if there is a specific display used by the simulator.
         self.has_display = False
-        ## self.uses_video   -> True if USE_SIM_VIDEO appears in the simulator's preprocessor defn's.
+        ## self.uses_video     -> True if USE_SIM_VIDEO appears in the simulator's preprocessor defn's.
         self.uses_video = False
         ## self.besm6_sdl_hack -> Only set/used by the BESM6 simulator.
         self.besm6_sdl_hack = False
+        ## self.uses_aio       -> True if the simulator uses AIO
+        self.uses_aio = False
         self.sources = []
         self.defines = []
         self.includes = []
@@ -47,26 +49,32 @@ class SIMHBasicSimulator:
         if use_int64 or use_addr64:
             self.int64  = use_int64 and not use_addr64
             self.full64 = use_int64 and use_addr64
-            try:
-                self.defines.remove('USE_INT64')
-            except:
-                pass
-            try:
-                self.defines.remove('USE_ADDR64')
-            except:
-                pass
+            for defn in ['USE_INT64', 'USE_ADDR64']:
+                try:
+                    self.defines.remove(defn)
+                except:
+                    pass
 
         ## Video support:
 
         self.has_display = any(map(lambda s: 'DISPLAY' in SPM.shallow_expand_vars(s, defs), self.sources))
         if self.has_display:
-            try:
-                self.sources.remove('${DISPLAYL}')
-                self.sources.remove('$(DISPLAYL)')
-            except:
-                pass
+            for src in ['${DISPLAYL}', '$(DISPLAYL)']:
+                try:
+                    self.sources.remove(src)
+                except:
+                    pass
 
         self.uses_video = 'USE_SIM_VIDEO' in self.defines or self.has_display
+
+        ## AIO support:
+        self.uses_aio   = 'SIM_ASYNCH_IO' in self.defines
+        if self.uses_aio:
+            for defn in ['SIM_ASYNCH_IO', 'USE_READER_THREAD']:
+                try:
+                    self.defines.remove(defn)
+                except:
+                    pass
 
     def cleanup_defines(self):
         """Remove command line defines that aren't needed (because the CMake interface libraries
@@ -118,6 +126,8 @@ class SIMHBasicSimulator:
             stream.write('\n' + indent4 + "FEATURE_DISPLAY")
         if self.besm6_sdl_hack:
             stream.write('\n' + indent4 + "BESM6_SDL_HACK")
+        if self.uses_aio:
+            stream.write('\n' + indent4 + "USES_AIO")
         if self.buildrom:
             stream.write('\n' + indent4 + "BUILDROMS")
         stream.write('\n' + indent4 + "LABEL " + test_label)

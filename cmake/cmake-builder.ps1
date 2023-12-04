@@ -74,10 +74,13 @@ param (
     ## ------------------
     ## vs2022          Visual Studio 2022 (default)
     ## vs2022-xp       Visual Studio 2022 XP compat
+    ## vs2022-x64      Visual Studio 2022 64-bit
     ## vs2019          Visual Studio 2019
     ## vs2019-xp       Visual Studio 2019 XP compat
+    ## vs2019-x64      Visual Studio 2019 64-bit
     ## vs2017          Visual Studio 2017
     ## vs2017-xp       Visual Studio 2017 XP compat
+    ## vs2017-x64      Visual Studio 2017 64-bit
     ## vs2015          Visual Studio 2015
     ## mingw-make      MinGW GCC/mingw32-make
     ## mingw-ninja     MinGW GCC/ninja
@@ -114,6 +117,15 @@ param (
     ## Compile the SIMH simulator suite without video support.
     [Parameter(Mandatory=$false)]
     [switch] $novideo        = $false,
+
+    ## Compile the SIMH simulator without AIO support.
+    [Parameter(Mandatory=$false)]
+    [switch] $noaio = $false,
+
+    ## Compile the SIMH simulator without AIO instrinsics ("lock-free" AIO),
+    ## using lock-based AIO via thread mutexes instead.
+    [Parameter(Mandatory=$false)]
+    [switch] $noaiointrinsics = $false,
 
     ## Disable the build's tests.
     [Parameter(Mandatory=$false)]
@@ -196,10 +208,13 @@ $singleConfig = $true
 $cmakeGenMap = @{
     "vs2022"      = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32"));
     "vs2022-xp"   = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
+    "vs2022-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
     "vs2019"      = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",     @("-A", "Win32"));
     "vs2019-xp"   = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
+    "vs2019-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
     "vs2017"      = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",     @("-A", "Win32"));
     "vs2017-xp"   = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
+    "vs2017-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
     "vs2015"      = [GeneratorInfo]::new("Visual Studio 14 2015", $multiConfig,  $false, "",     @());
     "mingw-make"  = [GeneratorInfo]::new("MinGW Makefiles",       $singleConfig, $false, "",     @());
     "mingw-ninja" = [GeneratorInfo]::new("Ninja",                 $singleConfig, $false, "",     @())
@@ -410,6 +425,14 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
     if ($novideo)
     {
       $generateArgs += @("-DWITH_VIDEO:Bool=Off")
+    }
+    if ($noaio)
+    {
+      $generateArgs += @("-DWITH_ASYNC:Bool=Off")
+    }
+    if ($noaiointrinsics)
+    {
+      $generateArgs += @("-DDONT_USE_AIO_INTRINSICS:Bool=On")
     }
     if ($lto)
     {

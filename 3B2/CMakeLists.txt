@@ -38,6 +38,7 @@ add_simulator(3b2
     DEFINES
         REV2
     FEATURE_FULL64
+    USES_AIO
     LABEL 3B2
     PKG_FAMILY att3b2_family
     TEST 3b2)
@@ -65,6 +66,7 @@ add_simulator(3b2-700
     DEFINES
         REV3
     FEATURE_FULL64
+    USES_AIO
     LABEL 3B2
     PKG_FAMILY att3b2_family
     TEST 3b2-700)

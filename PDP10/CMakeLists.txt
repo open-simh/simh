@@ -226,6 +226,7 @@ add_simulator(pdp6
     FEATURE_INT64
     FEATURE_VIDEO
     FEATURE_DISPLAY
+    USES_AIO
     LABEL PDP10
     PKG_FAMILY decpdp_family
     TEST pdp6)

@@ -6,8 +6,6 @@
 set(GIT_COMMIT_ID ${GIT_COMMIT_DEST}/.git-commit-id)
 set(GIT_COMMIT_ID_H ${GIT_COMMIT_DEST}/.git-commit-id.h)
 
-message(STATUS "Updating GIT commit ID")
-
 find_program(GIT_COMMAND git)
 if (GIT_COMMAND)
     execute_process(COMMAND ${GIT_COMMAND} "log" "-1" "--pretty=%H"
@@ -32,14 +30,11 @@ if (GIT_COMMAND AND NOT (HAVE_GIT_COMMIT_HASH OR HAVE_GIT_COMMIT_TIME))
     string(REPLACE "T" " " SIMH_GIT_COMMIT_TIME ${SIMH_GIT_COMMIT_TIME})
 
     if (HAVE_UNCOMMITTED_CHANGES)
-        message(STATUS "Git detected uncommitted changes.")
+        ## message(STATUS "Git detected uncommitted changes.")
         string(APPEND SIMH_GIT_COMMIT_HASH "+uncommitted-changes")
     else ()
         message(STATUS "Clean working directory, no uncommitted changes.")
     endif ()
-
-    message(STATUS "SIM_GIT_COMMIT_ID:   ${SIMH_GIT_COMMIT_HASH}")
-    message(STATUS "SIM_GIT_COMMIT_TIME: ${SIMH_GIT_COMMIT_TIME}")
 
     set(WRITE_GIT_COMMIT_FILES True)
     if (EXISTS ${GIT_COMMIT_ID})
@@ -55,12 +50,16 @@ if (GIT_COMMAND AND NOT (HAVE_GIT_COMMIT_HASH OR HAVE_GIT_COMMIT_TIME))
         endforeach()
         if (EXISTING_GIT_COMMIT_HASH STREQUAL SIMH_GIT_COMMIT_HASH AND
                 EXISTING_GIT_COMMIT_TIME STREQUAL SIMH_GIT_COMMIT_TIME)
-            message(STATUS "GIT hash and time match, not writing files.")
+            ## message(STATUS "GIT hash and time match, not writing files.")
             set(WRITE_GIT_COMMIT_FILES False)
         endif ()
     endif ()
 
     if (WRITE_GIT_COMMIT_FILES)
+        message(STATUS "Updating GIT commit ID")
+        message(STATUS "SIM_GIT_COMMIT_ID:   ${SIMH_GIT_COMMIT_HASH}")
+        message(STATUS "SIM_GIT_COMMIT_TIME: ${SIMH_GIT_COMMIT_TIME}")
+
         message(STATUS "Writing ${GIT_COMMIT_ID}")
         file(WRITE ${GIT_COMMIT_ID}
             "SIM_GIT_COMMIT_ID ${SIMH_GIT_COMMIT_HASH}\n"
@@ -70,9 +69,9 @@ if (GIT_COMMAND AND NOT (HAVE_GIT_COMMIT_HASH OR HAVE_GIT_COMMIT_TIME))
         file(WRITE ${GIT_COMMIT_ID_H}
             "#define SIM_GIT_COMMIT_ID ${SIMH_GIT_COMMIT_HASH}\n"
             "#define SIM_GIT_COMMIT_TIME ${SIMH_GIT_COMMIT_TIME}\n")
-    else ()
-        message(STATUS "No changes to ${GIT_COMMIT_ID}")
-        message(STATUS "No changes to ${GIT_COMMIT_ID_H}")
+    ## else ()
+        ## message(STATUS "No changes to ${GIT_COMMIT_ID}")
+        ## message(STATUS "No changes to ${GIT_COMMIT_ID_H}")
     endif ()
 else ()
     message(STATUS "SIM_GIT_COMMIT_ID not set.")

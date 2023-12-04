@@ -28,6 +28,7 @@ add_simulator(imlac
         ${CMAKE_CURRENT_SOURCE_DIR}
     FEATURE_VIDEO
     FEATURE_DISPLAY
+    USES_AIO
     LABEL imlac
     PKG_FAMILY imlac_family
     TEST imlac)
