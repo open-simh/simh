@@ -7,8 +7,7 @@ showHelp()
     cat <<EOF
 Configure and build simh simulators on Linux and *nix-like platforms.
 
--Compile/Build options:
------------------------
+Compile/Build options:
 --clean (-x)      Remove the build subdirectory
 --generate (-g)   Generate the build environment, don't compile/build
 --cache           '--generate' and show CMake's variable cache

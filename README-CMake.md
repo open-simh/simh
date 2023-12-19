@@ -517,25 +517,22 @@ or video support.
 
     # List the supported command line flags:
     $ cmake/cmake-builder.sh --help
+    ** cmake version 3.18.4
+
+    CMake suite maintained and supported by Kitware (kitware.com/cmake).
     Configure and build simh simulators on Linux and *nix-like platforms.
 
-    Subdirectories:
-    cmake/build-unix:  Makefile-based build simulators
-    cmake/build-ninja: Ninja build-based simulators
-
-    Options:
-    --------
+    Compile/Build options:
+    ----------------------
     --clean (-x)      Remove the build subdirectory
     --generate (-g)   Generate the build environment, don't compile/build
     --parallel (-p)   Enable build parallelism (parallel builds)
-    --nonetwork       Build simulators without network support
-    --novideo         Build simulators without video support
     --notest          Do not execute 'ctest' test cases
     --noinstall       Do not install SIMH simulators.
     --testonly        Do not build, execute the 'ctest' test cases
     --installonly     Do not build, install the SIMH simulators
 
-    --flavor (-f)     Specifies the build flavor. Valid flavors are:
+    --flavor (-f)     [Required] Specifies the build flavor. Valid flavors are:
                         unix
                         ninja
                         xcode
@@ -547,8 +544,7 @@ or video support.
     --config (-c)     Specifies the build configuration: 'Release' or 'Debug'
 
     --target          Build a specific simulator or simulators. Separate multiple
-                      targets by separating with a comma,
-                      e.g. "--target pdp8,pdp11,vax750,altairz80,3b2"
+                      targets with a comma, e.g. "--target pdp8,pdp11,vax750,altairz80,3b2"
     --lto             Enable Link Time Optimization (LTO) in Release builds
     --debugWall       Enable maximal warnings in Debug builds
     --cppcheck        Enable cppcheck static code analysis rules
@@ -559,6 +555,17 @@ or video support.
 
     --verbose         Turn on verbose build output
 
+    SIMH feature control options:
+    -----------------------------
+    --nonetwork       Build simulators without network support
+    --novideo         Build simulators without video support
+    --no-aio-intrinsics
+                      Do not use compiler/platform intrinsics to implement AIO
+                      functions (aka "lock-free" AIO), reverts to lock-based AIO
+                      if threading libraries are detected.
+
+    Other options:
+    --------------
     --help (-h)       Print this help.
     ```
 
@@ -575,7 +582,7 @@ or video support.
     PS C:\...\open-simh> Get-Help -deatailed cmake\cmake-builder.ps1
 
     NAME
-        C:\Users\bsm21317\play\open-simh\cmake\cmake-builder.ps1
+        C:\...\play\open-simh\cmake\cmake-builder.ps1
 
     SYNOPSIS
         Configure and build SIMH's dependencies and simulators using the Microsoft Visual
@@ -583,9 +590,9 @@ or video support.
 
 
     SYNTAX
-        C:\Users\bsm21317\play\open-simh\cmake\cmake-builder.ps1 [[-flavor] <String>] [[-config] <String>] [[-cpack_suffix] <String>] [[-target] <String>]
-        [-clean] [-help] [-nonetwork] [-novideo] [-notest] [-noinstall] [-parallel] [-generate] [-regenerate] [-testonly] [-installOnly] [-windeprecation]
-        [-package] [-lto] [-debugWall] [-cppcheck] [<CommonParameters>]
+        C:\...\play\open-simh\cmake\cmake-builder.ps1 [[-flavor] <String>] [[-config] <String>] [[-cpack_suffix] <String>] [[-target]
+        <String[]>] [-clean] [-help] [-nonetwork] [-novideo] [-noaioinstrinsics] [-notest] [-noinstall] [-parallel] [-generate] [-testonly]
+        [-installOnly] [-windeprecation] [-lto] [-debugWall] [-cppcheck] [<CommonParameters>]
 
 
     DESCRIPTION
@@ -594,9 +601,9 @@ or video support.
 
         1. Configure and generate the build environment selected by '-flavor' option.
         2. Build missing runtime dependencies and the simulator suite with the compiler
-          configuration selected by the '-config' option. The "Release" configuration
-          generates optimized executables; the "Debug" configuration generates
-          development executables with debugger information.
+           configuration selected by the '-config' option. The "Release" configuration
+           generates optimized executables; the "Debug" configuration generates
+           development executables with debugger information.
         3. Test the simulators
 
         There is an install phase that can be invoked separately as part of the SIMH
@@ -629,6 +636,9 @@ or video support.
             vs2015          Visual Studio 2015
             mingw-make      MinGW GCC/mingw32-make
             mingw-ninja     MinGW GCC/ninja
+
+        -config <String>
+            The target build configuration. Valid values: "Release" and "Debug"
 
     [...truncated for brevity...]
     ```
