@@ -250,7 +250,10 @@ static const uint16          ascii_to_dec_029[128] = {
     0x604, 0x602, 0x601, 0xA00, 0xC00, 0x600, 0x700,0xf000
 };
 
-
+#if SIMH_EVER_USES_THIS
+/* This is a static const that isn't referenced in this code.
+ * Kept for historical refernce.
+ */
 static const uint16          ascii_to_hol_ebcdic[128] = {
    /* Control                              */
     0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,    /*0-37*/
@@ -294,6 +297,7 @@ static const uint16          ascii_to_hol_ebcdic[128] = {
    /*                     X18     X78    Y18  XYT18        */
     0x604, 0x602, 0x601, 0x902, 0x806, 0x502, 0xF02,0xf000
 };
+#endif
 
 const char          sim_ascii_to_six[128] = {
    /* Control                              */
@@ -662,8 +666,8 @@ sim_card_eof(UNIT *uptr)
 
 struct _card_buffer {
    uint8                 buffer[8192+500];    /* Buffer data */
-   int                   len;                 /* Amount of data in buffer */
-   int                   size;                /* Size of last card read */
+   size_t                len;                 /* Amount of data in buffer */
+   size_t                size;                /* Size of last card read */
 };
 
 static int _cmpcard(const uint8 *p, const char *s) {
@@ -681,9 +685,9 @@ t_stat
 _sim_parse_card(UNIT *uptr, DEVICE *dptr, struct _card_buffer *buf, uint16 (*image)[80]) {
     unsigned int          mode;
     uint16                temp;
-    int                   i;
+    size_t                i;
     char                  c;
-    int                   col;
+    size_t                col;
 
     sim_debug(DEBUG_CARD, dptr, "Read card ");
     memset(image, 0, 160);
@@ -836,7 +840,7 @@ _sim_parse_card(UNIT *uptr, DEVICE *dptr, struct _card_buffer *buf, uint16 (*ima
             }
         }
     end_card:
-        sim_debug(DEBUG_CARD, dptr, "-%d-", i);
+        sim_debug(DEBUG_CARD, dptr, "-%" SIZE_T_FMT "u-", i);
 
         /* Scan to end of line, ignore anything after last column */
         while (buf->buffer[i] != '\n' && buf->buffer[i] != '\r' && i < buf->len) {
@@ -969,9 +973,9 @@ _sim_read_deck(UNIT * uptr, int eof)
     struct _card_buffer   buf;
     struct card_context  *data;
     DEVICE               *dptr;
-    int                   i;
-    int                   j;
-    int                   l;
+    size_t                i;
+    size_t                j;
+    size_t                l;
     int                   cards = 0;
     t_stat                r = SCPE_OK;
 

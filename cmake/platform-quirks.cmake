@@ -104,7 +104,8 @@ if (WIN32)
         endif ()
 
         list(APPEND EXTRA_TARGET_CFLAGS
-             "$<$<AND:$<CONFIG:Debug>,$<BOOL:${DEBUG_WALL}>>:/W3>"
+             "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:/W4>>"
+             "$<$<CONFIG:Release>:/W3>"
         )
 
         ## Uncomment this line if you end up with /NODEFAULTLIB warninigs. You will also
@@ -135,7 +136,9 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
     ## LIST(APPEND EXTRA_TARGET_CFLAGS "-Wall" "-fno-inline" "-fstrict-overflow" "-Wstrict-overflow=3")
     LIST(APPEND EXTRA_TARGET_CFLAGS
         "-U__STRICT_ANSI__"
-        "$<$<AND:$<CONFIG:Debug>,$<BOOL:${DEBUG_WALL}>>:-Wall>"
+        "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:-Wall>>"
+        ## Only add if WARNINGS_FATAL set; has undesirable consequences with LTO.
+        "$<$<CONFIG:Release>:-Wall>"
     )
 
     # 07 NOV 2022: Apparently, -O3 is kosher now.
@@ -170,13 +173,16 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
             string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         endif ()
 
-        if (WARNINGS_FATAL OR RELEASE_LTO)
+        if (WARNINGS_FATAL` OR RELEASE_LTO)
             check_c_compiler_flag("-Werror" GCC_W_ERROR_FLAG)
             if (GCC_W_ERROR_FLAG)
-                message(STATUS "WARNINGS_FATAL: Compiler warnings are errors!! (-Werror)")
-                list(APPEND EXTRA_TARGET_CFLAGS "-Werror")
+                if (WARNINGS_FATAL)
+                    message(STATUS "WARNINGS_FATAL: Compiler warnings are errors!! (-Werror)")
+                    list(APPEND EXTRA_TARGET_CFLAGS "-Werror")
+                endif ()
                 if (RELEASE_LTO)
-                    list(APPEND EXTRA_TARGET_LFLAGS "-Werror")
+                message(STATUS "WARNINGS_FATAL: Link-time optimization warnings are errors!! (-Werror)")
+                list(APPEND EXTRA_TARGET_LFLAGS "-Werror")
                 endif ()
             endif ()
         endif ()

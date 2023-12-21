@@ -530,8 +530,8 @@ struct BITSAMPLE_REG {
     };
 typedef struct REMOTE REMOTE;
 struct REMOTE {
-    int32           buf_size;
-    int32           buf_ptr;
+    size_t          buf_size;
+    size_t          buf_ptr;
     char            *buf;
     char            *act_buf;
     size_t          act_buf_size;
@@ -908,7 +908,7 @@ if ((!sim_oline) && (sim_log)) {
 sim_oline = NULL;
 if ((rem->act == NULL) && 
     (!tmxr_input_pending_ln (lp))) {
-    int32 unwritten;
+    size_t unwritten;
 
     do {
         unwritten = tmxr_send_buffered_data (lp);
@@ -952,7 +952,7 @@ sim_switches = saved_switches;                  /* restore original switches */
 
 /* Clear pending actions */
 
-static char *sim_rem_clract (int32 line)
+static char *sim_rem_clract (size_t line)
 {
 REMOTE *rem = &sim_rem_consoles[line];
 
@@ -962,7 +962,7 @@ return rem->act = NULL;
 
 /* Set up pending actions */
 
-static void sim_rem_setact (int32 line, const char *action)
+static void sim_rem_setact (size_t line, const char *action)
 {
 if (action) {
     size_t act_size = strlen (action) + 1;
@@ -981,7 +981,7 @@ else
 
 /* Get next pending action, if any */
 
-static char *sim_rem_getact (int32 line, char *buf, int32 size)
+static char *sim_rem_getact (size_t line, char *buf, size_t size)
 {
 char *ep;
 size_t lnt;
@@ -1296,10 +1296,10 @@ return stat;
 
 t_stat sim_rem_con_repeat_svc (UNIT *uptr)
 {
-int line = uptr - rem_con_repeat_units;
+size_t line = uptr - rem_con_repeat_units;
 REMOTE *rem = &sim_rem_consoles[line];
 
-sim_debug (DBG_REP, &sim_remote_console, "sim_rem_con_repeat_svc(line=%d) - interval=%d usecs\n", line, rem->repeat_interval);
+sim_debug (DBG_REP, &sim_remote_console, "sim_rem_con_repeat_svc(line=%" SIZE_T_FMT "u) - interval=%d usecs\n", line, rem->repeat_interval);
 if (rem->repeat_interval) {
     rem->repeat_pending = TRUE;
     sim_activate_after (uptr, rem->repeat_interval);        /* reschedule */
@@ -1362,10 +1362,10 @@ for (line = 0; line < sim_rem_con_tmxr.lines; line++)
 
 t_stat sim_rem_con_smp_collect_svc (UNIT *uptr)
 {
-int line = uptr - rem_con_smp_smpl_units;
+size_t line = uptr - rem_con_smp_smpl_units;
 REMOTE *rem = &sim_rem_consoles[line];
 
-sim_debug (DBG_SAM, &sim_remote_console, "sim_rem_con_smp_collect_svc(line=%d) - interval=%d, dither=%d%%\n", line, rem->smp_sample_interval, rem->smp_sample_dither_pct);
+sim_debug (DBG_SAM, &sim_remote_console, "sim_rem_con_smp_collect_svc(line=%" SIZE_T_FMT "u) - interval=%d, dither=%d%%\n", line, rem->smp_sample_interval, rem->smp_sample_dither_pct);
 if (rem->smp_sample_interval && (rem->smp_reg_count != 0)) {
     int32 event_time = rem->smp_sample_interval;
 
