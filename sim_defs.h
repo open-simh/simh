@@ -274,11 +274,9 @@ typedef uint32          t_value;
 #if defined (USE_INT64) && defined (USE_ADDR64)         /* 64b address */
 typedef t_uint64        t_addr;
 #define T_ADDR_W        64
-#define T_ADDR_FMT      LL_FMT
 #else                                                   /* 32b address */
 typedef uint32          t_addr;
 #define T_ADDR_W        32
-#define T_ADDR_FMT      ""
 #endif                                                  /* end 64b address */
 
 #if defined (_WIN32)
@@ -294,14 +292,11 @@ typedef uint32          t_addr;
 #endif
 
 #if defined (_WIN32) /* Actually, a GCC issue */
-#define LL_FMT "I64"
 #define LL_TYPE long long
 #else
 #if defined (__VAX) /* No 64 bit ints on VAX */
-#define LL_FMT "l"
 #define LL_TYPE long
 #else
-#define LL_FMT "ll"
 #define LL_TYPE long long
 #endif
 #endif
@@ -615,7 +610,7 @@ struct UNIT {
     uint16              us10;                           /* device specific */
     uint32              disk_type;                      /* Disk specific info */
     void                *tmxr;                          /* TMXR linkage */
-    uint32              recsize;                        /* Tape specific info */
+    size_t              recsize;                        /* Tape specific info */
     t_addr              tape_eom;                       /* Tape specific info */
     t_bool              (*cancel)(UNIT *);
     double              usecs_remaining;                /* time balance for long delays */
@@ -800,8 +795,8 @@ struct MTAB {
 /* Search table */
 
 struct SCHTAB {
-    int32               logic;                          /* logical operator */
-    int32               boolop;                         /* boolean operator */
+    size_t              logic;                          /* logical operator */
+    size_t              boolop;                         /* boolean operator */
     uint32              count;                          /* value count in mask and comp arrays */
     t_value             *mask;                          /* mask for logical */
     t_value             *comp;                          /* comparison for boolean */
@@ -836,7 +831,7 @@ struct BRKTYPTAB {
 
 struct EXPTAB {
     uint8               *match;                         /* match string */
-    uint32              size;                           /* match string size */
+    size_t              size;                           /* match string size */
     char                *match_pattern;                 /* match pattern for format */
     int32               cnt;                            /* proceed count */
     uint32              after;                          /* delay before halting */
@@ -859,11 +854,11 @@ struct EXPECT {
     DEVICE              *dptr;                          /* Device (for Debug) */
     uint32              dbit;                           /* Debugging Bit */
     EXPTAB              *rules;                         /* match rules */
-    int32               size;                           /* count of match rules */
+    size_t              size;                           /* count of match rules */
     uint8               *buf;                           /* buffer of output data which has produced */
-    uint32              buf_ins;                        /* buffer insertion point for the next output data */
-    uint32              buf_size;                       /* buffer size */
-    uint32              buf_data;                       /* count of data in buffer */
+    size_t              buf_ins;                        /* buffer insertion point for the next output data */
+    size_t              buf_size;                       /* buffer size */
+    size_t              buf_data;                       /* count of data in buffer */
     };
 
 /* Send Context */
@@ -877,8 +872,8 @@ struct SEND {
     double              next_time;                      /* execution time when next data can be sent */
     uint8               *buffer;                        /* buffer */
     size_t              bufsize;                        /* buffer size */
-    int32               insoff;                         /* insert offset */
-    int32               extoff;                         /* extra offset */
+    size_t              insoff;                         /* insert offset */
+    size_t              extoff;                         /* extra offset */
     };
 
 /* Debug table */
@@ -1137,6 +1132,15 @@ struct MEMFILE {
 #include "sim_console.h"
 #include "sim_timer.h"
 #include "sim_fio.h"
+#include "sim_printf_fmts.h"
+
+/* General-purpose error value for size_t types; check using
+   equality.*/
+
+#define GENERIC_SIZE_T_ERROR ((size_t) -1)
+
+#define SIZE_T_IO_ERROR      GENERIC_SIZE_T_ERROR
+#define IS_SIZE_T_IO_ERROR(thing)  ((thing) == GENERIC_SIZE_T_ERROR)
 
 /* Macro to ALWAYS execute the specified expression and fail if it evaluates to false. */
 /* This replaces any references to "assert()" which should never be invoked */

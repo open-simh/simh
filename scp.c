@@ -3090,7 +3090,7 @@ t_stat set_prompt (int32 flag, CONST char *cptr)
 {
 char gbuf[CBUFSIZE], *gptr;
 
-if ((!cptr) || (*cptr == '\0'))
+if ((NULL == cptr) || (*cptr == '\0'))
     return SCPE_ARG;
 
 cptr = get_glyph_nc (cptr, gbuf, '"');                  /* get quote delimited token */
@@ -3148,10 +3148,10 @@ void fprint_help (FILE *st)
 {
 CTAB *cmdp;
 CTAB **hlp_cmdp = NULL;
-int cmd_cnt = 0;
-int cmd_size = 0;
+size_t cmd_cnt = 0;
+size_t cmd_size = 0;
 size_t max_cmdname_size = 0;
-int i, line_offset;
+size_t i, line_offset;
 
 for (cmdp = sim_vm_cmd; cmdp && (cmdp->name != NULL); cmdp++) {
     if (cmdp->help) {
@@ -3166,7 +3166,7 @@ for (cmdp = sim_vm_cmd; cmdp && (cmdp->name != NULL); cmdp++) {
         }
     }
 for (cmdp = cmd_table; cmdp && (cmdp->name != NULL); cmdp++) {
-    if (cmdp->help && (!sim_vm_cmd || !find_ctab (sim_vm_cmd, cmdp->name))) {
+    if (cmdp->help && (NULL == sim_vm_cmd || NULL == find_ctab (sim_vm_cmd, cmdp->name))) {
         if (cmd_cnt >= cmd_size) {
             cmd_size += 20;
             hlp_cmdp = (CTAB **)realloc (hlp_cmdp, sizeof(*hlp_cmdp)*cmd_size);
@@ -3215,7 +3215,7 @@ const char *end;
 if ((strlen (buf) >= max_width) &&
     (NULL != strchr (buf, '=')) &&
     (NULL != strchr (strchr (buf, '='), ';')) ) {
-    int chunk_size;
+    size_t chunk_size;
     const char *front_gap = strchr (buf, '=');
     size_t front_gap_size = front_gap - buf + 1;
 
@@ -3232,18 +3232,18 @@ if ((strlen (buf) >= max_width) &&
                --chunk_size;
         if (chunk_size == 0)
             chunk_size = strlen (buf);
-        fprintf (st, "%*s%*.*s\n", (int)(line_pos), "", chunk_size, chunk_size, buf);
+        fprintf (st, "%*s%*.*s\n", (int) line_pos, "", (int) chunk_size, (int) chunk_size, buf);
         buf += chunk_size;
         while (isspace (buf[0]))
             ++buf;
         if (buf < end)
             line_pos = front_gap_size;
         }
-    fprintf (st, "%*s%*.*s", (int)(line_pos), "", chunk_size, chunk_size, buf);
+    fprintf (st, "%*s%*.*s", (int) line_pos, "", (int) chunk_size, (int) chunk_size, buf);
     line_pos = width + 1;
     }
 else
-    fprintf (st, "%*s", -((int)width), buf);
+    fprintf (st, "%*s", -((int) width), buf);
 if (line_pos > width) {
     fprintf (st, "\n");
     if (extra == NULL)
@@ -3255,7 +3255,7 @@ if (line_pos > width) {
 end = extra + (extra ? strlen (extra) : 0);
 line_pos += (gap ? strlen (gap) : 0);
 if (line_pos + (end - extra) >= max_width) {
-    int chunk_size;
+    size_t chunk_size;
 
     while (1) {
         chunk_size = (end - extra);
@@ -3268,13 +3268,13 @@ if (line_pos + (end - extra) >= max_width) {
                --chunk_size;
         if (chunk_size == 0)
             chunk_size = strlen (extra);
-        fprintf (st, "%s%*.*s\n", gap ? gap : "", chunk_size, chunk_size, extra);
+        fprintf (st, "%s%*.*s\n", gap ? gap : "", (int) chunk_size, (int) chunk_size, extra);
         extra += chunk_size;
         while (isspace (extra[0]))
             ++extra;
         if (extra < end) {
             line_pos = width;
-            fprintf (st, "%*s", -((int)width), "");
+            fprintf (st, "%*s", -((int) width), "");
             line_pos += (gap ? strlen (gap) : 0);
             }
         else
@@ -3537,7 +3537,7 @@ if ((dptr->modifiers) && (dptr->units)) {   /* handle unit specific modifiers */
     for (mptr = dptr->modifiers; mptr->mask != 0; mptr++) {
         if ((!MODMASK(mptr,MTAB_VUN)) && MODMASK(mptr,MTAB_XTD))
             continue;                                           /* skip device only modifiers */
-        if ((!mptr->valid) && MODMASK(mptr,MTAB_XTD))
+        if ((NULL == mptr->valid) && MODMASK(mptr,MTAB_XTD))
             continue;                                           /* skip show only modifiers */
         if ((enabled_units == 1) && (found_unit == 0))
             continue;
@@ -5315,22 +5315,27 @@ return SCPE_OK;
 static uint32 get_default_env_parameter (const char *dev_name, const char *param_name, uint32 default_value)
 {
 char varname[CBUFSIZE];
-uint32 val;
+unsigned long val;
 char *endptr;
 const char *colon = strchr (dev_name, ':');
+char *env_val;
 
 if (colon)
     snprintf (varname, sizeof(varname), "%s_%*.*s_%s", param_name, (int)(colon-dev_name), (int)(colon-dev_name), dev_name, colon + 1);
 else
     snprintf (varname, sizeof(varname), "%s_%s", param_name, dev_name);
-if (!getenv (varname))
+
+env_val = getenv(varname);
+
+if (NULL == env_val)
     val = default_value;
 else {
-    val = strtoul (getenv (varname), &endptr, 0);
+    val = strtoul (env_val, &endptr, 0);
     if (*endptr)
         val = default_value;
     }
-return val;
+/* Should really ensure val fits into uint32 when sizeof(uint32) < sizeof(unsigned long). */
+return ((uint32) val);
 }
 
 static void set_default_env_parameter (const char *dev_name, const char *param_name, uint32 value)
@@ -6925,11 +6930,11 @@ return SCPE_OK;
 
 t_stat show_config (FILE *st, DEVICE *dnotused, UNIT *unotused, int32 flag, CONST char *cptr)
 {
-int32 i;
+size_t i;
 DEVICE *dptr;
 t_bool only_enabled = (sim_switches & SWMASK ('E'));
 
-if (cptr && (*cptr != 0))
+if (NULL != cptr && (*cptr != 0))
     return SCPE_2MARG;
 fprintf (st, "%s simulator configuration%s\n\n", sim_name, only_enabled ? " (enabled devices)" : "");
 for (i = dev_name_len = unit_name_len = 0; (dptr = sim_devices[i]) != NULL; i++)
@@ -7463,15 +7468,15 @@ char lbuf[4*CBUFSIZE];
 
 sim_type_file_offset = 0;                           /* beginning of file */
 sim_type_line_count = 0X7FFFFFFF;                   /* output many lines */
-GET_SWITCHES (cptr);                                    /* get switches */
-if ((!cptr) || (*cptr == 0))
+GET_SWITCHES (cptr);                                /* get switches */
+if ((NULL == cptr) || (*cptr == 0))
     return SCPE_2FARG;
 if (sim_switches & SWMASK ('O')) {      /* Specify Offset in file */
     char gbuf[CBUFSIZE];
     char *eptr;
 
     cptr = get_glyph (cptr, gbuf, 0);
-    if ((!cptr) || (*cptr == 0))
+    if ((NULL == cptr) || (*cptr == 0))
         return SCPE_2FARG;
     sim_type_file_offset = strtol (gbuf, &eptr, 0);
     if ((*eptr) || (sim_type_file_offset < 0))
@@ -7482,7 +7487,7 @@ if (sim_switches & SWMASK ('N')) {      /* Specify Line Count to display */
     char *eptr;
 
     cptr = get_glyph (cptr, gbuf, 0);
-    if ((!cptr) || (*cptr == 0))
+    if ((NULL == cptr) || (*cptr == 0))
         return SCPE_2FARG;
     sim_type_line_count = strtol (gbuf, &eptr, 0);
     if ((*eptr) || (sim_type_line_count < 0))
@@ -10726,9 +10731,9 @@ return SCPE_OK;
         
 */
 
-char *sim_encode_quoted_string (const uint8 *iptr, uint32 size)
+char *sim_encode_quoted_string (const uint8 *iptr, size_t size)
 {
-uint32 i;
+size_t i;
 t_bool double_quote_found = FALSE;
 t_bool single_quote_found = FALSE;
 char quote = '"';
@@ -10787,7 +10792,7 @@ while (size--) {
 return optr;
 }
 
-void fprint_buffer_string (FILE *st, const uint8 *buf, uint32 size)
+void fprint_buffer_string (FILE *st, const uint8 *buf, size_t size)
 {
 char *string;
 
@@ -11277,25 +11282,28 @@ return pptr;
 
 SCHTAB *get_rsearch (CONST char *cptr, int32 radix, SCHTAB *schptr)
 {
-int32 c, logop, cmpop;
+int32 c;
+size_t logop, cmpop;
 t_value logval, cmpval;
 const char *sptr;
 CONST char *tptr;
 const char logstr[] = "|&^", cmpstr[] = "=!><";
+/* Using a const instead of a #define. */
+const size_t invalid_op = (size_t) -1;
 
 logval = cmpval = 0;
 if (*cptr == 0)                                         /* check for clause */
     return NULL;
-for (logop = cmpop = -1; (c = *cptr++); ) {             /* loop thru clauses */
+for (logop = cmpop = invalid_op; (c = *cptr++); ) {             /* loop thru clauses */
     if ((sptr = strchr (logstr, c))) {                  /* check for mask */
-        logop = (int32)(sptr - logstr);
+        logop = sptr - logstr;
         logval = strtotv (cptr, &tptr, radix);
         if (cptr == tptr)
             return NULL;
         cptr = tptr;
         }
     else if ((sptr = strchr (cmpstr, c))) {             /* check for boolop */
-        cmpop = (int32)(sptr - cmpstr);
+        cmpop = sptr - cmpstr;
         if (*cptr == '=') {
             cmpop = cmpop + strlen (cmpstr);
             cptr++;
@@ -11313,11 +11321,11 @@ if (schptr->count != 1) {
     free (schptr->comp);
     schptr->comp = (t_value *)calloc (sim_emax, sizeof(*schptr->comp));
     }
-if (logop >= 0) {
+if (logop != invalid_op) {
     schptr->logic = logop;
     schptr->mask[0] = logval;
     }
-if (cmpop >= 0) {
+if (cmpop != invalid_op) {
     schptr->boolop = cmpop;
     schptr->comp[0] = cmpval;
     }
@@ -11338,21 +11346,24 @@ return schptr;
 
 SCHTAB *get_asearch (CONST char *cptr, int32 radix, SCHTAB *schptr)
 {
-int32 c, logop, cmpop;
+int32 c;
+size_t logop, cmpop;
 t_value *logval, *cmpval;
 t_stat reason = SCPE_OK;
 CONST char *ocptr = cptr;
 const char *sptr;
 char gbuf[CBUFSIZE];
 const char logstr[] = "|&^", cmpstr[] = "=!><";
+/* Using a const instead of a #define. */
+const size_t invalid_op = (size_t) -1;
 
 if (*cptr == 0)                                         /* check for clause */
     return NULL;
 logval = (t_value *)calloc (sim_emax, sizeof(*logval));
 cmpval = (t_value *)calloc (sim_emax, sizeof(*cmpval));
-for (logop = cmpop = -1; (c = *cptr++); ) {             /* loop thru clauses */
-    if ((sptr = strchr (logstr, c))) {                  /* check for mask */
-        logop = (int32)(sptr - logstr);
+for (logop = cmpop = invalid_op; (c = *cptr++); ) {             /* loop thru clauses */
+    if (NULL != (sptr = strchr (logstr, c))) {          /* check for mask */
+        logop = sptr - logstr;
         cptr = get_glyph (cptr, gbuf, 0);
         reason = parse_sym (gbuf, 0, sim_dfunit, logval, sim_switches);
         if (reason > 0) {
@@ -11361,8 +11372,8 @@ for (logop = cmpop = -1; (c = *cptr++); ) {             /* loop thru clauses */
             return get_rsearch (ocptr, radix, schptr);
             }
         }
-    else if ((sptr = strchr (cmpstr, c))) {             /* check for boolop */
-        cmpop = (int32)(sptr - cmpstr);
+    else if (NULL != (sptr = strchr (cmpstr, c))) {     /* check for boolop */
+        cmpop = sptr - cmpstr;
         if (*cptr == '=') {
             cmpop = cmpop + strlen (cmpstr);
             cptr++;
@@ -11388,7 +11399,7 @@ if (schptr->count != (uint32)(1 - reason)) {
     free (schptr->comp);
     schptr->comp = (t_value *)calloc (sim_emax, sizeof(*schptr->comp));
     }
-if (logop >= 0) {
+if (logop != invalid_op) {
     schptr->logic = logop;
     free (schptr->mask);
     schptr->mask = logval;
@@ -11396,7 +11407,7 @@ if (logop >= 0) {
 else {
     free (logval);
     }
-if (cmpop >= 0) {
+if (cmpop != invalid_op) {
     schptr->boolop = cmpop;
     free (schptr->comp);
     schptr->comp = cmpval;
@@ -11650,11 +11661,11 @@ return val * negate;
 */
 
 t_stat sprint_val (char *buffer, t_value val, uint32 radix,
-    uint32 width, uint32 format)
+    size_t width, uint32 format)
 {
 t_value owtest, wtest;
 t_bool negative = FALSE;
-int32 d, digit, ndigits, commas = 0;
+size_t d, digit, ndigits, commas = 0;
 char dbuf[MAX_WIDTH + 1];
 
 if (((format == PV_LEFTSIGN) || (format == PV_RCOMMASIGN)) &&
@@ -11694,7 +11705,8 @@ switch (format) {
             dbuf[--d] = '-';
         if (width > MAX_WIDTH) {
             if (!buffer)
-                return width;
+                /* Note: Potentially unsafe wraparound if sizeof(t_stat) < sizeof(size_t) */
+                return ((t_stat) width);
             sprintf (buffer, "%*s", -((int)width), dbuf);
             return SCPE_OK;
             }
@@ -11715,8 +11727,9 @@ switch (format) {
             d = MAX_WIDTH - (ndigits + commas);
         break;
     }
-if (!buffer)
-    return strlen(dbuf+d);
+if (NULL == buffer)
+    /* Note: Potentially unsafe wraparound if sizeof(t_stat) < sizeof(size_t) */
+    return ((t_stat) strlen(dbuf+d));
 *buffer = '\0';
 if (width < strlen(dbuf+d))
     return SCPE_IOERR;
@@ -12963,11 +12976,11 @@ return sim_exp_clr (exp, gbuf);                     /* clear one rule */
 
 /* Search for an expect rule in an expect context */
 
-CONST EXPTAB *sim_exp_fnd (CONST EXPECT *exp, const char *match, int32 start_rule)
+CONST EXPTAB *sim_exp_fnd (CONST EXPECT *exp, const char *match, size_t start_rule)
 {
-int32 i;
+size_t i;
 
-if (!exp->rules)
+if (NULL == exp->rules)
     return NULL;
 for (i=start_rule; i<exp->size; i++)
     if (!strcmp (exp->rules[i].match_pattern, match))
@@ -12979,9 +12992,9 @@ return NULL;
 
 t_stat sim_exp_clr_tab (EXPECT *exp, EXPTAB *ep)
 {
-int32 i;
+size_t i;
 
-if (!ep)                                                /* not there? ok */
+if (NULL == ep)                                         /* not there? ok */
     return SCPE_OK;
 free (ep->match);                                       /* deallocate match string */
 free (ep->match_pattern);                               /* deallocate the display format match string */
@@ -13004,7 +13017,7 @@ t_stat sim_exp_clr (EXPECT *exp, const char *match)
 {
 EXPTAB *ep = (EXPTAB *)sim_exp_fnd (exp, match, 0);
 
-while (ep) {
+while (NULL != ep) {
     sim_exp_clr_tab (exp, ep);
     ep = (EXPTAB *)sim_exp_fnd (exp, match, ep - exp->rules);
     }
@@ -13015,7 +13028,7 @@ return SCPE_OK;
 
 t_stat sim_exp_clrall (EXPECT *exp)
 {
-int32 i;
+size_t i;
 
 for (i=0; i<exp->size; i++) {
     free (exp->rules[i].match);                         /* deallocate match string */
@@ -13043,7 +13056,7 @@ t_stat sim_exp_set (EXPECT *exp, const char *match, int32 cnt, uint32 after, int
 EXPTAB *ep;
 uint8 *match_buf;
 uint32 match_size;
-int i;
+size_t i;
 
 /* Validate the match string */
 match_buf = (uint8 *)calloc (strlen (match) + 1, 1);
@@ -13146,7 +13159,7 @@ if ((act != NULL) && (*act != 0)) {                     /* new action? */
     }
 /* Make sure that the production buffer is large enough to detect a match for all rules including a NUL termination byte */
 for (i=0; i<exp->size; i++) {
-    uint32 compare_size = (exp->rules[i].switches & EXP_TYP_REGEX) ? MAX(10 * strlen(ep->match_pattern), 1024) : exp->rules[i].size;
+    size_t compare_size = (exp->rules[i].switches & EXP_TYP_REGEX) ? MAX(10 * strlen(ep->match_pattern), 1024) : exp->rules[i].size;
     if (compare_size >= exp->buf_size) {
         exp->buf = (uint8 *)realloc (exp->buf, compare_size + 2); /* Extra byte to null terminate regex compares */
         exp->buf_size = compare_size + 1;
@@ -13193,11 +13206,11 @@ uint32 default_haltafter = get_default_env_parameter (dev_name, "SIM_EXPECT_HALT
 if (exp->buf_size) {
     char *bstr = sim_encode_quoted_string (exp->buf, exp->buf_ins);
 
-    fprintf (st, "  Match Buffer Size: %d\n", exp->buf_size);
-    fprintf (st, "  Buffer Insert Offset: %d\n", exp->buf_ins);
+    fprintf (st, "  Match Buffer Size: %" SIZE_T_FMT "d\n", exp->buf_size);
+    fprintf (st, "  Buffer Insert Offset: %" SIZE_T_FMT "d\n", exp->buf_ins);
     fprintf (st, "  Buffer Contents: %s\n", bstr);
     if (default_haltafter)
-        fprintf (st, "  Default HaltAfter: %u %s\n", (unsigned)default_haltafter, sim_vm_interval_units);
+        fprintf (st, "  Default HaltAfter: %u %s\n", (unsigned) default_haltafter, sim_vm_interval_units);
     free (bstr);
     }
 if (exp->dptr && (exp->dbit & exp->dptr->dctrl))
@@ -13220,7 +13233,7 @@ return SCPE_OK;
 
 t_stat sim_exp_showall (FILE *st, const EXPECT *exp)
 {
-int32 i;
+size_t i;
 
 for (i=0; i < exp->size; i++)
     sim_exp_show_tab (st, exp, &exp->rules[i]);
@@ -13231,7 +13244,7 @@ return SCPE_OK;
 
 t_stat sim_exp_check (EXPECT *exp, uint8 data)
 {
-int32 i;
+size_t i;
 EXPTAB *ep = NULL;
 int regex_checks = 0;
 char *tstr = NULL;
@@ -13276,7 +13289,9 @@ for (i=0; i < exp->size; i++) {
             sim_debug (exp->dbit, exp->dptr, "Against RegEx Match Rule: %s\n", ep->match_pattern);
             free (estr);
             }
-        rc = pcre_exec (ep->regex, NULL, cbuf, exp->buf_ins, 0, PCRE_NOTBOL, ovector, ovector_elts);
+        /* exp->buf_ins is never going to exceed 1024 (current limit), so this is safe to
+           downcast to int. */
+        rc = pcre_exec (ep->regex, NULL, cbuf, (int) exp->buf_ins, 0, PCRE_NOTBOL, ovector, ovector_elts);
         if (rc >= 0) {
             size_t j;
             char *buf = (char *)malloc (1 + exp->buf_ins);
@@ -13323,12 +13338,12 @@ for (i=0; i < exp->size; i++) {
              * First compare the newly deposited data at the beginning 
              * of buffer with the end of the match string
              */
-            if (exp->buf_ins) {
+            if (exp->buf_ins > 0) {
                 if (sim_deb && exp->dptr && (exp->dptr->dctrl & exp->dbit)) {
                     char *estr = sim_encode_quoted_string (exp->buf, exp->buf_ins);
                     char *mstr = sim_encode_quoted_string (&ep->match[ep->size-exp->buf_ins], exp->buf_ins);
 
-                    sim_debug (exp->dbit, exp->dptr, "Checking String[0:%d]: %s\n", exp->buf_ins, estr);
+                    sim_debug (exp->dbit, exp->dptr, "Checking String[0:%" SIZE_T_FMT "d]: %s\n", exp->buf_ins, estr);
                     sim_debug (exp->dbit, exp->dptr, "Against Match Data: %s\n", mstr);
                     free (estr);
                     free (mstr);
@@ -13340,7 +13355,8 @@ for (i=0; i < exp->size; i++) {
                 char *estr = sim_encode_quoted_string (&exp->buf[exp->buf_size-(ep->size-exp->buf_ins)], ep->size-exp->buf_ins);
                 char *mstr = sim_encode_quoted_string (ep->match, ep->size-exp->buf_ins);
 
-                sim_debug (exp->dbit, exp->dptr, "Checking String[%d:%d]: %s\n", exp->buf_size-(ep->size-exp->buf_ins), ep->size-exp->buf_ins, estr);
+                sim_debug (exp->dbit, exp->dptr, "Checking String[%" SIZE_T_FMT "d:%" SIZE_T_FMT "d]: %s\n",
+                           exp->buf_size - ep->size - exp->buf_ins, ep->size-exp->buf_ins, estr);
                 sim_debug (exp->dbit, exp->dptr, "Against Match Data: %s\n", mstr);
                 free (estr);
                 free (mstr);
@@ -13354,7 +13370,8 @@ for (i=0; i < exp->size; i++) {
                 char *estr = sim_encode_quoted_string (&exp->buf[exp->buf_ins-ep->size], ep->size);
                 char *mstr = sim_encode_quoted_string (ep->match, ep->size);
 
-                sim_debug (exp->dbit, exp->dptr, "Checking String[%d:%d]: %s\n", exp->buf_ins-ep->size, ep->size, estr);
+                sim_debug (exp->dbit, exp->dptr, "Checking String[%" SIZE_T_FMT "u:%" SIZE_T_FMT "u]: %s\n",
+                          exp->buf_ins - ep->size, ep->size, estr);
                 sim_debug (exp->dbit, exp->dptr, "Against Match Data: %s\n", mstr);
                 free (estr);
                 free (mstr);
@@ -13375,7 +13392,8 @@ if (exp->buf_ins == exp->buf_size) {                    /* At end of match buffe
         memmove (exp->buf, &exp->buf[exp->buf_size/2], exp->buf_size-(exp->buf_size/2));
         exp->buf_ins -= exp->buf_size/2;
         exp->buf_data = exp->buf_ins;
-        sim_debug (exp->dbit, exp->dptr, "Buffer Full - sliding the last %d bytes to start of buffer new insert at: %d\n", (exp->buf_size/2), exp->buf_ins);
+        sim_debug (exp->dbit, exp->dptr, "Buffer Full - sliding the last %" SIZE_T_FMT "d bytes to start of buffer new insert at: %" SIZE_T_FMT "d\n",
+                  exp->buf_size / 2, exp->buf_ins);
         }
     else {
         exp->buf_ins = 0;                               /* wrap around to beginning */
@@ -13424,10 +13442,10 @@ return SCPE_OK;
 t_stat sim_send_input (SEND *snd, uint8 *data, size_t size, uint32 after, uint32 delay)
 {
 if (snd->extoff != 0) {
-    if (snd->insoff-snd->extoff > 0)
+    if (snd->insoff > snd->extoff)
         memmove(snd->buffer, snd->buffer+snd->extoff, snd->insoff-snd->extoff);
     snd->insoff -= snd->extoff;
-    snd->extoff -= snd->extoff;
+    snd->extoff  = 0;
     }
 if (snd->insoff+size > snd->bufsize) {
     snd->bufsize = snd->insoff+size;
@@ -13465,7 +13483,7 @@ uint32 after = get_default_env_parameter (dev_name, "SIM_SEND_AFTER", delay);
 
 fprintf (st, "%s\n", tmxr_send_line_name (snd));
 if (snd->extoff < snd->insoff) {
-    fprintf (st, "  %d bytes of pending input Data:\n    ", snd->insoff-snd->extoff);
+    fprintf (st, "  %" SIZE_T_FMT "d bytes of pending input Data:\n    ", snd->insoff-snd->extoff);
     fprint_buffer_string (st, snd->buffer+snd->extoff, snd->insoff-snd->extoff);
     fprintf (st, "\n");
     }
@@ -13495,7 +13513,7 @@ return SCPE_OK;
 
 t_bool sim_send_poll_data (SEND *snd, t_stat *stat)
 {
-if (snd && (snd->extoff < snd->insoff)) {               /* pending input characters available? */
+if ((NULL != snd) && (snd->extoff < snd->insoff)) {     /* pending input characters available? */
     if (sim_gtime() < snd->next_time) {                 /* too soon? */
         *stat = SCPE_OK;
         sim_debug (snd->dbit, snd->dptr, "Too soon to inject next byte\n");
@@ -13533,7 +13551,7 @@ return msgbuf;
 t_stat sim_string_to_stat (const char *cptr, t_stat *stat)
 {
 char gbuf[CBUFSIZE];
-int32 cond;
+t_stat cond;
 
 *stat = SCPE_ARG;
 cptr = get_glyph (cptr, gbuf, 0);
@@ -13547,8 +13565,10 @@ for (cond=0; cond <= (SCPE_MAX_ERR-SCPE_BASE); cond++)
 if (0 == strcmp(gbuf, "OK"))
     cond = SCPE_OK;
 if (cond == (1+SCPE_MAX_ERR-SCPE_BASE)) {       /* not found? */
-    if (0 == (cond = strtol(gbuf, NULL, 0)))  /* try explicit number */
+    unsigned long numeric_cond = strtol(gbuf, NULL, 0);
+    if (0 == numeric_cond)                      /* try explicit number */
         return SCPE_ARG;
+    cond = (t_stat) numeric_cond;
     }
 *stat = cond;
 if (cond > SCPE_MAX_ERR)
@@ -13961,9 +13981,9 @@ sim_printf ("%s: %s\n", msg, strerror (saved_errno));
 t_stat sim_messagef (t_stat stat, const char* fmt, ...)
 {
 char stackbuf[STACKBUFSIZE];
-int32 bufsize = sizeof(stackbuf);
+size_t bufsize = sizeof(stackbuf);
 char *buf = stackbuf;
-int32 len;
+size_t len;
 va_list arglist;
 t_bool inhibit_message = (!sim_show_message || (stat & SCPE_NOMESSAGE));
 char msg_prefix[32] = "";
@@ -13988,7 +14008,7 @@ while (1) {                                         /* format passed string, arg
 
 /* If the formatted result didn't fit into the buffer, then grow the buffer and try again */
 
-    if ((len < 0) || (len >= bufsize-1)) {
+    if (len >= bufsize-1) {
         if (buf != stackbuf)
             free (buf);
         bufsize = bufsize * 2;
@@ -14162,7 +14182,7 @@ void sim_data_trace(DEVICE *dptr, UNIT *uptr, const uint8 *data, const char *pos
 if (sim_deb && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & reason)) {
     _sim_debug_unit (reason, uptr, "%s %s %slen: %08X\n", sim_uname(uptr), txt, position, (unsigned int)len);
     if (data && len) {
-        unsigned int i, same, group, sidx, oidx, ridx, eidx, soff;
+        size_t i, same, group, sidx, oidx, ridx, eidx, soff;
         char outbuf[80], strbuf[28], rad50buf[36], ebcdicbuf[32];
         static char hex[] = "0123456789ABCDEF";
         static char rad50[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
@@ -14207,7 +14227,8 @@ if (sim_deb && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & reason)) {
                 continue;
                 }
             if (same > 0) {
-                _sim_debug_unit (reason, uptr, "%04X thru %04X same as above\n", i-(16*same), i-1);
+                _sim_debug_unit (reason, uptr, "%04" SIZE_T_FMT "X thru %04" SIZE_T_FMT "X same as above\n",
+                                 i-(16*same), i - 1);
                 same = 0;
                 }
             group = (((len - i) > 16) ? 16 : (len - i));
@@ -14255,10 +14276,11 @@ if (sim_deb && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & reason)) {
             strbuf[soff+sidx] = '\0';
             ebcdicbuf[eidx] = '\0';
             rad50buf[ridx] = '\0';
-            _sim_debug_unit (reason, uptr, "%04X%-48s %s%s%s\n", i, outbuf, strbuf, ebcdicbuf, rad50buf);
+            _sim_debug_unit (reason, uptr, "%04" SIZE_T_FMT "X%-48s %s%s%s\n", i, outbuf, strbuf, ebcdicbuf, rad50buf);
             }
         if (same > 0) {
-            _sim_debug_unit (reason, uptr, "%04X thru %04X same as above\n", i-(16*same), (unsigned int)(len-1));
+            _sim_debug_unit (reason, uptr, "%04" SIZE_T_FMT "X thru %04" SIZE_T_FMT "X same as above\n",
+                             (i-(16*same)), len - 1);
             }
         }
     }
@@ -14385,7 +14407,7 @@ return _process_cmd ("curl", cptr);
 #define blankch(x) ((x) == ' ' || (x) == '\t')
 
 typedef struct topic {
-    uint32         level;
+    size_t         level;
     char          *title;
     char          *label;
     struct topic  *parent;
@@ -14394,7 +14416,7 @@ typedef struct topic {
     char          *text;
     size_t         len;
     uint32         flags;
-    uint32         kidwid;
+    size_t         kidwid;
 #define HLP_MAGIC_TOPIC  1
     } TOPIC;
 
@@ -14600,7 +14622,7 @@ for (hblock = astrings; (htext = *hblock) != NULL; hblock++) {
                     topic = topic->parent;
                 } 
             else {
-                if (n > topic->level +1) {      /* Skipping down more than 1 */
+                if (n > topic->level + 1) {     /* Skipping down more than 1 */
                     FAIL (SCPE_ARG, Level not contiguous, htext); /* E.g. 1 3, not reasonable */
                     }
                 }
@@ -14652,7 +14674,7 @@ for (hblock = astrings; (htext = *hblock) != NULL; hblock++) {
 
             children = (TOPIC **) realloc (topic->children,
                                            (topic->kids +1) * sizeof (TOPIC *));
-            if (!children) {
+            if (NULL == children) {
                 free (newt->title);
                 free (newt);
                 FAIL (SCPE_MEM, No memory, NULL);
@@ -14667,7 +14689,7 @@ for (hblock = astrings; (htext = *hblock) != NULL; hblock++) {
             sprintf (nbuf, ".%u", topic->kids);
             n = strlen (topic->label) + strlen (nbuf) + 1;
             newt->label = (char *) malloc (n);
-            if (!newt->label) {
+            if (NULL == newt->label) {
                 free (newt->title);
                 topic->children[topic->kids -1] = NULL;
                 free (newt);
@@ -15029,7 +15051,7 @@ while (TRUE) {
                 w = 4 + topic->kidwid;
                 fputc ('\n', st);
                 }
-            fprintf (st, "    %-*s", topic->kidwid, tbuf);
+            fprintf (st, "    %-*s", (int) topic->kidwid, tbuf);
             }
         fprintf (st, "\n\n");
         if (flag & SCP_HELP_ONECMD) {
@@ -15836,7 +15858,7 @@ if (sim_isalpha (*data) || (*data == '_')) {
         return TRUE;
         }
     gptr = _sim_get_env_special (data, string, string_size - 1);
-    if (gptr) {
+    if (NULL != gptr) {
         *svalue = strtotsv(string, &gptr, 0);
         sprint_val (string, *svalue, 10, string_size - 1, PV_LEFTSIGN);
         sim_debug (SIM_DBG_EXP_EVAL, &sim_scp_dev, "[Value: %s=%s]\n", data, string);
@@ -16041,10 +16063,13 @@ MFlush (MFILE *f)
 f->pos = 0;
 }
 
+/* FMwrite() returns 1 (TRUE) if all data was writting, 0 (FALSE) indicates
+   fewer than the requested number of bytes were written. N.B. this function
+   is only called in one place and its return value isn't checked.*/
 static int
 FMwrite (FILE *fout, MFILE *fdata)
 {
-int ret = fwrite (fdata->buf, 1, fdata->pos, fout);
+int ret = fwrite (fdata->buf, 1, fdata->pos, fout) == fdata->pos;
 
 MFlush (fdata);
 return ret;
@@ -16067,7 +16092,7 @@ free (f);
 static t_stat sim_sanity_check_register_declarations (DEVICE **devices)
 {
 t_stat stat = SCPE_OK;
-int i;
+size_t i;
 DEVICE *dptr;
 MFILE *f = MOpen ();
 
@@ -16078,8 +16103,8 @@ for (i = 0; (dptr = devices[i]) != NULL; i++) {
     REG *rptr;
 
     for (rptr = dptr->registers; (rptr != NULL) && (rptr->name != NULL); rptr++) {
-        uint32 rsz = SZ_R(rptr);
-        uint32 memsize = ((rptr->flags & REG_FIT) || (rptr->depth > 1)) ? rptr->depth * rsz : 4;
+        size_t rsz = SZ_R(rptr);
+        size_t memsize = ((rptr->flags & REG_FIT) || (rptr->depth > 1)) ? rptr->depth * rsz : 4;
         t_bool Bad;
 
         if (((rptr->width + rptr->offset + CHAR_BIT - 1) / CHAR_BIT) >= sizeof(size_map) / sizeof(size_map[0])) {
@@ -16092,8 +16117,8 @@ for (i = 0; (dptr = devices[i]) != NULL; i++) {
             }
 
         if (sim_switches & SWMASK ('R'))            /* Debug output */
-            sim_printf ("%5s:%-9.9s %s(rdx=%u, wd=%u, off=%u, dep=%u, strsz=%u, objsz=%u, elesz=%u, rsz=%u, %s %s%s membytes=%u, macro=%s)\n", dptr->name, rptr->name, rptr->macro, 
-                        rptr->radix, rptr->width, rptr->offset, rptr->depth, (uint32)rptr->stride, (uint32)rptr->obj_size, (uint32)rptr->size, rsz, rptr->desc ? rptr->desc : "",
+            sim_printf ("%5s:%-9.9s %s(rdx=%u, wd=%u, off=%u, dep=%u, strsz=%" SIZE_T_FMT "u, objsz=%" SIZE_T_FMT "u, elesz=%" SIZE_T_FMT "u, rsz=%" SIZE_T_FMT "u, %s %s%s membytes=%" SIZE_T_FMT "u, macro=%s)\n", dptr->name, rptr->name, rptr->macro, 
+                        rptr->radix, rptr->width, rptr->offset, rptr->depth, rptr->stride, rptr->obj_size, rptr->size, rsz, rptr->desc ? rptr->desc : "",
                         (rptr->flags & REG_FIT) ? "REG_FIT" : "", (rptr->flags & REG_VMIO) ? " REG_VMIO" : "",
                         memsize, rptr->macro ? rptr->macro : "");
 
