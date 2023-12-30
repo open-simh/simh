@@ -7430,10 +7430,13 @@ static t_addr disp_addr = 0;
 
 static t_stat cpu_cmd_memory(int32 flag, const char *cptr) {
     char abuf[16];
-    t_addr lo, hi, last;
+    t_addr lo, hi, max, last;
     t_value byte;
 
-    if (get_range(NULL, cptr, &lo, &hi, 16, MEMORYMASK, 0) == NULL) {
+    /* 64K minimum */
+    max = (MEMORYMASK < 0xffff) ? 0xffff : MEMORYMASK;
+
+    if (get_range(NULL, cptr, &lo, &hi, 16, max, 0) == NULL) {
         lo = hi = disp_addr;
     }
     else {
@@ -7446,7 +7449,7 @@ static t_stat cpu_cmd_memory(int32 flag, const char *cptr) {
 
     last = hi | 0x00000f;
 
-    while (disp_addr <= last && disp_addr <= MEMORYMASK) {
+    while (disp_addr <= last && disp_addr <= max) {
 
         if (!(disp_addr & 0x0f)) {
             if (MEMORYSIZE <= 0x10000) {
@@ -7474,7 +7477,7 @@ static t_stat cpu_cmd_memory(int32 flag, const char *cptr) {
         disp_addr++;
     }
 
-    if (disp_addr > MEMORYMASK) {
+    if (disp_addr > max) {
         disp_addr = 0;
     }
 
