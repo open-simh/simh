@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   29-Dec-23    PAL     Added sim_throt_get_type
    27-Sep-22    RMS     Removed OS/2 and Mac "Classic" support
    01-Feb-21    JDB     Added cast for down-conversion
    22-May-17    RMS     Hacked for V4.0 CONST compatibility
@@ -2036,6 +2037,11 @@ switch (sim_throt_state) {
 
 sim_activate (uptr, sim_throt_wait);                    /* reschedule */
 return SCPE_OK;
+}
+
+/* Return throttle type */
+uint32 sim_throt_get_type (void) {
+    return sim_throt_type;
 }
 
 /* Clock assist activites */

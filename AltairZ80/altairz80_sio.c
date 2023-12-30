@@ -744,9 +744,10 @@ static SIO_PORT_INFO lookupPortInfo(const int32 port, int32 *position) {
 }
 
 /* keyboard idle detection: sleep when feature enabled, no character available
-    (duty of caller) and operation not voided (e.g. when output is available) */
+    (duty of caller), operation not voided (e.g. when output is available),
+    and throttling is not enabled. */
 static void checkSleep(void) {
-    if (sio_unit.flags & UNIT_SIO_SLEEP) {
+    if (sio_unit.flags & UNIT_SIO_SLEEP && sim_throt_get_type() == SIM_THROT_NONE) {
         if (sleepAllowedCounter)
             sleepAllowedCounter--;
         else
