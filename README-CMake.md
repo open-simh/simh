@@ -1398,6 +1398,7 @@ generate.py: all target vaxstation3100m38
 generate.py: all target vaxstation3100m76
 generate.py: all target vaxstation4000m60
 generate.py: all target microvax3100m80
+generate.py: all target vaxserver3100
 generate.py: all target vaxstation4000vlc
 generate.py: all target infoserver1000
 generate.py: all target nova

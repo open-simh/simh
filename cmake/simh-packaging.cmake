@@ -99,5 +99,5 @@ cpack_add_component(swtp_family
 )
 cpack_add_component(vax_family
     DISPLAY_NAME "DEC VAX simulator collection"
-    DESCRIPTION "The Digital Equipment Corporation VAX (plural: VAXen) simulator family. Simulators: infoserver100, infoserver1000, infoserver150vxt, microvax1, microvax2, microvax2000, microvax3100, microvax3100e, microvax3100m80, rtvax1000, vax, vax730, vax750, vax780, vax8200, vax8600, vaxstation3100m30, vaxstation3100m38, vaxstation3100m76, vaxstation4000m60, vaxstation4000vlc"
+    DESCRIPTION "The Digital Equipment Corporation VAX (plural: VAXen) simulator family. Simulators: infoserver100, infoserver1000, infoserver150vxt, microvax1, microvax2, microvax2000, microvax3100, microvax3100e, microvax3100m80, rtvax1000, vax, vax730, vax750, vax780, vax8200, vax8600, vaxserver3100, vaxstation3100m30, vaxstation3100m38, vaxstation3100m76, vaxstation4000m60, vaxstation4000vlc"
 )

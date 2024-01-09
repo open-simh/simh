@@ -68,6 +68,7 @@
 "vax780"
 "vax8200"
 "vax8600"
+"vaxserver3100"
 "vaxstation3100m30"
 "vaxstation3100m38"
 "vaxstation3100m76"

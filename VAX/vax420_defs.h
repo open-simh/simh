@@ -86,7 +86,7 @@
 #if defined (VAX_411) || defined (VAX_412)
 #define CPU_MODEL_MODIFIERS 
 #else
-#if defined (VAX_41A) || defined (VAX_41D)
+#if defined (VAX_41A) || defined (VAX_41D) || defined (VAX_41E)
 #define CPU_MODEL_MODIFIERS \
                         { MTAB_XTD|MTAB_VDV, 0, "MODEL", "MODEL={MICROVAX|VAXSERVER}", \
                           cpu_set_model, &cpu_show_model, NULL, "Set/Show the simulator CPU Model" },

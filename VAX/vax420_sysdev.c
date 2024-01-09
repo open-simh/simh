@@ -41,6 +41,8 @@
 #define BOOT_CODE_FILENAME "ka41a.bin"
 #elif defined (VAX_41D)
 #define BOOT_CODE_FILENAME "ka41d.bin"
+#elif defined (VAX_41E)
+#define BOOT_CODE_FILENAME "ka41e.bin"
 #elif defined (VAX_42A)
 #define BOOT_CODE_FILENAME "ka42a.bin"
 #elif defined (VAX_42B)
@@ -55,6 +57,8 @@
 #include "vax_ka41a_bin.h" /* Defines BOOT_CODE_FILENAME and BOOT_CODE_ARRAY, etc */
 #elif defined (VAX_41D)
 #include "vax_ka41d_bin.h" /* Defines BOOT_CODE_FILENAME and BOOT_CODE_ARRAY, etc */
+#elif defined (VAX_41E)
+#include "vax_ka41e_bin.h" /* Defines BOOT_CODE_FILENAME and BOOT_CODE_ARRAY, etc */
 #elif defined (VAX_42A)
 #include "vax_ka42a_bin.h" /* Defines BOOT_CODE_FILENAME and BOOT_CODE_ARRAY, etc */
 #elif defined (VAX_42B)
@@ -1018,7 +1022,7 @@ if (*rom == 0) {                                        /* no boot? */
     if (r != SCPE_OK)
         return r;
     }
-#if defined (VAX_41A) || defined (VAX_41D)
+#if defined (VAX_41A) || defined (VAX_41D) || defined (VAX_41E)
 rom_wr_B (ROMBASE+4, sys_model ? 2 : 1);                /* Set Magic Byte to determine system type */
 #endif
 for (i = 0; i < OR_COUNT; i++)                          /* unmap all option ROMs */
@@ -1103,7 +1107,7 @@ char gbuf[CBUFSIZE];
 if ((cptr == NULL) || (!*cptr))
     return SCPE_ARG;
 cptr = get_glyph (cptr, gbuf, 0);
-#if defined (VAX_41A) || defined (VAX_41D)
+#if defined (VAX_41A) || defined (VAX_41D) || defined (VAX_41E)
 if (MATCH_CMD(gbuf, "MICROVAX") == 0) {
     sys_model = 0;
 #if defined (VAX_41A)
@@ -1117,8 +1121,10 @@ else if (MATCH_CMD(gbuf, "VAXSERVER") == 0) {
     sys_model = 1;
 #if defined (VAX_41A)
     strcpy (sim_name, "VAXserver 3100 M10/M20 (KA41-A)");
-#else   /* VAX_41D */
+#elif defined (VAX_41D)   /* VAX_41D */
     strcpy (sim_name, "VAXserver 3100 M10e/M20e (KA41-D)");
+#else /* VAX_41E */
+    strcpy (sim_name, "VAXServer 3100 (KA41-E)");
 #endif
     reset_all (0);                                       /* reset everything */
     }

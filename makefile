@@ -1546,6 +1546,7 @@ VAX411_OPT = ${VAX420_OPT} -DVAX_411
 VAX412_OPT = ${VAX420_OPT} -DVAX_412
 VAX41A_OPT = ${VAX420_OPT} -DVAX_41A
 VAX41D_OPT = ${VAX420_OPT} -DVAX_41D
+VAX41E_OPT = ${VAX420_OPT} -DVAX_41E
 VAX42A_OPT = ${VAX420_OPT} -DVAX_42A
 VAX42B_OPT = ${VAX420_OPT} -DVAX_42B
 
@@ -2192,7 +2193,7 @@ ALL = pdp1 pdp4 pdp7 pdp8 pdp9 pdp15 pdp11 pdp10 \
 	vax8200 vax8600 besm6 \
 	microvax2000 infoserver100 infoserver150vxt microvax3100 microvax3100e \
 	vaxstation3100m30 vaxstation3100m38 vaxstation3100m76 vaxstation4000m60 \
-	microvax3100m80 vaxstation4000vlc infoserver1000 \
+	microvax3100m80 vaxserver3100 vaxstation4000vlc infoserver1000 \
 	nd100 nova eclipse hp2100 hp3000 i1401 i1620 s3 altair altairz80 gri \
 	i7094 ibm1130 id16 id32 sds lgp h316 cdc1700 \
 	swtp6800mp-a swtp6800mp-a2 tx-0 ssem b5500 intel-mds \
@@ -2387,6 +2388,15 @@ microvax3100e : ${BIN}microvax3100e${EXE}
 ${BIN}microvax3100e${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
 	${MKDIRBIN}
 	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX41D_OPT} -o $@ ${LDFLAGS}
+ifneq (,$(call find_test,${VAXD},vax-diag))
+	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
+endif
+
+vaxserver3100 : ${BIN}vaxserver3100${EXE}
+
+${BIN}vaxserver3100${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+	${MKDIRBIN}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX41E_OPT} -o $@ ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif

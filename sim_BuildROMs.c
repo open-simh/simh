@@ -48,6 +48,7 @@ struct ROM_File_Descriptor {
    {"VAX/ka412.bin",                    "VAX/vax_ka412_bin.h",                     262144,            0xFED96BB4,        "vax_ka412_bin"},
    {"VAX/ka41a.bin",                    "VAX/vax_ka41a_bin.h",                     262144,            0xFECBAD2E,        "vax_ka41a_bin"},
    {"VAX/ka41d.bin",                    "VAX/vax_ka41d_bin.h",                     262144,            0xFECB8513,        "vax_ka41d_bin"},
+   {"VAX/ka41e.bin",                    "VAX/vax_ka41e_bin.h",                     262144,            0xFECB84BB,        "vax_ka41e_bin"},
    {"VAX/ka42a.bin",                    "VAX/vax_ka42a_bin.h",                     262144,            0xFED8967F,        "vax_ka42a_bin"},
    {"VAX/ka42b.bin",                    "VAX/vax_ka42b_bin.h",                     262144,            0xFECBB2EF,        "vax_ka42b_bin"},
    {"VAX/ka43a.bin",                    "VAX/vax_ka43a_bin.h",                     262144,            0xFEAB1DF9,        "vax_ka43a_bin"},

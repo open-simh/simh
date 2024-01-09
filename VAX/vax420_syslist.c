@@ -35,6 +35,8 @@ char sim_name[64] = "InfoServer 150 VXT (KA41-2)";
 char sim_name[64] = "MicroVAX 3100 M10/M20 (KA41-A)";
 #elif defined (VAX_41D)
 char sim_name[64] = "MicroVAX 3100 M10e/M20e (KA41-D)";
+#elif defined (VAX_41E)
+char sim_name[64] = "VAXServer 3100 (KA41-E)";
 #elif defined (VAX_42A)
 char sim_name[64] = "VAXstation 3100 M30 (KA42-A)";
 #elif defined (VAX_42B)
@@ -51,6 +53,8 @@ sim_savename = "InfoServer 150 VXT (KA41-2)";
 sim_savename = "MicroVAX 3100 M10/M20 (KA41-A)";
 #elif defined (VAX_41D)
 sim_savename = "MicroVAX 3100 M10e/M20e (KA41-D)";
+#elif defined (VAX_41E)
+sim_savename = "VAXServer 3100 (KA41-E)";
 #elif defined (VAX_42A)
 sim_savename = "VAXstation 3100 M30 (KA42-A)";
 #elif defined (VAX_42B)
