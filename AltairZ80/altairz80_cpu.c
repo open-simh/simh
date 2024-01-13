@@ -6704,10 +6704,14 @@ static void cpu_clear(void) {
     uint32 i;
     for (i = 0; i < MAXMEMORY; i++)
         M[i] = 0;
-    for (i = 0; i < (MAXMEMORY >> LOG2PAGESIZE); i++)
-        mmu_table[i] = RAM_PAGE;
-    for (i = (MEMORYSIZE >> LOG2PAGESIZE); i < (MAXMEMORY >> LOG2PAGESIZE); i++)
-        mmu_table[i] = EMPTY_PAGE;
+    for (i = 0; i < (MAXMEMORY >> LOG2PAGESIZE); i++) {
+        if (!mmu_table[i].routine)
+            mmu_table[i] = RAM_PAGE;
+    }
+    for (i = (MEMORYSIZE >> LOG2PAGESIZE); i < (MAXMEMORY >> LOG2PAGESIZE); i++) {
+        if (!mmu_table[i].routine)
+            mmu_table[i] = EMPTY_PAGE;
+    }
     if (cpu_unit.flags & UNIT_CPU_ALTAIRROM)
         install_ALTAIRbootROM();
     m68k_clear_memory();
