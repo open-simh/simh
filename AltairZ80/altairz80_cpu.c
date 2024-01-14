@@ -541,7 +541,7 @@ static MTAB cpu_mod[] = {
         NULL, "Enable the Memory Management Unit for 8080 / Z80"            },
     { UNIT_CPU_MMU,         0,                  "NOMMU",        "NOMMU",        &cpu_set_nommu,
         NULL, NULL, "Disable the Memory Management Unit for 8080 / Z80"     },
-    { MTAB_XTD | MTAB_VDV,  0,                  NULL,           "MEMORY",       &cpu_set_memory,
+    { MTAB_XTD | MTAB_VDV | MTAB_VALR,  0,      NULL,           "MEMORY",       &cpu_set_memory,
         NULL, NULL, "Sets the RAM size for 8080 / Z80 / 8086"               },
     { UNIT_CPU_SWITCHER,    UNIT_CPU_SWITCHER,  "SWITCHER",     "SWITCHER",     &cpu_set_switcher, &cpu_show_switcher,
         NULL, "Sets CPU switcher port for 8080 / Z80 / 8086"   },
@@ -7075,7 +7075,8 @@ static t_stat cpu_set_memory(UNIT *uptr, int32 value, CONST char *cptr, void *de
     if ((result == 1) && (cptr[i] == 'K') && ((cptr[i + 1] == 0) ||
             ((cptr[i + 1] == 'B') && (cptr[i + 2] == 0))))
         return set_size(size);
-    return SCPE_ARG;
+    sim_printf("Must specify memory size as SET CPU MEMORY=xK\n");
+    return SCPE_ARG | SCPE_NOMESSAGE;
 }
 
 static t_stat m68k_set_chiptype(UNIT* uptr, int32 value, CONST char* cptr, void* desc) {
