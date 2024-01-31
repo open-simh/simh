@@ -927,8 +927,8 @@ static t_stat rr_svc (UNIT *uptr)
     cyl  = uptr->CYL;
 
     if (wr) {
-        if ((wloa & RPWLOA_ON)  &&  !rper/*valid DA*/  &&
-            (n <= GET_WLOADRV(wloa)  ||  cyl <= GET_WLOACYL(wloa))) {
+        if ((wloa & RPWLOA_ON)  &&  !rper/*valid DA*/
+            &&  (n <= GET_WLOADRV(wloa)  ||  cyl <= GET_WLOACYL(wloa))) {
             uptr->STATUS |= RPDS_WLK;                   /* DA write-locked */
             rper |= RPER_WPV;
         } else if (uptr->flags & UNIT_WPRT)             /* write and locked? */
@@ -1030,10 +1030,10 @@ static t_stat rr_svc (UNIT *uptr)
             if (done >= todo)
                 ioerr = 0;                              /* good stuff */
             else if (ioerr)
-                wc = n;                                 /* short, adj wc */
+                wc = n;                                 /* short, adj wd cnt */
             else {
-                todo -= done;                           /* to clear ... */
-                todo *= RP_SIZE(sizeof(*rpxb));         /* ... bytes */
+                todo -= done;                           /* to clear... */
+                todo *= RP_SIZE(sizeof(*rpxb));         /* ...bytes */
                 memset(rpxb + n, 0, todo);
             }
         }
@@ -1043,6 +1043,7 @@ static t_stat rr_svc (UNIT *uptr)
                 RPCONTR data;
                 if (MAP_RDW(a, 1, &data)) {             /* mem wd */
                     rper |= RPER_NXM;                   /* NXM? set flg */
+                    wc = n;                             /* adj wd cnt */
                     break;
                 }
                 a += 2;
@@ -1051,27 +1052,29 @@ static t_stat rr_svc (UNIT *uptr)
                 if (data != rpxb[n])                    /* match to disk? */
                     rper |= RPER_WCE;                   /* no, err */
             }
-            n %= wc;
         } else if ((n = MAP_WRW(ma, wc, rpxb))) {       /* store buf */
             rper |= RPER_NXM;                           /* NXM? set flag */
             wc -= n;                                    /* adj wd cnt */
         }
-        if (!n  &&  ioerr) {                            /* all wrds ok but I/O? */
+        if (!rper  &&  ioerr) {                         /* all wrds ok but I/O? */
             rper |= RPER_FMTE;                          /* report as FMTE */
             uptr->STATUS |= RPDS_HNF;                   /* sector not found */
             if (func == RPCS_WCHK)
                 rper |= RPER_WCE;                       /* write-check err, too */
         }
+        if (rper)                                       /* adj sector count */
+            done = (wc + (RP_NUMWD - 1)) / RP_NUMWD;    /* NB: works for HDR, too */
     } else {                                            /* write: */
         if ((n = MAP_RDW(ma, wc, rpxb)))                /* get buf */
             wc -= n;                                    /* adj wd cnt */
         if (wc  &&  !(rpcs & RPCS_HDR)) {               /* regular write? */
             DEVICE* dptr = find_dev_from_unit(uptr);
-            int32 m = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1); /* clr to */
-            memset(rpxb + wc, 0, (m - wc) * sizeof(*rpxb)); /* end of blk */
+            int32 m = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1); /* clr to... */
+            memset(rpxb + wc, 0, (m - wc) * sizeof(*rpxb)); /* ...end of sect */
             sim_disk_data_trace(uptr, (uint8*) rpxb, da, m * sizeof(*rpxb), "rr_write",
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
             todo = m / RP_NUMWD;                        /* sectors to write */
+            assert(!(m % RP_NUMWD));
             ioerr = sim_disk_wrsect(uptr, da, (uint8*) rpxb, &done, todo);
             assert(done <= todo);
             if (done < todo) {                          /* short write? */
@@ -1093,51 +1096,49 @@ static t_stat rr_svc (UNIT *uptr)
         }
     }
     assert(!ioerr  ||  rper);
+    assert(!wc  ||  done);
+    assert(wc  ||  rper);
 
-    if (wc) {                                           /* any xfer? */
-        assert(done);
-        rpwc += wc;
-        rpwc &= RPWC_IMP;
-        ma   += wc << 1;
-        rpba  = ma & RPBA_IMP;
-        rpcs &= ~RPCS_MEX;
-        rpcs |= (ma >> (16 - RPCS_V_MEX)) & RPCS_MEX;
-        if (rpwc  &&  !(rper | ioerr))
-            rper |= RPER_EOP;                           /* disk pack overrun */
+    rpwc += wc;
+    rpwc &= RPWC_IMP;
+    ma   += wc << 1;
+    rpba  = ma & RPBA_IMP;
+    rpcs &= ~RPCS_MEX;
+    rpcs |= (ma >> (16 - RPCS_V_MEX)) & RPCS_MEX;
+    if (rpwc  &&  !rper)
+        rper |= RPER_EOP;                               /* disk pack overrun */
 
-        da += done;                                     /* update DA */
-        n = GET_DTYPE(uptr->flags);                     /* drive type */
-        assert(da <= drv_tab[n].size);
-        sect = da % RP_NUMSC;                           /* new sector */
-        head = da / RP_NUMSC;                           /* new head (w/cyl) */
-        todo = head / RP_NUMSF;                         /* new cyl (tentative) */
-        if (todo == drv_tab[n].cyl) {                   /* at the end? */
-            cyl   = drv_tab[n].cyl - 1;                 /* keep on last cyl */
-            todo  = 0;                                  /* wrap cyl for rpda */
-            head  = 0;                                  /* ...and head, too */
-            assert(!sect);
-        } else {
-            cyl   = todo;                               /* new cyl */
-            head %= RP_NUMSF;                           /* isolate head */
+    da += done ? done : 1;                              /* update DA */
+    n = GET_DTYPE(uptr->flags);                         /* drive type */
+    assert(da <= drv_tab[n].size);
+    sect = da % RP_NUMSC;                               /* new sector */
+    head = da / RP_NUMSC;                               /* new head (w/cyl) */
+    todo = head / RP_NUMSF;                             /* new cyl (tentative) */
+    if (todo == drv_tab[n].cyl) {                       /* at the end? */
+        cyl   = drv_tab[n].cyl - 1;                     /* keep on last cyl */
+        todo  = 0;                                      /* wrap cyl for rpda */
+        head  = 0;                                      /* ...and head, too */
+        assert(!sect);
+    } else {
+        cyl   = todo;                                   /* new cyl */
+        head %= RP_NUMSF;                               /* isolate head */
+    }
+    uptr->HEAD = head;                                  /* update head */
+    if ((func == RPCS_RD_NOSEEK  ||  func == RPCS_WR_NOSEEK) /* no SEEK I/O... */
+        &&  (uptr->CYL != cyl                           /* ...and: arm moved or... */
+             ||  (rper & RPER_EOP))) {                  /* ...boundary exceeded? */
+        n = (int32)(uptr - rr_dev.units);               /* get unit number */
+        assert((1 << n) & RPDS_ATTN);
+        rpds |= 1 << n;                                 /* set attention */
+        if (rpcs & RPCS_AIE) {                          /* att ints enabled? */
+            sim_debug(RRDEB_INT, &rr_dev, "rr_svc(SET_INT)\n");
+            SET_INT(RR);                                /* request interrupt */
         }
-        uptr->HEAD = head;                              /* update head */
-        if ((func == RPCS_RD_NOSEEK  ||  func == RPCS_WR_NOSEEK)  /* no SEEK I/O... */
-            &&  (uptr->CYL != cyl                       /* ...and: arm moved or... */
-                 ||  (rper & RPER_EOP))) {              /* ...boundary exceeded? */
-            n = (int32)(uptr - rr_dev.units);           /* get unit number */
-            assert((1 << n) & RPDS_ATTN);
-            rpds |= 1 << n;                             /* set attention */
-            if (rpcs & RPCS_AIE) {                      /* att ints enabled? */
-                sim_debug(RRDEB_INT, &rr_dev, "rr_svc(SET_INT)\n");
-                SET_INT(RR);                            /* request interrupt */
-            }
-        }
-        uptr->CYL = cyl;                                /* update cyl */
-        rpda = (head << RPDA_V_TRACK) | sect;           /* updated head / sect */
-        rpca = todo;                                    /* wrapped up cyl */
-        suca = cyl;                                     /* updated real cyl */
-    } else
-        assert(rper);
+    }
+    uptr->CYL = cyl;                                    /* update cyl */
+    rpda = (head << RPDA_V_TRACK) | sect;               /* updated head / sect */
+    rpca = todo;                                        /* wrapped up cyl */
+    suca = cyl;                                         /* updated real cyl */
 
     rr_set_done(0);                                     /* all done here */
 
@@ -1145,9 +1146,10 @@ static t_stat rr_svc (UNIT *uptr)
         const char* name = uptr->uname;
         const char* file = uptr->filename;
         const char* errstr = errno ? strerror(errno) : "";
-        sim_printf("RR%u %s [%s:%s] RPER=%06o I/O error (%s)%s%s", (int) GET_DRIVE(rpcs),
-                   GET_DTYPE(uptr->flags) ? RP_RP03 : RP_RP02, name ? name : "???",
-                   file ? file : "<NULL>", (int) rper, sim_error_text(ioerr),
+        sim_printf("RR%u %s [%s:%s] FUNC=%o(%c) RPER=%06o I/O error (%s)%s%s",
+                   (int) GET_DRIVE(rpcs), GET_DTYPE(uptr->flags) ? RP_RP03 : RP_RP02,
+                   name ? name : "???", file ? file : "<NULL>",
+                   (int) func, "WR"[!wr], (int) rper, sim_error_text(ioerr),
                    errstr  &&  *errstr ? ": " : "", errstr ? errstr : "");
         return SCPE_IOERR;
     }
