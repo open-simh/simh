@@ -6,11 +6,11 @@ install_osx() {
         vde cmake gnu-getopt coreutils
 }
 install_arch() {
-    sudo pacman -S pkgconf
-    sudo pacman -S pcre libpng libedit
-    sudo pacman -S mesa
-    sudo pacman -S libsm
-    sudo -S cmake
+    sudo pacman -S --noconfirm pkgconf
+    sudo pacman -S --noconfirm pcre libpng libedit
+    sudo pacman -S --noconfirm mesa
+    sudo pacman -S --noconfirm libsm
+    sudo pacman -S --noconfirm cmake
 
 }
 
