@@ -8,6 +8,14 @@ install_osx() {
     brew install vde
     brew install cmake gnu-getopt coreutils
 }
+install_arch() {
+    sudo pacman -S pkgconf
+    sudo pacman -S pcre libpng libedit
+    sudo pacman -S mesa
+    sudo pacman -S libsm
+    sudo -S cmake
+
+}
 
 install_linux() {
     sudo apt-get update -yqqm
@@ -60,11 +68,11 @@ install_clang64() {
 
 
 case "$1" in
-  osx|linux|mingw64|ucrt64|clang64)
+  osx|arch|linux|mingw64|ucrt64|clang64)
     install_"$1"
     ;;
   *)
-    echo "$0: Need an operating system name: osx, linux, mingw64 or ucrt64"
+    echo "$0: Need an operating system name: osx, arch, linux, mingw64 or ucrt64"
     exit 1
     ;;
 esac
