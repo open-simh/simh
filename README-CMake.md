@@ -1386,9 +1386,19 @@ solution is `cmake/generate.py` to update the affected simulator
 ```sh
 ## You have to be in the cmake subdirectory to run the generate.py script
 $ cd cmake
+$ python -m generate --help
+usage: generate.py [-h] [--debug [DEBUG]] [--srcdir SRCDIR] [--orphans]
+
+SIMH simulator CMakeLists.txt generator.
+
+options:
+  -h, --help       show this help message and exit
+  --debug [DEBUG]  Debug level (0-3, 0 == off)
+  --srcdir SRCDIR  makefile source directory.
+  --orphans        Check for packaging orphans
+
 # [simh_source] is the absolute path to your top-level SIMH source directory
-$ python -m generate
-generate.py: Expecting to emit 77 simulators.
+$ python -m generate --orphans
 generate.py: Looking for makefile, starting in [simh-source]/open-simh/cmake
 generate.py: Looking for makefile, trying [simh-source]/open-simh
 generate.py: Processing [simh-source]/open-simh/makefile
@@ -1423,6 +1433,7 @@ generate.py: all target vaxstation4000m60
 generate.py: all target microvax3100m80
 generate.py: all target vaxstation4000vlc
 generate.py: all target infoserver1000
+generate.py: all target nd100
 generate.py: all target nova
 generate.py: all target eclipse
 generate.py: all target hp2100
@@ -1475,6 +1486,7 @@ generate.py: all target sel32
 generate.py: exp target alpha
 generate.py: exp target pdq3
 generate.py: exp target sage
+generate.py: Expecting to emit 78 simulators.
 ==== writing to [simh-source]/open-simh/3B2/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/ALTAIR/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/AltairZ80/CMakeLists.txt
@@ -1495,6 +1507,7 @@ generate.py: exp target sage
 ==== writing to [simh-source]/open-simh/Intel-Systems/scelbi/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/Interdata/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/LGP/CMakeLists.txt
+==== writing to [simh-source]/open-simh/ND100/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/NOVA/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/PDP1/CMakeLists.txt
 ==== writing to [simh-source]/open-simh/PDP10/CMakeLists.txt
