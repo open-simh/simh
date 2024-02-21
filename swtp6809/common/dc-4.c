@@ -337,7 +337,6 @@ t_stat dsk_reset (DEVICE *dptr)
 {
     int i;
 
-// RICHARD WAS HERE
     cur_dsk = 5;                        /* force initial SIR read, use a drive # that can't be selected */
 
     for (i=0; i<NUM_DISK; i++) {
@@ -361,10 +360,13 @@ t_stat dsk_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-/*  I/O instruction handlers, called from the MP-B3 module when a
-   read or write occur to addresses 0xE004-0xE007. */
+/*
+    I/O instruction handlers, called from the MP-B3 module when a
+    read or write occur to addresses 0xE004-0xE007.
+*/
 
-/* DC-4 drive select register routine - this register is not part of the 1797
+/*
+    DC-4 drive select register routine - this register is not part of the 1797
 */
 
 int32 fdcdrv(int32 io, int32 data)
@@ -372,7 +374,6 @@ int32 fdcdrv(int32 io, int32 data)
     static long pos;
     static int32 err;
 
-// RICHARD WAS HERE
 //sim_printf("\nfdcdrv: io=%d, data=%d\n", io, data);
 
     if (io) {                           /* write to DC-4 drive register */
@@ -389,7 +390,6 @@ int32 fdcdrv(int32 io, int32 data)
             sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Drive NOT write protected");
         }
 
-// RICHARD WAS HERE
 //sim_printf("\nfdcdrv: reading the SIR\n");
 	// whenever a new drive is selected - re-read the SIR
         pos = 0x200;                    /* Read in SIR */
@@ -406,7 +406,7 @@ int32 fdcdrv(int32 io, int32 data)
             sim_printf("\nfdccmd: File error read in SIR\n");
             return SCPE_IOERR;
         } else {
-// RICHARD WAS HERE
+            ;
 //sim_printf("\nfdcdrv: SIR was read\n");
         }
 
@@ -418,7 +418,6 @@ int32 fdcdrv(int32 io, int32 data)
         trksiz = spt * SECT_SIZE;
         dsksiz = trksiz * cpd;
 
-// RICHARD WAS HERE
 //sim_printf("\nfdcdrv: spt=%d heds=%d cpd=%d trksiz=%d dsksiz=%d flags=%08X u3=%08X\n", spt, heds, cpd, trksiz, dsksiz, dsk_unit[cur_dsk].flags, dsk_unit[cur_dsk].u3);
 
         sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: spt=%d heds=%d cpd=%d trksiz=%d dsksiz=%d flags=%08X u3=%08X",
@@ -438,8 +437,6 @@ int32 fdccmd(int32 io, int32 data)
     static long pos;
     static int32 err;
  
-// RICHARD WAS HERE
-
     if ((dsk_unit[cur_dsk].flags & UNIT_ATT) == 0) { /* not attached */
         dsk_unit[cur_dsk].u3 |= NOTRDY; /* set not ready flag */
         sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Drive %d is not attached", cur_dsk);
@@ -449,7 +446,6 @@ int32 fdccmd(int32 io, int32 data)
     }
     if (io) {                           /* write command to fdc */
 
-// RICHARD WAS HERE
 //sim_printf("fdccmd: command = %02X\n", data);
 
         switch(data) {
@@ -506,7 +502,6 @@ int32 fdccmd(int32 io, int32 data)
             case 0x8C:
             case 0x9C:
 
-// RICHARD WAS HERE
 //sim_printf("\nfdccmd: Read of disk %d, track %d, sector %d\n", cur_dsk, dsk_unit[cur_dsk].u4, dsk_unit[cur_dsk].u5);
 
                 sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Read of disk %d, track %d, sector %d", 
@@ -522,9 +517,10 @@ int32 fdccmd(int32 io, int32 data)
                 } 
                 err = sim_fread(dsk_unit[cur_dsk].filebuf, SECT_SIZE, 1, dsk_unit[cur_dsk].fileref); /* read in buffer */
                 if (err != 1) {
-//RICHARD WAS HERE
-sim_printf("fdccmd: err = %d\n", err);
-sim_printf("fdccmd: errno = %d\n", errno);
+
+                    /* display error information */
+                    sim_printf("\nfdccmd: err = %d\n", err);
+                    sim_printf("\nfdccmd: errno = %d\n", errno);
 
                     sim_printf("\nfdccmd: File error in read command\n");
                     return SCPE_IOERR;
@@ -582,7 +578,6 @@ sim_printf("fdccmd: errno = %d\n", errno);
 
 int32 fdctrk(int32 io, int32 data)
 {
-// RICHARD WAS HERE
 //sim_printf("\nfdctrk: io=%d, data=%d\n", io, data);
 
     if (io) {
@@ -599,7 +594,6 @@ int32 fdctrk(int32 io, int32 data)
 
 int32 fdcsec(int32 io, int32 data)
 {
-// RICHARD WAS HERE
 //sim_printf("\nfdcsec: io=%d, data=%d\n", io, data);
 
     if (io) {

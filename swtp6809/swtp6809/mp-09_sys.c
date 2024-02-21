@@ -25,7 +25,7 @@
 
     MODIFICATIONS
 
-       19 Feb 24 -- Richard Lukes - Modified mp-a2_sys.c for SWTP MP-09 emulation
+       20 Feb 24 -- Richard Lukes - Modified mp-a2_sys.c for SWTP MP-09 emulation
 */
 
 #include <ctype.h>

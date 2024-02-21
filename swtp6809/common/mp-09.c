@@ -26,7 +26,7 @@
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        19 Feb 24 -- Richard Lukes - modified SWTPC mp-a2 emulator to create mp-09 emulator.
+        20 Feb 24 -- Richard Lukes - modified SWTPC mp-a2 emulator to create mp-09 emulator.
 
     NOTES:
 
@@ -274,8 +274,7 @@ void CPU_BD_put_mbyte(int32 addr, int32 val)
 /*  put a word to memory */
 void CPU_BD_put_mword(int32 addr, int32 val)
 {
-    sim_debug (DEBUG_write, &CPU_BD_dev, "CPU_BD_put_mword: addr=%04X, val=%04X\n",
-        addr, val);
+    sim_debug (DEBUG_write, &CPU_BD_dev, "CPU_BD_put_mword: addr=%04X, val=%04X\n", addr, val);
     CPU_BD_put_mbyte(addr, val >> 8);
     CPU_BD_put_mbyte(addr+1, val & 0xFF);
 }

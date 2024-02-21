@@ -26,7 +26,7 @@
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        19 Feb 24 -- Richard Lukes - Modified to emulate MP-B3 motherboard for swtp6809 emulator
+        20 Feb 24 -- Richard Lukes - Modified to emulate MP-B3 motherboard for swtp6809 emulator
 
     NOTES:
 
@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include "swtp_defs.h"
+
 
 #define UNIT_V_RAM_1MB    (UNIT_V_UF) /* MP-1M board enable */
 #define UNIT_RAM_1MB      (1 << UNIT_V_RAM_1MB)
@@ -75,6 +76,8 @@ extern int32 fdcsec(int32 io, int32 data);
 extern int32 fdcdata(int32 io, int32 data);
 
 /*
+MP-B3 configured with 4 address per SS-30 slot (x8).
+
 This is the I/O configuration table.  There are 32 possible
 device addresses, if a device is plugged into a port it's routine
 address is here, 'nulldev' means no device is available
@@ -85,17 +88,16 @@ struct idev {
 };
 
 struct idev dev_table[32] = {
-/*        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, Port 0 E000-E003 */
-        {&sio0s},   {&sio0d},   {&sio1s},   {&sio1d},   /*Port 0 E000-E003 */
-        {&sio0s},   {&sio0d},   {&sio1s},   {&sio1d},   /*Port 1 E004-E007 */
+        {&sio0s},   {&sio0d},   {&sio1s},   {&sio1d},   /* Port 0 E000-E003 */
+        {&sio0s},   {&sio0d},   {&sio1s},   {&sio1d},   /* Port 1 E004-E007 */
 /* sio1x routines just return the last value read on the matching
    sio0x routine.  SWTBUG tests for the MP-C with most port reads! */
-        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, /*Port 2 E008-E00B*/
-        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, /*Port 3 E00C-E00F*/
-        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, /* Port 4 E010-E013*/
+        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, /* Port 2 E008-E00B */
+        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, /* Port 3 E00C-E00F */
+        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}, /* Port 4 E010-E013 */
         {&fdcdrv},  {&nulldev}, {&nulldev}, {&nulldev}, /* Port 5 E014-E017 */
         {&fdccmd},  {&fdctrk},  {&fdcsec},  {&fdcdata}, /* Port 6 E018-E01B */
-        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}  /*Port 7 E01C-E01F*/
+        {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}  /* Port 7 E01C-E01F */
 };
 
 /* dummy i/o device */
@@ -176,6 +178,7 @@ t_stat MB_reset (DEVICE *dptr)
 t_stat MB_deposit(t_value val, t_addr addr, UNIT *uptr, int32 switches)
 {
     if (addr >= 0x100000) {
+        /* exceed 20-bit address space */
         return SCPE_NXM;
     } else {
         MB_put_mbyte(addr, val);
@@ -269,7 +272,7 @@ void MB_put_mbyte(int32 addr, int32 val)
             if (MB_unit.flags & UNIT_RAM_1MB) {
 		mp_1m_put_mbyte(addr, val);
             } else {
-                ; // No RAM conigured at this addresS
+                ; // No RAM conigured at this address
             }
 	    break;
     }

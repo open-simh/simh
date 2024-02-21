@@ -25,7 +25,7 @@
 
    MODIFICATIONS
 
-      19 Feb 24 - Richard Lukes - Modified for swtp6809 emulator  
+      20 Feb 24 - Richard Lukes - Modified for swtp6809 emulator  
 */
 
 #include <ctype.h>

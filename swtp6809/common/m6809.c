@@ -27,7 +27,7 @@
 
         23 Apr 15 -- Modified to use simh_debug
         21 Apr 20 -- Richard Brinegar numerous fixes for flag errors
-	19 Feb 24 -- Richard Lukes - modified for 6809
+	20 Feb 24 -- Richard Lukes - modified for 6809
 
     NOTES:
        cpu                  Motorola M6809 CPU
@@ -173,7 +173,11 @@ int32 mem_fault = 0;                    /* memory fault flag */
 
 /* function prototypes */
 
-t_stat m6809_reset (DEVICE *dptr);
+t_stat m6809_reset(DEVICE *dptr);
+t_stat m6809_boot(int32 unit_num, DEVICE *dptr);
+t_stat m6809_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches);
+t_stat m6809_deposit(t_value value, t_addr addr, UNIT *uptr, int32 switches);
+
 void dump_regs(void);
 void dump_regs1(void);
 int32 fetch_byte(int32 flag);
@@ -195,8 +199,6 @@ int32 get_dir_word_val(void);
 int32 get_imm_byte_val(void);
 int32 get_imm_word_val(void);
 int32 get_dir_addr(void);
-
-/* needs to be removed later! */
 int32 get_indexed_byte_val(void);
 int32 get_indexed_word_val(void);
 int32 get_indexed_addr(void);
@@ -270,10 +272,10 @@ DEVICE m6809_dev = {
     1,                                  //aincr
     16,                                 //dradix
     8,                                  //dwidth
-    NULL,                               //examine
-    NULL,                               //deposit
+    &m6809_examine,                     //examine
+    &m6809_deposit,                     //deposit
     &m6809_reset,                       //reset
-    NULL,                               //boot
+    &m6809_boot,                        //boot
     NULL,                               //attach
     NULL,                               //detach
     NULL,                               //ctxt
@@ -495,9 +497,9 @@ t_stat sim_instr (void)
         if (int_req > 0) {              /* interrupt? */
         /* 6809 interrupts not implemented yet.  None were used,
            on a standard SWTP 6809. All I/O is programmed. */
-// RICHARD WAS HERE
-printf("m6809.c: int_req > 0!!!\n");
-fflush(stdout);
+            reason = STOP_HALT;        /* stop simulation */
+            break;
+
         }                               /* end interrupt */
         if (sim_brk_summ &&
             sim_brk_test (PC, SWMASK ('E'))) { /* breakpoint? */
@@ -637,9 +639,6 @@ fflush(stdout);
             case 0x10:                  /* 2-byte opcodes */
                 /* fetch second byte of opcode */
                 OP2 = fetch_byte(0);
-//fprintf(stdout,"-->OP2=%08X\n", OP2);
-//fprintf(stdout,"-->NF=%08X,VF=%08X,LBLT=%08X\n", get_flag(NF), get_flag(VF), get_flag(NF) ^ get_flag(VF));
-//fflush(stdout);
         	switch (OP2) {
             	    case 0x21:              /* LBRN rel */
 		        /* Branch Never - essentially a NOP */
@@ -940,8 +939,8 @@ fflush(stdout);
             case 0x12:                  /* NOP */
                 break;
             case 0x13:                  /* SYNC inherent*/
-/* RICHARD WAS HERE */
-/* interrupts are not implemented */
+                /* Interrupts are not implemented */
+                reason = STOP_HALT;     /* stop simulation */
                 break;
             case 0x16:                  /* LBRA relative */
 		go_long_rel(1);
@@ -3246,6 +3245,17 @@ void condevalHa(int32 op1, int32 op2)
 
 /* calls from the simulator */
 
+/* Boot routine */
+t_stat m6809_boot(int32 unit_num, DEVICE *dptr)
+{
+    /* retrieve the reset vector at $FFFE */
+    saved_PC = CPU_BD_get_mword(0xFFFE);
+    if (saved_PC == 0xFFFF) {
+        ; // No BOOT ROM detected!
+    }
+    return SCPE_OK;
+}
+
 /* Reset routine */
 t_stat m6809_reset (DEVICE *dptr)
 {
@@ -3253,12 +3263,37 @@ t_stat m6809_reset (DEVICE *dptr)
     DP = 0;
     int_req = 0;
     sim_brk_types = sim_brk_dflt = SWMASK ('E');
+
+    /* retrieve the reset vector at $FFFE */
     saved_PC = CPU_BD_get_mword(0xFFFE);
-//    if (saved_PC == 0xFFFF)
-//        printf("No EPROM image found - M6809 reset incomplete!\n");
-//    else
-//        printf("EPROM vector=%04X\n", saved_PC);
+    if (saved_PC == 0xFFFF) {
+        ; // No BOOT ROM detected!
+    }
     return SCPE_OK;
+}
+
+/* examine routine */
+t_stat m6809_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches)
+{
+    if (addr >= 0x10000) {
+        /* exceed 16-bit address space */
+        return SCPE_NXM;
+    } else {
+        *eval_array = CPU_BD_get_mbyte(addr);
+        return SCPE_OK;
+    }
+}
+
+/* deposit routine */
+t_stat m6809_deposit(t_value value, t_addr addr, UNIT *uptr, int32 switches)
+{
+    if (addr >= 0x10000) {
+        /* exceed 16-bit address space */
+        return SCPE_NXM;
+    } else {
+        CPU_BD_put_mbyte(addr, value);
+        return SCPE_OK;
+    }
 }
 
 

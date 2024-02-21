@@ -26,7 +26,7 @@
     MODIFICATIONS:
 
         23 Apr 15 -- Modified to use simh_debug
-        19 Feb 24 -- Richard Lukes - Modified for swtp6809 emulator
+        20 Feb 24 -- Richard Lukes - Modified for swtp6809 emulator
 
     NOTES:
 
@@ -50,12 +50,6 @@
 #include <stdio.h>
 #include "swtp_defs.h"
 
-#define DONT_USE_INTERNAL_ROM
-
-#if !defined(DONT_USE_INTERNAL_ROM)
-#include "swtp_sbuge_bin.h"
-#endif /* DONT_USE_INTERNAL_ROM */
-
 #define UNIT_V_MSIZE    (UNIT_V_UF)     /* ROM Size */
 #define UNIT_MSIZE      (0x7 << UNIT_V_MSIZE)
 #define UNIT_NONE       (0 << UNIT_V_MSIZE) /* No EPROM */
@@ -69,24 +63,22 @@
 #define BOOTROM_4K 0x1000
 #define BOOTROM_8K 0x2000
 
+// this value is used when referencing BOOTROM memory that is not populated (i.e. not loaded by BOOTROM attach)
+#define DEFAULT_NO_ROM_BYTE_VALUE 0xFF
+
 /* function prototypes */
 
-t_stat BOOTROM_attach (UNIT *uptr, CONST char *cptr);
-t_stat BOOTROM_config (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+t_stat BOOTROM_attach(UNIT *uptr, CONST char *cptr);
+t_stat BOOTROM_config(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat BOOTROM_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches);
-t_stat BOOTROM_reset (DEVICE *dptr);
-//t_stat BOOTROM_svc (UNIT *uptr);
+t_stat BOOTROM_reset(DEVICE *dptr);
 
 int32  BOOTROM_get_mbyte(int32 address);
 
 /* SIMH Standard I/O Data Structures */
 
 UNIT BOOTROM_unit = {
-#if defined(DONT_USE_INTERNAL_ROM)
     UDATA (NULL, UNIT_ATTABLE+UNIT_BINK+UNIT_ROABLE+UNIT_RO, 0),
-#else /* !defined(DONT_USE_INTERNAL_ROM) */
-    UDATA (NULL, UNIT_ATTABLE+UNIT_BINK+UNIT_ROABLE+UNIT_RO+((BOOT_CODE_SIZE>>9)<<UNIT_V_MSIZE), BOOT_CODE_SIZE),
-#endif
     KBD_POLL_WAIT };
 
 MTAB BOOTROM_mod[] = {
@@ -141,7 +133,7 @@ DEVICE BOOTROM_dev = {
 /* Available sizes are None=0, 512B=2704, 1KB=2708, 2KB=2716, 4KB=2732, 8KB=2764 */
 
 /* Pre-allocate 8KB array of bytes to accomodate largest BOOTROM */
-uint8 BOOTROM_memory_array[BOOTROM_8K];
+uint8 BOOTROM_memory[BOOTROM_8K];
 
 t_stat BOOTROM_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches)
 {
@@ -149,49 +141,81 @@ t_stat BOOTROM_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switc
         return SCPE_NXM;
     }
     if (eval_array != NULL) {
-        *eval_array = BOOTROM_memory_array[addr] & 0xFF;
+        *eval_array = BOOTROM_get_mbyte(addr);
     }
     return SCPE_OK;
 
-} /* BOOTROM_examin() */
+} /* BOOTROM_examine() */
 
 /* BOOTROM_attach - attach file to EPROM unit */
-t_stat BOOTROM_attach (UNIT *uptr, CONST char *cptr)
+t_stat BOOTROM_attach(UNIT *uptr, CONST char *cptr)
 {
     t_stat r;
-    t_addr image_size, capac;
-    int i;
+    t_addr image_size;
+    int i,j;
+    FILE *fp;
+    uint8 byte_val;
+    size_t items_read;
 
-//RICHARD WAS HERE
-printf("calling BOOTROM_attach\n");
+    if (BOOTROM_unit.filebuf == NULL) { /* no buffer allocated */
+        BOOTROM_unit.filebuf = BOOTROM_memory;
+    }
+    if ((BOOTROM_unit.flags & UNIT_MSIZE) == 0) { /* if none selected */
+        BOOTROM_unit.capac = 0;         /* set EPROM size to 0 */
+        return SCPE_OK;
+    }
+
     sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_attach: cptr=%s\n", cptr);
-    if ((r = attach_unit (uptr, cptr)) != SCPE_OK) {
-        sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_attach: Error\n");
+    if ((r = attach_unit(uptr, cptr)) != SCPE_OK) {
+        sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_attach: Error %d\n", r);
         return r;
     }
-    image_size = (t_addr)sim_fsize_ex (BOOTROM_unit.fileref);
+
+    image_size = (t_addr) sim_fsize_ex(uptr->fileref);
     if (image_size <= 0) {
         sim_printf("BOOTROM_attach: File error\n");
+        detach_unit(uptr);
         return SCPE_IOERR;
-    } 
-    for (capac = 0x200, i=1; capac < image_size; capac <<= 1, i++);
-    if (i > (UNIT_2764>>UNIT_V_MSIZE)) {
-        detach_unit (uptr);
-        return SCPE_ARG;
+    } else {
+        if (image_size > BOOTROM_8K) {
+            sim_printf("BOOTROM_attach: Error. File size exceeds ROM capacity\n");
+            detach_unit(uptr);
+            return SCPE_ARG;
+        }
     }
-    uptr->flags &= ~UNIT_MSIZE;
-    uptr->flags |= (i << UNIT_V_MSIZE);
+
+    /* open EPROM file */
+    fp = fopen(BOOTROM_unit.filename, "rb");
+    if (fp == NULL) {
+        printf("Bootrom: Unable to open ROM file %s\n",BOOTROM_unit.filename);
+        printf("Bootrom: No ROM image loaded!!!\n");
+        return SCPE_OK;
+    }
+
+    /* load EPROM file */
+    j = 0;
+    items_read = sim_fread(&byte_val, (size_t)1, (size_t)1, fp);
+    while (items_read != 0) {
+        BOOTROM_memory[j++] = byte_val;
+        items_read = sim_fread(&byte_val, (size_t)1, (size_t)1,fp);
+        if (j > BOOTROM_unit.capac) {
+            printf("Bootrom: Image is too large - Load truncated!!!\n");
+            j--;
+            break;
+        }
+    }
+    fclose(fp);
+    printf("Bootrom: %d bytes of ROM image %s loaded\n", j, BOOTROM_unit.filename);
+
     sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_attach: Done\n");
-//RICHARD WAS HERE
-    return (BOOTROM_reset (NULL));
     return SCPE_OK;
+
 } /* BOOTROM_attach() */
 
 /* BOOTROM_config = None, 2704, 2708, 2716, 2732 or 2764 */
 t_stat BOOTROM_config (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-//RICHARD WAS HERE
-printf("calling BOOTROM_config\n");
+
     sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_config: val=%d\n", val);
     if ((val < UNIT_NONE) || (val > UNIT_2764)) { /* valid param? */
         sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_config: Parameter error\n");
@@ -201,91 +225,35 @@ printf("calling BOOTROM_config\n");
         BOOTROM_unit.capac = 0;         /* set EPROM size */
     else
         BOOTROM_unit.capac = 0x200 << ((val >> UNIT_V_MSIZE) - 1); /* set EPROM size */
-    if (BOOTROM_unit.filebuf) {         /* free buffer */
-        //free (BOOTROM_unit.filebuf);
-        BOOTROM_unit.filebuf = NULL;
+
+    if (!BOOTROM_unit.filebuf) {         /* point buffer to static array */
+        BOOTROM_unit.filebuf = BOOTROM_memory;
     }
+
     sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_config: BOOTROM_unit.capac=%d\n",
             BOOTROM_unit.capac);
     sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_config: Done\n");
+
     return SCPE_OK;
 } /* BOOTROM config */
 
 /* BOOTROM reset */
 t_stat BOOTROM_reset (DEVICE *dptr)
 {
-    t_addr i,j;
-    unsigned long c;
-    long count;
-    FILE *fp;
-    uint8 *pa;
+    t_addr i;
 
-//RICHARD WAS HERE
-printf("calling BOOTROM_reset\n");
-    /* initialize array to $FF */
-    for (i=0; i<BOOTROM_8K; i++) {
-        BOOTROM_memory_array[i] = 0xFF;
-    }
     sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_reset: \n");
 
-    if ((BOOTROM_unit.flags & UNIT_MSIZE) == 0) { /* if none selected */
-        BOOTROM_unit.capac = 0;         /* set EPROM size to 0 */
-        sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_reset: Done1\n");
-        return SCPE_OK;
-    }                               /* if attached */
-
+    /* allocate filebuf */
     if (BOOTROM_unit.filebuf == NULL) { /* no buffer allocated */
         //BOOTROM_unit.filebuf = calloc(1, BOOTROM_unit.capac); /* allocate EPROM buffer */
-        BOOTROM_unit.filebuf = BOOTROM_memory_array; /* allocate EPROM buffer */
+        BOOTROM_unit.filebuf = BOOTROM_memory;
         if (BOOTROM_unit.filebuf == NULL) {
-            sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_reset: Malloc error\n");
             return SCPE_MEM;
         }
     }
-
-//RICHARD WAS HERE - need to understand INTERNAL_ROM
-#if !defined(DONT_USE_INTERNAL_ROM)
-    if (!BOOTROM_unit.filename) {
-        if (BOOTROM_unit.capac < BOOT_CODE_SIZE) {
-            return SCPE_ARG;
-        }
-        memcpy (BOOTROM_unit.filebuf, BOOT_CODE_ARRAY, BOOT_CODE_SIZE);
-        return SCPE_OK;
-    }
-#endif
-
-//RICHARD WAS HERE - I think this needs to move to attach
-    fp = fopen(BOOTROM_unit.filename, "rb"); /* open EPROM file */
-    if (fp == NULL) {
-        printf("\tUnable to open ROM file %s\n",BOOTROM_unit.filename);
-        printf("\tNo ROM image loaded!!!\n");
-        return SCPE_OK;
-    }
-
-    j=0;
-    pa = BOOTROM_unit.filebuf;
-    count = fread( &c, 1, 1, fp);
-    while (count != 0) {
-	pa[j++] = c & 0xFF;
-        count = fread( &c, 1, 1, fp);
-
-        /* warn if ROM image is larger than the specified ROM size */
-        if (j > BOOTROM_unit.capac) {
-            printf("\tImage is too large - Load truncated!!!\n");
-            j--;
-            break;
-        }
-    }
-    fclose(fp);
-
-    /* warn if loaded ROM image is smaller than the specified ROM size */
-    if (j < BOOTROM_unit.capac) {
-        printf("\tImage is smaller than specified ROM size!!!\n");
-    }
-
-    printf("\t%d bytes of ROM image %s loaded\n", j, BOOTROM_unit.filename);
-    sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_reset: Done2\n");
     return SCPE_OK;
+
 } /* BOOTROM_reset() */
 
 /*  get a byte from memory - from specified memory address */
@@ -296,16 +264,17 @@ int32 BOOTROM_get_mbyte(int32 address)
 
     if (BOOTROM_unit.filebuf == NULL) {
         sim_debug (DEBUG_read, &BOOTROM_dev, "BOOTROM_get_mbyte: EPROM not configured\n");
-        return 0xFF;
+        return DEFAULT_NO_ROM_BYTE_VALUE;
     }
     sim_debug (DEBUG_read, &BOOTROM_dev, "BOOTROM_get_mbyte: address=%04X\n", address);
     if ((t_addr)(0xFFFF - address) > BOOTROM_unit.capac) {
         sim_debug (DEBUG_read, &BOOTROM_dev, "BOOTROM_get_mbyte: EPROM reference beyond ROM size\n");
-        return 0xFF;
+        return DEFAULT_NO_ROM_BYTE_VALUE;
     }
+
     pa = BOOTROM_unit.filebuf;
     /* the following code is needed to calculate offsets so address $FFFF references the last byte of the ROM */
-    val = 0xFF;
+    val = DEFAULT_NO_ROM_BYTE_VALUE;
     switch (BOOTROM_unit.capac) {
         /* 2764 - $E000-$FFFF */
         case 0x2000:

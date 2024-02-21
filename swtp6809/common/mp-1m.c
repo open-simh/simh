@@ -26,7 +26,7 @@
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        19 Feb 24 -- Richard Lukes - Modified mp-8m.c to use for 1MB memory for swtp6809 emulator
+        20 Feb 24 -- Richard Lukes - Modified mp-8m.c to use for 1MB memory for swtp6809 emulator
 
     NOTES:
 
@@ -147,7 +147,7 @@ t_stat mp_1m_reset (DEVICE *dptr)
             printf("mp_1m_reset: Malloc error\n");
             return SCPE_MEM;
         }
-        for (j=0; j < uptr->capac; j++) {    /* fill pattern for testing */
+        for (j=0; j < uptr->capac; j++) {    /* populate memory with fill pattern */
             i = j & 0xF;
             val = (0xA0 |  i) & 0xFF;
             *((uint8 *)(uptr->filebuf) + j) = val;
@@ -197,9 +197,6 @@ int32 mp_1m_get_mword(int32 addr)
 
 void mp_1m_put_mbyte(int32 addr, int32 val)
 {
-    //UNIT *uptr;
-
-    //uptr = mp_1m_dev.units;
     sim_debug (DEBUG_write, &mp_1m_dev, "mp_1m_put_mbyte: addr=%05X, val=%02X", addr, val);
 
     if (addr >= ONE_MEGABYTE) {
