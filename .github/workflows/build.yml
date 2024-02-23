@@ -34,7 +34,7 @@ jobs:
           - besm6 imlac tt2500 microvax3900 microvax1 rtvax1000 vaxstation3100m76 vaxstation4000m60
           - scelbi 3b2 i701 i704 i7010 i7070 i7080 i7090 sigma uc15 i650 sel32 intel-mds ibm1130
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         if: ${{runner.os == 'macOS'}}
         run: sh -ex .travis/deps.sh osx

@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run: |
         sh -ex .travis/deps.sh linux
@@ -32,7 +32,7 @@ jobs:
         cd cmake/build-ninja
         cpack -G DEB -C Release
     - name: Upload DEB
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-x86_64-${{matrix.os}}.deb
         path: cmake/build-ninja/simh-4.1.0-x86_64-${{matrix.os}}.deb
@@ -45,7 +45,7 @@ jobs:
       matrix:
         os: [macos-12, macos-11]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     ## For some reason, the macos-11 image has symlinks to /Library in /usr/local/bin
     - name: Clean /usr/local/bin symlinks
       run: |
@@ -72,12 +72,12 @@ jobs:
         cpack -G "ZIP;TGZ" -C Release
         cpack -G DragNDrop -C Release
     - name: Upload ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-x86_64.${{matrix.os}}.zip
         path: cmake/build-xcode/simh-4.1.0-x86_64.${{matrix.os}}.zip
     - name: Upload DMG
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-x86_64.${{matrix.os}}.dmg
         path: cmake/build-xcode/simh-4.1.0-x86_64.${{matrix.os}}.dmg
@@ -97,7 +97,7 @@ jobs:
   #     matrix:
   #       os: [macos-12]
   #   steps:
-  #   - uses: actions/checkout@v3
+  #   - uses: actions/checkout@v4
   #   - name: Install dependencies
   #     run: |
   #       sh -ex .travis/deps.sh osx
@@ -113,7 +113,7 @@ jobs:
     name: VS 2022 XP-compatible LEGACY
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install v141_xp (XP toolkit) and build SIMH
       shell: pwsh
       run: |
@@ -167,21 +167,21 @@ jobs:
           cd cmake\build-vs2022-xp
           cpack -G "ZIP;WIX" -C Release
     - name: Upload ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022xp.zip
         path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.zip
     - name: Upload MSI
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-win32-vs2022xp.zip
+        name: simh-4.1.0-win32-vs2022xp.msi
         path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.msi     
 
   cmake-vs2022:
     name: VS 2022 Win10 native VCPKG
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: vs2022 build
       shell: pwsh
       run: |
@@ -214,17 +214,17 @@ jobs:
           cd cmake\build-vs2022
           cpack -G "NSIS;WIX;ZIP" -C Release
     - name: Upload ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022.zip
         path: cmake/build-vs2022/simh-4.1.0-win32-native.zip
     - name: Upload EXE installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022.exe
         path: cmake/build-vs2022/simh-4.1.0-win32-native.exe
     - name: Upload MSI installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022.msi
         path: cmake/build-vs2022/simh-4.1.0-win32-native.msi
