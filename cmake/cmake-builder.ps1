@@ -495,14 +495,14 @@ foreach ($phase in $scriptPhases) {
             Write-Host "** ${scriptName}: Configuring and generating"
 
             $phaseCommand = ${cmakeCmd}
-            $argList = Quote-Args $generateArgs
+            $argList = $generateArgs
         }
 
         "build" {
             Write-Host "** ${scriptName}: Building simulators."
 
             $phaseCommand = ${cmakeCmd}
-            $argList = $(Quote-Args $buildArgs) + $(Quote-Args $buildSpecificArgs)
+            $argList = $buildArgs + $buildSpecificArgs
         }
 
         "test" {
@@ -529,7 +529,7 @@ foreach ($phase in $scriptPhases) {
             }
          
             $phaseCommand = ${ctestCmd}
-            $argList = Quote-Args $testArgs
+            $argList = $testArgs
 
             $env:PATH = $modPath
 
@@ -556,13 +556,13 @@ foreach ($phase in $scriptPhases) {
             }
 
             $phaseCommand = ${cmakeCmd}
-            $argList = Quote-Args @( "--install", "${buildDir}", "--config", "${config}")
+            $argList = @( "--install", "${buildDir}", "--config", "${config}")
         }
     }
 
     try {
         Push-Location ${buildDir}
-        Write-Host "** ${phaseCommand} ${argList}"
+        Write-Host "** ${phaseCommand} $(Quote-Args ${argList})"
         & $phaseCommand @arglist
         if ($LastExitCode -gt 0) {
             $printPhase = (Get-Culture).TextInfo.ToTitleCase($phase)
