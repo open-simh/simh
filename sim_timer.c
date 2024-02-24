@@ -311,8 +311,6 @@ pthread_mutex_lock (&sim_asynch_lock);
 sim_idle_wait = TRUE;
 if (pthread_cond_timedwait (&sim_asynch_wake, &sim_asynch_lock, &end_time))
     timedout = TRUE;
-else
-    sim_asynch_check = 0;                 /* force check of asynch queue now */
 sim_idle_wait = FALSE;
 pthread_mutex_unlock (&sim_asynch_lock);
 clock_gettime(CLOCK_REALTIME, &done_time);
@@ -1841,7 +1839,6 @@ sim_cancel (&sim_throttle_unit);
 */
 t_stat sim_throt_svc (UNIT *uptr)
 {
-int32 tmr;
 uint32 delta_ms;
 double a_cps, d_cps, delta_inst;
 RTC *rtc = NULL;
