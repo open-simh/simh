@@ -23,10 +23,36 @@
         used in advertising or otherwise to promote the sale, use or other dealings
         in this Software without prior written authorization from William A. Beech.
 
+    The following copyright notice applies to the SWTP 6809 source, binary, and documentation:
+ 
+    Original code published in 2024, written by Richard F Lukes
+    Copyright (c) 2024, Richard F Lukes
+ 
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files (the "Software"),
+        to deal in the Software without restriction, including without limitation
+        the rights to use, copy, modify, merge, publish, distribute, sublicense,
+        and/or sell copies of the Software, and to permit persons to whom the
+        Software is furnished to do so, subject to the following conditions:
+ 
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+ 
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+        THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+        IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+        Except as contained in this notice, the names of The Authors shall not be
+        used in advertising or otherwise to promote the sale, use or other dealings
+        in this Software without prior written authorization from the Authors.
+
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        20 Feb 24 -- Richard Lukes - Modified to emulate MP-B3 motherboard for swtp6809 emulator
+        24 Feb 24 -- Richard Lukes - Modified to emulate MP-B3 motherboard for swtp6809 emulator
 
     NOTES:
 
@@ -36,8 +62,8 @@
 #include "swtp_defs.h"
 
 
-#define UNIT_V_RAM_1MB    (UNIT_V_UF) /* MP-1M board enable */
-#define UNIT_RAM_1MB      (1 << UNIT_V_RAM_1MB)
+#define UNIT_V_4BYTESPERSLOT    (UNIT_V_UF) /* MP-1M board enable */
+#define UNIT_4BYTESPERSLOT      (1 << UNIT_V_4BYTESPERSLOT)
 
 /* function prototypes */
 
@@ -128,8 +154,8 @@ REG MB_reg[] = {
 };
 
 MTAB MB_mod[] = {
-    { UNIT_RAM_1MB,  UNIT_RAM_1MB,  "1MB On",  "1MB",   NULL, NULL },
-    { UNIT_RAM_1MB,  0,             "1MB Off", "NO1MB", NULL, NULL },
+    { UNIT_4BYTESPERSLOT, UNIT_4BYTESPERSLOT,  "I/O port size of 4 bytes",  "4BYTE",   NULL, NULL },
+    { UNIT_4BYTESPERSLOT, 0, "I/O port size of 16 bytes is not supported", "16BYTE", NULL, NULL },
     { 0 }
 };
 
@@ -222,13 +248,9 @@ int32 MB_get_mbyte(int32 addr)
             break;
 	default:
 	    /* all the rest is RAM */
-            if (MB_unit.flags & UNIT_RAM_1MB) {
-                val = mp_1m_get_mbyte(addr);
-        	if (MB_dev.dctrl & DEBUG_read) {
-            	    printf("MB_get_mbyte: mp_1m add=%05x val=%02X\n", addr, val);
-        	}
-            } else {
-                ; // No RAM configured at this addresS
+            val = mp_1m_get_mbyte(addr);
+            if (MB_dev.dctrl & DEBUG_read) {
+            	printf("MB_get_mbyte: mp_1m add=%05x val=%02X\n", addr, val);
             }
             break;
     }
@@ -259,7 +281,7 @@ void MB_put_mbyte(int32 addr, int32 val)
 
     switch(addr & 0xF000) {
         case 0xE000:
-	    /* I/O space */
+	    /* I/O and ROM space */
             if ((addr & 0xFFFF) < 0xE020) {
                 dev_table[(addr & 0xFFFF) - 0xE000].routine(1, val);
             }
@@ -269,11 +291,7 @@ void MB_put_mbyte(int32 addr, int32 val)
 	    break;
 	default:
 	    /* RAM */
-            if (MB_unit.flags & UNIT_RAM_1MB) {
-		mp_1m_put_mbyte(addr, val);
-            } else {
-                ; // No RAM conigured at this address
-            }
+	    mp_1m_put_mbyte(addr, val);
 	    break;
     }
 }

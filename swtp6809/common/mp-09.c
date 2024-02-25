@@ -23,10 +23,36 @@
         be used in advertising or otherwise to promote the sale, use or other dealings
         in this Software without prior written authorization from William A. Beech.
 
+    The following copyright notice applies to the SWTP 6809 source, binary, and documentation:
+ 
+    Original code published in 2024, written by Richard F Lukes
+    Copyright (c) 2024, Richard F Lukes
+ 
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files (the "Software"),
+        to deal in the Software without restriction, including without limitation
+        the rights to use, copy, modify, merge, publish, distribute, sublicense,
+        and/or sell copies of the Software, and to permit persons to whom the
+        Software is furnished to do so, subject to the following conditions:
+ 
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+ 
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+        THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+        IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+        Except as contained in this notice, the names of The Authors shall not be
+        used in advertising or otherwise to promote the sale, use or other dealings
+        in this Software without prior written authorization from the Authors.
+
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        20 Feb 24 -- Richard Lukes - modified SWTPC mp-a2 emulator to create mp-09 emulator.
+        24 Feb 24 -- Richard Lukes - modified SWTPC mp-a2 emulator to create mp-09 emulator.
 
     NOTES:
 
@@ -43,22 +69,9 @@
 #include <stdio.h>
 #include "swtp_defs.h"
 
-#define UNIT_V_USER_D   (UNIT_V_UF)     /* user defined switch */
-#define UNIT_USER_D     (1 << UNIT_V_USER_D)
-#define UNIT_V_4K_8K    (UNIT_V_UF+1)   /* off if HI_PROM and only 2K EPROM */
-#define UNIT_4K_8K      (1 << UNIT_V_4K_8K)
-#define UNIT_V_SWT      (UNIT_V_UF+2)   /* on SWTBUG, off MIKBUG */
-#define UNIT_SWT        (1 << UNIT_V_SWT)
-#define UNIT_V_8K       (UNIT_V_UF+3)   /* off if HI_PROM and only 2K or 4k EPROM */
-#define UNIT_8K         (1 << UNIT_V_8K)
-#define UNIT_V_RAM      (UNIT_V_UF+4)   /* off disables 6810 RAM */
-#define UNIT_RAM        (1 << UNIT_V_RAM)
-#define UNIT_V_LO_PROM  (UNIT_V_UF+5)   /* on EPROMS @ C000-CFFFH, off no EPROMS */
-#define UNIT_LO_PROM    (1 << UNIT_V_LO_PROM)
-#define UNIT_V_HI_PROM  (UNIT_V_UF+6)   /* on EPROMS @ F000-FFFFH, off fo LO_PROM, MON, or no EPROMS */
-#define UNIT_HI_PROM    (1 << UNIT_V_HI_PROM)
-#define UNIT_V_MON      (UNIT_V_UF+7)   /* on for monitor vectors in high memory */
-#define UNIT_MON        (1 << UNIT_V_MON)
+#define UNIT_V_DAT   (UNIT_V_UF)     /* Dynamic Address Translation setting */
+#define UNIT_DAT     (1 << UNIT_V_DAT)
+
 
 /* local global variables */
 unsigned char DAT_RAM[16];
@@ -98,22 +111,8 @@ REG CPU_BD_reg[] = {
 };
 
 MTAB CPU_BD_mod[] = {
-    { UNIT_USER_D, UNIT_USER_D, "USER_D", "USER_D", NULL },
-    { UNIT_USER_D, 0, "NOUSER_D", "NOUSER_D", NULL },
-    { UNIT_4K_8K, UNIT_4K_8K, "4K_8K", "4K_8K", NULL },
-    { UNIT_4K_8K, 0, "NO4K_8K", "NO4K_8K", NULL },
-    { UNIT_SWT, UNIT_SWT, "SWT", "SWT", NULL },
-    { UNIT_SWT, 0, "NOSWT", "NOSWT", NULL },
-    { UNIT_8K, UNIT_8K, "8K", "8K", NULL },
-    { UNIT_8K, 0, "NO8K", "NO8K", NULL },
-    { UNIT_RAM, UNIT_RAM, "RAM", "RAM", NULL },
-    { UNIT_RAM, 0, "NORAM", "NORAM", NULL },
-    { UNIT_LO_PROM, UNIT_LO_PROM, "LO_PROM", "LO_PROM", NULL },
-    { UNIT_LO_PROM, 0, "NOLO_PROM", "NOLO_PROM", NULL },
-    { UNIT_HI_PROM, UNIT_HI_PROM, "HI_PROM", "HI_PROM", NULL },
-    { UNIT_HI_PROM, 0, "NOHI_PROM", "NOHI_PROM", NULL },
-    { UNIT_MON, UNIT_MON, "MON", "MON", NULL },
-    { UNIT_MON, 0, "NOMON", "NOMON", NULL },
+    { UNIT_DAT, UNIT_DAT, "DAT enabled", "DAT", NULL },
+    { UNIT_DAT, 0, "DAT disabled", "NODAT", NULL },
     { 0 }
 };
 
@@ -157,6 +156,7 @@ t_stat CPU_BD_reset (DEVICE *dptr)
 {
     int32 i;
 
+    /* this is performed whether DAT is enabled or not */
     // initialize DAT RAM
     for (i=0; i<16; i++) {
         DAT_RAM[i] = (~i) & 0x0F;
@@ -191,20 +191,29 @@ t_stat CPU_BD_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switch
 /* Perform adress translation from 16-bit logical address to 20-bit physical address using DAT mapping RAM */
 int32 DAT_Xlate(int32 logi_addr)
 {
-   int32 DAT_index;    /* which of the 16 mapping registers to index */
-   int32 DAT_byte;     /* the lookup value from DAT RAM */
-   int32 DAT_block;    /* A13-A14-A15-A16 */
 
-   /* translation from 16-bit logical address to 20-bit physical address */
-   DAT_index = (logi_addr & 0xF000) >> 12;
-   DAT_byte = DAT_RAM_CACHE[DAT_index];
-   if (DAT_index >= 0xE) {
-       /* for logical addresses $E000-$FFFF */
-       // Bank address (A17-A20) is 0b0000
-       return((logi_addr & 0xFFF) + ((DAT_byte & 0x0F)<<12));
+    /* if DAT is enabled perform the Dynamic Address Translation */
+    if (CPU_BD_unit.flags & UNIT_DAT) {
+
+        int32 DAT_index;    /* which of the 16 mapping registers to index */
+        int32 DAT_byte;     /* the lookup value from DAT RAM */
+        int32 DAT_block;    /* A13-A14-A15-A16 */
+
+        /* translation from 16-bit logical address to 20-bit physical address */
+        DAT_index = (logi_addr & 0xF000) >> 12;
+        DAT_byte = DAT_RAM_CACHE[DAT_index];
+        if (DAT_index >= 0xE) {
+            /* for logical addresses $E000-$FFFF */
+            // Bank address (A17-A20) is 0b0000
+            return((logi_addr & 0xFFF) + ((DAT_byte & 0x0F)<<12));
+        } else {
+            // Bank address (A17-A20) is the high order 4-bits of DAT_byte
+            return((logi_addr & 0xFFF) + (DAT_byte<<12));
+        }
+
    } else {
-       // Bank address (A17-A20) is the high order 4-bits of DAT_byte
-       return((logi_addr & 0xFFF) + (DAT_byte<<12));
+       /* DAT is disabled */
+       return(logi_addr);
    }
 }
 
@@ -227,7 +236,11 @@ int32 CPU_BD_get_mbyte(int32 addr)
 	    /* 56K of RAM from 0000-DFFF */
 	    /* 8K of I/O space from E000-EFFF */
 	    /* 2K of scratchpad RAM from F000-F7FF ??? */
-	    phy_addr = DAT_Xlate(addr);
+            if (CPU_BD_unit.flags & UNIT_DAT) {
+	        phy_addr = DAT_Xlate(addr);
+            } else {
+	        phy_addr = addr;
+            }
             val = MB_get_mbyte(phy_addr);
             sim_debug (DEBUG_read, &CPU_BD_dev, "CPU_BD_get_mbyte: mp_b3 val=%02X\n", val);
             break;
@@ -256,6 +269,7 @@ void CPU_BD_put_mbyte(int32 addr, int32 val)
     sim_debug (DEBUG_write, &CPU_BD_dev, "CPU_BD_put_mbyte: addr=%04X, val=%02X\n", addr, val);
 
     if ((addr & 0xFFF0) == 0xFFF0) {
+        /* this is performed whether DAT is enabled or not */
         DAT_RAM[addr & 0x0F] = val;
         DAT_RAM_CACHE[addr & 0x0F] = (val & 0xF0) | (~val & 0x0F);
     } else {

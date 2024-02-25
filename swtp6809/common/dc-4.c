@@ -26,7 +26,7 @@
     MODIFICATIONS:
 
         23 Apr 15 -- Modified to use simh_debug
-        19 Feb 24 -- Richard Lukes - Modified to work with swtp6809 emulator
+        24 Feb 24 -- Richard Lukes - Modified to work with swtp6809 emulator
 
     NOTES:
 

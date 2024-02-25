@@ -23,10 +23,36 @@
         used in advertising or otherwise to promote the sale, use or other dealings
         in this Software without prior written authorization from William A. Beech.
 
+    The following copyright notice applies to the SWTP 6809 source, binary, and documentation:
+ 
+    Original code published in 2024, written by Richard F Lukes
+    Copyright (c) 2024, Richard F Lukes
+ 
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files (the "Software"),
+        to deal in the Software without restriction, including without limitation
+        the rights to use, copy, modify, merge, publish, distribute, sublicense,
+        and/or sell copies of the Software, and to permit persons to whom the
+        Software is furnished to do so, subject to the following conditions:
+ 
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+ 
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+        THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+        IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+        Except as contained in this notice, the names of The Authors shall not be
+        used in advertising or otherwise to promote the sale, use or other dealings
+        in this Software without prior written authorization from the Authors.
+
     MODIFICATIONS:
 
         23 Apr 15 -- Modified to use simh_debug
-        20 Feb 24 -- Richard Lukes - Modified for swtp6809 emulator
+        24 Feb 24 -- Richard Lukes - Modified for swtp6809 emulator
 
     NOTES:
 
@@ -50,18 +76,17 @@
 #include <stdio.h>
 #include "swtp_defs.h"
 
-#define UNIT_V_MSIZE    (UNIT_V_UF)     /* ROM Size */
-#define UNIT_MSIZE      (0x7 << UNIT_V_MSIZE)
-#define UNIT_NONE       (0 << UNIT_V_MSIZE) /* No EPROM */
-#define UNIT_2704       (1 << UNIT_V_MSIZE) /* 2704 mode */
-#define UNIT_2708       (2 << UNIT_V_MSIZE) /* 2708 mode */
-#define UNIT_2716       (3 << UNIT_V_MSIZE) /* 2716 mode */
-#define UNIT_2732       (4 << UNIT_V_MSIZE) /* 2732 mode */
-#define UNIT_2764       (5 << UNIT_V_MSIZE) /* 2764 mode */
+#define UNIT_V_MSIZE    (UNIT_V_UF)            /* ROM Size */
+#define UNIT_MSIZE      (0x2F << UNIT_V_MSIZE)
+#define UNIT_NONE       (0x1 << UNIT_V_MSIZE)  /* No EPROM */
+#define UNIT_2704       (0x2 << UNIT_V_MSIZE)  /* 2704 mode */
+#define UNIT_2708       (0x4 << UNIT_V_MSIZE)  /* 2708 mode */
+#define UNIT_2716       (0x8 << UNIT_V_MSIZE)  /* 2716 mode */
+#define UNIT_2732       (0x10 << UNIT_V_MSIZE) /* 2732 mode */
+#define UNIT_2764       (0x20 << UNIT_V_MSIZE) /* 2764 mode */
 
-#define BOOTROM_2K 0x0800
-#define BOOTROM_4K 0x1000
-#define BOOTROM_8K 0x2000
+/* Maximum size of bootrom is 8KB from $E000-$FFFF */
+#define MAX_BOOTROM_SIZE (8*1024)
 
 // this value is used when referencing BOOTROM memory that is not populated (i.e. not loaded by BOOTROM attach)
 #define DEFAULT_NO_ROM_BYTE_VALUE 0xFF
@@ -133,15 +158,16 @@ DEVICE BOOTROM_dev = {
 /* Available sizes are None=0, 512B=2704, 1KB=2708, 2KB=2716, 4KB=2732, 8KB=2764 */
 
 /* Pre-allocate 8KB array of bytes to accomodate largest BOOTROM */
-uint8 BOOTROM_memory[BOOTROM_8K];
+uint8 BOOTROM_memory[MAX_BOOTROM_SIZE];
 
+/* BOOTROM_examine routine */
 t_stat BOOTROM_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches)
 {
-    if (addr >= BOOTROM_8K) {
+    if (addr >= BOOTROM_unit.capac || addr >= MAX_BOOTROM_SIZE) {
         return SCPE_NXM;
     }
     if (eval_array != NULL) {
-        *eval_array = BOOTROM_get_mbyte(addr);
+        *eval_array = BOOTROM_memory[addr];
     }
     return SCPE_OK;
 
@@ -177,7 +203,7 @@ t_stat BOOTROM_attach(UNIT *uptr, CONST char *cptr)
         detach_unit(uptr);
         return SCPE_IOERR;
     } else {
-        if (image_size > BOOTROM_8K) {
+        if (image_size > MAX_BOOTROM_SIZE) {
             sim_printf("BOOTROM_attach: Error. File size exceeds ROM capacity\n");
             detach_unit(uptr);
             return SCPE_ARG;
@@ -221,10 +247,12 @@ t_stat BOOTROM_config (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
         sim_debug (DEBUG_flow, &BOOTROM_dev, "BOOTROM_config: Parameter error\n");
         return SCPE_ARG;
     }
-    if (val == UNIT_NONE)
+    if (val == UNIT_NONE) {
         BOOTROM_unit.capac = 0;         /* set EPROM size */
-    else
-        BOOTROM_unit.capac = 0x200 << ((val >> UNIT_V_MSIZE) - 1); /* set EPROM size */
+    } else {
+        //BOOTROM_unit.capac = 0x200  ((val >> UNIT_V_MSIZE) - 1); /* set EPROM size */
+        BOOTROM_unit.capac = 0x100 * (val >> UNIT_V_MSIZE); /* set EPROM size */
+    }
 
     if (!BOOTROM_unit.filebuf) {         /* point buffer to static array */
         BOOTROM_unit.filebuf = BOOTROM_memory;
