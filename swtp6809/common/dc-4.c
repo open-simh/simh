@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /*  dc4.c: SWTP DC-4 FDC Simulator
 
     Copyright (c) 2005-2012, William A. Beech
@@ -650,6 +653,7 @@ int32 fdcdata(int32 io, int32 data)
 }
 
 /* end of dc-4.c */
+<<<<<<< HEAD
 =======
 /*  dc4.c: SWTP DC-4 FDC Simulator
 
@@ -1303,3 +1307,5 @@ int32 fdcdata(int32 io, int32 data)
 
 /* end of dc-4.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

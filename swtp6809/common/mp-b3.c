@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /*  mp-b3.c: SWTP SS-50/SS-30 MP-B3 Mother Board
 
     Copyright (c) 2011-2012, William A. Beech
@@ -307,6 +310,7 @@ void MB_put_mword(int32 addr, int32 val)
 }
 
 /* end of mp-b3.c */
+<<<<<<< HEAD
 =======
 /*  mp-b3.c: SWTP SS-50/SS-30 MP-B3 Mother Board
 
@@ -599,3 +603,5 @@ void MB_put_mword(int32 addr, int32 val)
 
 /* end of mp-b3.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /*  mp09_sys.c: SWTP 6809 system interface
 
     Copyright (c) 2005-2012, William Beech
@@ -114,6 +117,7 @@ const char *sim_stop_messages[] = {
 };
 
 /* end of mp09_sys.c */
+<<<<<<< HEAD
 =======
 /*  mp09_sys.c: SWTP 6809 system interface
 
@@ -205,3 +209,5 @@ const char *sim_stop_messages[] = {
 
 /* end of mp09_sys.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

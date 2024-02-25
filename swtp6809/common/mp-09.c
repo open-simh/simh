@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /*  mp-09.c: SWTP MP-09 M6809 CPU simulator
 
     Copyright (c) 2011-2012, William Beech
@@ -295,6 +298,7 @@ void CPU_BD_put_mword(int32 addr, int32 val)
 }
 
 /* end of mp-09.c */
+<<<<<<< HEAD
 =======
 /*  mp-09.c: SWTP MP-09 M6809 CPU simulator
 
@@ -579,3 +583,5 @@ void CPU_BD_put_mword(int32 addr, int32 val)
 
 /* end of mp-09.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /*  bootrom.c: Boot ROM simulator for Motorola processors
 
     Copyright (c) 2010-2012, William A. Beech
@@ -342,6 +345,7 @@ int32 BOOTROM_get_mbyte(int32 address)
 } /* BOOTROM_get_mbyte() */
 
 /* end of bootrom.c */
+<<<<<<< HEAD
 =======
 /*  bootrom.c: Boot ROM simulator for Motorola processors
 
@@ -659,3 +663,5 @@ int32 BOOTROM_get_mbyte(int32 address)
 
 /* end of bootrom.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

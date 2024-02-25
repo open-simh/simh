@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /* mp-1m.c: SWTP 1M Byte Memory Card emulator
 
     Copyright (c) 2011-2012, William A. Beech
@@ -310,6 +313,7 @@ void mp_1m_put_mword(int32 addr, int32 val)
 }
 
 /* end of mp-1m.c */
+<<<<<<< HEAD
 =======
 /* mp-1m.c: SWTP 1M Byte Memory Card emulator
 
@@ -530,3 +534,5 @@ void mp_1m_put_mword(int32 addr, int32 val)
 
 /* end of mp-1m.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

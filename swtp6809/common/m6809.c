@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /* 6809.c: SWTP 6809 CPU simulator
 
    Copyright (c) 2005-2012, William Beech
@@ -3412,6 +3415,7 @@ t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
 }
 
 /* end of m6809.c */
+<<<<<<< HEAD
 =======
 /* 6809.c: SWTP 6809 CPU simulator
 
@@ -6805,3 +6809,5 @@ t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
 
 /* end of m6809.c */
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)

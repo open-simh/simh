@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
 /* swtp_defs.h: SWTP 6809 simulator definitions
 
    Copyright (c) 2005-2012, William Beech
@@ -63,6 +66,7 @@
 #define STOP_OPCODE 4       // invalid opcode
 #define STOP_MEMORY 5       // invalid memory address
 
+<<<<<<< HEAD
 =======
 /* swtp_defs.h: SWTP 6809 simulator definitions
 
@@ -129,3 +133,5 @@
 #define STOP_MEMORY 5       // invalid memory address
 
 >>>>>>> 033805fd... Richard Lukes - 18 FEB 2024
+=======
+>>>>>>> b50c876f... swtp6809 simulator being contributed to open-simh project #357 (Pull Request)
