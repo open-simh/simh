@@ -260,7 +260,7 @@
 #define MIN(a,b)  (((a) <= (b)) ? (a) : (b))
 #endif
 /* Max width of a value expressed as a formatted string */
-#define MAX_WIDTH ((int) ((CHAR_BIT * sizeof (t_value) * 4 + 3)/3))
+#define MAX_WIDTH ((CHAR_BIT * sizeof (t_value) * 4 + 3) / 3)
 
 
 /* search logical and boolean ops */
@@ -7406,8 +7406,11 @@ t_stat dir_cmd (int32 flg, CONST char *cptr)
 {
 DIR_CTX dir_state;
 t_stat r;
-char WildName[PATH_MAX + 1];
+char *WildName;
 struct stat filestat;
+
+if ((WildName = (char *) calloc(PATH_MAX + 1, sizeof(char))) == NULL)
+  return SCPE_MEM;
 
 GET_SWITCHES (cptr);                                    /* get switches */
 memset (&dir_state, 0, sizeof (dir_state));
@@ -7431,8 +7434,9 @@ if (r != SCPE_OK) {
     sim_printf ("\n Directory of %s\n\n", cp);
     sim_printf ("File Not Found\n\n");
     free (cp);
-    return SCPE_OK;
+    r = SCPE_OK;
     }
+free(WildName);
 return r;
 }
 
@@ -11688,7 +11692,7 @@ dbuf[MAX_WIDTH] = 0;
 d = MAX_WIDTH;
 do {
     d = d - 1;
-    digit = (int32) (val % radix);
+    digit = val % radix;
     val = val / radix;
     dbuf[d] = (char)((digit <= 9)? '0' + digit: 'A' + (digit - 10));
     } while ((d > 0) && (val != 0));
@@ -11706,7 +11710,7 @@ switch (format) {
                 break;
         ndigits = MAX_WIDTH - digit;
         commas = (ndigits - 1)/3;
-        for (digit=0; digit<ndigits-3; digit++)
+        for (digit=0; digit + 3 < ndigits; digit++)
             dbuf[MAX_WIDTH + (digit - ndigits) - (ndigits - digit - 1)/3] = dbuf[MAX_WIDTH + (digit - ndigits)];
         for (digit=1; digit<=commas; digit++)
             dbuf[MAX_WIDTH - (digit * 4)] = ',';
