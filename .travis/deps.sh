@@ -5,6 +5,14 @@ install_osx() {
     brew install pkg-config pcre libpng libedit sdl2 freetype2 sdl2_ttf \
         vde cmake gnu-getopt coreutils
 }
+install_arch-linux() {
+    sudo pacman -S --noconfirm pkgconf
+    sudo pacman -S --noconfirm pcre libpng libedit
+    sudo pacman -S --noconfirm mesa
+    sudo pacman -S --noconfirm libsm
+    sudo pacman -S --noconfirm cmake
+
+}
 
 install_linux() {
     sudo apt-get update -yqqm
@@ -57,11 +65,11 @@ install_clang64() {
 
 
 case "$1" in
-  osx|linux|mingw64|ucrt64|clang64)
+  osx|arch-linux|linux|mingw64|ucrt64|clang64)
     install_"$1"
     ;;
   *)
-    echo "$0: Need an operating system name: osx, linux, mingw64 or ucrt64"
+    echo "$0: Need an operating system name: osx, arch-linux, linux, mingw64 or ucrt64"
     exit 1
     ;;
 esac
