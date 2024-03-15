@@ -46,6 +46,7 @@ static UNIT tv_unit = {
 static DEBTAB tv_deb[] = {
   { "DBG", DBG },
   { "KEY", SIM_VID_DBG_KEY },
+  { "VVID", SIM_VID_DBG_VIDEO },
   { NULL, 0 }
 };
 

@@ -320,6 +320,7 @@ vt_svc(UNIT *uptr)
     sim_debug (DEB_TRC, &vt_dev, "vt_svc(wait=%d,DPC=0%o)\n", uptr->wait, vt11_get_dpc());
     if (vt11_cycle(uptr->wait, 0))
         sim_activate_after (uptr, uptr->wait);  /* running; reschedule */
+
     if (vt_stop_flag) {
         vt_stop_flag = FALSE;                   /* reset flag after we notice it */
         return SCPE_STOP;
@@ -341,6 +342,7 @@ vt_reset(DEVICE *dptr)
     if (!(dptr->flags & DEV_DIS))
         vt11_reset(dptr, DEB_VT11);
     vid_register_quit_callback (&vt_quit_callback);
+    vid_set_beep_duration(BEEP_SHORT);
     sim_debug (DEB_INT, &vt_dev, "CLR_INT(all)\n");
     CLR_INT (VTST);
     CLR_INT (VTLP);

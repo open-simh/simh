@@ -24,8 +24,8 @@
  * from the authors.
  */
 
-#include <string.h>
-#include <assert.h>
+#include "sim_defs.h"
+#include "scp.h"
 #include "display.h"                    /* XY plot interface */
 #include "ng.h"
 
@@ -38,19 +38,8 @@
 /* Number of displays. */
 #define DISPLAYS  8
 
-static void *ng_dptr;
+static DEVICE *ng_dptr;
 static int ng_dbit;
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-#define DEVICE void
-extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt, ...);
-
-#define DEBUGF(...) _sim_debug_device (ng_dbit, ng_dptr, ##  __VA_ARGS__)
-#if defined(__cplusplus)
-}
-#endif
 
 int ng_type = 0;
 int ng_scale = PIX_SCALE;
@@ -69,14 +58,14 @@ int32
 ng_get_csr(void)
 {
   if (ng_type == TYPE_DAZZLE) {
-    DEBUGF("[%d] Get CSR: ", 0);
+    sim_debug(ng_dbit, ng_dptr, "[%d] Get CSR: ", 0);
     if (status[console] & TKRUN)
-      DEBUGF("running\n");
+      sim_debug(ng_dbit, ng_dptr, "running\n");
     else
-      DEBUGF("stopped\n");
+      sim_debug(ng_dbit, ng_dptr, "stopped\n");
     return status[console];
   } else if (ng_type == TYPE_LOGO) {
-    DEBUGF("Get CSR: %06o\n", status[0]);
+    sim_debug(ng_dbit, ng_dptr, "Get CSR: %06o\n", status[0]);
     return status[0];
   }
   return 0;
@@ -95,17 +84,17 @@ ng_set_csr(uint16 d)
     console = d & 0377;
 
     if (d & TKGO) {
-      DEBUGF("[%d] Set CSR: GO\n", console);
+      sim_debug(ng_dbit, ng_dptr, "[%d] Set CSR: GO\n", console);
       if ((status[console] & TKRUN) == 0)
         dpc[console] = 2*console;
-      status[console] = TKRUN | console;
+      status[console] = TKRUN | ((uint16) console);
     }
     if (d & TKSTOP) {
-      DEBUGF("[%d] Set CSR: STOP\n", console);
-      status[console] = console;
+      sim_debug(ng_dbit, ng_dptr, "[%d] Set CSR: STOP\n", console);
+      status[console] = ((uint16) console);
     }
   } else if (ng_type == TYPE_LOGO) {
-    DEBUGF("Set CSR: %06o\n", d);
+    sim_debug(ng_dbit, ng_dptr, "Set CSR: %06o\n", d);
     if ((status[0] & 1) == 0 && (d & 1))
       dpc[0] = 2*0;
     status[0] = d;
@@ -116,14 +105,14 @@ void
 ng_set_reloc(uint16 d)
 {
   reloc = d;
-  DEBUGF("Set REL: %06o\n", d);
+  sim_debug(ng_dbit, ng_dptr, "Set REL: %06o\n", d);
 }
 
 int
-ng_init(void *dev, int debug)
+ng_init(DEVICE *dev, int debug)
 {
   /* Don't change this number. */
-  assert (DISPLAYS == 8);
+  ASSURE (DISPLAYS == 8);
 
   ng_dptr = dev;
   ng_dbit = debug;
@@ -131,14 +120,14 @@ ng_init(void *dev, int debug)
   return display_init(DIS_NG, ng_scale, ng_dptr);
 }
 
-static int fetch (int a, uint16 *x)
+static int fetch (int a, uint16 *xcoord)
 {
-  return ng_fetch (a + reloc, x);
+  return ng_fetch (a + reloc, xcoord);
 }
 
-static int store (int a, uint16 x)
+static int store (int a, uint16 xcoord)
 {
-  return ng_store (a + reloc, x);
+  return ng_store (a + reloc, xcoord);
 }
 
 static void point (void)
@@ -146,7 +135,7 @@ static void point (void)
   int x1 = x[console];
   int y1 = y[console];
 
-  DEBUGF("[%d] POINT %d %d\n", console, x[console], y[console]);
+  sim_debug(ng_dbit, ng_dptr, "[%d] POINT %d %d\n", console, x[console], y[console]);
   display_point(x1 + 256, y1 + 256, DISPLAY_INT_MAX, 0);
 }
 
@@ -158,8 +147,8 @@ void increment (uint16 inst)
   if (n == 0)
     n = 8;
 
-  DEBUGF("[%d] Increment %d, direction %d, bits %o\n",
-         console, n, (inst >> 11) & 7, inst & 0377);
+  sim_debug(ng_dbit, ng_dptr, "[%d] Increment %d, direction %d, bits %o\n",
+            console, n, (inst >> 11) & 7, inst & 0377);
 
   mask = 0200;
   if (ng_type == TYPE_DAZZLE)
@@ -218,14 +207,14 @@ void pushj (uint16 inst)
   fetch (16 + 2*console, &a);
   store (16 + 2*console, a + 1);
   store (2*a, dpc[console]);
-  DEBUGF("[%d] PUSHJ %06o -> %06o (%06o->%06o)\n",
-         console, dpc[console], inst << 1, a, a+1);
+  sim_debug(ng_dbit, ng_dptr, "[%d] PUSHJ %06o -> %06o (%06o->%06o)\n",
+            console, dpc[console], inst << 1, a, a+1);
   dpc[console] = inst << 1;
 }
 
 void stop (void)
 {
-  DEBUGF("[%d] STOP\n", console);
+  sim_debug(ng_dbit, ng_dptr, "[%d] STOP\n", console);
   if (ng_type == TYPE_DAZZLE)
     status[console] &= ~TKRUN;
   else if (ng_type == TYPE_LOGO)
@@ -237,28 +226,28 @@ uint16 pop (void)
   uint16 a;
   fetch (16 + 2*console, &a);
   store (16 + 2*console, a - 1);
-  DEBUGF("[%d] POP (%06o -> %06o)\n", console, a, a - 1);
+  sim_debug(ng_dbit, ng_dptr, "[%d] POP (%06o -> %06o)\n", console, a, a - 1);
   return a - 1;
 }
 
 void popj (void)
 {
-  uint16 a, x;
+  uint16 a, xcoord;
   a = pop ();
-  fetch (2*a, &x);
-  DEBUGF("[%d] POPJ %06o -> %06o\n", console, dpc[console], x);
-  dpc[console] = x;
+  fetch (2*a, &xcoord);
+  sim_debug(ng_dbit, ng_dptr, "[%d] POPJ %06o -> %06o\n", console, dpc[console], xcoord);
+  dpc[console] = xcoord;
 }
 
 void resetx (void)
 {
-  DEBUGF("[%d] RESET X\n", console);
+  sim_debug(ng_dbit, ng_dptr, "[%d] RESET X\n", console);
   x[console] = 0;
 }
 
 void resety (void)
 {
-  DEBUGF("[%d] RESET Y\n", console);
+  sim_debug(ng_dbit, ng_dptr, "[%d] RESET Y\n", console);
   y[console] = 0;
 }
 
@@ -294,7 +283,7 @@ void delta (uint16 inst)
     break;
   }
 
-  DEBUGF("[%d] DELTA %d\n", console, delta);
+  sim_debug(ng_dbit, ng_dptr, "[%d] DELTA %d\n", console, delta);
 
   if (inst & 02000) {
     point ();
@@ -320,7 +309,7 @@ ng_cycle(int us, int slowdown)
   msec = new_msec;
 
   if (ng_type == TYPE_LOGO) {
-    DEBUGF("LOGO/STATUS %06o\n", status[0]);
+    sim_debug(ng_dbit, ng_dptr, "LOGO/STATUS %06o\n", status[0]);
     if ((status[0] & 1) == 0)
       goto age_ret;
   } else if (ng_type != TYPE_DAZZLE)
@@ -336,7 +325,7 @@ ng_cycle(int us, int slowdown)
 
     running = 1;
     time_out = fetch(dpc[console], &inst);
-    DEBUGF("[%d] PC %06o, INSTR %06o\n", console, dpc[console], inst);
+    sim_debug(ng_dbit, ng_dptr, "[%d] PC %06o, INSTR %06o\n", console, dpc[console], inst);
     dpc[console] += 2;
 
     switch (inst & 0160000) {

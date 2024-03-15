@@ -24,6 +24,7 @@ add_custom_target(update_sim_commit ALL
 ## Simulator sources and library:
 set(SIM_SOURCES
     ${CMAKE_SOURCE_DIR}/scp.c
+    ${CMAKE_SOURCE_DIR}/sim_main.c
     ${CMAKE_SOURCE_DIR}/sim_card.c
     ${CMAKE_SOURCE_DIR}/sim_console.c
     ${CMAKE_SOURCE_DIR}/sim_disk.c
@@ -39,8 +40,7 @@ set(SIM_SOURCES
     ${CMAKE_SOURCE_DIR}/sim_video.c)
 
 set(SIM_VIDEO_SOURCES
-    ${CMAKE_SOURCE_DIR}/display/display.c
-    ${CMAKE_SOURCE_DIR}/display/sim_ws.c)
+    ${CMAKE_SOURCE_DIR}/display/display.c)
 
 ## Build a simulator core library, with and without AIO support. The AIO variant
 ## has "_aio" appended to its name, e.g., "simhz64_aio" or "simhz64_video_aio".
@@ -60,6 +60,11 @@ function(build_simcore _targ)
             C_STANDARD 99
             EXCLUDE_FROM_ALL True
         )
+
+        if (TARGET_WINVER)
+            target_compile_definitions(${lib} PUBLIC WINVER=${TARGET_WINVER} _WIN32_WINNT=${TARGET_WINVER})
+        endif ()
+
         target_compile_definitions(${lib} PRIVATE USE_SIM_CARD USE_SIM_IMD)
         target_compile_options(${lib} PRIVATE ${EXTRA_TARGET_CFLAGS})
         target_link_options(${lib} PRIVATE ${EXTRA_TARGET_LFLAGS})
@@ -75,26 +80,16 @@ function(build_simcore _targ)
             target_compile_definitions(${lib} PUBLIC USE_ADDR64)
         endif (SIMH_ADDR64)
 
-        if (SIMH_VIDEO)
-            if (WITH_VIDEO)
-                # It's the video library
-                target_sources(${lib} PRIVATE ${SIM_VIDEO_SOURCES})
-                target_link_libraries(${lib} PUBLIC simh_video)
-            endif ()
-            if (CMAKE_HOST_APPLE AND NOT SIMH_BESM6_SDL_HACK)
-                ## (a) The BESM6 SDL hack is temporary. If SDL_MAIN_AVAILABLE needs
-                ##     to be defined, it belongs in the simh_video interface library.
-                ## (b) BESM6 doesn't use SIMH's video capabilities correctly and
-                ##     the makefile filters out SDL_MAIN_AVAILABLE on macOS.
-                ## (c) This shouldn't be just an Apple platform quirk; SDL_main should
-                ##     be used by all platforms. <sigh!>
-                target_compile_definitions("${lib}" PUBLIC SDL_MAIN_AVAILABLE)
-            endif ()
+        if (SIMH_VIDEO AND WITH_VIDEO)
+            # It's the video library
+            target_sources(${lib} PRIVATE ${SIM_VIDEO_SOURCES})
+            target_link_libraries(${lib} PUBLIC simh_video)
         endif ()
 
         # Define SIM_BUILD_TOOL for the simulator'
-        target_compile_definitions("${lib}" PRIVATE
-             "SIM_BUILD_TOOL=CMake (${CMAKE_GENERATOR})"
+        target_compile_definitions(
+            "${lib}" PRIVATE
+            "SIM_BUILD_TOOL=CMake (${CMAKE_GENERATOR})"
         )
 
         target_link_libraries(${lib} PUBLIC

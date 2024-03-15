@@ -42,8 +42,31 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>         /* for USHRT_MAX */
-#include "ws.h"
+#include <pthread.h>
+#include "sim_video.h"
 #include "display.h"
+
+#if !defined(MIN)
+#  if defined(__GNUC__) || defined(__clang__)
+#    define MIN(A, B) ({ __typeof__ (A) _a = (A); __typeof__ (B) _b = (B); _a < _b ? _a : _b; })
+#  elif defined(_MSC_VER)
+     /* from stdlib.h */
+#    define MIN(A, B) __min((A), (B))
+#  else
+#    define MIN(A, B) ((A) < (B) ? (A) : (B))
+#  endif
+#endif
+
+#if !defined(MAX)
+#  if defined(__GNUC__) || defined(__clang__)
+#    define MAX(A, B) ({ __typeof__ (A) _a = (A); __typeof__ (B) _b = (B); _a > _b ? _a : _b; })
+#  elif defined(_MSC_VER)
+     /* from stdlib.h */
+#    define MAX(A, B) __max((A), (B))
+#  else
+#    define MAX(A, B) ((A) > (B) ? (A) : (B))
+#  endif
+#endif
 
 /*
  * The user may select (at compile time) how big a window is used to
@@ -75,6 +98,7 @@
 #ifndef PEN_RADIUS
 #define PEN_RADIUS 4
 #endif /* PEN_RADIUS not defined */
+
 
 /*
  * note: displays can have up to two different colors (eg VR20)
@@ -366,9 +390,24 @@ struct point {
     unsigned char color : 1;    /* for VR20 (two colors) */
 };
 
+static const unsigned char MAX_LEVEL = (unsigned char) ((1 << 7) - 1);
+static const unsigned char MAX_COLOR = (unsigned char) ((1 << 1) - 1);
+
 static struct point *points;    /* allocated array of points */
 static struct point _head;
 #define head (&_head)
+
+/* Pixel displays: This is a double buffering design that accomodates threading
+ * to avoid mutex arbitration to the individual pixels that allows direct
+ * transfer to the video subsystem outside of the simulator thread.
+ *
+ * There are two pixel planes, pixelplanes[0] and pixelplanes[1]. current_pixelplane is the
+ * destination into which the simulator's display updates pixel values.
+ */
+static pthread_mutex_t pixelplane_mutex = PTHREAD_MUTEX_INITIALIZER;
+static size_t current_pixelplane = 0;
+
+static uint32 *pixelplanes[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 /*
  * time span of all entries in queue
@@ -376,13 +415,6 @@ static struct point _head;
  * (should be possible to make this a delay_t)
  */
 static long queue_interval;
-
-/* convert X,Y to a "struct point *" */
-#define P(X,Y) (points + (X) + ((Y)*(size_t)xpixels))
-
-/* convert "struct point *" to X and Y */
-#define X(P) (((P) - points) % xpixels)
-#define Y(P) (((P) - points) / xpixels)
 
 static int initialized = 0;
 static void *device = NULL;  /* Current display device. */
@@ -409,22 +441,171 @@ static long scaled_pen_radius_squared;
 static int xpoints, ypoints;
 static int xpixels, ypixels;
 static int refresh_rate;
-static int refresh_interval;
-static int ncolors;
+static long refresh_interval;
+static int n_beam_colors;
 static enum display_type display_type;
 static int scale;
+
+/*
+ * Globals set by O/S display level to SCALED location in display
+ * coordinate system in order to save an upcall on every mouse
+ * movement.
+ *
+ * *NOT* for consumption by clients of display.c; although display
+ * clients can now get the scaling factor, real displays only give you
+ * a light pen "hit" when the beam passes under the light pen.
+ */
+int light_pen_x = -1;
+int light_pen_y = -1;
 
 /*
  * relative brightness for each display level
  * (all but last must be less than 1.0)
  */
-static float level_scale[NLEVELS];
+static double level_scale[NLEVELS];
 
 /*
- * table of pointer to window system "colors"
- * for painting each age level, intensity level and beam color
+ * Table of indices into the disp_colors color table for painting each age level,
+ * intensity level and beam color.
  */
-void *colors[2][NLEVELS][NTTL];
+size_t beam_colors[2][NLEVELS][NTTL];
+
+/* Beam color table:
+ *
+ * pixel_color: These are video system pixel values returned by vid_map_rgb(). For
+ *   SDL, these are 32-bit ARGB (alpha + RGB). Other graphic systems might use
+ *   smaller pixel values; 32-bits should be large enough (but should be suitably
+ *   truncated if necessary by the graphic system.) */
+typedef struct colortable {
+    uint32 pixel_color;
+} COLORTABLE;
+
+static COLORTABLE mono_palette[2] = {                       /* Monochrome palette */
+    { 0 },          /* black */
+    { 0 }           /* white */
+};
+
+static COLORTABLE *disp_colors = NULL;                      /* The color palette */
+static size_t n_dispcolors = 0;
+size_t size_dispcolors = 0;
+
+/* Drawing boundary: Keep track of the actual drawing boundaries that need
+ * updating.
+ */
+typedef struct {
+    /* Minimum left edge */
+    int min_x, min_y;
+    /* Maximum right edge */
+    int max_x, max_y;
+} DrawingBounds;
+
+static DrawingBounds draw_bound;
+
+/* Pixel parameters: */
+/* Pixel size (this is probably invariant across all displays and simulators.) */
+#if !defined(PIX_SIZE)
+#define PIX_SIZE 1
+#endif
+
+static const int pix_size = PIX_SIZE;
+
+/* Cursors: */
+typedef struct cursor {
+    Uint8 *data;
+    Uint8 *mask;
+    int width;
+    int height;
+    int hot_x;
+    int hot_y;
+} CURSOR;
+
+static CURSOR *arrow_cursor = NULL;
+static CURSOR *cross_cursor = NULL;
+
+/* Arrow and cross cursor shapes: */
+/* XPM */
+static const char *arrow[] = {
+    /* width height num_colors chars_per_pixel */
+    "    16    16        3            1",
+    /* colors */
+    "X c #000000", /* black */
+    ". c #ffffff", /* white */
+    "  c None",
+    /* pixels */
+    "X               ",
+    "XX              ",
+    "X.X             ",
+    "X..X            ",
+    "X...X           ",
+    "X....X          ",
+    "X.....X         ",
+    "X......X        ",
+    "X.......X       ",
+    "X........X      ",
+    "X.....XXXXX     ",
+    "X..X..X         ",
+    "X.X X..X        ",
+    "XX   X..X       ",
+    "X     X..X      ",
+    "       XX       ",
+};
+
+/* XPM */
+static const char *cross[] = {
+  /* width height num_colors chars_per_pixel hot_x hot_y*/
+  "    16    16        3            1          7     7",
+  /* colors */
+  "X c #000000",    /* black */
+  ". c #ffffff",    /* white */
+  "  c None",
+  /* pixels */
+  "      XXXX      ",
+  "      X..X      ",
+  "      X..X      ",
+  "      X..X      ",
+  "      X..X      ",
+  "      X..X      ",
+  "XXXXXXX..XXXXXXX",
+  "X..............X",
+  "X..............X",
+  "XXXXXXX..XXXXXXX",
+  "      X..X      ",
+  "      X..X      ",
+  "      X..X      ",
+  "      X..X      ",
+  "      X..X      ",
+  "      XXXX      ",
+  "7,7"
+};
+
+
+/* Forward declarations: */
+static size_t get_vid_color(uint8 r, uint8 g, uint8 b);
+static CURSOR *create_cursor(const char *image[]);
+static void free_cursor (CURSOR *cursor);
+static int poll_for_events(int *valp, int maxus);
+static inline void set_pixel_value(const struct point *p, uint32 pixel_value);
+static inline void initialize_drawing_bound(DrawingBounds *b);
+static unsigned long os_elapsed(void);
+
+/* Utility functions: */
+
+/* convert X,Y to a "struct point *" */
+static inline struct point *P(int X, int Y)
+{
+     return &points[Y * xpixels + X];
+}
+
+/* convert "struct point *" to X and Y. Coordinates are ints. */
+static inline int X(const struct point *pt)
+{
+    return ((int) (pt - points) % xpixels);
+}
+
+static inline int Y(const struct point *pt)
+{
+    return ((int) (pt - points) / xpixels);
+}
 
 void
 display_lp_radius(int r)
@@ -441,7 +622,7 @@ display_lp_radius(int r)
 static void
 queue_point(struct point *p)
 {
-    int d;
+    long d;
 
     d = refresh_interval - queue_interval;
     queue_interval += d;
@@ -463,7 +644,7 @@ queue_point(struct point *p)
     head->prev->next = p;
     head->prev = p;
 
-    p->delay = d;
+    p->delay = (delay_t) (MIN(d, DELAY_T_MAX));
 }
 
 /*
@@ -571,7 +752,7 @@ display_delay(int t, int slowdown)
         delay = 0;              /* just poll */
 
 #ifdef DEBUG_DELAY2
-    printf("sim %d elapsed %d delay %d\r\n", sim_time, elapsed, delay);
+    printf("sim %lu elapsed %lu delay %ld\r\n", sim_time, elapsed, delay);
 #endif
 
     /*
@@ -595,7 +776,7 @@ display_delay(int t, int slowdown)
         if (delay_check > 1) {
             delay_check -= delay_check>>GAINSHIFT;
 #ifdef DEBUG_DELAY
-            printf("reduced period to %d\r\n", delay_check);
+            printf("reduced period to %lu\r\n", delay_check);
 #endif /* DEBUG_DELAY defined */
             }
         }
@@ -608,7 +789,7 @@ display_delay(int t, int slowdown)
                 gain = 1;           /* make sure some change made! */
             delay_check += gain;
 #ifdef DEBUG_DELAY
-            printf("increased period to %d\r\n", delay_check);
+            printf("increased period to %lu\r\n", delay_check);
 #endif /* DEBUG_DELAY defined */
             }
     if (delay < 0)
@@ -616,7 +797,7 @@ display_delay(int t, int slowdown)
     /* else if delay < MINDELAY, clamp at MINDELAY??? */
 
     /* poll for window system events and/or delay */
-    ws_poll(NULL, delay);
+    poll_for_events(NULL, delay);
 
     sim_time = 0;                   /* reset simulated time clock */
 
@@ -626,6 +807,81 @@ display_delay(int t, int slowdown)
      */
 } /* display_delay */
 
+/* Callback to transfer point pixel values directly to the video system. For SDL, this draws
+ * into the buffer provided by the renderer's texture via SDL_LockTexture/SDL_UnlockTexture.
+ *
+ * Normal case is to copy one pixel plane to another, row by row. The special case is when
+ * the entire pixel plane is copied, which devolves into a simple memcpy().
+ *
+ * dst_stride: This is the row length (stride) in bytes by which the destination offset is
+ * incremented. The destination stride is not necessarily the same as the width, w.
+ * 
+ * SDL2 passes vid_stride in bytes per row, which we convert to a pixel offset.
+ */
+static void display_age_onto(VID_DISPLAY *vptr, DEVICE *dev, int x, int y, int w, int h, 
+                             void *draw_data, void *vid_dest, int dst_stride)
+{
+    const uint32 *src_plane = (const uint32 *) draw_data;
+    uint32       *dst_plane = (uint32 *) vid_dest;
+
+    /* dst_stride is in bytes; adjust to uint32 array elements. */
+    dst_stride /= sizeof(uint32);
+
+    pthread_mutex_lock(&pixelplane_mutex);
+
+    if (x != 0 || y != 0 || w != xpixels || h != ypixels) {
+        int py;
+        size_t dst_offset = 0;
+        size_t src_offset = y * xpixels + x;
+        const size_t row_bytes = w * sizeof(uint32);
+
+        for (py = h; py >= 8; py -= 8) {
+            memcpy(&dst_plane[dst_offset + 0 * dst_stride], &src_plane[src_offset + 0 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 1 * dst_stride], &src_plane[src_offset + 1 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 2 * dst_stride], &src_plane[src_offset + 2 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 3 * dst_stride], &src_plane[src_offset + 3 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 4 * dst_stride], &src_plane[src_offset + 4 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 5 * dst_stride], &src_plane[src_offset + 5 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 6 * dst_stride], &src_plane[src_offset + 6 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 7 * dst_stride], &src_plane[src_offset + 7 * xpixels], row_bytes);
+
+            dst_offset += 8 * dst_stride;
+            src_offset += 8 * xpixels;
+        }
+
+        if (py & 4) {
+            memcpy(&dst_plane[dst_offset + 0 * dst_stride], &src_plane[src_offset + 0 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 1 * dst_stride], &src_plane[src_offset + 1 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 2 * dst_stride], &src_plane[src_offset + 2 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 3 * dst_stride], &src_plane[src_offset + 3 * xpixels], row_bytes);
+
+            dst_offset += 4 * dst_stride;
+            src_offset += 4 * xpixels;
+            py -= 4;
+        }
+
+        if (py & 2) {
+            memcpy(&dst_plane[dst_offset + 0 * dst_stride], &src_plane[src_offset + 0 * xpixels], row_bytes);
+            memcpy(&dst_plane[dst_offset + 1 * dst_stride], &src_plane[src_offset + 1 * xpixels], row_bytes);
+
+            dst_offset += 2 * dst_stride;
+            src_offset += 2 * xpixels;
+            py -= 2;
+        }
+
+        if (py & 1) {
+            memcpy(&dst_plane[dst_offset + 0 * dst_stride], &src_plane[src_offset + 0 * xpixels], row_bytes);
+            py--;
+        }
+
+        ASSURE(py == 0);
+    } else {
+        memcpy(dst_plane, src_plane, w * h * sizeof(uint32));
+    }
+
+    pthread_mutex_unlock(&pixelplane_mutex);
+}
+
 /*
  * here periodically from simulator to age pixels.
  *
@@ -636,10 +892,12 @@ display_delay(int t, int slowdown)
  *
  * returns true if anything on screen changed.
  */
-
-int
-display_age(int t,          /* simulated us since last call */
-        int slowdown)       /* slowdown to simulated speed */
+/* Age the display's phosphor.
+ *
+ * t: Simulated microseconds (us) since last call.
+ * slowdown: Slowdown to simulated speed.
+ */
+int display_age(int t, int slowdown)
 {
     struct point *p;
     static int elapsed = 0;
@@ -668,20 +926,16 @@ display_age(int t,          /* simulated us since last call */
         }
 
     while ((p = head->next) != head) {
-        int x, y;
-
         /* look at oldest entry */
-        if (p->delay > t) {         /* further than our reach? */
-            p->delay -= t;          /* update head */
-            queue_interval -= t;    /* update span */
-            break;                  /* quit */
+        if (p->delay > t) {                              /* further than our reach? */
+            p->delay -= (delay_t) (MIN(t, DELAY_T_MAX)); /* update head */
+            queue_interval -= t;                         /* update span */
+            break;                                       /* quit */
             }
 
-        x = X(p);
-        y = Y(p);
 #ifdef PARANOIA
         if (p->ttl == 0)
-            printf("BUG: age %d,%d ttl zero\n", x, y);
+            printf("BUG: age %d,%d ttl zero\n", X(p), Y(p));
 #endif /* PARANOIA defined */
 
         /* dequeue point */
@@ -691,43 +945,29 @@ display_age(int t,          /* simulated us since last call */
         t -= p->delay;              /* lessen our reach */
         queue_interval -= p->delay; /* update queue span */
 
-        ws_display_point(x, y, colors[p->color][p->level][--p->ttl]);
-        changed = 1;
+        /* Update the pixel value... */
+        set_pixel_value(p, disp_colors[beam_colors[p->color][p->level][--p->ttl]].pixel_color);
+        ++changed;
 
         /* queue it back up, unless we just turned it off! */
         if (p->ttl > 0)
             queue_point(p);
         }
+
     return changed;
 } /* display_age */
 
-/* here from window system */
-void
-display_repaint(void) {
-    struct point *p;
-    int x, y;
-    /*
-     * bottom to top, left to right.
-     */
-    for (p = points, y = 0; y < ypixels; y++)
-        for (x = 0; x < xpixels; p++, x++)
-            if (p->ttl)
-                ws_display_point(x, y, colors[p->color][p->level][p->ttl-1]);
-    ws_sync();
-}
-
-/* (0,0) is lower left */
-static int
-intensify(int x,            /* 0..xpixels */
-      int y,                /* 0..ypixels */
-      int level,            /* 0..MAXLEVEL */
-      int color)            /* for VR20! 0 or 1 */
+/* Intesify a point.
+ *
+ * x: 0..xpixels
+ * y: 0..ypixels
+ * level: 0..MAXLEVEL
+ * color: Index of the color to be used.
+ */
+static int intensify(int x, int y, int level, int color)
 {
     struct point *p;
     int bleed;
-
-    if (x < 0 || x >= xpixels || y < 0 || y >= ypixels)
-        return 0;           /* limit to display */
 
     p = P(x,y);
     if (p->ttl) {           /* currently lit? */
@@ -762,9 +1002,9 @@ intensify(int x,            /* 0..xpixels */
      */
     if (p->ttl != MAXTTL || p->level != level || p->color != color) {
         p->ttl = MAXTTL;
-        p->level = level;
-        p->color = color;   /* save color even if monochrome */
-        ws_display_point(x, y, colors[p->color][p->level][p->ttl-1]);
+        p->level = (unsigned char) (MIN(level, MAX_LEVEL));
+        p->color = (unsigned char) (MIN(color, MAX_COLOR)); /* save color even if monochrome */
+        set_pixel_value(p, disp_colors[beam_colors[p->color][p->level][p->ttl-1]].pixel_color);
         }
 
     queue_point(p);         /* put at end of list */
@@ -801,11 +1041,11 @@ display_point(int x,        /* 0..xpixels (unscaled) */
     intensify(x, y, level, color);
     /* no bleeding for now (used to recurse for neighbor points) */
 
-    if (ws_lp_x == -1 || ws_lp_y == -1)
+    if (light_pen_x == -1 || light_pen_y == -1)
         return 0;
 
-    lx = x - ws_lp_x;
-    ly = y - ws_lp_y;
+    lx = x - light_pen_x;
+    ly = y - light_pen_y;
     return lx*lx + ly*ly <= scaled_pen_radius_squared;
 } /* display_point */
 
@@ -907,8 +1147,7 @@ phosphor_init(struct phosphor *phosphors, int nphosphors, int color)
 
         /* scale for brightness for each intensity level */
         for (ilevel = MAXLEVEL; ilevel >= 0; ilevel--) {
-             int r, g, b;
-             void *cp;
+             uint8 r, g, b;
 
              /*
               * convert to 16-bit integer; clamp at 16 bits.
@@ -916,29 +1155,11 @@ phosphor_init(struct phosphor *phosphors, int nphosphors, int color)
               * for each of R G and B to be greater than 1.0
               */
 
-             r = (int)(rr * level_scale[ilevel] * 0xffff);
-             if (r > 0xffff) r = 0xffff;
+             r = (uint8) (rr * level_scale[ilevel] * 255.0);
+             g = (uint8) (rg * level_scale[ilevel] * 255.0);
+             b = (uint8) (rb * level_scale[ilevel] * 255.0);
 
-             g = (int)(rg * level_scale[ilevel] * 0xffff);
-             if (g > 0xffff) g = 0xffff;
-
-             b = (int)(rb * level_scale[ilevel] * 0xffff);
-             if (b > 0xffff) b = 0xffff;
-
-             cp = ws_color_rgb(r, g, b);
-             if (!cp) {                     /* allocation failed? */
-             if (ttl == MAXTTL-1) {         /* brand new */
-                 if (ilevel == MAXLEVEL)    /* highest intensity? */
-                     cp = ws_color_white(); /* use white */
-                 else
-                     cp = colors[color][ilevel+1][ttl]; /* use next lvl */
-             } /* brand new */
-             else if (r + g + b >= 0xffff*3/3) /* light-ish? */
-                 cp = colors[color][ilevel][ttl+1]; /* use previous TTL */
-                 else
-                     cp = ws_color_black();
-             }
-             colors[color][ilevel][ttl] = cp;
+             beam_colors[color][ilevel][ttl] = get_vid_color(r, g, b);
         } /* for each intensity level */
     } /* for each TTL */
 } /* phosphor_init */
@@ -995,7 +1216,7 @@ display_init(enum display_type type, int sf, void *dptr)
     /* set default pen radius now that scale is set */
     display_lp_radius(PEN_RADIUS);
 
-    ncolors = 1;
+    n_beam_colors = 1;
     /*
      * use function to calculate from looking at avg (max?)
      * of phosphor half lives???
@@ -1006,7 +1227,7 @@ display_init(enum display_type type, int sf, void *dptr)
     if (dp->color1) {
         if (dp->color1->half_life > half_life)
             half_life = COLOR_HALF_LIFE(dp->color1);
-        ncolors++;
+        n_beam_colors++;
         }
 
     /* before phosphor_init; */
@@ -1021,7 +1242,7 @@ display_init(enum display_type type, int sf, void *dptr)
     /* must be non-zero; interval of 1 means all pixels will age at once! */
     if (refresh_interval < 1) {
         /* decrease DELAY_UNIT? */
-        fprintf(stderr, "NOTE! refresh_interval too small: %d\r\n",
+        fprintf(stderr, "NOTE! refresh_interval too small: %ld\r\n",
                         refresh_interval);
 
         /* dunno if this is a good idea, but might be better than dying */
@@ -1031,7 +1252,7 @@ display_init(enum display_type type, int sf, void *dptr)
     /* point lifetime in DELAY_UNITs will not fit in p->delay field! */
     if (refresh_interval > DELAY_T_MAX) {
         /* increase DELAY_UNIT? */
-        fprintf(stderr, "bad refresh_interval %d > DELAY_T_MAX %d\r\n",
+        fprintf(stderr, "bad refresh_interval %ld > DELAY_T_MAX %d\r\n",
             refresh_interval, DELAY_T_MAX);
         goto failed;
         }
@@ -1043,17 +1264,44 @@ display_init(enum display_type type, int sf, void *dptr)
      *
      * linear for now.  boost factor insures low intensities are visible
      */
-#define BOOST 5
+#define BOOST 5.0
     for (i = 0; i < NLEVELS; i++)
-        level_scale[i] = ((float)i+1+BOOST)/(NLEVELS+BOOST);
+        level_scale[i] = ((double) i + 1.0 + BOOST) /(NLEVELS + BOOST);
 
-    points = (struct point *)calloc((size_t)xpixels,
-                    ypixels * sizeof(struct point));
-    if (!points)
+    points = (struct point *)calloc((size_t) (xpixels * ypixels), sizeof(struct point));
+    if (points == NULL)
+        goto failed;
+    for (i = 0; i < sizeof(pixelplanes) / sizeof(pixelplanes[0]); ++i) {
+        pixelplanes[i] = (uint32 *) calloc((size_t) (xpixels * ypixels), sizeof(uint32));
+        if (pixelplanes[i] == NULL)
+            goto failed;
+    }
+    current_pixelplane = 0;
+    if (pthread_mutex_init(&pixelplane_mutex, NULL) != 0)
         goto failed;
 
-    if (!ws_init(dp->name, xpixels, ypixels, ncolors, dptr))
-        goto failed;
+    initialize_drawing_bound(&draw_bound);
+
+    /* Initialize the display */
+    arrow_cursor = create_cursor (arrow);
+    cross_cursor = create_cursor (cross);
+    if (vid_open ((DEVICE *) dptr, dp->name, xpixels * pix_size, ypixels * pix_size, 0) == 0) {
+        vid_set_cursor (1, arrow_cursor->width, arrow_cursor->height,
+                        arrow_cursor->data, arrow_cursor->mask, arrow_cursor->hot_x, arrow_cursor->hot_y);
+    }
+
+    /* Initialize the color palette (requires the display): */
+    size_dispcolors = 16;
+    disp_colors = calloc(size_dispcolors, sizeof(COLORTABLE));
+
+    mono_palette[0].pixel_color = vid_map_rgb(0, 0, 0);
+    mono_palette[1].pixel_color = vid_map_rgb(0xff, 0xff, 0xff);
+
+    if (disp_colors != NULL) {
+        disp_colors[0] = mono_palette[0];
+        disp_colors[1] = mono_palette[1];
+        n_dispcolors = 2;
+    }
 
     phosphor_init(dp->color0->phosphors, dp->color0->nphosphors, 0);
 
@@ -1071,16 +1319,16 @@ display_init(enum display_type type, int sf, void *dptr)
 }
 
 void
-display_close(void *dptr)
+display_close(const void *dptr)
 {
-    if (!initialized)
-        return;
-
-    if (device != dptr)
+    if (!initialized || device != dptr)
         return;
 
     free (points);
-    ws_shutdown();
+
+    free_cursor(arrow_cursor);
+    free_cursor(cross_cursor);
+    vid_close();
 
     initialized = 0;
     device = NULL;
@@ -1095,14 +1343,48 @@ display_reset(void)
 void
 display_sync(void)
 {
-    ws_poll (NULL, 0);
-    ws_sync ();
+    uint32 *plane_to_draw, *plane_to_use;
+    int w = draw_bound.max_x - draw_bound.min_x + 1;
+    int h = draw_bound.max_y - draw_bound.min_y + 1;
+
+    plane_to_draw = pixelplanes[current_pixelplane];
+
+    /* Minimize time we hold the mutex while we switch between pixel planes. */
+    pthread_mutex_lock(&pixelplane_mutex);
+    ++current_pixelplane;
+    /* The right side boolean == 0 if current_pixelplane == # of pixel planes. */
+    current_pixelplane *= (current_pixelplane < sizeof(pixelplanes) / sizeof(pixelplanes[0]));
+    pthread_mutex_unlock(&pixelplane_mutex);
+
+    plane_to_use = pixelplanes[current_pixelplane];
+
+    if (draw_bound.max_x > draw_bound.min_x && draw_bound.max_y > draw_bound.min_y) {
+        if (draw_bound.min_x != 0 || draw_bound.min_y != 0 || draw_bound.max_x != xpixels || draw_bound.max_y != ypixels) {
+            int py;
+            size_t py_offset = draw_bound.min_y * xpixels + draw_bound.min_x;
+            const size_t row_bytes = w * sizeof(uint32);
+
+            for (py = 0; py < h; ++py) {
+                memcpy(&plane_to_use[py_offset], &plane_to_draw[py_offset], row_bytes);
+                py_offset += xpixels;
+            }
+        } else {
+            memcpy(plane_to_use, plane_to_draw, w * h * sizeof(uint32));
+        }
+
+        /* NB: These drawing bounds are window (upper left origin) coordinates. */
+        vid_draw_onto(draw_bound.min_x, draw_bound.min_y, w, h, display_age_onto, plane_to_draw);
+        vid_refresh();
+        initialize_drawing_bound(&draw_bound);
+    }
+
+    poll_for_events (NULL, 0);
 }
 
 void
 display_beep(void)
 {
-    ws_beep();
+    vid_beep();
 }
 
 int
@@ -1220,4 +1502,315 @@ display_keyup(int k)
     default: return;
     }
     cpu_set_switches(test_switches, test_switches2);
+}
+
+static size_t get_vid_color(uint8 r, uint8 g, uint8 b)
+{
+    size_t i;
+    Uint32 pixel_rgb = vid_map_rgb(r, g, b);
+
+    for (i = 0; i < n_dispcolors; i++) {
+        if (disp_colors[i].pixel_color == pixel_rgb)
+            return i;
+    }
+
+    if (n_dispcolors == size_dispcolors) {
+        COLORTABLE *p;
+
+        /* Expect that the color table will grow slowly, so no reason to
+         * bump the size by large increments. */
+        size_dispcolors += 16;
+        p = (COLORTABLE *) realloc(disp_colors, size_dispcolors * sizeof(*disp_colors));
+        if (p != NULL) {
+            disp_colors = p;
+        } else {
+            free(disp_colors);
+            disp_colors = NULL;
+            sim_messagef(SCPE_MEM, "get_vid_color: realloc from %" SIZE_T_FMT "u to %" SIZE_T_FMT "u failed. Cannot continue.\n", n_dispcolors,
+                         size_dispcolors);
+            abort();
+        }
+    }
+
+    disp_colors[n_dispcolors].pixel_color = pixel_rgb;
+    return n_dispcolors++;
+}
+
+/* Cursors: */
+static CURSOR *create_cursor(const char *image[])
+{
+    int byte, bit, row, col;
+    Uint8 *data = NULL;
+    Uint8 *mask = NULL;
+    char black, white, transparent;
+    CURSOR *result = NULL;
+    int width, height, curs_colors, cpp;
+    int hot_x = 0, hot_y = 0;
+
+    if (4 > sscanf(image[0], "%d %d %d %d %d %d", &width, &height, &curs_colors, &cpp, &hot_x, &hot_y))
+        return result;
+    if ((cpp != 1) || (0 != width % 8) || (curs_colors != 3))
+        return result;
+    black = image[1][0];
+    white = image[2][0];
+    transparent = image[3][0];
+    data = (Uint8 *)calloc(1, (width / 8) * height);
+    mask = (Uint8 *)calloc(1, (width / 8) * height);
+    if (!data || !mask) {
+        free(data);
+        free(mask);
+        return result;
+    }
+    bit = 7;
+    byte = 0;
+    for (row = 0; row < height; ++row) {
+        for (col = 0; col < width; ++col) {
+            if (image[curs_colors + 1 + row][col] == black) {
+                data[byte] |= (1 << bit);
+                mask[byte] |= (1 << bit);
+            } else if (image[curs_colors + 1 + row][col] == white) {
+                mask[byte] |= (1 << bit);
+            } else if (image[curs_colors + 1 + row][col] != transparent) {
+                free(data);
+                free(mask);
+                return result;
+            }
+            --bit;
+            if (bit < 0) {
+                ++byte;
+                bit = 7;
+            }
+        }
+    }
+    result = (CURSOR *)calloc(1, sizeof(*result));
+    if (result) {
+        result->data = data;
+        result->mask = mask;
+        result->width = width;
+        result->height = height;
+        result->hot_x = hot_x;
+        result->hot_y = hot_y;
+    } else {
+        free(data);
+        free(mask);
+    }
+    return result;
+}
+
+static void free_cursor (CURSOR *cursor)
+{
+    if (cursor == NULL)
+        return;
+    free (cursor->data);
+    free (cursor->mask);
+    free (cursor);
+}
+
+/* Event polling: */
+static void key_to_ascii (const SIM_KEY_EVENT *kev);
+static int map_key(int k);
+
+static int poll_for_events(int *valp, int maxus)
+{
+    SIM_MOUSE_EVENT mev;
+    SIM_KEY_EVENT kev;
+
+    if (maxus > 1000)
+        sim_os_ms_sleep(maxus / 1000);
+
+    if (SCPE_OK == vid_poll_mouse(&mev)) {
+        unsigned char old_lp_sw = display_lp_sw;
+
+        if ((display_lp_sw = (unsigned char)mev.b1_state) != 0) {
+            light_pen_x = mev.x_pos;
+            light_pen_y = (ypixels - 1) - mev.y_pos; /* range 0 - (ypixels-1) */
+            /* convert to display coordinates */
+            light_pen_x /= pix_size;
+            light_pen_y /= pix_size;
+            if (!old_lp_sw && !display_tablet)
+                vid_set_cursor(1, cross_cursor->width, cross_cursor->height, cross_cursor->data, cross_cursor->mask,
+                               cross_cursor->hot_x, cross_cursor->hot_y);
+        } else {
+            light_pen_x = light_pen_y = -1;
+            if (old_lp_sw && !display_tablet)
+                vid_set_cursor(1, arrow_cursor->width, arrow_cursor->height, arrow_cursor->data, arrow_cursor->mask,
+                               arrow_cursor->hot_x, arrow_cursor->hot_y);
+        }
+        vid_set_cursor_position(mev.x_pos, mev.y_pos);
+    }
+    if (SCPE_OK == vid_poll_kb(&kev)) {
+        if ((vid_display_kb_event_process == NULL) || (vid_display_kb_event_process(&kev) != 0)) {
+            switch (kev.state) {
+            case SIM_KEYPRESS_DOWN:
+            case SIM_KEYPRESS_REPEAT:
+                display_keydown(map_key(kev.key));
+                break;
+            case SIM_KEYPRESS_UP:
+                display_keyup(map_key(kev.key));
+                break;
+            }
+            key_to_ascii(&kev);
+        }
+    }
+    return 1;
+}
+
+
+static int map_key(int k)
+{
+    switch (k) {
+        case SIM_KEY_0:                   return '0';
+        case SIM_KEY_1:                   return '1';
+        case SIM_KEY_2:                   return '2';
+        case SIM_KEY_3:                   return '3';
+        case SIM_KEY_4:                   return '4';
+        case SIM_KEY_5:                   return '5';
+        case SIM_KEY_6:                   return '6';
+        case SIM_KEY_7:                   return '7';
+        case SIM_KEY_8:                   return '8';
+        case SIM_KEY_9:                   return '9';
+        case SIM_KEY_A:                   return 'a';
+        case SIM_KEY_B:                   return 'b';
+        case SIM_KEY_C:                   return 'c';
+        case SIM_KEY_D:                   return 'd';
+        case SIM_KEY_E:                   return 'e';
+        case SIM_KEY_F:                   return 'f';
+        case SIM_KEY_G:                   return 'g';
+        case SIM_KEY_H:                   return 'h';
+        case SIM_KEY_I:                   return 'i';
+        case SIM_KEY_J:                   return 'j';
+        case SIM_KEY_K:                   return 'k';
+        case SIM_KEY_L:                   return 'l';
+        case SIM_KEY_M:                   return 'm';
+        case SIM_KEY_N:                   return 'n';
+        case SIM_KEY_O:                   return 'o';
+        case SIM_KEY_P:                   return 'p';
+        case SIM_KEY_Q:                   return 'q';
+        case SIM_KEY_R:                   return 'r';
+        case SIM_KEY_S:                   return 's';
+        case SIM_KEY_T:                   return 't';
+        case SIM_KEY_U:                   return 'u';
+        case SIM_KEY_V:                   return 'v';
+        case SIM_KEY_W:                   return 'w';
+        case SIM_KEY_X:                   return 'x';
+        case SIM_KEY_Y:                   return 'y';
+        case SIM_KEY_Z:                   return 'z';
+        case SIM_KEY_BACKQUOTE:           return '`';
+        case SIM_KEY_MINUS:               return '-';
+        case SIM_KEY_EQUALS:              return '=';
+        case SIM_KEY_LEFT_BRACKET:        return '[';
+        case SIM_KEY_RIGHT_BRACKET:       return ']';
+        case SIM_KEY_SEMICOLON:           return ';';
+        case SIM_KEY_SINGLE_QUOTE:        return '\'';
+        case SIM_KEY_BACKSLASH:           return '\\';
+        case SIM_KEY_LEFT_BACKSLASH:      return '\\';
+        case SIM_KEY_COMMA:               return ',';
+        case SIM_KEY_PERIOD:              return '.';
+        case SIM_KEY_SLASH:               return '/';
+        case SIM_KEY_BACKSPACE:           return '\b';
+        case SIM_KEY_TAB:                 return '\t';
+        case SIM_KEY_ENTER:               return '\r';
+        case SIM_KEY_SPACE:               return ' ';
+        }
+    return k;
+}
+
+
+static void key_to_ascii (const SIM_KEY_EVENT *kev)
+{
+    static t_bool k_ctrl, k_shift, k_alt, k_win;
+
+#define MODKEY(L, R, mod)   \
+    case L: case R: mod = (kev->state != SIM_KEYPRESS_UP); break;
+#define MODIFIER_KEYS       \
+    MODKEY(SIM_KEY_ALT_L,    SIM_KEY_ALT_R,      k_alt)     \
+    MODKEY(SIM_KEY_CTRL_L,   SIM_KEY_CTRL_R,     k_ctrl)    \
+    MODKEY(SIM_KEY_SHIFT_L,  SIM_KEY_SHIFT_R,    k_shift)   \
+    MODKEY(SIM_KEY_WIN_L,    SIM_KEY_WIN_R,      k_win)
+#define SPCLKEY(K, LC, UC)  \
+    case K:                                                 \
+        if (kev->state != SIM_KEYPRESS_UP)                  \
+            display_last_char = (unsigned char)(k_shift ? UC : LC);\
+        break;
+#define SPECIAL_CHAR_KEYS   \
+    SPCLKEY(SIM_KEY_BACKQUOTE,      '`',  '~')              \
+    SPCLKEY(SIM_KEY_MINUS,          '-',  '_')              \
+    SPCLKEY(SIM_KEY_EQUALS,         '=',  '+')              \
+    SPCLKEY(SIM_KEY_LEFT_BRACKET,   '[',  '{')              \
+    SPCLKEY(SIM_KEY_RIGHT_BRACKET,  ']',  '}')              \
+    SPCLKEY(SIM_KEY_SEMICOLON,      ';',  ':')              \
+    SPCLKEY(SIM_KEY_SINGLE_QUOTE,   '\'', '"')              \
+    SPCLKEY(SIM_KEY_LEFT_BACKSLASH, '\\', '|')              \
+    SPCLKEY(SIM_KEY_COMMA,          ',',  '<')              \
+    SPCLKEY(SIM_KEY_PERIOD,         '.',  '>')              \
+    SPCLKEY(SIM_KEY_SLASH,          '/',  '?')              \
+    SPCLKEY(SIM_KEY_ESC,            '\033', '\033')         \
+    SPCLKEY(SIM_KEY_BACKSPACE,      '\177', '\177')       \
+    SPCLKEY(SIM_KEY_TAB,            '\t', '\t')             \
+    SPCLKEY(SIM_KEY_ENTER,          '\r', '\r')             \
+    SPCLKEY(SIM_KEY_SPACE,          ' ', ' ')
+
+    switch (kev->key) {
+        MODIFIER_KEYS
+        SPECIAL_CHAR_KEYS
+        case SIM_KEY_0: case SIM_KEY_1: case SIM_KEY_2: case SIM_KEY_3: case SIM_KEY_4:
+        case SIM_KEY_5: case SIM_KEY_6: case SIM_KEY_7: case SIM_KEY_8: case SIM_KEY_9:
+            if (kev->state != SIM_KEYPRESS_UP)
+                display_last_char = (unsigned char)('0' + (kev->key - SIM_KEY_0)); 
+            break;
+        case SIM_KEY_A: case SIM_KEY_B: case SIM_KEY_C: case SIM_KEY_D: case SIM_KEY_E:
+        case SIM_KEY_F: case SIM_KEY_G: case SIM_KEY_H: case SIM_KEY_I: case SIM_KEY_J:
+        case SIM_KEY_K: case SIM_KEY_L: case SIM_KEY_M: case SIM_KEY_N: case SIM_KEY_O:
+        case SIM_KEY_P: case SIM_KEY_Q: case SIM_KEY_R: case SIM_KEY_S: case SIM_KEY_T:
+        case SIM_KEY_U: case SIM_KEY_V: case SIM_KEY_W: case SIM_KEY_X: case SIM_KEY_Y:
+        case SIM_KEY_Z: 
+            if (kev->state != SIM_KEYPRESS_UP)
+                display_last_char = (unsigned char)((kev->key - SIM_KEY_A) + 
+                                        (k_ctrl ? 1 : (k_shift ? 'A' : 'a')));
+            break;
+        }
+}
+
+/* Utility functions: */
+static inline void initialize_drawing_bound(DrawingBounds *b)
+{
+    /* Initialize to the maximal values and apply MIN. */
+    b->min_x = xpixels;
+    b->min_y = ypixels;
+    /* Initialize to the minimal values and apply MAX. */
+    b->max_x = 0;
+    b->max_y = 0;
+}
+
+/* Coordinates are in display coordinates (lower left origin.) */
+static inline void set_pixel_value(const struct point *p, uint32 pixel_value)
+{
+    int x = X(p);
+    /* Display origin is lower left, whereas window systems' origins are upper left.
+     * Transform coordinate from display to window system's. */
+    int y = ypixels - 1 - Y(p);
+
+    pixelplanes[current_pixelplane][y * xpixels + x] = pixel_value;
+
+    /* Branchless version of MIN on x and y, MAX on w and h. Gives the common
+     * subexpression eliminator something to do. */
+    draw_bound.min_x = (draw_bound.min_x >= x) * x + (!(draw_bound.min_x >= x)) * draw_bound.min_x;
+    draw_bound.min_y = (draw_bound.min_y >= y) * y + (!(draw_bound.min_y >= y)) * draw_bound.min_y;
+    draw_bound.max_x = (draw_bound.max_x <= x) * x + (!(draw_bound.max_x <= x)) * draw_bound.max_x;
+    draw_bound.max_y = (draw_bound.max_y <= y) * y + (!(draw_bound.max_y <= y)) * draw_bound.max_y;
+}
+
+static unsigned long os_elapsed(void)
+{
+    static int tnew;
+    unsigned long ret;
+    static uint32 t[2];
+
+    t[tnew] = sim_os_msec();
+    if (t[!tnew] == 0)
+        ret = (uint32)~0; /* +INF */
+    else
+        ret = (t[tnew] - t[!tnew]) * 1000; /* usecs */
+    tnew = !tnew;                          /* Ecclesiastes III */
+    return ret;
 }

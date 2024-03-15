@@ -101,12 +101,6 @@ IF (WITH_VIDEO)
         ## Hopefully this hack can go away. Had to move the target_compile_definitions
         ## over to add_simulator.cmake to accomodate the BESM6 SDL irregularity.
         ##
-        ## (keep)  if (CMAKE_HOST_APPLE)
-        ## (keep)      ## NOTE: This shouldn't be just an Apple platform quirk; SDL_main should
-        ## (keep)      ## be used by all platforms. <sigh!>
-        ## (keep)      target_compile_definitions(simh_video INTERFACE SDL_MAIN_AVAILABLE)
-        ## (keep)  endif ()
-
         ## Link to SDL2main if defined for this platform.
         target_link_libraries(simh_video INTERFACE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>)
 

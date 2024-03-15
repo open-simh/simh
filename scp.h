@@ -72,6 +72,10 @@ extern "C" {
 #define CMD_OPT_SCH     004                             /* search */
 #define CMD_OPT_DFT     010                             /* defaults */
 
+/* Simulator main(). See note in scp.c. */
+
+int simulator_main (int argc, char *argv[]);
+
 /* Command processors */
 
 t_stat reset_cmd (int32 flag, CONST char *ptr);

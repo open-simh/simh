@@ -282,11 +282,8 @@ class IBM650Simulator(SIMHBasicSimulator):
             '    else ()',
             '        set(I650_STACK_FLAG "-Wl,--stack,{0}")'.format(self.stack_size),
             '    endif ()',
-            '    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")',
-            '        target_link_options({0} PUBLIC "${{I650_STACK_FLAG}}")'.format(self.sim_name),
-            '    else ()',
-            '        set_property(TARGET {0} LINK_FLAGS " ${{I650_STACK_FLAG}}")'.format(self.sim_name),
-            '    endif ()',
+            '',
+            '    target_link_options({0} PUBLIC "${{I650_STACK_FLAG}}")'.format(self.sim_name),
             'endif()'
         ]))
 

@@ -114,6 +114,7 @@
 #include <math.h>                       /* atan2, cos, sin, sqrt */
 #endif
 
+#include "sim_defs.h"
 #include "display.h"                    /* XY plot interface */
 #include "vt11.h"
 
@@ -128,36 +129,9 @@
 /* extract a 1-bit field */
 #define TESTBIT(W,B) (((W) & BITMASK(B)) != 0)
 
-static void *vt11_dptr;
+static DEVICE *vt11_dptr;
 static int vt11_dbit;
 
-#if defined(DEBUG_VT11) || defined(VM_PDP11)
-
-#include <stdio.h>
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-#define DEVICE void
-
-#define DBG_CALL 1
-int vt11_debug;
-
-#if defined(VM_PDP11)
-extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt, ...);
-
-#define DEBUGF(...) _sim_debug_device (vt11_dbit, vt11_dptr, ##  __VA_ARGS__)
-#else /* DEBUG_VT11 */
-#define DEBUGF(...) do {if (vt11_debug & DBG_CALL) { printf(##  __VA_ARGS__); fflush(stdout); };} while (0)
-#endif /* defined(DEBUG_VT11) || defined(VM_PDP11) */
-#if defined(__cplusplus)
-}
-#endif
-#else
-
-#define DEBUGF(...) 
-
-#endif
 
 /*
  * Note about coordinate signedness and wrapping:
@@ -255,8 +229,8 @@ static uint16 bdb = 0;                  /* Buffered Data Bits register;
 static unsigned char internal_stop = 0; /* 1 bit: stop display */
 static unsigned char mode_field = 0;    /* copy of control instr. bits 14-11 */
 #define graphic_mode stack[8]._mode     /* 4 bits: sets type for graphic data */
-enum gmode { CHAR=0, SVECTOR, LVECTOR, POINT, GRAPHX, GRAPHY, RELPOINT, /* all */
-            BSVECT, CIRCLE, ABSVECTOR   /* VS60 only */
+enum gmode { VT11CHAR=0, SVECTOR, LVECTOR, ABSPOINT, GRAPHX, GRAPHY, RELPOINT, /* all */
+             BSVECT, CIRCLE, ABSVECTOR   /* VS60 only */
 };
 
 #define intensity    stack[8]._intens   /* 3 bits: 0 => dim .. 7 => bright */
@@ -454,23 +428,23 @@ static struct frame
         enum scolor   _color;           /* scope display color (option) */
         unsigned char _zdata;           /* flag: display file has Z coords */
         unsigned char _depth;           /* flag: display Z using depth cue */
-        } stack[9] = { { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+        } stack[9] = { { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
-                       { 0, 0, CHAR, 4, 1, 4, 0, 4, SOLID, 0, 0, 0, 0,
+                       { 0, 0, VT11CHAR, 4, 1, 4, 0, 4, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 1, 0, GREEN, 0, 0 },
                      };
 
@@ -663,7 +637,7 @@ void
 vt11_set_dpc(uint16 d)
 {   INIT
     bdb = d;                            /* save all bits in case maint1 used */
-    DEBUGF("set DPC 0%06o\r\n", (unsigned)d);
+    sim_debug(vt11_dbit, vt11_dptr, "set DPC 0%06o\r\n", (unsigned)d);
     /* Stack level is unaffected, except that stack_sel==037 goes to 040; this
        fudge is necessary to pass DZVSC test 3, which misleadingly calls it
        setting top-of-stack upon START (vt11_set_dpc(even)).  If one instead
@@ -753,7 +727,7 @@ vt11_get_xpr(void)
 void
 vt11_set_xpr(uint16 d)
 {   INIT
-    DEBUGF("set XPR: no effect\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "set XPR: no effect\r\n");
 }
 
 int32
@@ -768,7 +742,7 @@ vt11_get_ypr(void)
 void
 vt11_set_ypr(uint16 d)
 {   INIT
-    DEBUGF("set YPR: no effect\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "set YPR: no effect\r\n");
 }
 
 /* All the remaining registers pertain to the VS60 only. */
@@ -845,7 +819,7 @@ vt11_set_yor(uint16 d)
 int32
 vt11_get_anr(void)
 {   INIT
-    DEBUGF("get ANR: no effect\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "get ANR: no effect\r\n");
     return (search << 12) | assoc_name; /* [garbage] */
 }
 
@@ -921,7 +895,7 @@ vt11_get_nr(void)
 void
 vt11_set_nr(uint16 d)
 {   INIT
-    DEBUGF("set NR: no effect\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "set NR: no effect\r\n");
 }
 
 int32
@@ -957,7 +931,7 @@ vt11_get_sdr(void)
 void
 vt11_set_sdr(uint16 d)
 {   INIT
-    DEBUGF("set SDR: no effect\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "set SDR: no effect\r\n");
 }
 
 int32
@@ -1035,7 +1009,7 @@ vt11_get_zpr(void)
 void
 vt11_set_zpr(uint16 d)
 {   INIT
-    DEBUGF("set ZPR: no effect\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "set ZPR: no effect\r\n");
 }
 
 int32
@@ -1064,7 +1038,7 @@ vt11_set_zor(uint16 d)
 }
 
 void
-vt11_reset(void *dev, int debug)
+vt11_reset(DEVICE *dev, int debug)
 {
     if (dev) {
         vt11_dptr = dev;
@@ -1105,7 +1079,7 @@ vt11_reset(void *dev, int debug)
     s_xoff = s_yoff = s_zoff = 0;
     graphplot_step = 0;
     mode_field = 0;
-    graphic_mode = CHAR;
+    graphic_mode = VT11CHAR;
     line_type = SOLID;
     color = GREEN;
     lp_intensify = 1;
@@ -1198,12 +1172,12 @@ illum3(int32 x, int32 y, int32 z)
     i = dintens(z);
 
     if (display_point((int)x, (int)y, i, 0)    /* XXX VS60 might switch color */
-        /* VT11, per maintenance spec, has threshold 6 for CHAR, 4 for others */
+        /* VT11, per maintenance spec, has threshold 6 for VT11CHAR, 4 for others */
         /* but the classic Lunar Lander uses 3 for its menu and thrust bar! */
         /* I seem to recall that both thresholds were 4 for the VS60 (VR48). */
 #if 0
         && (i >= (DISPLAY_INT_MAX-1)    /* (using i applies depth cueing) */
-            || (graphic_mode != CHAR && i >= (DISPLAY_INT_MAX-3)))
+            || (graphic_mode != VT11CHAR && i >= (DISPLAY_INT_MAX-3)))
 #else
         /* The following imposes thresholds of 3 for all graphic objects. */
         && (i >= (DISPLAY_INT_MAX-4))   /* (using i applies depth cueing) */
@@ -2038,7 +2012,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
     dz = z1 - z0;
 
     if (stroking) {                     /* drawing a VS60 character */
-        DEBUGF("offset, normalized stroke i%d (%ld,%ld) to (%ld,%ld)\r\n",
+        sim_debug(vt11_dbit, vt11_dptr, "offset, normalized stroke i%d (%ld,%ld) to (%ld,%ld)\r\n",
                i, (long)x0,(long)y0, (long)x1,(long)y1);
 
         if (dx == 0 && dy == 0) {       /* just display a point */
@@ -2051,7 +2025,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
             return;
         }
     } else {
-        DEBUGF("offset, normalized vector i%d (%ld,%ld,%ld) to (%ld,%ld,%ld)\r\n",
+        sim_debug(vt11_dbit, vt11_dptr, "offset, normalized vector i%d (%ld,%ld,%ld) to (%ld,%ld,%ld)\r\n",
                i, (long)x0, (long)y0, (long)z0, (long)x1, (long)y1, (long)z1);
 
         line_counter = 037;             /* reset line-style counter */
@@ -2069,7 +2043,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
                 xpos = 010000L * adx / ady + 1; /* truncates */
                 ypos = ady;             /* according to DZVSC test 100 */
             }
-            DEBUGF("delta=0%o, tangent=0%o\r\n", xpos, ypos);
+            sim_debug(vt11_dbit, vt11_dptr, "delta=0%o, tangent=0%o\r\n", xpos, ypos);
             xpos = PSCALE(xpos);        /* compensates for eventual PNORM */
             ypos = PSCALE(ypos);        /* compensates for eventual PNORM */
         }
@@ -2126,7 +2100,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
         case 0:                         /* invisible */
             return;
         default:
-            DEBUGF("clip() bad return: %d\n", clip_vect);
+            sim_debug(vt11_dbit, vt11_dptr, "clip() bad return: %d\n", clip_vect);
             /* Fallthrough */
         case -1:                        /* visible, not clipped */
             clip_vect = 0;
@@ -2173,7 +2147,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
                 tangent = 010000L * dz / dy;
             lp_zpos = z0 + tangent * (lp_ypos - y0) / 010000L;
         }
-        DEBUGF("adjusted LP coords (0%o,0%o,0%o)\r\n",
+        sim_debug(vt11_dbit, vt11_dptr, "adjusted LP coords (0%o,0%o,0%o)\r\n",
                lp_xpos, lp_ypos, lp_zpos);
         /* xpos,ypos,zpos still pertain to the original endpoint
            (assuming that Maintenance Switch 3 isn't set) */
@@ -2227,10 +2201,10 @@ basic_vector(int i, int dir, int len)   /* unscaled display-file units */
         dy = -len;
         break;
     default:                            /* "can't happen" */
-        DEBUGF("BUG: basic vector: illegal direction %d\r\n", dir);
+        sim_debug(vt11_dbit, vt11_dptr, "BUG: basic vector: illegal direction %d\r\n", dir);
         return;
     }
-    DEBUGF("basic ");
+    sim_debug(vt11_dbit, vt11_dptr, "basic ");
     vector2(i, dx, dy);
 }
 
@@ -2296,7 +2270,7 @@ conic3(int i, int32 dcx, int32 dcy, int32 dcz, int32 dex, int32 dey, int32 dez)
     dey -= dcy;
     dez -= dcz;
 
-    DEBUGF("offset, normalized arc i%d s(%ld,%ld,%ld) c(%ld,%ld,%ld) e(%ld,%ld,%ld)\r\n",
+    sim_debug(vt11_dbit, vt11_dptr, "offset, normalized arc i%d s(%ld,%ld,%ld) c(%ld,%ld,%ld) e(%ld,%ld,%ld)\r\n",
            i, (long)xs,(long)ys,(long)zs, (long)xc,(long)yc,(long)zc,
            (long)xe,(long)ye,(long)ze);
 
@@ -2390,7 +2364,7 @@ conic3(int i, int32 dcx, int32 dcy, int32 dcz, int32 dex, int32 dey, int32 dez)
     ypos += dcy + dey;
     zpos += dcz + dez;
     if (lp0_hit) {
-        DEBUGF("LP hit on arc at (0%o,0%o,0%o)\r\n",
+        sim_debug(vt11_dbit, vt11_dptr, "LP hit on arc at (0%o,0%o,0%o)\r\n",
                lp_xpos, lp_ypos, lp_zpos);
         if (lphit_irq) {
             /* XXX  save parameters for drawing remaining chords */
@@ -3042,14 +3016,14 @@ character(int c)
  * If display processor is halted or awaiting sync, just performs "background"
  * maintenance tasks and returns 0.
  * Otherwise, draws any pending clipped vector (VS60 only).
- * Otherwise, completes any pending second CHAR or BSVECT (must be a RESUME
- * after interrupt on first CHAR or BSVECT), or fetches one word from the
+ * Otherwise, completes any pending second VT11CHAR or BSVECT (must be a RESUME
+ * after interrupt on first VT11CHAR or BSVECT), or fetches one word from the
  * display file and processes it.  May post an interrupt; returns 1 if display
  * processor is still running, or 0 if halted or an interrupt was posted.
  *
  * word_number keeps track of the state of multi-word graphic data parsing;
  * word_number also serves to keep track of half-word for graphic data having
- * two independent entities encoded within one word (CHAR or BSVECT).
+ * two independent entities encoded within one word (VT11CHAR or BSVECT).
  * Note that, for the VT11, there might be control words (e.g. JMPA) embedded
  * within the data!  (We don't know of any application that exploits this.)
  */
@@ -3087,7 +3061,7 @@ vt11_cycle(int us, int slowdown)
         int32 dx = clip_x1 - clip_x0,
               dy = clip_y1 - clip_y0,
               dz = clip_z1 - clip_z0;
-        DEBUGF("clipped vector i%d (%ld,%ld,%ld) to (%ld,%ld,%ld)\r\n", clip_i,
+        sim_debug(vt11_dbit, vt11_dptr, "clipped vector i%d (%ld,%ld,%ld) to (%ld,%ld,%ld)\r\n", clip_i,
                (long)clip_x0, (long)clip_y0, (long)clip_z0,
                (long)clip_x1, (long)clip_y1, (long)clip_z1);
         if (VS60                        /* XXX  assuming VT11 doesn't display */
@@ -3120,7 +3094,7 @@ vt11_cycle(int us, int slowdown)
                 tangent = 010000L * dz / dy;
                 lp_zpos = clip_z0 + tangent * (lp_ypos - clip_y0) / 010000L;
             }
-            DEBUGF("adjusted LP coords (0%o,0%o,0%o)\r\n",
+            sim_debug(vt11_dbit, vt11_dptr, "adjusted LP coords (0%o,0%o,0%o)\r\n",
                    lp_xpos, lp_ypos, lp_zpos);
             /* xpos,ypos,zpos still pertain to the original endpoint
                (assuming that Maintenance Switch 3 isn't set) */
@@ -3142,19 +3116,19 @@ vt11_cycle(int us, int slowdown)
 
     /* fetch next word from display file (if needed) and process it */
 
-    if (word_number != 1 || (graphic_mode != CHAR && graphic_mode != BSVECT)) {
+    if (word_number != 1 || (graphic_mode != VT11CHAR && graphic_mode != BSVECT)) {
         time_out = vt_fetch((uint32)((DPC+reloc)&0777777), &inst);
         DPC += 2;
         if (time_out)
             goto bus_timeout;
-        DEBUGF("0%06o: 0%06o\r\n",
+        sim_debug(vt11_dbit, vt11_dptr, "0%06o: 0%06o\r\n",
                (unsigned)(DPC - 2 + reloc) & 0777777, (unsigned)inst);
         if (finish_jmpa)
             goto jmpa;
         if (finish_jsra)
             goto jsra;
     }
-    /* else have processed only half the CHAR or BSVECT data word so far */
+    /* else have processed only half the VT11CHAR or BSVECT data word so far */
 
   fetched:
 
@@ -3171,7 +3145,7 @@ vt11_cycle(int us, int slowdown)
             /*FALLTHRU*/
         case 010:                       /* Set Graphic Mode 1000 */
             if (VT11) {
-                DEBUGF("SGM 1000 IGNORED\r\n");
+                sim_debug(vt11_dbit, vt11_dptr, "SGM 1000 IGNORED\r\n");
                 break;
             }
             /*FALLTHRU*/
@@ -3182,34 +3156,34 @@ vt11_cycle(int us, int slowdown)
         case 4:                         /* Set Graphic Mode 0100 */
         case 5:                         /* Set Graphic Mode 0101 */
         case 6:                         /* Set Graphic Mode 0110 */
-            DEBUGF("Set Graphic Mode %u", (unsigned)mode_field);
+            sim_debug(vt11_dbit, vt11_dptr, "Set Graphic Mode %u", (unsigned)mode_field);
             graphic_mode = (enum gmode)mode_field;
             offset = 0;
             shift_out = 0;              /* seems to be right */
             if (TESTBIT(inst,10)) {
                 intensity = GETFIELD(inst,9,7);
-                DEBUGF(" intensity=%d", (int)intensity);
+                sim_debug(vt11_dbit, vt11_dptr, " intensity=%d", (int)intensity);
             }
             if (TESTBIT(inst,6)) {
                 lp0_intr_ena = TESTBIT(inst,5);
-                DEBUGF(" lp0_intr_ena=%d", (int)lp0_intr_ena);
+                sim_debug(vt11_dbit, vt11_dptr, " lp0_intr_ena=%d", (int)lp0_intr_ena);
             }
             if (TESTBIT(inst,4)) {
                 blink_ena = TESTBIT(inst,3);
-                DEBUGF(" blink=%d", (int)blink_ena);
+                sim_debug(vt11_dbit, vt11_dptr, " blink=%d", (int)blink_ena);
             }
             if (TESTBIT(inst,2)) {
                 line_type = (enum linetype)GETFIELD(inst,1,0);
-                DEBUGF(" line_type=%d", (int)line_type);
+                sim_debug(vt11_dbit, vt11_dptr, " line_type=%d", (int)line_type);
             }
-            DEBUGF("\r\n");
+            sim_debug(vt11_dbit, vt11_dptr, "\r\n");
             break;
 
         case 012:                       /* 1010: Load Name Register */
             if (VT11)
                 goto bad_ins;
             name = GETFIELD(inst,10,0);
-            DEBUGF("Load Name Register name=0%o\r\n", name);
+            sim_debug(vt11_dbit, vt11_dptr, "Load Name Register name=0%o\r\n", name);
             {   static unsigned nmask[4] = { 0, 03777, 03770, 03600 };
 
                 if (search != 0 && ((name^assoc_name) & nmask[search]) == 0)
@@ -3220,21 +3194,21 @@ vt11_cycle(int us, int slowdown)
         case 013:                       /* 1011: Load Status C */
             if (VT11)
                 goto bad_ins;
-            DEBUGF("Load Status C");
+            sim_debug(vt11_dbit, vt11_dptr, "Load Status C");
             if (TESTBIT(inst,9)) {
                 char_rotate = TESTBIT(inst,8);
-                DEBUGF(" char_rotate=%d", (int)char_rotate);
+                sim_debug(vt11_dbit, vt11_dptr, " char_rotate=%d", (int)char_rotate);
             }
             if (TESTBIT(inst,7)) {
                 cs_index = GETFIELD(inst,6,5);  /*  0, 1, 2, 3 */
                 char_scale = csi2csf[cs_index]; /* for faster CSCALE macro */
-                DEBUGF(" cs_index=%d(x%d/4)", (int)cs_index, (int)char_scale);
+                sim_debug(vt11_dbit, vt11_dptr, " cs_index=%d(x%d/4)", (int)cs_index, (int)char_scale);
             }
             if (TESTBIT(inst,4)) {
                 vector_scale = GETFIELD(inst,3,0);
-                DEBUGF(" vector_scale=%d/4", (int)vector_scale);
+                sim_debug(vt11_dbit, vt11_dptr, " vector_scale=%d/4", (int)vector_scale);
             }
-            DEBUGF("\r\n");
+            sim_debug(vt11_dbit, vt11_dptr, "\r\n");
             break;
 
         case 014:                       /* 1100__ */
@@ -3250,7 +3224,7 @@ vt11_cycle(int us, int slowdown)
   jmpa:
                 finish_jmpa = 0;
                 DPC = inst & ~1;
-                DEBUGF("Display Jump Absolute 0%06o\r\n", (unsigned)inst);
+                sim_debug(vt11_dbit, vt11_dptr, "Display Jump Absolute 0%06o\r\n", (unsigned)inst);
                 break;
 
             case 1:                     /* 110001: Display Jump Relative */
@@ -3260,16 +3234,16 @@ vt11_cycle(int us, int slowdown)
                 if (TESTBIT(inst,8)) {
 #if 0                   /* manual seems to say this, but it's wrong: */
                         DPC -= ez;
-                        DEBUGF("Display Jump Relative -0%o\r\n",
+                        sim_debug(vt11_dbit, vt11_dptr, "Display Jump Relative -0%o\r\n",
                                (unsigned)ez);
 #else                   /* sign extend, twos complement add, 16-bit wrapping */
                         DPC = (DPC + (~0777 | ez)) & 0177777;
-                        DEBUGF("Display Jump Relative -0%o\r\n",
+                        sim_debug(vt11_dbit, vt11_dptr, "Display Jump Relative -0%o\r\n",
                                ~((~0777 | ez) - 1));
 #endif
                 } else {
                         DPC += (vt11word)ez;
-                        DEBUGF("Display Jump Relative +0%o\r\n",
+                        sim_debug(vt11_dbit, vt11_dptr, "Display Jump Relative +0%o\r\n",
                                (unsigned)ez);
                 }
                 /* DPC was already incremented by 2 */
@@ -3284,7 +3258,7 @@ vt11_cycle(int us, int slowdown)
                 finish_jsra = 0;
                 push();                 /* save return address and parameters */
                 DPC = inst & ~1;
-                DEBUGF("Display Jump to Subroutine Absolute 0%06o\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "Display Jump to Subroutine Absolute 0%06o\r\n",
                        (unsigned)inst);
                 goto check;             /* (break would set jsr = 0) */
 
@@ -3296,16 +3270,16 @@ vt11_cycle(int us, int slowdown)
                 if (TESTBIT(inst,8)) {
 #if 0                   /* manual seems to say this, but it's wrong: */
                         DPC -= (vt11word)ez;
-                        DEBUGF("Display Jump to Subroutine Relative -0%o\r\n",
+                        sim_debug(vt11_dbit, vt11_dptr, "Display Jump to Subroutine Relative -0%o\r\n",
                                (unsigned)ez);
 #else                   /* sign extend, twos complement add, 16-bit wrapping */
                         DPC = (DPC + (~0777 | ez)) & 0177777;
-                        DEBUGF("Display Jump to Subroutine Relative -0%o\r\n",
+                        sim_debug(vt11_dbit, vt11_dptr, "Display Jump to Subroutine Relative -0%o\r\n",
                                ~((~0777 | ez) - 1));
 #endif
                 } else {
                         DPC += (vt11word)ez;
-                        DEBUGF("Display Jump to Subroutine Relative +0%o\r\n",
+                        sim_debug(vt11_dbit, vt11_dptr, "Display Jump to Subroutine Relative +0%o\r\n",
                                (unsigned)ez);
                 }
                 /* DPC was already incremented by 2 */
@@ -3315,19 +3289,19 @@ vt11_cycle(int us, int slowdown)
 
         case 015:                       /* 1101__ */
             if (VT11)
-                DEBUGF("Display NOP\r\n");
+                sim_debug(vt11_dbit, vt11_dptr, "Display NOP\r\n");
             else {
                 op = GETFIELD(inst,10,9);
                 switch (op) {
 
                 case 0:                 /* 110100: Load Scope Selection */
                                         /* also used as Display NOP */
-                    DEBUGF("Load Scope Selection");
+                    sim_debug(vt11_dbit, vt11_dptr, "Load Scope Selection");
                     c = TESTBIT(inst,8);
-                    DEBUGF(" console=%d", c);
+                    sim_debug(vt11_dbit, vt11_dptr, " console=%d", c);
                     if (TESTBIT(inst,7)) {
                         ez = TESTBIT(inst,6);
-                        DEBUGF(" blank=%d", (int)!ez);
+                        sim_debug(vt11_dbit, vt11_dptr, " blank=%d", (int)!ez);
                         if (c)
                             int1_scope = (unsigned char)(ez & 0xFF);
                         else
@@ -3335,7 +3309,7 @@ vt11_cycle(int us, int slowdown)
                     }
                     if (TESTBIT(inst,5)) {
                         ez = TESTBIT(inst,4);
-                        DEBUGF(" lp_intr_ena=%d", (int)ez);
+                        sim_debug(vt11_dbit, vt11_dptr, " lp_intr_ena=%d", (int)ez);
                         if (c)
                             lp1_intr_ena = (unsigned char)(ez & 0xFF);
                         else
@@ -3343,54 +3317,54 @@ vt11_cycle(int us, int slowdown)
                     }
                     if (TESTBIT(inst,3)) {
                         ez = TESTBIT(inst,2);
-                        DEBUGF(" lp_sw_intr_ena=%d", (int)ez);
+                        sim_debug(vt11_dbit, vt11_dptr, " lp_sw_intr_ena=%d", (int)ez);
                         if (c)
                             lp1_sw_intr_ena = (unsigned char)(ez & 0xFF);
                         else
                             lp0_sw_intr_ena = (unsigned char)(ez & 0xFF);
                     }
-                    DEBUGF("\r\n");
+                    sim_debug(vt11_dbit, vt11_dptr, "\r\n");
                     break;
 
                 case 1:                 /* 110101: Display POP Not Restore */
-                    DEBUGF("Display POP Not Restore\r\n");
+                    sim_debug(vt11_dbit, vt11_dptr, "Display POP Not Restore\r\n");
                     pop(0);             /* sets new DPC as side effect */
                     break;
 
                 case 2:                 /* 110110: Display POP Restore */
-                    DEBUGF("Display POP Restore\r\n");
+                    sim_debug(vt11_dbit, vt11_dptr, "Display POP Restore\r\n");
                     pop(1);             /* sets new DPC as side effect */
                     break;
 
                 default:                /* 110111: undocumented -- ignored? */
-                    DEBUGF("Display NOP?\r\n");
+                    sim_debug(vt11_dbit, vt11_dptr, "Display NOP?\r\n");
                 }
             }
             break;
 
         case 016:                       /* 1110: Load Status A */
-            DEBUGF("Load Status A");
+            sim_debug(vt11_dbit, vt11_dptr, "Load Status A");
             internal_stop = TESTBIT(inst,10);   /* 11101 Display Stop */
             if (internal_stop) {
                 stopped = 1;            /* (synchronous with display cycle) */
-                DEBUGF(" stop");
+                sim_debug(vt11_dbit, vt11_dptr, " stop");
             }
             if (TESTBIT(inst,9)) {
                 stop_intr_ena  = TESTBIT(inst,8);
-                DEBUGF(" stop_intr_ena=%d", (int)stop_intr_ena);
+                sim_debug(vt11_dbit, vt11_dptr, " stop_intr_ena=%d", (int)stop_intr_ena);
             }
             if (TESTBIT(inst,7)) {
                 lp_intensify = !TESTBIT(inst,6);
-                DEBUGF(" lp_intensify=%d", (int)lp_intensify);
+                sim_debug(vt11_dbit, vt11_dptr, " lp_intensify=%d", (int)lp_intensify);
             }
             if (TESTBIT(inst,5)) {
                 italics = TESTBIT(inst,4);
-                DEBUGF(" italics=%d", (int)italics);
+                sim_debug(vt11_dbit, vt11_dptr, " italics=%d", (int)italics);
             }
             refresh_rate = GETFIELD(inst,VS60?3:2,2);
-            DEBUGF(" refresh=%d", refresh_rate);
+            sim_debug(vt11_dbit, vt11_dptr, " refresh=%d", refresh_rate);
             if (sync_period != refresh_rate)
-                DEBUGF("old sync_period=%d, new refresh=%d", sync_period, refresh_rate);
+                sim_debug(vt11_dbit, vt11_dptr, "old sync_period=%d, new refresh=%d", sync_period, refresh_rate);
             switch (refresh_rate) {
             case 0:                     /* continuous */
                 sync_period = 0;
@@ -3410,46 +3384,46 @@ vt11_cycle(int us, int slowdown)
             }
             if (VS60 && TESTBIT(inst,1)) {
                 menu = TESTBIT(inst,0);
-                DEBUGF(" menu=%d", (int)menu);
+                sim_debug(vt11_dbit, vt11_dptr, " menu=%d", (int)menu);
             }
-            DEBUGF("\r\n");
+            sim_debug(vt11_dbit, vt11_dptr, "\r\n");
             break;
 
         case 017:                       /* 1111_ */
             if (VS60 && TESTBIT(inst,10)) {     /* 11111: Load Status BB */
-                DEBUGF("Load Status BB");
+                sim_debug(vt11_dbit, vt11_dptr, "Load Status BB");
                 if (TESTBIT(inst,7)) {
                     depth_cue_proc = TESTBIT(inst,6);
-                    DEBUGF(" depth_cue_proc=%d", (int)depth_cue_proc);
+                    sim_debug(vt11_dbit, vt11_dptr, " depth_cue_proc=%d", (int)depth_cue_proc);
                 }
                 if (TESTBIT(inst,5)) {
                     edge_intr_ena = TESTBIT(inst,4);
-                    DEBUGF(" edge_intr_ena=%d", (int)edge_intr_ena);
+                    sim_debug(vt11_dbit, vt11_dptr, " edge_intr_ena=%d", (int)edge_intr_ena);
                 }
                 if (TESTBIT(inst,3)) {
                     file_z_data = TESTBIT(inst,2);
-                    DEBUGF(" file_z_data=%d", (int)file_z_data);
+                    sim_debug(vt11_dbit, vt11_dptr, " file_z_data=%d", (int)file_z_data);
                 }
                 if (TESTBIT(inst,1)) {
                     char_escape = TESTBIT(inst,0);
-                    DEBUGF(" char_escape=%d", (int)char_escape);
+                    sim_debug(vt11_dbit, vt11_dptr, " char_escape=%d", (int)char_escape);
                 }
             } else {                            /* 11110: Load Status B */
-                DEBUGF("Load Status B");
+                sim_debug(vt11_dbit, vt11_dptr, "Load Status B");
                 if (VS60 && TESTBIT(inst,9)) {
                     color = (enum scolor)GETFIELD(inst,8,7);
-                    DEBUGF(" color=%d", (int)color);
+                    sim_debug(vt11_dbit, vt11_dptr, " color=%d", (int)color);
                 }
                 if (TESTBIT(inst,6)) {
                     graphplot_step = GETFIELD(inst,5,0);
-                    DEBUGF(" graphplot_step=%d", (int)graphplot_step);
+                    sim_debug(vt11_dbit, vt11_dptr, " graphplot_step=%d", (int)graphplot_step);
                 }
             }
-            DEBUGF("\r\n");
+            sim_debug(vt11_dbit, vt11_dptr, "\r\n");
             break;
 
         default:
-  bad_ins:  DEBUGF("SPARE COMMAND 0%o\r\n", mode_field);
+  bad_ins:  sim_debug(vt11_dbit, vt11_dptr, "SPARE COMMAND 0%o\r\n", mode_field);
             /* "display processor hangs" */
             DPC -= 2;                   /* hang around scene of crime */
             break;
@@ -3471,22 +3445,22 @@ vt11_cycle(int us, int slowdown)
 
         switch (mode_field = graphic_mode) {    /* save for MPR read */
 
-        case CHAR:
+        case VT11CHAR:
             if (word_number > 1)
                 word_number = 0;
             if (word_number == 0) {
                 c = GETFIELD(inst,6,0);
-                DEBUGF("char1 %d (", c);
-                    DEBUGF(040 <= c && c < 0177 ? "'%c'" : "0%o", c);
-                        DEBUGF(")\r\n");
+                sim_debug(vt11_dbit, vt11_dptr, "char1 %d (", c);
+                    sim_debug(vt11_dbit, vt11_dptr, 040 <= c && c < 0177 ? "'%c'" : "0%o", c);
+                        sim_debug(vt11_dbit, vt11_dptr, ")\r\n");
                 if (character(c))       /* POPR was done; end chars */
                     break;
                 MORE_DATA               /* post any intrs now */
             }
             c = GETFIELD(inst,15,8);
-            DEBUGF("char2 %d (", c);
-                DEBUGF(040 <= c && c < 0177 ? "'%c'" : "0%o", c);
-                    DEBUGF(")\r\n");
+            sim_debug(vt11_dbit, vt11_dptr, "char2 %d (", c);
+                sim_debug(vt11_dbit, vt11_dptr, 040 <= c && c < 0177 ? "'%c'" : "0%o", c);
+                    sim_debug(vt11_dbit, vt11_dptr, ")\r\n");
             (void)character(c);
             break;
 
@@ -3508,11 +3482,11 @@ vt11_cycle(int us, int slowdown)
                 z = GETFIELD(inst,9,2); /* delta_z */
                 if (TESTBIT(inst,13))
                         z = -z;
-                DEBUGF("short vector i%d (%d,%d,%d)\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "short vector i%d (%d,%d,%d)\r\n",
                        i, (int)x, (int)y, (int)z);
                 vector3(i, x, y, z);
             } else {
-                DEBUGF("short vector i%d (%d,%d)\r\n", i, (int)x, (int)y);
+                sim_debug(vt11_dbit, vt11_dptr, "short vector i%d (%d,%d)\r\n", i, (int)x, (int)y);
                 vector2(i, x, y);
             }
             break;
@@ -3541,21 +3515,21 @@ vt11_cycle(int us, int slowdown)
                 z = GETFIELD(inst,9,2); /* delta_z */
                 if (TESTBIT(inst,13))
                         z = -z;
-                DEBUGF("long vector i%d (%d,%d,%d)\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "long vector i%d (%d,%d,%d)\r\n",
                        i, (int)x, (int)y, (int)z);
                 vector3(i, x, y, z);
             } else {
                 if (ex)
   norot:            /* undocumented and probably nonfunctional */
-                    DEBUGF("ROTATE NOT SUPPORTED\r\n");
+                    sim_debug(vt11_dbit, vt11_dptr, "ROTATE NOT SUPPORTED\r\n");
                 else {
-                    DEBUGF("long vector i%d (%d,%d)\r\n", i, (int)x, (int)y);
+                    sim_debug(vt11_dbit, vt11_dptr, "long vector i%d (%d,%d)\r\n", i, (int)x, (int)y);
                     vector2(i, x, y);
                 }
             }
             break;
 
-        case POINT:                     /* (or OFFSET, if VS60) */
+        case ABSPOINT:                     /* (or OFFSET, if VS60) */
             /* [VT48 manual incorrectly says point data doesn't use sign bit] */
             if (word_number > 2 || (!file_z_data && word_number > 1))
                 word_number = 0;
@@ -3587,8 +3561,8 @@ vt11_cycle(int us, int slowdown)
                 szo = TESTBIT(inst,13);         /* sign bit */
                 if (szo)
                     ez = -ez;
-                if (offset) {           /* OFFSET rather than POINT */
-                    DEBUGF("offset (%d,%d,%d)\r\n", (int)ex,(int)ey,(int)ez);
+                if (offset) {           /* OFFSET rather than ABSPOINT */
+                    sim_debug(vt11_dbit, vt11_dptr, "offset (%d,%d,%d)\r\n", (int)ex,(int)ey,(int)ez);
                     xoff = PSCALE(ex);
                     yoff = PSCALE(ey);
                     zoff = PSCALE(ez * 4);      /* XXX  include bits 1:0 ? */
@@ -3596,20 +3570,20 @@ vt11_cycle(int us, int slowdown)
                     s_yoff = (unsigned char)(syo & 0xFF);
                     s_zoff = (unsigned char)(szo & 0xFF);
                 } else {
-                    DEBUGF("point i%d (%d,%d,%d)\r\n", i,
+                    sim_debug(vt11_dbit, vt11_dptr, "point i%d (%d,%d,%d)\r\n", i,
                            (int)ex, (int)ey, (int)ez);
                     point3(i, VSCALE(ex) + xoff, VSCALE(ey) + yoff,
                                 VSCALE(ez * 4) + zoff, VS60);
                 }
             } else {
-                if (offset) {           /* (VS60) OFFSET rather than POINT */
-                    DEBUGF("offset (%d,%d)\r\n", (int)ex, (int)ey);
+                if (offset) {           /* (VS60) OFFSET rather than ABSPOINT */
+                    sim_debug(vt11_dbit, vt11_dptr, "offset (%d,%d)\r\n", (int)ex, (int)ey);
                     xoff = PSCALE(ex);
                     yoff = PSCALE(ey);
                     s_xoff = (unsigned char)(sxo & 0xFF);
                     s_yoff = (unsigned char)(syo & 0xFF);
                 } else {
-                    DEBUGF("point i%d (%d,%d)\r\n", i, (int)ex, (int)ey);
+                    sim_debug(vt11_dbit, vt11_dptr, "point i%d (%d,%d)\r\n", i, (int)ex, (int)ey);
                     point2(i, VSCALE(ex) + xoff, VSCALE(ey) + yoff, VS60);
                 }
             }
@@ -3622,7 +3596,7 @@ vt11_cycle(int us, int slowdown)
                 goto blv;               /* (VS60) BLVECT rather than GRAPHX */
             else {
                 ex = GETFIELD(inst,9,0);
-                DEBUGF("graphplot x (%d) i%d\r\n", (int)ex, i);
+                sim_debug(vt11_dbit, vt11_dptr, "graphplot x (%d) i%d\r\n", (int)ex, i);
                 ey = ypos + VSCALE(graphplot_step);
                 /* VT48 ES says first datum doesn't increment Y; that's wrong */
                 /* diagnostic DZVSD shows that "i" bit is ignored! */
@@ -3637,12 +3611,12 @@ vt11_cycle(int us, int slowdown)
   blv:                                  /* (VS60) BLVECT rather than GRAPHY */
                 x = GETFIELD(inst,13,11);       /* direction */
                 y = GETFIELD(inst,9,0);         /* length */
-                DEBUGF("basic long vector i%d d%d l%d\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "basic long vector i%d d%d l%d\r\n",
                        i, (int)x, (int)y);
                 basic_vector(i, (int)x, (int)y);
             } else {
                 ey = GETFIELD(inst,9,0);
-                DEBUGF("graphplot y (%d) i%d\r\n", (int)ey, i);
+                sim_debug(vt11_dbit, vt11_dptr, "graphplot y (%d) i%d\r\n", (int)ey, i);
                 ex = xpos + VSCALE(graphplot_step);
                 /* VT48 ES says first datum doesn't increment X; that's wrong */
                 /* diagnostic DZVSD shows that "i" bit is ignored! */
@@ -3668,12 +3642,12 @@ vt11_cycle(int us, int slowdown)
                 ez = GETFIELD(inst,9,2);
                 if (TESTBIT(inst,13))
                     ez = -ez;
-                DEBUGF("relative point i%d (%d,%d,%d)\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "relative point i%d (%d,%d,%d)\r\n",
                        i, (int)ex, (int)ey, (int)ez);
                 point3(i, xpos + VSCALE(ex), ypos + VSCALE(ey),
                         zpos + VSCALE(ez * 4), 1);
             } else {
-                DEBUGF("relative point i%d (%d,%d)\r\n", i, (int)ex, (int)ey);
+                sim_debug(vt11_dbit, vt11_dptr, "relative point i%d (%d,%d)\r\n", i, (int)ex, (int)ey);
                 point2(i, xpos + VSCALE(ex), ypos + VSCALE(ey), 1);
             }
             break;
@@ -3689,14 +3663,14 @@ vt11_cycle(int us, int slowdown)
                 y = GETFIELD(inst,3,0);         /* length 0 */
                 ex = GETFIELD(inst,13,11);      /* direction 1 */
                 ey = GETFIELD(inst,10,7);       /* length 1 */
-                DEBUGF("basic short vector1 i%d d%d l%d\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "basic short vector1 i%d d%d l%d\r\n",
                        i, (int)x, (int)y);
                 basic_vector(i, (int)x, (int)y);
                 if (lphit_irq || edge_irq)      /* MORE_DATA skips this */
                     vt_lpen_intr();     /* post graphic interrupt to host */
                 MORE_DATA
             }
-            DEBUGF("basic short vector2 i%d d%d l%d\r\n", i, (int)ex,(int)ey);
+            sim_debug(vt11_dbit, vt11_dptr, "basic short vector2 i%d d%d l%d\r\n", i, (int)ex,(int)ey);
             basic_vector(i, (int)ex, (int)ey);
             break;
 
@@ -3722,7 +3696,7 @@ vt11_cycle(int us, int slowdown)
                 z = GETFIELD(inst,11,2);
                 if (TESTBIT(inst,13))
                         z = -z;
-                DEBUGF("absolute vector i%d (%d,%d,%d)\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "absolute vector i%d (%d,%d,%d)\r\n",
                        i, (int)x, (int)y, (int)z);
                 ex = VSCALE(x) + xoff;
                 ey = VSCALE(y) + yoff;
@@ -3731,7 +3705,7 @@ vt11_cycle(int us, int slowdown)
                            PNORM(ez - zpos) / 4);       /* approx. */
                 zpos = ez;              /* more precise, if PSCALEF > 1 */
             } else {
-                DEBUGF("absolute vector i%d (%d,%d)\r\n", i, (int)x, (int)y);
+                sim_debug(vt11_dbit, vt11_dptr, "absolute vector i%d (%d,%d)\r\n", i, (int)x, (int)y);
                 ex = VSCALE(x) + xoff;
                 ey = VSCALE(y) + yoff;
                 vector2(i, PNORM(ex - xpos), PNORM(ey - ypos)); /* approx. */
@@ -3781,11 +3755,11 @@ vt11_cycle(int us, int slowdown)
                 ez = GETFIELD(inst,11,2);       /* delta ez */
                 if (TESTBIT(inst,13))
                     ez = -ez;
-                DEBUGF("circle/arc i%d C(%d,%d,%d) E(%d,%d,%d)\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "circle/arc i%d C(%d,%d,%d) E(%d,%d,%d)\r\n",
                        i, (int)x, (int)y, (int)z, (int)ex, (int)ey, (int)ez);
                 conic3(i, x, y, z, ex, ey, ez); /* approx. */
             } else {
-                DEBUGF("circle/arc i%d C(%d,%d) E(%d,%d)\r\n",
+                sim_debug(vt11_dbit, vt11_dptr, "circle/arc i%d C(%d,%d) E(%d,%d)\r\n",
                        i, (int)x, (int)y, (int)ex, (int)ey);
                 conic2(i, x, y, ex, ey);
             }
@@ -3806,7 +3780,7 @@ vt11_cycle(int us, int slowdown)
     goto check;
 
   bus_timeout:
-    DEBUGF("TIMEOUT\r\n");
+    sim_debug(vt11_dbit, vt11_dptr, "TIMEOUT\r\n");
     /* fall through to check (time_out has already been set) */
 
   check:
@@ -3830,8 +3804,8 @@ vt11_cycle(int us, int slowdown)
     else if (name_irq)
         vt_name_intr();                 /* post name-match interrupt to host */
 #if 1                                   /* risky? */
-    else                                /* handle any pending 2nd CHAR/BSVECT */
-        if (word_number == 1 && (graphic_mode==CHAR || graphic_mode==BSVECT))
+    else                                /* handle any pending 2nd VT11CHAR/BSVECT */
+        if (word_number == 1 && (graphic_mode==VT11CHAR || graphic_mode==BSVECT))
             goto fetched;
 #endif
 

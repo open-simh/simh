@@ -66,6 +66,17 @@
 #include "type340.h"                 /* interface definitions */
 #include "type340cmd.h"              /* 340 command definitions */
 
+#if !defined(MIN)
+#  if defined(__GNUC__) || defined(__clang__)
+#    define MIN(A, B) ({ __typeof__ (A) _a = (A); __typeof__ (B) _b = (B); _a < _b ? _a : _b; })
+#  elif defined(_MSC_VER)
+#    include <stdlib.h>
+#    define MIN(A, B) __min((A), (B))
+#  else
+#    define MIN(A, B) ((A) < (B) ? (A) : (B))
+#  endif
+#endif
+
 /*
  * sub-options, under "#if"
  * (make runtime selectable????!)
@@ -140,6 +151,9 @@ static struct type340 {
 #else
 #define UNIT(N) (u340+(N))
 #endif
+
+static const signed short MAX_XPOS = 1023;
+static const signed short MAX_YPOS = 1023;
 
 /* NOT USED WITH PDP-6 Type 344 Interface!! */
 void
@@ -528,8 +542,8 @@ vector(int i, int sy, int dy, int sx, int dx)
     }
     else {
         x1 = x0 + dx * u->scale;
-        if (x1 > 1023) {
-            x1 = 1023;
+        if (x1 > MAX_XPOS) {
+            x1 = MAX_XPOS;
             flags = ST340_HEDGE;
         }
     }
@@ -543,8 +557,8 @@ vector(int i, int sy, int dy, int sx, int dx)
     }
     else {
         y1 = y0 + dy * u->scale;
-        if (y1 > 1023) {
-            y1 = 1023;
+        if (y1 > MAX_YPOS) {
+            y1 = MAX_YPOS;
             flags |= ST340_VEDGE;
         }
     }
@@ -553,8 +567,8 @@ vector(int i, int sy, int dy, int sx, int dx)
     if (i)                              /* XXX need OLD value??? */
         lineTwoStep(x0, y0, x1, y1);
 
-    u->xpos = x1;
-    u->ypos = y1;
+    u->xpos = (signed short) (MIN(x1, MAX_XPOS));
+    u->ypos = (signed short) (MIN(y1, MAX_YPOS));
     u->status |= flags;                 /* ?? */
     return flags;
 }

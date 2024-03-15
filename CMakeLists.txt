@@ -229,6 +229,9 @@ option(SIMH_PACKAGE_SUFFIX
 option(MAC_UNIVERSAL
        "macOS universal binary flag: TRUE -> build universal binaries, FALSE -> don't."
        ${MAC_UNIVERSAL_OPTVAL})
+option(TARGET_WINVER
+       "Set WINVER and _WIN32_WINNT to a specific target version, e.g., WinXP"
+       "")
 
 # Places where CMake should look for dependent package configuration fragments and artifacts:
 set(SIMH_PREFIX_PATH_LIST)
