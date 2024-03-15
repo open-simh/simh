@@ -214,7 +214,7 @@ t_stat vid_screenshot (const char *filename);
 t_bool vid_is_fullscreen (void);
 t_stat vid_set_fullscreen (t_bool flag);
 
-extern int vid_active;
+int vid_is_active();                                    /* Get vid_active flag */
 void vid_set_cursor_position (int32 x, int32 y);        /* cursor position (set by calling code) */
 void vid_set_window_size (VID_DISPLAY *vptr, int32 x, int32 y);            /* window size (set by calling code) */
 
@@ -249,6 +249,7 @@ extern int (*vid_display_kb_event_process)(SIM_KEY_EVENT *kev);
 #define SIM_VID_DBG_CURSOR  0x20000000
 #define SIM_VID_DBG_KEY     0x40000000
 #define SIM_VID_DBG_VIDEO   0x80000000
+#define SIM_VID_DBG_ALL     (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR)
 
 #ifdef  __cplusplus
 }
