@@ -106,6 +106,8 @@ if (WIN32)
         list(APPEND EXTRA_TARGET_CFLAGS
              "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:/W4>>"
              "$<$<CONFIG:Release>:/W3>"
+             # 4100: Unused arg warning.
+             "/wd4100"
         )
 
         ## Uncomment this line if you end up with /NODEFAULTLIB warninigs. You will also

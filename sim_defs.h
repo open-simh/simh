@@ -122,6 +122,25 @@
 
 #include "sim_rev.h"
 
+/* Set the Windows API version earlier so that it doesn't get clobbered by or
+ * set prematurely by other headers that include windows.h, notably, pthreads.h
+ * from PThreads4W. */
+#if defined(_WIN32) || defined(WIN32)
+#define WINDOWS_LEAN_AND_MEAN
+
+/* Windows 10+, if not otherwise defined. */
+#if !defined(WINVER)
+#define WINVER 0x0a00
+#endif
+
+#if !defined(_WIN32_WINNT)
+#define _WIN32_WINNT 0x0a00
+#endif
+
+#include <sdkddkver.h>
+#endif
+
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -139,6 +158,10 @@ extern int sim_vax_snprintf(char *buf, size_t buf_size, const char *fmt, ...);
 #include <ctype.h>
 #include <math.h>
 #include <setjmp.h>
+#if defined(HAVE_PTHREADS)
+#include <pthread.h>
+#endif
+
 
 
 #ifndef EXIT_FAILURE
@@ -148,8 +171,7 @@ extern int sim_vax_snprintf(char *buf, size_t buf_size, const char *fmt, ...);
 #define EXIT_SUCCESS 0
 #endif
 
-
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #include <winsock2.h>
 #include <windows.h>
 #include <winerror.h>
@@ -1153,8 +1175,6 @@ struct MEMFILE {
 /* Asynch/Threaded I/O support */
 
 #if defined (SIM_ASYNCH_IO)
-#include <pthread.h>
-
 #define SIM_ASYNCH_CLOCKS 1
 
 extern pthread_mutex_t sim_asynch_lock;

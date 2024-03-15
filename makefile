@@ -583,22 +583,26 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   ifneq (,$(call find_include,pthread))
     ifneq (,$(call find_lib,pthread))
       AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+      OS_CCDEFS += -DHAVE_PTHREADS
       OS_LDFLAGS += -lpthread
       $(info using libpthread: $(call find_lib,pthread) $(call find_include,pthread))
     else
       LIBEXTSAVE := ${LIBEXT}
       LIBEXT = a
       ifneq (,$(call find_lib,pthread))
-        AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+        AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+        OS_CCDEFS += -DHAVE_PTHREADS
         OS_LDFLAGS += -lpthread
         $(info using libpthread: $(call find_lib,pthread) $(call find_include,pthread))
       else
         ifneq (,$(findstring Haiku,$(OSTYPE)))
-          AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+          AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+          OS_CCDEFS += -DHAVE_PTHREADS
           $(info using libpthread: $(call find_include,pthread))
         else
           ifeq (Darwin,$(OSTYPE))
-            AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+            AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO 
+            OS_CCDEFS += -DHAVE_PTHREADS
             OS_LDFLAGS += -lpthread
             $(info using macOS libpthread: $(call find_include,pthread))
           endif
@@ -720,16 +724,13 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
           VIDEO_CCDEFS += -DHAVE_LIBSDL -DUSE_SIM_VIDEO `$(SDLX_CONFIG) --cflags`
           VIDEO_LDFLAGS += `$(SDLX_CONFIG) --libs`
           VIDEO_FEATURES = - video capabilities provided by libSDL2 (Simple Directmedia Layer)
-          DISPLAYL = ${DISPLAYD}/display.c $(DISPLAYD)/sim_ws.c
+          DISPLAYL = ${DISPLAYD}/display.c
           DISPLAYVT = ${DISPLAYD}/vt11.c
           DISPLAY340 = ${DISPLAYD}/type340.c
           DISPLAYNG = ${DISPLAYD}/ng.c
           DISPLAYIII = ${DISPLAYD}/iii.c
           DISPLAY_OPT += -DUSE_DISPLAY $(VIDEO_CCDEFS) $(VIDEO_LDFLAGS)
           $(info using libSDL2: $(call find_include,SDL2/SDL))
-          ifeq (Darwin,$(OSTYPE))
-            VIDEO_CCDEFS += -DSDL_MAIN_AVAILABLE
-          endif
           ifneq (,$(and $(BESM6_BUILD), $(or $(and $(call find_include,SDL2/SDL_ttf),$(call find_lib,SDL2_ttf)), $(and $(call find_include,SDL/SDL_ttf),$(call find_lib,SDL_ttf)))))
             FONTPATH += /usr/share/fonts /Library/Fonts /usr/lib/jvm /System/Library/Frameworks/JavaVM.framework/Versions /System/Library/Fonts C:/Windows/Fonts
             FONTPATH := $(dir $(foreach dir,$(strip $(FONTPATH)),$(wildcard $(dir)/.)))
@@ -785,7 +786,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
             ifneq (,$(call find_include,SDL2/SDL_ttf),$(call find_lib,SDL2_ttf))
               $(info using libSDL2_ttf: $(call find_lib,SDL2_ttf) $(call find_include,SDL2/SDL_ttf))
               $(info ***)
-              BESM6_PANEL_OPT = -DFONTFILE=${FONTFILE} $(filter-out -DSDL_MAIN_AVAILABLE,${VIDEO_CCDEFS}) ${VIDEO_LDFLAGS} -lSDL2_ttf
+              BESM6_PANEL_OPT = -DFONTFILE=${FONTFILE} ${VIDEO_LDFLAGS} -lSDL2_ttf
             endif
           endif
         endif
@@ -1149,11 +1150,13 @@ else
   ifneq (,$(call find_include,pthread))
     PTHREADS_CCDEFS =
     AIO_CCDEFS = -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+    OS_CCDEFS += -DHAVE_PTHREADS
     PTHREADS_LDFLAGS = -lpthread
   else
     ifeq (pthreads,$(shell if exist ..\windows-build\pthreads\Pre-built.2\include\pthread.h echo pthreads))
       PTHREADS_CCDEFS = -DPTW32_STATIC_LIB -D_POSIX_C_SOURCE -I../windows-build/pthreads/Pre-built.2/include
       AIO_CCDEFS = -DUSE_READER_THREAD -DSIM_ASYNCH_IO
+      OS_CCDEFS += -DHAVE_PTHREADS
       PTHREADS_LDFLAGS = -lpthreadGC2 -L..\windows-build\pthreads\Pre-built.2\lib
     endif
   endif
@@ -1180,7 +1183,7 @@ else
         VIDEO_LDFLAGS  += $(abspath $(dir $(SDL_INCLUDE))\..\..\..\lib\lib-VC2008\Release)/SDL2.lib
       endif
       VIDEO_FEATURES = - video capabilities provided by libSDL2 (Simple Directmedia Layer)
-      DISPLAYL = ${DISPLAYD}/display.c $(DISPLAYD)/sim_ws.c
+      DISPLAYL = ${DISPLAYD}/display.c
       DISPLAYVT = ${DISPLAYD}/vt11.c
       DISPLAY340 = ${DISPLAYD}/type340.c
       DISPLAYNG = ${DISPLAYD}/ng.c
@@ -1436,7 +1439,7 @@ LDFLAGS := ${OS_LDFLAGS} ${NETWORK_LDFLAGS} ${LDFLAGS_O}
 #
 BIN = BIN/
 SIMHD = .
-SIM = ${SIMHD}/scp.c ${SIMHD}/sim_console.c ${SIMHD}/sim_fio.c \
+SIM = ${SIMHD}/scp.c ${SIMHD}/sim_main.c ${SIMHD}/sim_console.c ${SIMHD}/sim_fio.c \
 	${SIMHD}/sim_timer.c ${SIMHD}/sim_sock.c ${SIMHD}/sim_tmxr.c \
 	${SIMHD}/sim_ether.c ${SIMHD}/sim_tape.c ${SIMHD}/sim_disk.c \
 	${SIMHD}/sim_serial.c ${SIMHD}/sim_video.c ${SIMHD}/sim_imd.c \
