@@ -566,6 +566,7 @@ add_simulator(vax8200
         vax_sys.c
         vax_syscm.c
         vax_watch.c
+        vax_uw.c
         vax820_stddev.c
         vax820_bi.c
         vax820_mem.c
@@ -614,6 +615,7 @@ add_simulator(vax8600
         vax_mmu.c
         vax_sys.c
         vax_syscm.c
+        vax_uw.c
         vax860_stddev.c
         vax860_sbia.c
         vax860_abus.c
