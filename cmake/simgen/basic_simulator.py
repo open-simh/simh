@@ -7,8 +7,9 @@ import simgen.packaging as SPKG
 class SIMHBasicSimulator:
     """
     """
-    def __init__(self, sim_name, dir_macro, test_name, buildrom):
+    def __init__(self, sim_name, dir_macro, test_name, buildrom, test_args=None):
         self.sim_name = sim_name
+        ## self.dir_macro     -> Directory macro (e.g., "${PDP11D}" for source
         self.dir_macro = dir_macro
         self.test_name = test_name
         self.int64 = False
@@ -22,6 +23,11 @@ class SIMHBasicSimulator:
         self.besm6_sdl_hack = False
         ## self.uses_aio       -> True if the simulator uses AIO
         self.uses_aio = False
+        ## self.test_args      -> Simulator flags to pass to the test phase. Used by ibm1130 to
+        ##                        pass "-g" to disable to the GUI. This argument can be a single
+        ##                        string or a list.
+        self.test_args = test_args
+
         self.sources = []
         self.defines = []
         self.includes = []
@@ -128,6 +134,13 @@ class SIMHBasicSimulator:
             stream.write('\n' + indent4 + "BESM6_SDL_HACK")
         if self.uses_aio:
             stream.write('\n' + indent4 + "USES_AIO")
+        if self.test_args:
+            out_args = self.test_args
+            if isinstance(self.test_args, str):
+                out_args = self.test_args.split()
+
+            out_args = ' '.join('"{0}"'.format(w) for w in out_args)
+            stream.write('\n' + indent4 + 'TEST_ARGS {}'.format(out_args))
         if self.buildrom:
             stream.write('\n' + indent4 + "BUILDROMS")
         stream.write('\n' + indent4 + "LABEL " + test_label)
@@ -250,22 +263,6 @@ class BESM6Simulator(SIMHBasicSimulator):
             'unset(cand_fonts)',
             'unset(cand_fontdirs)\n']))
 
-class KA10Simulator(SIMHBasicSimulator):
-    def __init__(self, sim_name, dir_macro, test_name, buildrom):
-        super().__init__(sim_name, dir_macro, test_name, buildrom)
-
-    def write_simulator(self, stream, indent, test_label='ka10'):
-        super().write_simulator(stream, indent, test_label)
-        stream.write('\n')
-        stream.write('\n'.join([
-            'if (PANDA_LIGHTS)',
-            '  target_sources({0} PUBLIC {1}/ka10_lights.c)'.format(self.sim_name, self.dir_macro),
-            '  target_compile_definitions({0} PUBLIC PANDA_LIGHTS)'.format(self.sim_name),
-            '  target_link_libraries({0} PUBLIC usb-1.0)'.format(self.sim_name),
-            'endif (PANDA_LIGHTS)'
-        ]))
-        stream.write('\n')
-
 class IBM650Simulator(SIMHBasicSimulator):
     '''The IBM650 simulator creates relatively deep stacks, which will fail on Windows.
     Adjust target simulator link flags to provide a 8M stack, similar to Linux.
@@ -292,25 +289,6 @@ class IBM650Simulator(SIMHBasicSimulator):
             '    endif ()',
             'endif()'
         ]))
-
-class IBM1130Simulator(SIMHBasicSimulator):
-    '''The IBM650 simulator creates relatively deep stacks, which will fail on Windows.
-    Adjust target simulator link flags to provide a 8M stack, similar to Linux.
-    '''
-    def __init__(self, sim_name, dir_macro, test_name, buildrom):
-        super().__init__(sim_name, dir_macro, test_name, buildrom)
-
-    def write_simulator(self, stream, indent, test_label='ibm650'):
-        super().write_simulator(stream, indent, test_label)
-        stream.write('\n'.join([
-            '',
-            'if (WIN32)',
-            '    target_compile_definitions(ibm1130 PRIVATE GUI_SUPPORT)',
-            '    ## missing source in IBM1130?'
-            '    ## target_sources(ibm1130 PRIVATE ibm1130.c)',
-            'endif()'
-        ]))
-
 
 if '_dispatch' in pprint.PrettyPrinter.__dict__:
     def sim_pprinter(pprinter, sim, stream, indent, allowance, context, level):

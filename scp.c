@@ -2738,6 +2738,7 @@ char cbuf[4*CBUFSIZE], *cptr, *cptr2;
 char nbuf[PATH_MAX + 7];
 char **targv = NULL;
 int32 i, sw;
+int first_arg = -1;
 t_bool lookswitch;
 t_bool register_check = FALSE;
 t_stat stat = SCPE_OK;
@@ -2783,6 +2784,7 @@ for (i = 1; i < argc; i++) {                            /* loop thru args */
         if (*cbuf)                                      /* concat args */
             strlcat (cbuf, " ", sizeof (cbuf)); 
         sprintf(&cbuf[strlen(cbuf)], "%s%s%s", strchr(argv[i], ' ') ? "\"" : "", argv[i], strchr(argv[i], ' ') ? "\"" : "");
+        first_arg = i;
         lookswitch = FALSE;                             /* no more switches */
         }
     }                                                   /* end for */
@@ -2894,7 +2896,7 @@ if (register_check) {
         goto cleanup_and_exit;
         }
     sim_printf ("*** Good Registers in %s simulator.\n", sim_name);
-    if (argc < 2) {                                 /* No remaining command arguments? */
+    if (first_arg < 0) {                            /* No remaining command arguments? */
         sim_exit_status = EXIT_SUCCESS;             /* then we're done */
         goto cleanup_and_exit;
         }
@@ -8053,7 +8055,8 @@ t_stat reset_all_p (uint32 start)
 t_stat r;
 int32 old_sw = sim_switches;
 
-sim_switches = SWMASK ('P');
+/* Add power-up reset to the sim switches. */
+sim_switches = sim_switches | SWMASK ('P');
 r = reset_all (start);
 sim_switches = old_sw;
 return r;

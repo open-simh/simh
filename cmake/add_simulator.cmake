@@ -171,10 +171,13 @@ list(APPEND ADD_SIMULATOR_1ARG
 ## DEFINES: List of extra command line manifest constants ("-D" items)
 ## INCLUDES: List of extra include directories
 ## SOURCES: List of source files
+## TEST_ARGS: Additional arguments to append to the command line after
+##   "RegisterSanityCheck"
 list(APPEND ADD_SIMULATOR_NARG
     "DEFINES"
     "INCLUDES"
     "SOURCES"
+    "TEST_ARGS"
 )
 
 function (simh_executable_template _targ)
@@ -281,6 +284,9 @@ function (add_simulator _targ)
 
     ## Simulator-specific tests:
     list(APPEND test_cmd "${_targ}" "RegisterSanityCheck")
+    if (SIMH_TEST_ARGS)
+        list(APPEND test_cmd ${SIMH_TEST_ARGS})
+    endif ()
 
     if (DEFINED SIMH_TEST)
         string(APPEND test_fname ${CMAKE_CURRENT_SOURCE_DIR} "/tests/${SIMH_TEST}_test.ini")

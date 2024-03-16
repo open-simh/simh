@@ -17,6 +17,8 @@
     - [`dep-locate.cmake`, `dep-link.cmake`: Dependency libraries](#dep-locatecmake-dep-linkcmake-dependency-libraries)
     - [`simh-simulators.cmake`](#simh-simulatorscmake)
     - [`generate.py`: Automagic `makefile` → CMake infrastructure](#generatepy-automagic-makefile--cmake-infrastructure)
+      - [`generate.py` Internals](#generatepy-internals)
+      - [Using `generate.py` outside of *open-simh*](#using-generatepy-outside-of-open-simh)
     - [CPack configuration](#cpack-configuration)
 
 <!-- markdown-toc end -->
@@ -468,33 +470,47 @@ case in the future.
 The SIMH `makefile` is still considered the authoritative source for simulator compiler command lines and
 source code. `generate.py` was built to scrape the `makefile`'s `all` and `exp` rules, gather simulator
 source code lists, simulator-specific defines, and emit the simulator subdirectory `CMakeLists.txt` and
-the `simh-simulators.cmake` files. To synchronize the SIMH *CMake* infrastructure with the SIMH
-`makefile` when new simulators are added to the `makefile`, when compiler command lines change or new
-simulator source code is added:
+the `simh-simulators.cmake` files. 
+
+To synchronize the *CMake* infrastructure with the `makefile` when new simulators are added to the
+`makefile`, when compiler command lines change or new simulator source code is added:
 
 ``` shell
-$ cd cmake; python3 -m generate
+$ (cd cmake; python3 -m generate)
+
+## Alternatively:
+
+$ python3 cmake/generate.py
 ```
 
-Internally, `generate.py` has three principal classes defined in the `cmake/simgen` subdirectory:
-`CMakeBuildSystem` (`cmake_container.py`), `SimCollection` (`sim_collection.py`) and `SIMHBasicSimulator`
-(`basic_simulator.py`).
+Note that `generate.py` ensures that it has collected all of the `makefile`-s simulators by cross-referencing
+the simulators enumerated in the `cmake/simgen/packaging.py` script to the collected simulators scraped from
+the `makefile`. When the expected simulators do not match the `generate.py`-collected simulator list,
+`generate.py` will list the missing simulators and exit. If you are maintaining a separate simulator source
+repository, please customize your `cmake/simgen/packaging.py` script to reflect the expected simulators in
+your source tree.
 
-- `CMakeBuildSystem`: The top-level container for the entire SIMH simulator collection scraped from the
-  `makefile`. It's a container that maps a `SimCollection` simulator group to a subdirectory. The
-  `CMakeBuildSystem.extract` method interprets the `makefile`'s parsed contents, and builds up the
+
+#### `generate.py` Internals
+
+`generate.py` has three principal classes defined in the `cmake/simgen` subdirectory: `CMakeBuildSystem`,
+`SimCollection` and `SIMHBasicSimulator`.
+
+- `CMakeBuildSystem` (`cmake_container.py`): The top-level container for the entire SIMH simulator collection
+  scraped from the   `makefile`. It's a container that maps a `SimCollection` simulator group to a subdirectory.
+  The `CMakeBuildSystem.extract` method interprets the `makefile`'s parsed contents, and builds up the
   per-subdirectory `SimCollection` simulator groups.
 
-- `SimCollection`: A group of simulators, e.g., all of the VAX or PDP-11 simulators, or the PDP-8
-  simulator. It also maps simulator source macro names to source lists that become *CMake* variables to
-  make the emitted `CMakeLists.txt` files more readable. The `SimCollection.write_simulators` method emits
-  the simulator subdirectory `CMakeLists.txt` file.
+- `SimCollection` (`sim_collection.py`): A group of simulators, e.g., all of the VAX or PDP-11 simulators,
+  or the PDP-8 simulator. It also maps simulator source macro names to source lists that become *CMake* 
+  variables to make the emitted `CMakeLists.txt` files more readable. The `SimCollection.write_simulators`
+  method emits the simulator subdirectory `CMakeLists.txt` file.
 
-- `SIMHBasicSimulator`: An individual SIMH simulator stored inside a `SimCollection`. This class keeps
-  track of the simulator's sources, simulator-specific defines and include paths, as well as detects when
-  the simulator requires 64-bit address and 64-bit data, when the simulator requires video support. The
-  `SIMHBasicSimulator.write_section` method emits the individual simulator's `add_simulator` function call
-  to the `CMakeLists.txt` file stream passed by the parent `SimCollection`.
+- `SIMHBasicSimulator` (`basic_simulator.py`): An individual SIMH simulator stored inside a `SimCollection`.
+  This class tracks of the simulator's sources, simulator-specific defines and include paths, as well as 
+  detects when the simulator requires 64-bit address and 64-bit data, when the simulator requires video 
+  support. The `SIMHBasicSimulator.write_section` method emits the individual simulator's `add_simulator`
+  function call to the `CMakeLists.txt` file stream passed by the parent `SimCollection`.
 
   `SIMHBasicSimulator` has several subclasses that specialize the `write_section` method. For example, the
   *BESM6* simulator requires a Cyrillic font, which requires additional *CMake* code to search for an
@@ -503,6 +519,118 @@ Internally, `generate.py` has three principal classes defined in the `cmake/simg
   `SimCollection.special_simulators` dictionary maps simulator names to specialized `SIMHBasicSimulator`
   subclasses. If the simulator's name is not present in the `special_simulators` dictionary,
   `SIMHBasicSimulator` is used.
+
+#### Using `generate.py` outside of *open-simh*
+
+`generate.py` can be used outside of the *open-simh* project for separately maintained simulator
+repositories. If you do use `generate.py` in your own simulator repository, you **must** customize
+the `simgen/packaging.py` script so that the expected simulators matches the collected simulators.
+
+An example `packaging.py` script that can be copied, pasted and customized (leave the boilerplate
+in place, edit and customize after the "Your customizations here...")
+
+```python
+### packaging.py boilerplate starts:
+
+import os
+import functools
+
+## Initialize package_info to an empty dictionary here so
+## that it's visible to write_packaging().
+package_info = {}
+
+
+class SIMHPackaging:
+    def __init__(self, family, install_flag = True) -> None:
+        self.family = family
+        self.processed = False
+        self.install_flag = install_flag
+
+    def was_processed(self) -> bool:
+        return self.processed == True
+    
+    def encountered(self) -> None:
+        self.processed = True
+
+class PkgFamily:
+    def __init__(self, component_name, display_name, description) -> None:
+        self.component_name = component_name
+        self.display_name   = display_name
+        self.description    = description
+
+    def write_component_info(self, stream, indent) -> None:
+        pkg_description = self.description
+        if pkg_description[-1] != '.':
+            pkg_description += '.'
+        sims = []
+        for sim, pkg in package_info.items():
+            if pkg.family is self and pkg.was_processed():
+                sims.append(sim)
+        sims.sort()
+
+        if len(sims) > 0:
+            sims.sort()
+            pkg_description += " Simulators: " + ', '.join(sims)
+            indent0 = ' ' * indent
+            indent4 = ' ' * (indent + 4)
+            stream.write(indent0 + "cpack_add_component(" + self.component_name + "\n")
+            stream.write(indent4 + "DISPLAY_NAME \"" + self.display_name + "\"\n")
+            stream.write(indent4 + "DESCRIPTION \"" + pkg_description + "\"\n")
+            stream.write(indent0 + ")\n")
+
+    def __lt__(self, obj):
+        return self.component_name < obj.component_name
+    def __eq__(self, obj):
+        return self.component_name == obj.component_name
+    def __gt__(self, obj):
+        return self.component_name > obj.component_name
+    def __hash__(self):
+        return hash(self.component_name)
+
+def write_packaging(toplevel_dir) -> None:
+    families = set([sim.family for sim in package_info.values()])
+    pkging_file = os.path.join(toplevel_dir, 'cmake', 'simh-packaging.cmake')
+    print("==== writing {0}".format(pkging_file))
+    with open(pkging_file, "w") as stream:
+        ## Runtime support family:
+        stream.write("""## The default runtime support component/family:
+cpack_add_component(runtime_support
+    DISPLAY_NAME "Runtime support"
+    DESCRIPTION "Required SIMH runtime support (documentation, shared libraries)"
+    REQUIRED
+)
+
+## Basic documentation for SIMH
+install(FILES doc/simh.doc TYPE DOC COMPONENT runtime_support)
+
+""")
+
+        ## Simulators:
+        for family in sorted(families):
+            family.write_component_info(stream, 0)
+
+## The default packaging family for simulators not associated with
+## any particular family. Also used for runtime and documentation:
+default_family = PkgFamily("default_family", "Default SIMH simulator family.",
+    """The SIMH simulator collection of historical processors and computing systems that do not belong to
+any other simulated system family"""
+)
+
+### packaging.py boilerplate ends...
+
+### Your customizations here:
+
+### Instantiate a simulator package family:
+foosim_family = PkgFamily("foosim_family", "A collection of simulators",
+    """Description of your simulators, may span multiple lines within the three quote
+marks."""
+)
+
+### Add simulators to the package famil(y|ies)
+package_info["sim1"] = SIMHPackaging(foosim_family)
+package_info["sim2"] = SIMHPackaging(foosim_family)
+```
+
 
 ### CPack configuration
 

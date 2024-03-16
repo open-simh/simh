@@ -202,9 +202,6 @@ option(WITH_TAP
 option(WITH_VIDEO
        "Enable (=1)/disable (=0) simulator display and graphics support (def: enabled)"
        TRUE)
-option(PANDA_LIGHTS
-       "Enable (=1)/disable (=0) KA-10/KI-11 simulator's Panda display. (def: disabled)"
-       FALSE)
 option(DONT_USE_ROMS
        "Enable (=1)/disable (=0) building support ROMs. (def: disabled)"
        FALSE)

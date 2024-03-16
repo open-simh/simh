@@ -46,6 +46,20 @@ add_simulator(pdp10
     NO_INSTALL
     TEST pdp10)
 
+
+option(PANDA_LIGHTS
+       "Enable (=1)/disable (=0) KA-10/KI-11 simulator's Panda display. (def: disabled)"
+       FALSE)
+option(PIDP10
+       "Enable (=1)/disable (=0) PIDP10 display options (def: disabled)"
+       FALSE)
+
+### Ensure that the options are mutually exclusive:
+if (PANDA_LIGHTS AND PIDP10)
+  message(FATAL_ERROR "PANDA_LIGHTS and PIDP10 options are mutually exclusive. Choose one.")
+endif ()
+
+
 add_simulator(pdp10-ka
     SOURCES
         ${KA10D}/kx10_cpu.c
@@ -103,10 +117,14 @@ add_simulator(pdp10-ka
     TEST ka10)
 
 if (PANDA_LIGHTS)
-  target_sources(pdp10-ka PUBLIC ${PDP10D}/ka10_lights.c)
+  target_sources(pdp10-ka PUBLIC ${PDP10D}/kx10_lights.c)
   target_compile_definitions(pdp10-ka PUBLIC PANDA_LIGHTS)
   target_link_libraries(pdp10-ka PUBLIC usb-1.0)
-endif (PANDA_LIGHTS)
+endif ()
+if (PIDP10)
+  target_sources(pdp10-ka PUBLIC ${PDP10D}/ka10_pipanel.c)
+  target_compile_definitions(pdp10-ka PUBLIC PIDP10=1)
+endif ()
 
 add_simulator(pdp10-ki
     SOURCES
