@@ -30,16 +30,18 @@ class PkgFamily:
             pkg_description += '.'
         sims = []
         for sim, pkg in package_info.items():
-            if pkg.family is self:
+            if pkg.family is self and pkg.was_processed():
                 sims.append(sim)
-        sims.sort()
-        pkg_description += " Simulators: " + ', '.join(sims)
-        indent0 = ' ' * indent
-        indent4 = ' ' * (indent + 4)
-        stream.write(indent0 + "cpack_add_component(" + self.component_name + "\n")
-        stream.write(indent4 + "DISPLAY_NAME \"" + self.display_name + "\"\n")
-        stream.write(indent4 + "DESCRIPTION \"" + pkg_description + "\"\n")
-        stream.write(indent0 + ")\n")
+
+        if len(sims) > 0:
+            sims.sort()
+            pkg_description += " Simulators: " + ', '.join(sims)
+            indent0 = ' ' * indent
+            indent4 = ' ' * (indent + 4)
+            stream.write(indent0 + "cpack_add_component(" + self.component_name + "\n")
+            stream.write(indent4 + "DISPLAY_NAME \"" + self.display_name + "\"\n")
+            stream.write(indent4 + "DESCRIPTION \"" + pkg_description + "\"\n")
+            stream.write(indent0 + ")\n")
 
     def __lt__(self, obj):
         return self.component_name < obj.component_name

@@ -1,3 +1,5 @@
+## VAX simulators require extra magic -- notably, 'microvax3900${EXE}' needs
+## to be symlinked, hardlinked or copied (in that order) to 'vax${EXE}'.
 
 import simgen.basic_simulator as SBS
 

@@ -13,9 +13,10 @@ _variable_rx = re.compile(r"\s*([A-Za-z][\w_-]+)\s*=\s*(.*)")
 _rule_rx     = re.compile(r"(((\$[({])*\w[\w_-]+[)}]*)+)\s*:\s*(.*)")
 
 # Regex that recognizes variables. Group 1 is the variable's name.
-_var_rx      = re.compile(r"^\$[{(]([A-Za-z][\w_-]*)[)}]$")
-_var_rx2     = re.compile(r"\$[{(]([A-Za-z][\w_-]*)[)}]")
-_norm_var_rx = re.compile(r"\$\(([A-Za-z][\w_-]*)\)")
+_var_pattern = r"[A-Za-z][\w_-]*"
+_var_rx      = re.compile(r"^\$[{(](" + _var_pattern + r")[)}]$")
+_var_rx2     = re.compile(r"\$[{(]("  + _var_pattern + r")[)}]")
+_norm_var_rx = re.compile(r"\$[(]("   + _var_pattern + r")[)]")
 
 def parse_makefile(fn, g_vars=None, g_rules=None, g_actions=None):
     """Parse a Makefile-style file.
@@ -56,8 +57,15 @@ def parse_makefile(fn, g_vars=None, g_rules=None, g_actions=None):
 
             line = fp.readline()
         elif rmatch:
+            ## make allows "$(VAR)" and "${VAR}" to be used interchangably, so there's a
+            ## possibility that the sim developer used both forms in the target, e.g.:
+            ##
+            ## foosim: $(BIN)foosim$(EXE)
+            ##
+            ## ${BIN}foosim${EXE}: stuff that foosim depends on...
+
             n, v = rmatch.group(1, 4)
-            rules[n] = v
+            rules[normalize_variables(n)] = normalize_variables(v)
 
             ## Collect the actions:
             collected = []
