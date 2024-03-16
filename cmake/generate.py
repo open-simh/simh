@@ -32,9 +32,9 @@ def process_makefile(makefile_dir, debug=0):
     if debug >= 4:
         pprint.pp(defs)
 
-    all_rule = rules.get('all')
+    all_rule = rules.get('all') or rules.get('ALL')
     if all_rule is None:
-        print('{0}: "all" rule not found. Cannot process.'.format(GEN_SCRIPT_NAME))
+        print('{0}: "all" rule not found. Cannot proceed.'.format(GEN_SCRIPT_NAME))
 
     simulators = SCC.CMakeBuildSystem()
     for all_targ in SPM.shallow_expand_vars(all_rule, defs).split():
@@ -42,9 +42,10 @@ def process_makefile(makefile_dir, debug=0):
         walk_target_deps(all_targ, defs, rules, actions, simulators, debug=debug)
 
     experimental_rule = rules.get('experimental')
-    for experimental_targ in SPM.shallow_expand_vars(experimental_rule, defs).split():
-        print("{0}: exp target {1}".format(GEN_SCRIPT_NAME, experimental_targ))
-        walk_target_deps(experimental_targ, defs, rules, actions, simulators, debug=debug)
+    if experimental_rule is not None:
+        for experimental_targ in SPM.shallow_expand_vars(experimental_rule, defs).split():
+            print("{0}: exp target {1}".format(GEN_SCRIPT_NAME, experimental_targ))
+            walk_target_deps(experimental_targ, defs, rules, actions, simulators, debug=debug)
 
     simulators.collect_vars(defs, debug=debug)
     return simulators
@@ -70,6 +71,8 @@ def walk_target_deps(target, defs, rules, actions, simulators, depth='', debug=0
         print('{0}-- target: {1}'.format(depth, target))
 
     target_deps = SPM.target_dep_list(target, rules, defs)
+    if debug >= 2:
+        print('{0}target deps: {1}'.format(depth, target_deps))
 
     has_buildrom = any(filter(lambda dep: dep == '${BUILD_ROMS}', target_deps))
     if debug >= 1:
@@ -131,14 +134,13 @@ if __name__ == '__main__':
                       help='Debug level (0-3, 0 == off)')
     args.add_argument('--srcdir', default=None,
                       help='makefile source directory.')
-    ## args.add_argument('--file', '-f', default=os.path.join(GEN_SCRIPT_DIR, 'simh_makefile.cmake'),
-    ##                  help='Output file for "all-in-one" CMakeLists.txt, default is simh_makefile.cmake')
+    args.add_argument('--skip-orphans', action='store_true',
+                      help='Skip the check for packaging orphans')
+
     flags = vars(args.parse_args())
 
     debug_level = flags.get('debug')
     makefile_dir = flags.get('srcdir')
-
-    print('{0}: Expecting to emit {1} simulators.'.format(GEN_SCRIPT_NAME, len(SPKG.package_info.keys())))
 
     found_makefile = True
     if makefile_dir is None:
@@ -171,15 +173,22 @@ if __name__ == '__main__':
     ## Sanity check: Make sure that all of the simulators in SPKG.package_info have
     ## been encountered
     for simdir in sims.dirs.keys():
+        if debug_level >= 2:
+            print('{}: simdir {}'.format(GEN_SCRIPT_NAME, simdir))
         for sim in sims.dirs[simdir].simulators.keys():
             SPKG.package_info[sim].encountered()
 
-    orphans = [ sim for sim, pkg_info in SPKG.package_info.items() if not pkg_info.was_processed() ]
-    if len(orphans) > 0:
-        print('{0}: Simulators not extracted from makefile:'.format(GEN_SCRIPT_NAME))
-        for orphan in orphans: 
-            print('{0}{1}'.format(' ' * 4, orphan))
-        sys.exit(1)
+    if not flags.get('skip_orphans'):
+        print('{0}: Expecting to emit {1} simulators.'.format(GEN_SCRIPT_NAME, len(SPKG.package_info.keys())))
+
+        orphans = [ sim for sim, pkg_info in SPKG.package_info.items() if not pkg_info.was_processed() ]
+        if len(orphans) > 0:
+            print('{0}: Simulators not extracted from makefile:'.format(GEN_SCRIPT_NAME))
+            for orphan in orphans:
+                print('{0}{1}'.format(' ' * 4, orphan))
+            sys.exit(1)
+        else:
+            print('{0}: All simulators present and accounted for!'.format(GEN_SCRIPT_NAME))
 
     if debug_level >= 1:
         pp = pprint.PrettyPrinter()
