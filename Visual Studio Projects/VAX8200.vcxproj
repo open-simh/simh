@@ -320,6 +320,7 @@
     <ClCompile Include="..\VAX\vax_octa.c" />
     <ClCompile Include="..\VAX\vax_sys.c" />
     <ClCompile Include="..\VAX\vax_syscm.c" />
+    <ClCompile Include="..\VAX\vax_uw.c" />
     <ClCompile Include="..\VAX\vax_watch.c" />
   </ItemGroup>
   <ItemGroup>
