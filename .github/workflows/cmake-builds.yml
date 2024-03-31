@@ -8,10 +8,18 @@ jobs:
     name: Ubuntu
     runs-on: ${{ matrix.os }}
     strategy:
+      #-
+      # The CMake builds produce artifacts (*) and the runner image's name is
+      # used in the artifact's name, simh-4.1.0-x86_64-ubuntu-20.04.deb.
+      # Consequently, each runner image is enumerated for each artifact (*)
+      # that the build produces.
+      #
+      # (*) "artefact" for the rest of the Anglosphere
+      #-
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run: |
         sh -ex .travis/deps.sh linux
@@ -32,20 +40,32 @@ jobs:
         cd cmake/build-ninja
         cpack -G DEB -C Release
     - name: Upload DEB
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-x86_64-${{matrix.os}}.deb
         path: cmake/build-ninja/simh-4.1.0-x86_64-${{matrix.os}}.deb
 
 
   cmake-macOS:
-    name: macOS
+    name: macOS 12+
     runs-on: ${{ matrix.os }}
     strategy:
+      #-
+      # The CMake builds produce artifacts (*) and the runner image's name is
+      # used in the artifact's name, e.g., simh-4.1.0-m1.macos-14.dmg.
+      # Consequently, each runner image is enumerated for each artifact (*)
+      # that the build produces.
+      #
+      # (*) "artefact" for the rest of the Anglosphere -
       matrix:
-        os: [macos-12, macos-11]
+        os: [macos-12, macos-13, macos-14]
+
+    env:
+      CPACK_SUFFIX: ${{matrix.os != 'macos-14' && 'x86_64' || 'm1'}}.${{matrix.os}}
+
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
     ## Workaround for remnant symlinks in /usr/local pointing back to
     ## macOS frameworks.
     ##
@@ -60,67 +80,49 @@ jobs:
         for f in $(find /usr/local/bin -type l -print); do \
           (readlink $f | grep -q -s "/Library") && echo Removing "$f" && rm -f "$f"; \
         done || exit 0
+
     - name: Install dependencies
       run: sh -ex .travis/deps.sh osx
+
     - name: cmake-builder.sh
       run: |
-        cmake/cmake-builder.sh --config Release --flavor xcode --lto --notest --cpack_suffix x86_64.${{matrix.os}}
+        cmake/cmake-builder.sh --config Release --flavor xcode --notest --cpack_suffix ${{env.CPACK_SUFFIX}}
+
     - name: SIMH simulator suite test
       run: |
         cmake/cmake-builder.sh --config Release --flavor xcode --testonly
+
     ## Install isn't strictly necessary, but it's a good way to see what dependencies
     ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
+
     - name: Install
       run: |
         cmake/cmake-builder.sh --config Release --flavor xcode --installonly
+
     - name: SIMH packaging
       run: |
         cd cmake/build-xcode
         cpack -G "ZIP;TGZ" -C Release
         cpack -G DragNDrop -C Release
+
     - name: Upload ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-x86_64.${{matrix.os}}.zip
-        path: cmake/build-xcode/simh-4.1.0-x86_64.${{matrix.os}}.zip
+        name: simh-4.1.0-${{env.CPACK_SUFFIX}}.zip
+        path: cmake/build-xcode/simh-4.1.0-${{env.CPACK_SUFFIX}}.zip
+
     - name: Upload DMG
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-x86_64.${{matrix.os}}.dmg
-        path: cmake/build-xcode/simh-4.1.0-x86_64.${{matrix.os}}.dmg
-
-
-  ## This looks like it's doing the right thing on the Github CI/CD pipeline because
-  ## the output contains references to x86_64 and arm64 targets for Mac OS 12.
-  ##
-  ## However, need to figure out how to concurrently install BOTH arm64 and intel
-  ## Homebrews AND how to tell SDL2 which set of header files it should use for
-  ## platform-specific assembly (/usr/local vs. /opt/local.)
-  ##
-  # cmake-macOS-universal:
-  #   name: macOS universal
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [macos-12]
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - name: Install dependencies
-  #     run: |
-  #       sh -ex .travis/deps.sh osx
-  #   - name: cmake-builder.sh
-  #     run: |
-  #       cmake/cmake-builder.sh --config Release --flavor xcode-universal --lto --notest
-  #   - name: SIMH simulator suite test
-  #     run: |
-  #       cmake/cmake-builder.sh --config Release --flavor xcode-universal --testonly
+        name: simh-4.1.0-${{env.CPACK_SUFFIX}}.dmg
+        path: cmake/build-xcode/simh-4.1.0-${{env.CPACK_SUFFIX}}.dmg
 
 
   cmake-vs2022xp:
     name: VS 2022 XP-compatible LEGACY
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install v141_xp (XP toolkit) and build SIMH
       shell: pwsh
       run: |
@@ -174,21 +176,21 @@ jobs:
           cd cmake\build-vs2022-xp
           cpack -G "ZIP;WIX" -C Release
     - name: Upload ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022xp.zip
         path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.zip
     - name: Upload MSI
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-win32-vs2022xp.zip
-        path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.msi     
+        name: simh-4.1.0-win32-vs2022xp.msi
+        path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.msi
 
   cmake-vs2022:
     name: VS 2022 Win10 native VCPKG
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: vs2022 build
       shell: pwsh
       run: |
@@ -221,17 +223,17 @@ jobs:
           cd cmake\build-vs2022
           cpack -G "NSIS;WIX;ZIP" -C Release
     - name: Upload ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022.zip
         path: cmake/build-vs2022/simh-4.1.0-win32-native.zip
     - name: Upload EXE installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022.exe
         path: cmake/build-vs2022/simh-4.1.0-win32-native.exe
     - name: Upload MSI installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: simh-4.1.0-win32-vs2022.msi
         path: cmake/build-vs2022/simh-4.1.0-win32-native.msi
