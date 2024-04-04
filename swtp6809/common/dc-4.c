@@ -26,7 +26,7 @@
     MODIFICATIONS:
 
         23 Apr 15 -- Modified to use simh_debug
-        24 Feb 24 -- Richard Lukes - Modified to work with swtp6809 emulator
+        04 Apr 24 -- Richard Lukes - Modified to work with swtp6809 emulator
 
     NOTES:
 
@@ -36,8 +36,9 @@
         file only emulates the minimum DC-4 functionality to interface with
         the virtual disk file.
 
-        The floppy controller is interfaced to the CPU by use of 5 memory 
-        addreses.  These are SS-30 slot numbers 5 and 6 (0xE014-0xE01B) on a SWTPC 6809 computer.
+        The floppy controller is interfaced to the CPU by use of 5 memory addreses.
+        These are SS-30 slot numbers 5 and 6 (0xE014-0xE01B) on a SWTPC 6809 computer.
+        These are SS-30 slot numbers 5 and 6 (0x8014-0x801B) on a SWTPC 6800 computer.
 
         Address     Mode    Function
         -------     ----    --------
@@ -55,12 +56,13 @@
 
         Drive Select Read (0xE014):
 
-        +---+---+---+---+---+---+---+---+
-        | I | D | X | X | X | X | X | X |
-        +---+---+---+---+---+---+---+---+
+        +---+---+---+---+---+---+----+----+
+        | I | D | X | X | X | X | d1 | d0 |
+        +---+---+---+---+---+---+----+----+
 
         I = Set indicates an interrupt request from the FDC pending.
         D = DRQ pending - same as bit 1 of FDC status register.
+        d1,d0 = current drive selected
 
         Drive Select Write (0xE014):
 
@@ -198,7 +200,7 @@
         1       1       First available data sector
         last-1  last    Last available data sector
 
-        System Identity Record
+        FLEX System Identity Record
 
         Byte    Use
         0x00    Two bytes of zeroes (Clears forward link)
@@ -213,41 +215,64 @@
 
         The following unit registers are used by this controller emulation:
 
+        dsk_unit[cur_drv].pos       unit current sector byte index into file
+        dsk_unit[cur_drv].filebuf   unit current sector buffer
+        dsk_unit[cur_drv].fileref   unit current attached file reference
+        dsk_unit[cur_drv].capac     capacity
         dsk_unit[cur_drv].u3        unit current flags
         dsk_unit[cur_drv].u4        unit current track
         dsk_unit[cur_drv].u5        unit current sector
-        dsk_unit[cur_drv].pos       unit current sector byte index into buffer
-        dsk_unit[cur_drv].filebuf   unit current sector buffer
-        dsk_unit[cur_drv].fileref   unit current attached file reference
+        dsk_unit[cur_drv].u6        sectors per track
+        dsk_unit[cur_drv].up7       points to "Flex string" or NULL
+        dsk_unit[cur_drv].wait      cylinder per disk
 */
 
 #include <stdio.h>
 #include "swtp_defs.h"
 
-#define DEBUG   0
+/* Unit settings*/
 
-#define UNIT_V_ENABLE   (UNIT_V_UF + 0) /* Write Enable */
-#define UNIT_ENABLE     (1 << UNIT_V_ENABLE)
+#define UNIT_V_DC4_READONLY    (UNIT_V_UF + 0)
+#define UNIT_DC4_READONLY      (0x1 << UNIT_V_DC4_READONLY)
 
-/* maximum of 4 disks, sector size is fixed at 256 bytes */
+#define UNIT_V_DC4_SPT         (UNIT_V_UF + 1)
+#define UNIT_DC4_SPT           (0xF << UNIT_V_DC4_SPT) 
+#define UNIT_DC4_SPT_UNKNOWN   (0x1 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_FLEX_SIR  (0x2 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_10SPT     (0x3 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_20SPT     (0x4 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_30SPT     (0x5 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_36SPT     (0x6 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_72SPT     (0x8 << UNIT_V_DC4_SPT)
+#define UNIT_DC4_SPT_255SPT    (0x9 << UNIT_V_DC4_SPT)
+
+/* maximum of 4 disks, sector size is fixed at SECTOR_SIZE bytes */
 
 #define NUM_DISK        4               /* standard 1797 maximum */
-#define SECT_SIZE       256             /* standard FLEX sector */
+#define SECTOR_SIZE     256             /* standard FLEX sector is 256 bytes */
 
-/* SIR offsets */
+/* Flex OS SIR offsets */
 #define MAXCYL          0x26            /* last cylinder # */
 #define MAXSEC          0x27            /* last sector # */
 
 /* 1797 status bits */
-
 #define BUSY            0x01
 #define DRQ             0x02
 #define WRPROT          0x40
 #define NOTRDY          0x80
 
+/* drive register status bit */
+#define FDCDRV_INTRQ    0x80
+#define FDCDRV_DRQ      0x40
+#define FDCDRV_D1       0x02
+#define FDCDRV_D0       0x01
+
 /* function prototypes */
 
-t_stat dsk_reset (DEVICE *dptr);
+t_stat dsk_reset(DEVICE *dptr);
+t_stat dsk_config(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+t_stat dsk_detach(UNIT *uptr);
+t_stat dsk_attach(UNIT *uptr, CONST char *cptr);
 
 /* SS-50 I/O address space functions */
 
@@ -259,16 +284,18 @@ int32 fdcdata(int32 io, int32 data);
 
 /* Local Variables */
 
-int32 fdcbyte;
-int32 intrq = 0;                        /* interrupt request flag */
-int32 cur_dsk;                          /* Currently selected drive */
-int32 wrt_flag = 0;                     /* FDC write flag */
+int32 fdc_data_byte;                    /* fdc data register */
 
-int32   spt;                            /* sectors/track */
-int32   trksiz;                         /* trk size (bytes) */
-int32   heds;                           /* number of heads */
-int32   cpd;                            /* cylinders/disk */
-int32   dsksiz;                         /* dsk size (bytes) */
+// this counter is used to emulate write sector VERIFY
+// a write sector VERIFY, re-reads the sector, but
+// only updates the CRC_ERROR and RECORD_NOT_FOUND flags
+// (which don't exist in the emulation)
+int32 read_w_drq_busy_counter = 0;      /* if DRQ=1,BUSY=1 then increment counter else zero it. Also zero whenever reading from data register on sector read command */
+
+int32 cur_dsk;                          /* Currently selected drive */
+int32 prev_dsk;                         /* previously selected drive */
+
+char flex_flag_str[5] = { 'F', 'L', 'E', 'X', 0 };
 
 /* Floppy Disk Controller data structures
 
@@ -278,11 +305,15 @@ int32   dsksiz;                         /* dsk size (bytes) */
        dsk_mod        Mother Board modifiers list
 */
 
-UNIT dsk_unit[] = {
-        { UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  },
-        { UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  },
-        { UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  },
-        { UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  }
+UNIT dsk_unit[NUM_DISK] = {
+        //{ UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  },
+        //{ UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  },
+        //{ UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  },
+        //{ UDATA (NULL, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE, 0)  }
+        { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE, 0)  },
+        { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE, 0)  },
+        { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE, 0)  },
+        { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE, 0)  }
 };
 
 REG dsk_reg[] = {
@@ -291,18 +322,26 @@ REG dsk_reg[] = {
 };
 
 MTAB dsk_mod[] = {
-        { UNIT_ENABLE, UNIT_ENABLE, "RW", "RW", NULL },
-        { UNIT_ENABLE, 0, "RO", "RO", NULL },
+        { UNIT_DC4_READONLY, UNIT_DC4_READONLY, "RO", "RO", &dsk_config },
+        { UNIT_DC4_READONLY, 0, "RW", "RW", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_UNKNOWN, "Unknown sectors per track", "UNKNOWN", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_FLEX_SIR, "Read Flex SIR for disk info", "FLEX", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_10SPT, "10 sectors per track", "10SPT", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_20SPT, "20 sectors per track", "20SPT", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_30SPT, "30 sectors per track", "30SPT", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_36SPT, "36 sectors per track", "36SPT", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_72SPT, "72 sectors per track", "72SPT", &dsk_config },
+        { UNIT_DC4_SPT, UNIT_DC4_SPT_255SPT, "255 sectors per track", "255SPT", &dsk_config },
         { 0 }
 };
 
 DEBTAB dsk_debug[] = {
-    { "ALL", DEBUG_all },
-    { "FLOW", DEBUG_flow },
-    { "READ", DEBUG_read },
-    { "WRITE", DEBUG_write },
-    { "LEV1", DEBUG_level1 },
-    { "LEV2", DEBUG_level2 },
+    { "ALL", DEBUG_all, "Debug all" },
+    { "FLOW", DEBUG_flow, "Debug flow of control" },
+    { "READ", DEBUG_read, "Debug device reads" },
+    { "WRITE", DEBUG_write, "Debug device writes" },
+    { "LEV1", DEBUG_level1, "Debug level 1" },
+    { "LEV2", DEBUG_level2, "Debug level 2" },
     { NULL }
 };
 
@@ -313,7 +352,7 @@ DEVICE dsk_dev = {
     dsk_mod,                            //modifiers
     NUM_DISK,                           //numunits
     16,                                 //aradix
-    16,                                 //awidth
+    8,                                  //awidth
     1,                                  //aincr
     16,                                 //dradix
     8,                                  //dwidth
@@ -321,44 +360,195 @@ DEVICE dsk_dev = {
     NULL,                               //deposit
     &dsk_reset,                         //reset
     NULL,                               //boot
-    NULL,                               //attach
-    NULL,                               //detach
+    &dsk_attach,                        //attach
+    &dsk_detach,                        //detach
     NULL,                               //ctxt
     DEV_DEBUG,                          //flags
     0,                                  //dctrl
-    dsk_debug,                          /* debflags */
+    dsk_debug,                          /* debug flags defined in DEBTAB */
     NULL,                               //msize
-    NULL                                //lname
+    NULL,                               //help
+    NULL,                               //attach help
+    NULL,                               //help context
+    NULL                                //device description
 };
 
 /* Reset routine */
 
-t_stat dsk_reset (DEVICE *dptr)
+t_stat dsk_reset(DEVICE *dptr)
 {
     int i;
 
-    cur_dsk = 5;                        /* force initial SIR read, use a drive # that can't be selected */
+    sim_printf("dsk_reset: call to reset routine\n");
+
+    cur_dsk = 0;                        /* force initial SIR read in FLEX mode, use a drive # that can't be selected */
+    prev_dsk = 5;
 
     for (i=0; i<NUM_DISK; i++) {
-        dsk_unit[i].u3 = 0;             /* clear current flags */
-        dsk_unit[i].u4 = 0;             /* clear current cylinder # */
-        dsk_unit[i].u5 = 0;             /* clear current sector # */
-        dsk_unit[i].pos = 0;            /* clear current byte ptr */
-        if (dsk_unit[i].filebuf == NULL) {
-            dsk_unit[i].filebuf = malloc(SECT_SIZE); /* allocate buffer */
-            if (dsk_unit[i].filebuf == NULL) {
-                printf("dc-4_reset: Malloc error\n");
+        /* no default for disk geometry, this is calculated when a file is attached */
+
+        dptr->units[i].u3 = NOTRDY;        /* clear current flags */
+        dptr->units[i].u4 = 0;             /* clear current cylinder # */
+        dptr->units[i].u5 = 0;             /* clear current sector # */
+        dptr->units[i].pos = 0;            /* clear current byte ptr */
+
+        if (dptr->units[i].filebuf == NULL) {
+            dptr->units[i].filebuf = malloc(SECTOR_SIZE); /* allocate buffer */
+            if (dptr->units[i].filebuf == NULL) {
+                sim_printf("dc-4_reset: Malloc error\n");
                 return SCPE_MEM;
+            } else {
+                sim_debug(DEBUG_flow, dptr, "dsk_reset: allocated file buffer\n");
             }
         }
     }
-    spt = 0;
-    trksiz = 0;
-    heds = 0;
-    cpd = 0;
-    dsksiz = 0;
+
+    // initialize data register
+    fdc_data_byte = 0;
+
     return SCPE_OK;
-}
+
+} /* dsk_reset() */
+
+/* attach */
+t_stat dsk_attach(UNIT *uptr, CONST char *cptr)
+{
+    off_t fsize = 0;   /* size of attached file */
+    int32 temp_cpd;    /* cylinders per disk */
+    int32 temp_spt;    /* sectors per track */
+    t_stat r;
+    int32 err;
+    int32 pos;
+
+    r = attach_unit(uptr, cptr);
+    sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: attach returns %d\n", r);
+    if (r == SCPE_OK) {
+        /* determine the size of the attached file and populate the UNIT capac value (capacity) */
+        err = sim_fseek(uptr->fileref, 0, SEEK_END); /* seek to offset */
+        if (err == -1) {
+            sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: fseek returns %d\n", err);
+            return (SCPE_IOERR);
+        }
+        fsize = sim_ftell(uptr->fileref);
+        uptr->capac = fsize;
+
+        if (uptr->up7 == flex_flag_str) {
+                sim_printf("dsk_attach: Reading disk geometry from SIR of Flex disk named %s\n", cptr);
+                sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: Reading disk geometry from SIR of Flex disk name %d\n", cptr);
+
+	        // whenever a new file is attached - re-read the SIR
+                pos = 0x200;       /* Location of Flex System Information Record (SIR) */
+
+                sim_debug(DEBUG_read, &dsk_dev, "dsk_attach: Read pos = %ld ($%04X)\n", pos, (unsigned int) pos);
+                err = sim_fseek(uptr->fileref, pos, SEEK_SET); /* seek to offset */
+                if (err) {
+                    sim_debug(DEBUG_read, &dsk_dev, "dsk_attach: Seek error read in SIR\n");
+                    sim_printf("dsk_attach: Seek error read in SIR\n");
+                    return SCPE_IOERR;
+                } 
+                err = sim_fread(uptr->filebuf, SECTOR_SIZE, 1, uptr->fileref); /* read in buffer */
+                if (err != 1) {
+                    sim_debug(DEBUG_read, &dsk_dev, "dsk_attach: Seek error read in SIR\n");
+                    sim_printf("dsk_attach: File error read in SIR\n");
+                    return SCPE_IOERR;
+                }
+
+                /* retrieve parameters from SIR */
+                temp_spt = *((uint8 *)(uptr->filebuf) + MAXSEC) & 0xFF;
+                temp_cpd = *((uint8 *)(uptr->filebuf) + MAXCYL) & 0xFF;
+
+                /* zero based track numbering */
+                temp_cpd++;
+
+                sim_printf("dsk_attach: SIR was read. SPT=%d. CPD=%d. Capacity=%d\n", temp_spt, temp_cpd, fsize);
+                sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: SIR was read. SPT=%d. CPD=%d. Capacity=%d\n", temp_spt, temp_cpd, fsize);
+
+                /* confirm that geometry aligns with size */
+                if (fsize == (temp_cpd * temp_spt * SECTOR_SIZE)) {
+                    uptr->u6 = temp_spt;
+                    uptr->wait = temp_cpd;
+                    sim_printf("dsk_attach: sectors per track is %d, cylinders per disk is %d\n", temp_spt, temp_cpd);
+                    sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: WARNING: sectors per track is %d, cylinders per disk is %d\n", temp_spt, temp_cpd);
+                } else {
+                    sim_printf("dsk_attach: Disk geometry does not align with file size!\n");
+                    sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: WARNING: disk geometry does not align with file size!\n");
+                }
+        } else {
+            /* if sectors per track != 0, calculate cylinders per disk based on file capacity */
+            temp_spt = uptr->u6;
+            if (temp_spt != 0) {
+                temp_cpd = fsize / (temp_spt * SECTOR_SIZE);
+                if (fsize == (temp_cpd * temp_spt * SECTOR_SIZE)) {
+                    uptr->wait = temp_cpd;
+                    sim_printf("dsk_attach: cylinders per disk calculated as %d\n", temp_cpd);
+                    sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: WARNING: cylinders per disk calculated as %d\n", temp_cpd);
+                    /* clear any pre-existing flags */
+                    uptr->u3 = 0;
+                } else {
+                    uptr->wait = 0;
+                    sim_printf("dsk_attach: cylinders per disk could not be determined. %d\n", temp_cpd);
+                    sim_debug(DEBUG_flow, &dsk_dev, "dsk_attach: WARNING: cylinders per disk could not be determined. %d\n", temp_cpd);
+                }
+            }
+        }
+    }
+    return(r);
+
+} /* dsk_attach() */
+
+/* detach */
+t_stat dsk_detach(UNIT *uptr)
+{
+    t_stat r;
+
+    uptr->capac = 0;
+    r = detach_unit(uptr);
+    sim_debug(DEBUG_flow, &dsk_dev, "dsk_detach: detach return %d\n", r);
+    return(r);
+
+} /* dsk_detach */
+
+/* disk config */
+t_stat dsk_config(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+    sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: val=%d\n", val);
+
+    if ((val & UNIT_DC4_READONLY) != 0) {
+        uptr->u3 |= WRPROT;             /* set write protect */
+    } else {
+        uptr->u3 &= (~WRPROT & 0xFF);   /* unset EPROM size */
+    }
+
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_FLEX_SIR) {
+        uptr->up7 = flex_flag_str;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: disk geometry to be determined from Flex disk\n");
+    }
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_10SPT) {
+        uptr->u6 = 10;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: sectors per track set to %d\n", uptr->u6);
+    }
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_20SPT) {
+        uptr->u6 = 20;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: sectors per track set to %d\n", uptr->u6);
+    }
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_30SPT) {
+        uptr->u6 = 30;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: sectors per track set to %d\n", uptr->u6);
+    }
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_36SPT) {
+        uptr->u6 = 36;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: sectors per track set to %d\n", uptr->u6);
+    }
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_72SPT) {
+        uptr->u6 = 72;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: sectors per track set to %d\n", uptr->u6);
+    }
+    if ((val & UNIT_DC4_SPT) == UNIT_DC4_SPT_255SPT) {
+        uptr->u6 = 255;
+        sim_debug(DEBUG_flow, &dsk_dev, "dsk_config: sectors per track set to %d\n", uptr->u6);
+    }
+    return(SCPE_OK);
+} /* dsk_config */
 
 /*
     I/O instruction handlers, called from the MP-B3 module when a
@@ -373,83 +563,95 @@ int32 fdcdrv(int32 io, int32 data)
 {
     static long pos;
     static int32 err;
+    int32 cpd;
+    int32 spt;
+    int32 temp_return;
+    
 
-//sim_printf("\nfdcdrv: io=%d, data=%d\n", io, data);
+    sim_debug(DEBUG_flow, &dsk_dev, "fdcdrv: io=%02X, data=%02X\n", io, data);
 
-    if (io) {                           /* write to DC-4 drive register */
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Drive selected %d cur_dsk=%d", data & 0x03, cur_dsk);
-        if (cur_dsk == (data & 0x03)) 
-            return 0;                   /* already selected */
+    if (io) {
+        /* write to DC-4 drive register */
         cur_dsk = data & 0x03;          /* only 2 drive select bits */
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Drive set to %d", cur_dsk);
-        if ((dsk_unit[cur_dsk].flags & UNIT_ENABLE) == 0) {
-            dsk_unit[cur_dsk].u3 |= WRPROT; /* set 1797 WPROT */
-            sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Drive write protected");
-        } else {
-            dsk_unit[cur_dsk].u3 &= ~WRPROT; /* set 1797 not WPROT */
-            sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Drive NOT write protected");
+        if (cur_dsk != prev_dsk) { /* did the disk change? */
+            prev_dsk = cur_dsk;
         }
+        sim_debug(DEBUG_read, &dsk_dev, "fdcdrv: Drive selected %d cur_dsk=%d\n", data & 0x03, cur_dsk);
+        sim_debug(DEBUG_write, &dsk_dev, "fdcdrv: Drive set to %d\n", cur_dsk);
 
-//sim_printf("\nfdcdrv: reading the SIR\n");
-	// whenever a new drive is selected - re-read the SIR
-        pos = 0x200;                    /* Read in SIR */
-
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Read pos = %ld ($%04X)",
-            pos, (unsigned int) pos);
-        err = sim_fseek(dsk_unit[cur_dsk].fileref, pos, SEEK_SET); /* seek to offset */
-        if (err) {
-            sim_printf("\nfdccmd: Seek error read in SIR\n");
-            return SCPE_IOERR;
-        } 
-        err = sim_fread(dsk_unit[cur_dsk].filebuf, SECT_SIZE, 1, dsk_unit[cur_dsk].fileref); /* read in buffer */
-        if (err != 1) {
-            sim_printf("\nfdccmd: File error read in SIR\n");
-            return SCPE_IOERR;
+        if ((dsk_unit[cur_dsk].flags & UNIT_DC4_READONLY) != 0) {
+            dsk_unit[cur_dsk].u3 |= WRPROT; /* RO - set 1797 WPROT */
+            sim_debug(DEBUG_write, &dsk_dev, "fdcdrv: Disk is write protected\n");
         } else {
-            ;
-//sim_printf("\nfdcdrv: SIR was read\n");
+            dsk_unit[cur_dsk].u3 &= ((~WRPROT) & 0xFF); /* RW - unset 1797 WPROT */
+            sim_debug(DEBUG_write, &dsk_dev, "fdcdrv: Disk is not write protected\n");
         }
-
-        dsk_unit[cur_dsk].u3 |= BUSY | DRQ; /* set DRQ & BUSY */
-        dsk_unit[cur_dsk].pos = 0;      /* clear counter */
-        spt = *((uint8 *)(dsk_unit[cur_dsk].filebuf) + MAXSEC) & 0xFF;
-        heds = 0;
-        cpd = *((uint8 *)(dsk_unit[cur_dsk].filebuf) + MAXCYL) & 0xFF;
-        trksiz = spt * SECT_SIZE;
-        dsksiz = trksiz * cpd;
-
-//sim_printf("\nfdcdrv: spt=%d heds=%d cpd=%d trksiz=%d dsksiz=%d flags=%08X u3=%08X\n", spt, heds, cpd, trksiz, dsksiz, dsk_unit[cur_dsk].flags, dsk_unit[cur_dsk].u3);
-
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: spt=%d heds=%d cpd=%d trksiz=%d dsksiz=%d flags=%08X u3=%08X",
-            spt, heds, cpd, trksiz, dsksiz, dsk_unit[cur_dsk].flags, dsk_unit[cur_dsk].u3);
-        return 0;
-    } else {                            /* read from DC-4 drive register */
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdrv: Drive read as %02X", intrq);
-        return intrq;
+        if ((dsk_unit[cur_dsk].flags & UNIT_ATT) == 0) { /* device is not attached */
+            /* set NOTRDY flag */
+            dsk_unit[cur_dsk].u3 |= NOTRDY;
+            sim_debug(DEBUG_write, &dsk_dev, "fdcdrv: Drive is NOT READY\n");
+        }
+    } else {
+        /* read from DC-4 drive register */
+        /* least significant 2 bits are the selected drive */
+        temp_return = cur_dsk & 0x03;
+        if (((dsk_unit[cur_dsk].u3 & BUSY) != 0) && ((dsk_unit[cur_dsk].u3 & DRQ) == 0)) {
+            /* if BUSY indicates that there is a command and DRQ is unset, set DRQ now */
+            dsk_unit[cur_dsk].u3 |= DRQ;     /* enable DRQ now */
+        }
+        sim_debug(DEBUG_read, &dsk_dev, "fdcdrv: Drive register read as %02X\n", temp_return );
+        return temp_return;
     }
-}
+    return SCPE_OK;
+} /* fdcdrv */
 
 /* WD 1797 FDC command register routine */
 
 int32 fdccmd(int32 io, int32 data)
 {
-    static int32 val = 0, val1 = NOTRDY;
+    static int32 val = 0;
     static long pos;
     static int32 err;
  
+    sim_debug(DEBUG_flow, &dsk_dev, "fdccmd: io=%02X, data=%02X\n", io, data);
+
+    /* check for NOTRDY */
     if ((dsk_unit[cur_dsk].flags & UNIT_ATT) == 0) { /* not attached */
         dsk_unit[cur_dsk].u3 |= NOTRDY; /* set not ready flag */
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Drive %d is not attached", cur_dsk);
-        return 0;
+        sim_debug(DEBUG_flow, &dsk_dev, "fdccmd: Drive %d is not attached\n", cur_dsk);
     } else {
+        /* drive is attached */
         dsk_unit[cur_dsk].u3 &= ~NOTRDY; /* clear not ready flag */
+        sim_debug(DEBUG_flow, &dsk_dev, "fdccmd: Drive %d is attached\n", cur_dsk);
     }
-    if (io) {                           /* write command to fdc */
 
-//sim_printf("fdccmd: command = %02X\n", data);
+    /* check for WRPROT */
+    if ((dsk_unit[cur_dsk].flags & UNIT_DC4_READONLY) != 0) {
+        dsk_unit[cur_dsk].u3 |= WRPROT;  /* RO - set write protect flag */
+        sim_debug(DEBUG_flow, &dsk_dev, "fdccmd: Drive %d is write protected\n", cur_dsk);
+    } else {
+        dsk_unit[cur_dsk].u3 &= ~WRPROT; /* RW - unset write protect flag */
+        sim_debug(DEBUG_flow, &dsk_dev, "fdccmd: Drive %d is not write protected\n", cur_dsk);
+    }
+
+    if (io) {
+
+        /* write command to fdc */
+	if ((dsk_unit[cur_dsk].u3 & BUSY) != 0) {
+            /* do not write to command register if device is BUSY */
+            sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Cannot write to command register, device is BUSY\n", cur_dsk);
+            return(SCPE_OK);
+        }
+	if ((dsk_unit[cur_dsk].u3 & NOTRDY) != 0) {
+            /* do not write to command register if device is NOTRDY */
+            sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Cannot write to command register, device is NOT READY\n", cur_dsk);
+            return(SCPE_OK);
+        }
 
         switch(data) {
-                                        /* restore command */
+                                        /* restore command - type I command */
+
+            /* ignored: head load flag, verify flag, stepping motor rate*/
             case 0x00:
             case 0x01:
             case 0x02:
@@ -458,7 +660,6 @@ int32 fdccmd(int32 io, int32 data)
             case 0x05:
             case 0x06:
             case 0x07:
-            case 0x08:
             case 0x09:
             case 0x0A:
             case 0x0B:
@@ -466,14 +667,16 @@ int32 fdccmd(int32 io, int32 data)
             case 0x0D:
             case 0x0E:
             case 0x0F:
-		/* ignored: head load flag, verify flag, stepping motor rate*/
 
-                dsk_unit[cur_dsk].u4 = 0;   /* home the drive */
+                dsk_unit[cur_dsk].u4 = 0;   /* home the drive, track = 0 */
                 dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ); /* clear flags */
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Drive %d homed", cur_dsk);
+                sim_debug(DEBUG_write, &dsk_dev, "fdccmd: restore of drive %d\n", cur_dsk);
                 break;
 
-            case 0x10:                  /* seek command */
+                                        /* seek command - type I command */
+
+            /* ignored: head load flag, verify flag, stepping motor rate*/
+            case 0x10:
             case 0x11:
             case 0x12:
             case 0x13:
@@ -489,90 +692,142 @@ int32 fdccmd(int32 io, int32 data)
             case 0x1D:
             case 0x1E:
             case 0x1F:
-		/* ignored: head load flag, verify flag, stepping motor rate*/
 
-                dsk_unit[cur_dsk].u4 = fdcbyte; /* set track */
+                /* set track */
+                dsk_unit[cur_dsk].u4 = fdc_data_byte;
                 dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ); /* clear flags */
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Seek of disk %d, track %d",
-                    cur_dsk, fdcbyte);
+                sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Seek of disk %d, track %d\n", cur_dsk, fdc_data_byte);
                 break;
 
-            case 0x80:                  /* read command */
+                                        /* read sector command - type II command (m=0, SSO=0) */
+            case 0x80:
+            case 0x84:
             case 0x88:
             case 0x8C:
-            case 0x9C:
+                                        /* read sector command - type II command (m=0, SSO=1) */
+            case 0x82:
+            case 0x86:
+            case 0x8A:
+            case 0x8E:
 
-//sim_printf("\nfdccmd: Read of disk %d, track %d, sector %d\n", cur_dsk, dsk_unit[cur_dsk].u4, dsk_unit[cur_dsk].u5);
-
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Read of disk %d, track %d, sector %d", 
-                    cur_dsk, dsk_unit[cur_dsk].u4, dsk_unit[cur_dsk].u5);
-                pos = trksiz * dsk_unit[cur_dsk].u4; /* calculate file offset */
-                pos += SECT_SIZE * (dsk_unit[cur_dsk].u5 - 1);
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Read pos = %ld ($%08X)",
-                    pos, (unsigned int) pos);
-                err = sim_fseek(dsk_unit[cur_dsk].fileref, pos, SEEK_SET); /* seek to offset */
-                if (err) {
-                    sim_printf("\nfdccmd: Seek error in read command\n");
-                    return SCPE_IOERR;
-                } 
-                err = sim_fread(dsk_unit[cur_dsk].filebuf, SECT_SIZE, 1, dsk_unit[cur_dsk].fileref); /* read in buffer */
-                if (err != 1) {
-
-                    /* display error information */
-                    sim_printf("\nfdccmd: err = %d\n", err);
-                    sim_printf("\nfdccmd: errno = %d\n", errno);
-
-                    sim_printf("\nfdccmd: File error in read command\n");
-                    return SCPE_IOERR;
-                }
-                dsk_unit[cur_dsk].u3 |= BUSY | DRQ; /* set DRQ & BUSY */
-                dsk_unit[cur_dsk].pos = 0; /* clear counter */
-                break;
-
-                                        /* write command */
-            case 0xA8:
-            case 0xAC:
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Write of disk %d, track %d, sector %d",
-                    cur_dsk, dsk_unit[cur_dsk].u4, dsk_unit[cur_dsk].u5);
-                if (dsk_unit[cur_dsk].u3 & WRPROT) {
-                    sim_printf("\nfdccmd: Drive %d is write-protected", cur_dsk);
+                /* only execute command if disk is READY */
+                if ((dsk_unit[cur_dsk].u3 & NOTRDY) != 0) {
+                    sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Read sector command, but, disk is NOT READY\n");
                 } else {
-                    pos = trksiz * dsk_unit[cur_dsk].u4; /* calculate file offset */
-                    pos += SECT_SIZE * (dsk_unit[cur_dsk].u5 - 1);
-                    sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Write pos = %ld ($%08X)",
+
+                    sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Read of disk %d, track %d, sector %d\n", 
+                        cur_dsk, dsk_unit[cur_dsk].u4, dsk_unit[cur_dsk].u5);
+
+                    /* sectors for track 0 are numbered 0,1,3,4, ... 10 */
+                    if (dsk_unit[cur_dsk].u4 == 0) {
+                        /* Track 0 Sector 0 --> pos = 0 */
+                        /* Track 0 Sector 1 --> pos = 256 */
+                        if (dsk_unit[cur_dsk].u5 == 0) {
+                            pos = 0;
+                        } else {
+                            if (dsk_unit[cur_dsk].u5 == 1) {
+                                pos = 0;
+                            } else {
+                                pos = (SECTOR_SIZE * (dsk_unit[cur_dsk].u5 - 1));
+                            }
+                        }
+                    } else {
+                        /* calculate file offset. u4 is track. u5 is sector. u6 is sectors per track. */
+                        pos = (dsk_unit[cur_dsk].u6 * SECTOR_SIZE) * dsk_unit[cur_dsk].u4;
+                        pos += (SECTOR_SIZE * (dsk_unit[cur_dsk].u5 - 1));
+                    }
+                    sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Read pos = %ld ($%08X)\n",
                         pos, (unsigned int) pos);
                     err = sim_fseek(dsk_unit[cur_dsk].fileref, pos, SEEK_SET); /* seek to offset */
                     if (err) {
-                        sim_printf("\nfdccmd: Seek error in write command\n");
+                        sim_printf("fdccmd: sim_fseek error = %d\n", err);
+                        sim_debug(DEBUG_write, &dsk_dev, "fdccmd: sim_fseek error = %d\n", err);
                         return SCPE_IOERR;
                     } 
-                    wrt_flag = 1;           /* set write flag */
-                    dsk_unit[cur_dsk].u3 |= BUSY | DRQ;/* set DRQ & BUSY */
-                    dsk_unit[cur_dsk].pos = 0; /* clear counter */
+                    err = sim_fread(dsk_unit[cur_dsk].filebuf, SECTOR_SIZE, 1, dsk_unit[cur_dsk].fileref); /* read into sector buffer */
+                    if (err != 1) {
+    
+                        /* display error information */
+                        sim_printf("fdccmd: sim_fread error = %d\n", err);
+                        sim_printf("fdccmd: errno = %d\n", errno);
+                        sim_debug(DEBUG_write, &dsk_dev, "fdccmd: sim_fread error = %d\n", err);
+                        return SCPE_IOERR;
+                    }
+
+                    /* set BUSY to indicate that type II command is in progress */
+                    dsk_unit[cur_dsk].u3 |= BUSY; /* set BUSY */
+                    dsk_unit[cur_dsk].u3 &= ~DRQ; /* unset DRQ */
+                    dsk_unit[cur_dsk].pos = 0;    /* clear buffer pointer */
                 }
                 break;
 
-            case 0xF0:                  /* write track command */
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Write track command for drive %d",
-                    cur_dsk);
+                                        /* write sector command - type II command */
+            case 0xA8:
+            case 0xAC:
+
+                /* only execute command if disk is READY */
+                if ((dsk_unit[cur_dsk].u3 & NOTRDY) != 0) {
+                    sim_debug (DEBUG_write, &dsk_dev, "fdccmd: Write sector command, but, disk is NOT READY\n");
+                } else {
+
+                    sim_debug (DEBUG_write, &dsk_dev, "fdccmd: Write of disk %d, track %d, sector %d\n",
+                        cur_dsk, dsk_unit[cur_dsk].u4, dsk_unit[cur_dsk].u5);
+                    if ((dsk_unit[cur_dsk].u3 & WRPROT) != 0) {
+                        sim_printf("fdccmd: Drive %d is write-protected\n", cur_dsk);
+                    } else {
+                        /* calculate file offset. u4 is track. u5 is sector. u6 is sectors per track. */
+                        pos = (dsk_unit[cur_dsk].u6 * SECTOR_SIZE) * dsk_unit[cur_dsk].u4;
+                        pos += SECTOR_SIZE * (dsk_unit[cur_dsk].u5 - 1);
+                        sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Write pos = %ld ($%08X)\n", pos, (unsigned int) pos);
+                        err = sim_fseek(dsk_unit[cur_dsk].fileref, pos, SEEK_SET); /* seek to offset */
+                        if (err) {
+                            sim_printf("fdccmd: sim_fseek error = %d\n", err);
+                            sim_debug(DEBUG_write, &dsk_dev, "fdccmd: sim_fseek error = %d\n", err);
+                            return SCPE_IOERR;
+                        } 
+                        /* set BUSY to indicate that type II command is in progress */
+                        dsk_unit[cur_dsk].u3 |= BUSY; /* set BUSY */
+                        dsk_unit[cur_dsk].u3 &= ~DRQ; /* unset DRQ */
+                        dsk_unit[cur_dsk].pos = 0;    /* clear buffer pointer */
+                    }
+                }
                 break;
+
             default:
-                sim_printf("Unknown FDC command %02XH\n\r", data);
+                sim_printf("Unknown or unimplemented FDC command %02XH\n", data);
+                sim_debug(DEBUG_write, &dsk_dev, "fdccmd: Unknown or unimplemented command %02X\n", cur_dsk, data);
         }
-    } else {                            /* read status from fdc */
+        return(SCPE_OK);
+
+    } else {
+        /* read status from fdc */
+
         val = dsk_unit[cur_dsk].u3;     /* set return value */
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Exit Drive %d status=%02X",
-            cur_dsk, val);
-        sim_debug (DEBUG_flow, &dsk_dev, "\n%02X", val); //even this short fails it!
-        if (val1 == 0 && ((val & (BUSY + DRQ)) == (BUSY + DRQ)))   /* delay BUSY going high */
-            val &= ~BUSY;
-        if (val != val1)                /* now allow BUSY after one read */
-            val1 = val;
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdccmd: Exit Drive %d status=%02X",
-            cur_dsk, val);
+
+        if (((val & BUSY) != 0) && ((val & DRQ) == 0)) {
+            /* if BUSY indicates that there is a command and DRQ is unset, set DRQ now */
+            dsk_unit[cur_dsk].u3 = val | DRQ;     /* enable DRQ for next time */
+        }
+
+        /* handle write VERIFY - as done by Flex */
+        if (((val & BUSY) !=0) && ((val & DRQ) != 0)) {
+            /* Re-read the sector, with read sector command but don't read any data to update the CRC_ERROR and RECORD_NOT_FOUND flags (not emulated) */
+            read_w_drq_busy_counter++;
+            if (read_w_drq_busy_counter > 50) {
+                /* wait for enough status reads to be confident that this a VERIFY */
+                read_w_drq_busy_counter = 0; 
+                /* reset BUSY and DRQ flags, we do not implement CRC_ERROR or RECORD_NOT_FOUND flags */
+                dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ);
+                val = dsk_unit[cur_dsk].u3;
+                sim_debug (DEBUG_write, &dsk_dev, "fdccmd: detected write verify\n");
+            }
+        } else {
+            read_w_drq_busy_counter = 0;
+        }
+        sim_debug (DEBUG_read, &dsk_dev, "fdccmd: Exit Drive %d status=%02X\n", cur_dsk, val);
+        return val;
     }
-    return val;
-}
+} /* fdccmd */
 
 /* WD 1797 FDC track register routine */
 
@@ -580,72 +835,121 @@ int32 fdctrk(int32 io, int32 data)
 {
 //sim_printf("\nfdctrk: io=%d, data=%d\n", io, data);
 
+    sim_debug(DEBUG_flow, &dsk_dev, "fdctrk: io=%02X, data=%02X\n", io, data);
+
     if (io) {
-        dsk_unit[cur_dsk].u4 = data & 0xFF;
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdctrk: Drive %d track set to %d",
-            cur_dsk, dsk_unit[cur_dsk].u4);
+        /* write to track register */
+        /* do not load when device is BUSY or NOT READY */
+        if (((dsk_unit[cur_dsk].u3 & BUSY) == 0) && ((dsk_unit[cur_dsk].u3 & NOTRDY) == 0)) {
+// RICHARD WAS HERE
+// SEEK ERROR!
+            if (data >= dsk_unit[cur_dsk].wait) {
+sim_printf("Seek error! cur_dsk=%d, tracks per disk is %d, requested track is %d\n", cur_dsk, dsk_unit[cur_dsk].wait, data);
+            }
+            dsk_unit[cur_dsk].u4 = data & 0xFF;
+            sim_debug (DEBUG_write, &dsk_dev, "fdctrk: Drive %d track set to %d\n", cur_dsk, dsk_unit[cur_dsk].u4);
+        }
+        return(SCPE_OK);
+    } else {
+        /* read from to track register */
+        sim_debug (DEBUG_read, &dsk_dev, "fdctrk: Drive %d track read as %d\n", cur_dsk, dsk_unit[cur_dsk].u4);
+        return(dsk_unit[cur_dsk].u4);
     }
-    sim_debug (DEBUG_flow, &dsk_dev, "\nfdctrk: Drive %d track read as %d",
-        cur_dsk, dsk_unit[cur_dsk].u4);
-    return dsk_unit[cur_dsk].u4;
-}
+} /* fdctrk */
 
 /* WD 1797 FDC sector register routine */
 
 int32 fdcsec(int32 io, int32 data)
 {
-//sim_printf("\nfdcsec: io=%d, data=%d\n", io, data);
+    sim_debug(DEBUG_flow, &dsk_dev, "fdcsec: io=%02X, data=%02X\n", io, data);
 
     if (io) {
-        dsk_unit[cur_dsk].u5 = data & 0xFF;
-        if (dsk_unit[cur_dsk].u5 == 0)  /* fix for swtp boot! */
-            dsk_unit[cur_dsk].u5 = 1;
-        sim_debug (DEBUG_flow, &dsk_dev, "\nfdcsec: Drive %d sector set to %d",
-            cur_dsk, dsk_unit[cur_dsk].u5);
-    }
-    sim_debug (DEBUG_flow, &dsk_dev, "\nfdcsec: Drive %d sector read as %d",
-        cur_dsk, dsk_unit[cur_dsk].u5);
-    return dsk_unit[cur_dsk].u5;
-}
+        /* write to sector register */
+        /* do not load when device is BUSY or NOT READY */
+        if (((dsk_unit[cur_dsk].u3 & BUSY) == 0) && ((dsk_unit[cur_dsk].u3 & NOTRDY) == 0)) {
+            dsk_unit[cur_dsk].u5 = data & 0xFF;
+            sim_debug(DEBUG_write, &dsk_dev, "fdcsec: Drive %d sector set to %d\n", cur_dsk, dsk_unit[cur_dsk].u5);
+        }
+        return(SCPE_OK);
+    } else {
+        /* read sector register */
+        sim_debug (DEBUG_read, &dsk_dev, "fdcsec: Drive %d sector read as %d\n", cur_dsk, dsk_unit[cur_dsk].u5);
+        return(dsk_unit[cur_dsk].u5);
+   }
+} /* fdcsec */
 
 /* WD 1797 FDC data register routine */
 
 int32 fdcdata(int32 io, int32 data)
 {
     int32 val;
+    static int32 err;
 
-    if (io) {                           /* write byte to fdc */
-        fdcbyte = data;                 /* save for seek */
-        if (dsk_unit[cur_dsk].pos < SECT_SIZE) { /* copy bytes to buffer */
-            sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdata: Writing byte %d of %02X",
-                dsk_unit[cur_dsk].pos, data);
-            *((uint8 *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) = data; /* byte into buffer */
-            dsk_unit[cur_dsk].pos++;    /* step counter */
-            if (dsk_unit[cur_dsk].pos == SECT_SIZE) {
-                dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ);
-                if (wrt_flag) {         /* if initiated by FDC write command */
-                    sim_fwrite(dsk_unit[cur_dsk].filebuf, SECT_SIZE, 1, dsk_unit[cur_dsk].fileref); /* write it */
-                    wrt_flag = 0;       /* clear write flag */
+    sim_debug(DEBUG_flow, &dsk_dev, "fdcdata: io=%02X, data=%02X\n", io, data);
+
+    if (io) {
+        /* write byte to fdc */
+        if ((dsk_unit[cur_dsk].u3 & BUSY) == 0) {
+            /* NOT BUSY - write to data register fdc_data_byte */
+            sim_debug(DEBUG_write, &dsk_dev, "fdcdata: Writing %02X to data register\n", data);
+            fdc_data_byte = data;
+        } else {
+            /* BUSY - a command is being processed */
+            if (dsk_unit[cur_dsk].pos < SECTOR_SIZE) { /* copy bytes to buffer */
+
+                /* reset the counter used for write verify */
+                read_w_drq_busy_counter = 0;
+
+                sim_debug (DEBUG_flow, &dsk_dev, "fdcdata: Writing byte pos=%d val=%02X\n", dsk_unit[cur_dsk].pos, data);
+                *((uint8 *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) = data; /* byte into buffer */
+                dsk_unit[cur_dsk].pos++;    /* increment buffer pointer */
+
+                /* if this is last byte in sector then update statuses */
+                if (dsk_unit[cur_dsk].pos >= SECTOR_SIZE) { /* done? */
+                    err = sim_fwrite(dsk_unit[cur_dsk].filebuf, SECTOR_SIZE, 1, dsk_unit[cur_dsk].fileref); /* write it */
+                    if (err != 1) {
+                        /* display error information */
+                        sim_printf("fdcdata: sim_fwrite error = %d\n", err);
+                        sim_printf("fdcdata: errno = %d\n", errno);
+                        sim_debug(DEBUG_write, &dsk_dev, "fdcdata: sim_fwrite error = %d\n", err);
+                        return SCPE_IOERR;
+                    }
+                    dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ); /* reset flags */
+                    dsk_unit[cur_dsk].pos = 0;             /* reset counter */
+                    sim_debug(DEBUG_write, &dsk_dev, "fdcdata: Sector write complete\n");
                 }
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdata: Sector write complete");
             }
         }
-        return 0;
-    } else {                            /* read byte from fdc */
+        return(SCPE_OK);
+    } else {
+        /* read byte from fdc */
 
-        if (dsk_unit[cur_dsk].pos < SECT_SIZE) { /* copy bytes from buffer */
-            sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdata: Reading byte %d u3=%02X",
-                dsk_unit[cur_dsk].pos, dsk_unit[cur_dsk].u3);
-            val = *((uint8 *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) & 0xFF;
-            dsk_unit[cur_dsk].pos++;        /* step counter */
-            if (dsk_unit[cur_dsk].pos == SECT_SIZE) { /* done? */
-                dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ); /* clear flags */
-                sim_debug (DEBUG_flow, &dsk_dev, "\nfdcdata: Sector read complete");
+        if ((dsk_unit[cur_dsk].u3 & BUSY) == 0) {
+            /* NOT BUSY - read from data register fdc_data_byte */
+            val = fdc_data_byte;
+            sim_debug(DEBUG_read, &dsk_dev, "fdcdata: Reading data register value of %02X\n", val);
+        } else {
+            /* BUSY - a read command is being processed */
+            if (dsk_unit[cur_dsk].pos < SECTOR_SIZE) { /* copy bytes from buffer */
+
+                /* reset the counter used for write verify */
+                read_w_drq_busy_counter = 0;
+
+                /* read a byte into the sector buffer */
+                val = *((uint8 *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) & 0xFF;
+                sim_debug(DEBUG_read, &dsk_dev, "fdcdata: Reading byte pos=%d val=%02X\n", dsk_unit[cur_dsk].pos, val);
+                dsk_unit[cur_dsk].pos++;        /* step counter */
+
+                /* if this is last byte in sector then update statuses */
+                if (dsk_unit[cur_dsk].pos >= SECTOR_SIZE) {  /* done? */
+                    dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ);   /* clear flags */
+                    dsk_unit[cur_dsk].pos = 0;               /* reset step counter */
+                    sim_debug(DEBUG_read, &dsk_dev, "fdcdata: Sector read complete\n");
+                }
             }
-            return val;
-        } else
-        return 0;
+        }
+        return(val);
     }
-}
+} /* fdcdata() */
 
 /* end of dc-4.c */

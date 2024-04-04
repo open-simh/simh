@@ -2759,7 +2759,7 @@ swtp6809mp-09 : ${BIN}swtp6809mp-09${EXE}
 ${BIN}swtp6809mp-09${EXE} : ${SWTP6809MP-09} ${SIM} ${BUILD_ROMS}
 	${MKDIRBIN}
 	${CC} ${SWTP6809MP-09} ${SIM} ${SWTP6809_OPT} ${CC_OUTSPEC} ${LDFLAGS}
-ifneq (,$(call find_test,${SWTP6800D},swtp6800mp-a2))
+ifneq (,$(call find_test,${SWTP6809D},swtp6809mp-09))
 	$@ $(call find_test,${SWTP6809D},swtp6800mp-09) ${TEST_ARG}
 endif
 

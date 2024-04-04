@@ -52,12 +52,15 @@
 #define DEBUG_level2    0x0010
 #define DEBUG_reg       0x0020
 #define DEBUG_asm       0x0040
-#define DEBUG_all       0xFFFF
+#define DEBUG_all       0x007F
 
 /* Simulator stop codes */
 
-#define STOP_RSRV   1       // must be 1
-#define STOP_HALT   2       // HALT-really WAI
-#define STOP_IBKPT  3       // breakpoint
-#define STOP_OPCODE 4       // invalid opcode
-#define STOP_MEMORY 5       // invalid memory address
+#define STOP_UNKNOWN   0       // unknown error
+#define STOP_RSRV      1       // must be 1
+#define STOP_HALT      2       // HALT-really WAI
+#define STOP_IBKPT     3       // breakpoint
+#define STOP_OPCODE    4       // invalid opcode
+#define STOP_MEMORY    5       // invalid memory address
+#define STOP_UNKNOWN2  6       // unknown error
+

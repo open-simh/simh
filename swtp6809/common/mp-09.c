@@ -52,7 +52,7 @@
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        24 Feb 24 -- Richard Lukes - modified SWTPC mp-a2 emulator to create mp-09 emulator.
+        04 Apr 24 -- Richard Lukes - modified SWTPC mp-a2 emulator to create mp-09 emulator.
 
     NOTES:
 
@@ -133,7 +133,7 @@ DEVICE CPU_BD_dev = {
     CPU_BD_mod,                         //modifiers
     1,                                  //numunits
     16,                                 //aradix 
-    16,                                 //awidth 
+    8,                                  //awidth 
     1,                                  //aincr 
     16,                                 //dradix 
     8,                                  //dwidth
@@ -168,7 +168,7 @@ t_stat CPU_BD_reset (DEVICE *dptr)
 /* Deposit routine */
 t_stat CPU_BD_deposit(t_value val, t_addr addr, UNIT *uptr, int32 switches)
 {
-    if (addr >= 0x10000) {
+    if (addr > ADDRMASK) {
         return SCPE_NXM;
     } else {
         CPU_BD_put_mbyte(addr, val);
@@ -179,7 +179,7 @@ t_stat CPU_BD_deposit(t_value val, t_addr addr, UNIT *uptr, int32 switches)
 /* Examine routine */
 t_stat CPU_BD_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches)
 {
-    if (addr >= 0x10000) {
+    if (addr > ADDRMASK) {
         return SCPE_NXM;
     }
     if (eval_array != NULL) {

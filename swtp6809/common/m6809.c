@@ -1,4 +1,4 @@
-/* 6809.c: SWTP 6809 CPU simulator
+/* 6809.c: SWTP 6809 CPU simulator^
 
    Copyright (c) 2005-2012, William Beech
 
@@ -53,7 +53,7 @@
 
         23 Apr 15 -- Modified to use simh_debug
         21 Apr 20 -- Richard Brinegar numerous fixes for flag errors
-	24 Feb 24 -- Richard Lukes - modified for 6809
+	04 Apr 24 -- Richard Lukes - modified for 6809
 
     NOTES:
        cpu                  Motorola M6809 CPU
@@ -143,6 +143,8 @@
 #define TFR_EXG_Post_Nybble_CC	10
 #define TFR_EXG_Post_Nybble_DP	11
 
+/* Exclusive OR macro for logical expressions */
+#define EXOR(a,b) (((a)!=0) != ((b)!=0))
 
 /* Macros to handle the flags in the CCR */
 #define CCR_MSK (EF|FF|HF|IF|NF|ZF|VF|CF)
@@ -164,16 +166,10 @@
 #define COND_SET_FLAG_Z_16(VAR) \
     if ((VAR) == 0) SET_FLAG(ZF); else CLR_FLAG(ZF)
 
-#define COND_SET_FLAG_H(VAR) \
-    if ((VAR) & 0x10) SET_FLAG(HF); else CLR_FLAG(HF)
-
 #define COND_SET_FLAG_C(VAR) \
     if ((VAR) & 0x100) SET_FLAG(CF); else CLR_FLAG(CF)
 #define COND_SET_FLAG_C_16(VAR) \
     if ((VAR) & 0x10000) SET_FLAG(CF); else CLR_FLAG(CF)
-
-#define COND_SET_FLAG_V(COND) \
-    if (COND) SET_FLAG(VF); else CLR_FLAG(VF)
 
 /* local global variables */
 
@@ -191,9 +187,11 @@ int32 previous_PC = 0;                  /* Previous previous Program counter */
 int32 last_PC = 0;                      /* Last Program counter */
 int32 PC;                               /* Program counter */
 int32 INTE = 0;                         /* Interrupt Enable */
-int32 int_req = 0;                      /* Interrupt request */
 
+int32 int_req = 0;                      /* Interrupt request */
 int32 mem_fault = 0;                    /* memory fault flag */
+
+#define m6809_NAME    "Motorola M6809 Processor Chip"
 
 /* function prototypes */
 
@@ -201,6 +199,8 @@ t_stat m6809_reset(DEVICE *dptr);
 t_stat m6809_boot(int32 unit_num, DEVICE *dptr);
 t_stat m6809_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches);
 t_stat m6809_deposit(t_value value, t_addr addr, UNIT *uptr, int32 switches);
+static const char* m6809_desc(DEVICE *dptr) { return m6809_NAME; }
+
 
 void dump_regs(void);
 void dump_regs1(void);
@@ -250,7 +250,7 @@ extern int32 CPU_BD_get_mword(int32 addr);
    m6809_reg        CPU register list
    m6809_mod        CPU modifiers list */
 
-UNIT m6809_unit = { UDATA (NULL, UNIT_FIX + UNIT_BINK, 65536) };
+UNIT m6809_unit = { UDATA (NULL, 0, 0) };
 
 REG m6809_reg[] = {
     { HRDATA (PC, saved_PC, 16) },
@@ -305,46 +305,50 @@ DEVICE m6809_dev = {
     0,                                  //dctrl
     m6809_debug,                        //debflags
     NULL,                               //msize
-    NULL                                //lname
+    NULL,                               //lname
+    NULL,                               //help routine
+    NULL,                               //attach help routine
+    NULL,                               //help context
+    &m6809_desc                         //device description
 };
 
 static const char *opcode[] = {
-"NEG", "???", "???", "COM",             //0x00
-"LSR", "???", "ROR", "ASR",
+"NEG", "?01?", "?02?", "COM",           //0x00
+"LSR", "?05?", "ROR", "ASR",
 "ASL", "ROL", "DEC", "???",
 "INC", "TST", "JMP", "CLR",
-"PG2", "PG3", "NOP", "SYNC",             //0x10
-"???", "???", "LBRA", "LBSR",
-"???", "DAA", "ORCC", "???",
+"PG2", "PG3", "NOP", "SYNC",            //0x10
+"?14?", "?15?", "LBRA", "LBSR",
+"?18?", "DAA", "ORCC", "?1B?",
 "ANDCC", "SEX", "EXG", "TFR",
 "BRA", "BRN", "BHI", "BLS",             //0x20
-"BCC", "BLO", "BNE", "BEQ",
+"BCC", "BCS", "BNE", "BEQ",
 "BVC", "BVS", "BPL", "BMI",
 "BGE", "BLT", "BGT", "BLE",
 "LEAX", "LEAY", "LEAS", "LEAU",         //0x30
 "PSHS", "PULS", "PSHU", "PULU",
-"???", "RTS", "ABX", "RTI",
-"CWAI", "MUL", "???", "SWI",
-"NEGA", "???", "???", "COMA",           //0x40
-"LSRA", "???", "RORA", "ASRA",
-"LSLA", "ROLA", "DECA", "???",
-"INCA", "TSTA", "???", "CLRA",
-"NEGB", "???", "???", "COMB",           //0x50
-"LSRB", "???", "RORB", "ASRB",
-"LSLB", "ROLB", "DECB", "???",
-"INCB", "TSTB", "???", "CLRB",
-"NEG", "???", "???", "COM",             //0x60
-"LSR", "???", "ROR", "ASR",
-"ASL", "ROL", "DEC", "???",
+"?38?", "RTS", "ABX", "RTI",
+"CWAI", "MUL", "?3E?", "SWI",
+"NEGA", "?41?", "?42?", "COMA",         //0x40
+"LSRA", "?45?", "RORA", "ASRA",
+"ASLA", "ROLA", "DECA", "?4B?",
+"INCA", "TSTA", "?4E?", "CLRA",
+"NEGB", "?51?", "?52?", "COMB",         //0x50
+"LSRB", "?55?", "RORB", "ASRB",
+"ASLB", "ROLB", "DECB", "?5B?",
+"INCB", "TSTB", "?5E?", "CLRB",
+"NEG", "?61?", "?62?", "COM",           //0x60
+"LSR", "?65?", "ROR", "ASR",
+"ASL", "ROL", "DEC", "?6B?",
 "INC", "TST", "JMP", "CLR",
-"NEG", "???", "???", "COM",             //0x70
-"LSR", "???", "ROR", "ASR",
-"ASL", "ROL", "DEC", "???",
+"NEG", "?71?", "?72?", "COM",           //0x70
+"LSR", "?75?", "ROR", "ASR",
+"ASL", "ROL", "DEC", "?7B?",
 "INC", "TST", "JMP", "CLR",
 "SUBA", "CMPA", "SBCA", "SUBD",         //0x80
-"ANDA", "BITA", "LDA", "???",
+"ANDA", "BITA", "LDA", "?87?",
 "EORA", "ADCA", "ORAA", "ADDA",
-"CMPX", "BSR", "LDX", "???",
+"CMPX", "BSR", "LDX", "?8F?",
 "SUBA", "CMPA", "SBCA", "SUBD",         //0x90
 "ANDA", "BITA", "LDA", "STA",
 "EORA", "ADCA", "ORA", "ADDA",
@@ -358,9 +362,9 @@ static const char *opcode[] = {
 "EORA", "ADCA", "ORA", "ADDA",
 "CMPX", "JSR", "LDX", "STX",
 "SUBB", "CMPB", "SBCB", "ADDD",         //0xC0
-"ANDB", "BITB", "LDB", "???",
+"ANDB", "BITB", "LDB", "?C7?",
 "EORB", "ADCB", "ORB", "ADDB",
-"LDD", "???", "LDU", "???",
+"LDD", "?CD?", "LDU", "?CF?",
 "SUBB", "CMPB", "SBCB", "ADDD",         //0xD0
 "ANDB", "BITB", "LDB", "STB",
 "EORB", "ADCB", "ORB", "ADDB",
@@ -375,109 +379,23 @@ static const char *opcode[] = {
 "LDD", "STD", "LDU", "STU"
 };
 
-static const char *opcode6800[] = {
-"???", "NOP", "???", "???",             //0x00
-"???", "???", "TAP", "TPA",
-"INX", "DEX", "CLV", "SEV",
-"CLC", "SEC", "CLI", "SEI",
-"SBA", "CBA", "???", "???",             //0x10
-"???", "???", "TAB", "TBA",
-"???", "DAA", "???", "ABA",
-"???", "???", "???", "???",
-"BRA", "???", "BHI", "BLS",             //0x20
-"BCC", "BCS", "BNE", "BEQ",
-"BVC", "BVS", "BPL", "BMI",
-"BGE", "BLT", "BGT", "BLE",
-"TSX", "INS", "PULA", "PULB",           //0x30
-"DES", "TXS", "PSHA", "PSHB",
-"???", "RTS", "???", "RTI",
-"???", "???", "WAI", "SWI",
-"NEGA", "???", "???", "COMA",           //0x40
-"LSRA", "???", "RORA", "ASRA",
-"ASLA", "ROLA", "DECA", "???",
-"INCA", "TSTA", "???", "CLRA",
-"NEGB", "???", "???", "COMB",           //0x50
-"LSRB", "???", "RORB", "ASRB",
-"ASLB", "ROLB", "DECB", "???",
-"INCB", "TSTB", "???", "CLRB",
-"NEG", "???", "???", "COM",             //0x60
-"LSR", "???", "ROR", "ASR",
-"ASL", "ROL", "DEC", "???",
-"INC", "TST", "JMP", "CLR",
-"NEG", "???", "???", "COM",             //0x70
-"LSR", "???", "ROR", "ASR",
-"ASL", "ROL", "DEC", "???",
-"INC", "TST", "JMP", "CLR",
-"SUBA", "CMPA", "SBCA", "???",          //0x80
-"ANDA", "BITA", "LDAA", "???",
-"EORA", "ADCA", "ORAA", "ADDA",
-"CMPX", "BSR", "LDS", "???",
-"SUBA", "CMPA", "SBCA", "???",          //0x90
-"ANDA", "BITA", "LDAA", "STAA",
-"EORA", "ADCA", "ORAA", "ADDA",
-"CMPX", "???", "LDS", "STS",
-"SUBA", "CMPA", "SBCA", "???",          //0xA0
-"ANDA", "BITA", "LDAA", "STAA",
-"EORA", "ADCA", "ORAA", "ADDA",
-"CMPX X", "JSR X", "LDS X", "STS X",
-"SUBA", "CMPA", "SBCA", "???",          //0xB0
-"ANDA", "BITA", "LDAA", "STAA",
-"EORA", "ADCA", "ORAA", "ADDA",
-"CPX", "JSR", "LDS", "STS",
-"SUBB", "CMPB", "SBCB", "???",          //0xC0
-"ANDB", "BITB", "LDAB", "???",
-"EORB", "ADCB", "ORAB", "ADDB",
-"???", "???", "LDX", "???",
-"SUBB", "CMPB", "SBCB", "???",          //0xD0
-"ANDB", "BITB", "LDAB", "STAB",
-"EORB", "ADCB", "ORAB", "ADDB",
-"???", "???", "LDX", "STX",
-"SUBB", "CMPB", "SBCB", "???",          //0xE0
-"ANDB", "BITB", "LDAB", "STAB",
-"EORB", "ADCB", "ORAB", "ADDB",
-"???", "???", "LDX", "STX",
-"SUBB", "CMPB", "SBCB", "???",          //0xF0
-"ANDB", "BITB", "LDAB", "STAB",
-"EORB", "ADCB", "ORAB", "ADDB",
-"???", "???", "LDX", "STX"
-};
-
 int32 oplen[256] = {
-0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,        //0x00
-1,1,0,0,0,0,1,1,0,1,0,1,0,0,0,0,
-2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-1,1,1,1,1,1,1,1,0,1,0,1,0,0,1,1,
+2,0,0,2,2,0,2,2,2,2,2,0,2,2,2,2,        //0x00
+2,2,1,1,0,0,3,3,0,1,2,0,2,1,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,0,1,1,1,2,1,0,1,
 1,0,0,1,1,0,1,1,1,1,1,0,1,1,0,1,        //0x40
 1,0,0,1,1,0,1,1,1,1,1,0,1,1,0,1,
 2,0,0,2,2,0,2,2,2,2,2,0,2,2,2,2,
 3,0,0,3,3,0,3,3,3,3,3,0,3,3,3,3,
-2,2,2,0,2,2,2,0,2,2,2,2,3,2,3,0,        //0x80
-2,2,2,0,2,2,2,2,2,2,2,2,2,0,2,2,
-2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,
-3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,
-2,2,2,0,2,2,2,0,2,2,2,2,0,0,3,0,        //0xC0
-2,2,2,0,2,2,2,2,2,2,2,2,0,0,2,2,
-2,2,2,0,2,2,2,2,2,2,2,2,0,0,2,2,
-3,3,3,0,3,3,3,3,3,3,3,3,0,0,3,3
-};
-
-int32 oplen6800[256] = {
-0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,        //0x00
-1,1,0,0,0,0,1,1,0,1,0,1,0,0,0,0,
-2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-1,1,1,1,1,1,1,1,0,1,0,1,0,0,1,1,
-1,0,0,1,1,0,1,1,1,1,1,0,1,1,0,1,        //0x40
-1,0,0,1,1,0,1,1,1,1,1,0,1,1,0,1,
-2,0,0,2,2,0,2,2,2,2,2,0,2,2,2,2,
-3,0,0,3,3,0,3,3,3,3,3,0,3,3,3,3,
-2,2,2,0,2,2,2,0,2,2,2,2,3,2,3,0,        //0x80
-2,2,2,0,2,2,2,2,2,2,2,2,2,0,2,2,
-2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,
-3,3,3,0,3,3,3,3,3,3,3,3,3,3,3,3,
-2,2,2,0,2,2,2,0,2,2,2,2,0,0,3,0,        //0xC0
-2,2,2,0,2,2,2,2,2,2,2,2,0,0,2,2,
-2,2,2,0,2,2,2,2,2,2,2,2,0,0,2,2,
-3,3,3,0,3,3,3,3,3,3,3,3,0,0,3,3
+2,2,2,3,2,2,2,0,2,2,2,2,3,2,3,0,        //0x80
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+2,2,2,3,2,2,2,0,2,2,2,2,3,0,3,0,        //0xC0
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3
 };
 
 t_stat sim_instr (void)
@@ -507,19 +425,19 @@ t_stat sim_instr (void)
     /* Main instruction fetch/decode loop */
 
     while (reason == 0) {               /* loop until halted */
-//    dump_regs1();
         if (sim_interval <= 0)          /* check clock queue */
-            if ((reason = sim_process_event ()))
+            if ((reason = sim_process_event ())) {
                 break;
-        if (mem_fault) {            /* memory fault? */
-            mem_fault = 0;          /* reset fault flag */
+            }
+        if (mem_fault != 0) {           /* memory fault? */
+            mem_fault = 0;              /* reset fault flag */
             reason = STOP_MEMORY;
             break;
         }
         if (int_req > 0) {              /* interrupt? */
         /* 6809 interrupts not implemented yet.  None were used,
            on a standard SWTP 6809. All I/O is programmed. */
-            reason = STOP_HALT;        /* stop simulation */
+            reason = STOP_HALT;         /* stop simulation */
             break;
 
         }                               /* end interrupt */
@@ -550,27 +468,29 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 break;
+
             case 0x03:                  /* COM dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-		result = ~op1;
-		result &= 0xFF;
+		result = (~op1) & 0xFF;
                 CPU_BD_put_mbyte(addr, result);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 CLR_FLAG(VF);
                 SET_FLAG(CF);
                 break;
+
             case 0x04:                  /* LSR dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
- 		COND_SET_FLAG(op1 & 0x01, CF);
                 result = op1 >> 1;
                 CPU_BD_put_mbyte(addr, result);
 		CLR_FLAG(NF);
 		COND_SET_FLAG_Z(result);
                 /* H,V not affected */
+ 		COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x06:                  /* ROR dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -579,11 +499,12 @@ t_stat sim_instr (void)
                     result |= 0x80;
                 }
                 CPU_BD_put_mbyte(addr, result);
-		/* H,V unaffected */
 		COND_SET_FLAG_N(result);
 		COND_SET_FLAG_Z(result);
+		/* H,V unaffected */
  		COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x07:                  /* ASR dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -592,20 +513,22 @@ t_stat sim_instr (void)
                 /* H undefined */
 		COND_SET_FLAG_N(result);
 		COND_SET_FLAG_Z(result);
-                /* V not affected */
+                /* V unaffected */
  		COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x08:                  /* ASL dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
- 		COND_SET_FLAG(op1 & 0x80, CF);
 		result = (op1 << 1) & BYTEMASK;
                 CPU_BD_put_mbyte(addr, result);
                 /* H is undefined */
 		COND_SET_FLAG_N(result);
 		COND_SET_FLAG_Z(result);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+ 		COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x09:                  /* ROL dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -616,38 +539,44 @@ t_stat sim_instr (void)
                 CPU_BD_put_mbyte(addr, result);
 		COND_SET_FLAG_N(result);
 		COND_SET_FLAG_Z(result);
- 		COND_SET_FLAG((op1 & 0x80) ^ (op1 & 0x40), VF);
  		COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x0A:                  /* DEC dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-		result = (op1-1) & BYTEMASK;
+		result = (op1 - 1) & BYTEMASK;
                 CPU_BD_put_mbyte(addr, result);
-                /* H not affected */
 		COND_SET_FLAG_N(result);
 		COND_SET_FLAG_Z(result);
  		COND_SET_FLAG(op1 == 0x80, VF);
-                /* C not affected */
+                /* C unaffected */
                 break;
+
             case 0x0C:                  /* INC dir */
                 addr = get_dir_addr();
                 op1 = CPU_BD_get_mbyte(addr);
+		result = (op1 + 1) & BYTEMASK;
+                CPU_BD_put_mbyte(addr, result);
+		COND_SET_FLAG_N(result);
+		COND_SET_FLAG_Z(result);
  		COND_SET_FLAG(op1 == 0x7F, VF);
-		op1 = (op1 + 1) & BYTEMASK;
-                CPU_BD_put_mbyte(addr, op1);
-		COND_SET_FLAG_N(op1);
-		COND_SET_FLAG_Z(op1);
+                /* C unaffected */
                 break;
+
             case 0x0D:                  /* TST dir */
 		result = get_dir_byte_val();
 		COND_SET_FLAG_N(result);
 		COND_SET_FLAG_Z(result);
  		CLR_FLAG(VF);
+                /* C unaffected */
                 break;
+
             case 0x0E:                  /* JMP dir */
                 PC = get_dir_addr();
                 break;
+
             case 0x0F:                  /* CLR dir */
                 CPU_BD_put_mbyte(get_dir_addr(), 0);
                 /* H not affected */
@@ -660,17 +589,17 @@ t_stat sim_instr (void)
 /* 0x10 */
             case 0x10:                  /* 2-byte opcodes */
                 /* fetch second byte of opcode */
-                OP2 = fetch_byte(0);
+                OP2 = fetch_byte(1);
         	switch (OP2) {
             	    case 0x21:              /* LBRN rel */
 		        /* Branch Never - essentially a NOP */
 		        go_long_rel(0);
                         break;
                     case 0x22:              /* LBHI rel */
-                        go_long_rel(!(get_flag(CF) | get_flag(ZF)));
+                        go_long_rel(!(get_flag(CF) || get_flag(ZF)));
                         break;
                     case 0x23:              /* LBLS rel */
-                        go_long_rel(get_flag(CF) | get_flag(ZF));
+                        go_long_rel(get_flag(CF) || get_flag(ZF));
                         break;
                     case 0x24:              /* LBCC rel */
                         go_long_rel(!get_flag(CF));
@@ -697,17 +626,18 @@ t_stat sim_instr (void)
                         go_long_rel(get_flag(NF));
                         break;
                     case 0x2C:              /* LBGE rel */
-                        go_long_rel( !( get_flag(NF) ^ get_flag(VF) ) );
+                        go_long_rel(get_flag(NF) == get_flag(VF));
                         break;
                     case 0x2D:              /* LBLT rel */
-                        go_long_rel( get_flag(NF) ^ get_flag(VF) );
+                        go_long_rel(get_flag(NF) != get_flag(VF));
                         break;
                     case 0x2E:              /* LBGT rel */
-                        go_long_rel(!( get_flag(ZF) | (get_flag(NF) ^ get_flag(VF))));
+                        go_long_rel((get_flag(ZF) == 0) && (get_flag(NF) == get_flag(VF)));
                         break;
                     case 0x2F:              /* LBLE rel */
-                        go_long_rel(get_flag(ZF) | (get_flag(NF) ^ get_flag(VF)));
+                        go_long_rel(get_flag(ZF) || (get_flag(NF) != get_flag(VF)));
 			break;
+
 		    case 0x3F:              /* SWI2 */
                         SET_FLAG(EF);
                         push_sp_word(PC);
@@ -718,9 +648,11 @@ t_stat sim_instr (void)
                         push_sp_byte(B);
                         push_sp_byte(A);
                         push_sp_byte(CCR);
-                        PC = CPU_BD_get_mword(0xFFF4) & ADDRMASK;
+                        PC = CPU_BD_get_mword(0xFFF4);
                         break;
+
             	    case 0x83:                  /* CMPD imm */
+                        /* do not modify D|A|B */
 			D = (A << 8) | (B & BYTEMASK);
                 	op2 = get_imm_word_val();
                 	result = D - op2;
@@ -729,7 +661,9 @@ t_stat sim_instr (void)
                 	condevalVs16(D, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x8C:                  /* CMPY imm */
+                        /* do not modify Y */
                 	op2 = get_imm_word_val();
                 	result = IY - op2;
                 	COND_SET_FLAG_N_16(result);
@@ -737,13 +671,16 @@ t_stat sim_instr (void)
                 	condevalVs16(IY, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x8E:                  /* LDY imm */
                 	IY = get_imm_word_val();
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0x93:                  /* CMPD dir */
+                        /* do not modify D|A|B */
 			D = (A << 8) | (B & BYTEMASK);
                 	op2 = get_dir_word_val();
                 	result = D - op2;
@@ -752,7 +689,9 @@ t_stat sim_instr (void)
                 	condevalVs16(D, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x9C:                  /* CMPY dir */
+                        /* do not modify Y */
                 	op2 = get_dir_word_val();
                 	result = IY - op2;
 			COND_SET_FLAG_N_16(result);
@@ -760,19 +699,23 @@ t_stat sim_instr (void)
                 	condevalVs16(IY, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x9E:                  /* LDY dir */
                 	IY = get_dir_word_val();
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0x9F:                  /* STY dir */
                 	CPU_BD_put_mword(get_dir_addr(), IY);
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xA3:                  /* CMPD ind */
+                        /* do not modify D|A|B */
 			D = (A << 8) | (B & BYTEMASK);
                 	op2 = get_indexed_word_val();
                 	result = D - op2;
@@ -781,7 +724,9 @@ t_stat sim_instr (void)
                 	condevalVs16(D, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xAC:                  /* CMPY ind */
+                        /* do not modify Y */
                 	op2 = get_indexed_word_val();
                 	result = IY - op2;
 			COND_SET_FLAG_N_16(result);
@@ -789,19 +734,23 @@ t_stat sim_instr (void)
                 	condevalVs16(IY, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xAE:                  /* LDY ind */
                 	IY = get_indexed_word_val();
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xAF:                  /* STY ind */
                 	CPU_BD_put_mword(get_indexed_addr(), IY);
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xB3:                  /* CMPD ext */
+                        /* Do not modify D|A|B */
 			D = (A << 8) | (B & BYTEMASK);
                 	op2 = get_ext_word_val();
                 	result = D - op2;
@@ -810,7 +759,9 @@ t_stat sim_instr (void)
                 	condevalVs16(D, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xBC:                  /* CMPY ext */
+                        /* Do not modify D|A|B */
                 	op2 = get_ext_word_val();
                 	result = IY - op2;
 			COND_SET_FLAG_N_16(result);
@@ -818,54 +769,63 @@ t_stat sim_instr (void)
                 	condevalVs16(IY, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xBE:                  /* LDY ext */
                 	IY = get_ext_word_val();
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xBF:                  /* STY ext */
                 	CPU_BD_put_mword(get_ext_addr(), IY);
                 	COND_SET_FLAG_N_16(IY);
                 	COND_SET_FLAG_Z_16(IY);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xCE:                  /* LDS imm */
                 	SP = get_imm_word_val();
                 	COND_SET_FLAG_N_16(SP);
                 	COND_SET_FLAG_Z_16(SP);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xDE:                  /* LDS dir */
                 	SP = get_dir_word_val();
                 	COND_SET_FLAG_N_16(SP);
                 	COND_SET_FLAG_Z_16(SP);
                 	CLR_FLAG(VF);
                 	break;
+
                     case 0xDF:                  /* STS dir */
                 	CPU_BD_put_mword(get_dir_addr(), SP);
                 	COND_SET_FLAG_N_16(SP);
                 	COND_SET_FLAG_Z_16(SP);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xEE:                  /* LDS ind */
                 	SP = get_indexed_word_val();
                 	COND_SET_FLAG_N_16(SP);
                 	COND_SET_FLAG_Z_16(SP);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xEF:                  /* STS ind */
                 	CPU_BD_put_mword(get_indexed_addr(), SP);
                 	COND_SET_FLAG_N_16(SP);
                 	COND_SET_FLAG_Z_16(SP);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xFE:                  /* LDS ext */
                 	SP = get_ext_word_val();
                 	COND_SET_FLAG_N_16(SP);
                 	COND_SET_FLAG_Z_16(SP);
                 	CLR_FLAG(VF);
                 	break;
+
             	    case 0xFF:                  /* STS ext */
                 	CPU_BD_put_mword(get_ext_addr(), SP);
                 	COND_SET_FLAG_N_16(SP);
@@ -878,8 +838,9 @@ t_stat sim_instr (void)
 /* Ox11 */
             case 0x11:                  /* 2-byte opcodes */
                 /* fetch second byte of opcode */
-                OP2 = fetch_byte(0);
+                OP2 = fetch_byte(1);
         	switch (OP2) {
+
 		    case 0x3F:		/* SWI3 */
                         SET_FLAG(EF);
                         push_sp_word(PC);
@@ -890,9 +851,11 @@ t_stat sim_instr (void)
                         push_sp_byte(B);
                         push_sp_byte(A);
                         push_sp_byte(CCR);
-                        PC = CPU_BD_get_mword(0xFFF2) & ADDRMASK;
+                        PC = CPU_BD_get_mword(0xFFF2);
                         break;
+
             	    case 0x83:                  /* CMPU imm */
+                        /* Do not modify UP */
                 	op2 = get_imm_word_val();
                 	result = UP - op2;
                 	COND_SET_FLAG_N_16(result);
@@ -900,7 +863,9 @@ t_stat sim_instr (void)
                 	condevalVs16(UP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x8C:                  /* CMPS imm */
+                        /* Do not modify SP */
                 	op2 = get_imm_word_val();
                 	result = SP - op2;
                 	COND_SET_FLAG_N_16(result);
@@ -908,7 +873,9 @@ t_stat sim_instr (void)
                 	condevalVs16(SP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x93:                  /* CMPU dir */
+                        /* Do not modify UP */
                 	op2 = get_dir_word_val();
                 	result = UP - op2;
 			COND_SET_FLAG_N_16(result);
@@ -916,7 +883,9 @@ t_stat sim_instr (void)
                 	condevalVs16(UP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0x9C:                  /* CMPS dir */
+                        /* Do not modify SP */
                 	op2 = get_dir_word_val();
                 	result = SP - op2;
 			COND_SET_FLAG_N_16(result);
@@ -924,7 +893,9 @@ t_stat sim_instr (void)
                 	condevalVs16(SP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xA3:                  /* CMPU ind */
+                        /* Do not modify UP */
                 	op2 = get_indexed_word_val();
                 	result = UP - op2;
 			COND_SET_FLAG_N_16(result);
@@ -932,7 +903,9 @@ t_stat sim_instr (void)
                 	condevalVs16(UP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xAC:                  /* CMPS ind */
+                        /* Do not modify SP */
                 	op2 = get_indexed_word_val();
                 	result = SP - op2;
 			COND_SET_FLAG_N_16(result);
@@ -940,7 +913,9 @@ t_stat sim_instr (void)
                 	condevalVs16(SP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xB3:                  /* CMPU ext */
+                        /* Do not modify UP */
                 	op2 = get_ext_word_val();
                 	result = UP - op2;
 			COND_SET_FLAG_N_16(result);
@@ -948,7 +923,9 @@ t_stat sim_instr (void)
                 	condevalVs16(UP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
             	    case 0xBC:                  /* CMPS ext */
+                        /* Do not modify SP */
                 	op2 = get_ext_word_val();
                 	result = SP - op2;
 			COND_SET_FLAG_N_16(result);
@@ -956,36 +933,45 @@ t_stat sim_instr (void)
                 	condevalVs16(SP, op2);
                 	COND_SET_FLAG_C_16(result);
                 	break;
+
+                    default:
+                        reason = STOP_OPCODE;     /* stop simulation */
+                        break;
 		}
 		break;
+
             case 0x12:                  /* NOP */
                 break;
+
             case 0x13:                  /* SYNC inherent*/
                 /* Interrupts are not implemented */
                 reason = STOP_HALT;     /* stop simulation */
                 break;
+
             case 0x16:                  /* LBRA relative */
 		go_long_rel(1);
                 break;
+
             case 0x17:                  /* LBSR relative */
                 addr = get_long_rel_addr();
                 push_sp_word(PC);
                 PC = (PC + addr) & ADDRMASK;
                 break;
+
             case 0x19:                  /* DAA inherent */
                 lo = A & 0x0F;
-                if ((lo > 9) || get_flag(HF)) {
-                    lo += 6;
-                    A = (A & 0xF0) + lo;
-                    COND_SET_FLAG(lo & 0x10, HF);
-                }
                 hi = (A >> 4) & 0x0F;
-                if ((hi > 9) || get_flag(CF)) {
-                    hi += 6;
-                    A = (A & 0x0F) | (hi << 4) | 0x100;
+                if ((lo > 9) || get_flag(HF)) {
+                    /* add correction factor of 0x06 for lower nybble */
+                    A += 0x06;
+                }
+                if ((hi > 9) || get_flag(CF) || ((hi > 8) && (lo > 9))) {
+                    /* add correction factor of 0x60 for upper nybble */
+                    A += 0x60;
+                    A |= 0x100; /* set the C flag */
                 }
                 COND_SET_FLAG_C(A);
-                A &= 0xFF;
+                A = A & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 break;
@@ -993,9 +979,11 @@ t_stat sim_instr (void)
             case 0x1A:                  /* ORCC imm */
 		CCR = CCR | get_imm_byte_val();
                 break;
+
             case 0x1C:                  /* ANDCC imm */
 		CCR = CCR & get_imm_byte_val();
                 break;
+
             case 0x1D:                  /* SEX inherent */
 		if (B & 0x80) {
 		    A = 0xFF;
@@ -1005,6 +993,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 break;
+
             case 0x1E:                  /* EXG imm */
 		Post_Byte = get_imm_byte_val();
 		Src_Nybble = (Post_Byte >> 4) & 0x0F;
@@ -1013,7 +1002,6 @@ t_stat sim_instr (void)
                     // EXG with unaligned register sizes
                     reason = STOP_OPCODE;
 		}
-
                 /* read register values */
 		if (Src_Nybble <= 5 && Dest_Nybble <= 5) {
 		    /* 16-bit register */
@@ -1114,10 +1102,9 @@ t_stat sim_instr (void)
 		Src_Nybble = Post_Byte >> 4;
 		if ((Src_Nybble <= 5 && Dest_Nybble > 5) || (Src_Nybble > 5 && Dest_Nybble <= 5)) {
                     // TFR with unaligned register sizes
+                    // NOTE: Hitachi 6809 documentation does describe some scenarios for mis-matched register sizes!
                     reason = STOP_OPCODE;
 		}
-
-
 		if ((Src_Nybble <= 5) && (Dest_Nybble <= 5)) {
 		    /* 16-bit registers */
 		    /* read source register */
@@ -1171,13 +1158,12 @@ t_stat sim_instr (void)
                 break;
             case 0x21:                  /* BRN rel */
 		/* Branch Never - essentially a NOP */
-                go_rel(0);
                 break;
             case 0x22:                  /* BHI rel */
-                go_rel(!(get_flag(CF) | get_flag(ZF)));
+                go_rel(!(get_flag(CF) || get_flag(ZF)));
                 break;
             case 0x23:                  /* BLS rel */
-                go_rel(get_flag(CF) | get_flag(ZF));
+                go_rel(get_flag(CF) || get_flag(ZF));
                 break;
             case 0x24:                  /* BCC rel */
                 go_rel(!get_flag(CF));
@@ -1204,35 +1190,34 @@ t_stat sim_instr (void)
                 go_rel(get_flag(NF));
                 break;
             case 0x2C:                  /* BGE rel */
-                go_rel(!(get_flag(NF) ^ get_flag(VF)));
+                go_rel(get_flag(NF) == get_flag(VF));
                 break;
             case 0x2D:                  /* BLT rel */
-                go_rel(get_flag(NF) ^ get_flag(VF));
+                go_rel(get_flag(NF) != get_flag(VF));
                 break;
             case 0x2E:                  /* BGT rel */
-                go_rel( !( get_flag(ZF) | (get_flag(NF) ^ get_flag(VF)) ) );
+                go_rel((get_flag(ZF) == 0) && (get_flag(NF) == get_flag(VF)));
                 break;
             case 0x2F:                  /* BLE rel */
-                go_rel( get_flag(ZF) | (get_flag(NF) ^ get_flag(VF)) );
+                go_rel(get_flag(ZF) || (get_flag(NF) != get_flag(VF)));
                 break;
-
 /* 0x30 */
-            case 0x30:                  /* LEAX */
+            case 0x30:                  /* LEAX ind */
 		IX = get_indexed_addr();
 		COND_SET_FLAG_Z_16(IX);
                 break;
 
-            case 0x31:                  /* LEAY */
+            case 0x31:                  /* LEAY ind */
 		IY = get_indexed_addr();
 		COND_SET_FLAG_Z_16(IY);
                 break;
 
-            case 0x32:                  /* LEAS */
+            case 0x32:                  /* LEAS ind */
 		SP = get_indexed_addr();
 		/* does not affect CCR */
                 break;
 
-            case 0x33:                  /* LEAU */
+            case 0x33:                  /* LEAU ind */
 		UP = get_indexed_addr();
 		/* does not affect CCR */
                 break;
@@ -1297,7 +1282,7 @@ t_stat sim_instr (void)
 
             case 0x3B:                  /* RTI */
                 CCR = pop_sp_byte();
-		if (GET_FLAG(EF)) {
+		if (get_flag(EF)) {
 		    /* entire state flag */
                     A = pop_sp_byte();
                     B = pop_sp_byte();
@@ -1322,19 +1307,14 @@ t_stat sim_instr (void)
                 push_sp_byte(B);
                 push_sp_byte(A);
                 push_sp_byte(CCR);
-                if (get_flag(IF)) {
-                    reason = STOP_HALT;
-                    continue;
-                } else {
-                    SET_FLAG(IF);
-                    PC = CPU_BD_get_mword(0xFFFE) & ADDRMASK;
-                }
+                /* wait for an interrupt */
+                reason = STOP_HALT;
 		break;
 
             case 0x3D:                  /* MUL */
 		D = A * B;
-		A = D >> 8;
 		B = D & BYTEMASK;
+		A = D >> 8;
                 COND_SET_FLAG_Z_16(D);
                 COND_SET_FLAG(B & 0x80, CF);
                 break;
@@ -1351,18 +1331,19 @@ t_stat sim_instr (void)
                 push_sp_byte(CCR);
                 SET_FLAG(FF);
                 SET_FLAG(IF);
-                PC = CPU_BD_get_mword(0xFFFA) & ADDRMASK;
+                PC = CPU_BD_get_mword(0xFFFA);
                 break;
 
 /* 0x40 - inherent mode */
             case 0x40:                  /* NEGA */
                 COND_SET_FLAG(A != 0, CF);
                 COND_SET_FLAG(A == 0x80, VF);
-                A =  0 - A;
+                A = 0 - A;
                 A &= 0xFF;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 break;
+
             case 0x43:                  /* COMA */
                 A = ~A;
 		A &= 0xFF;
@@ -1371,6 +1352,7 @@ t_stat sim_instr (void)
                 CLR_FLAG(VF);
                 SET_FLAG(CF);
                 break;
+
             case 0x44:                  /* LSRA */
                 COND_SET_FLAG(A & 0x01, CF);
                 A = (A >> 1) & BYTEMASK;
@@ -1378,16 +1360,19 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
 		/* H,V unaffected */
                 break;
+
             case 0x46:                  /* RORA */
-                hi = get_flag(CF);
-                COND_SET_FLAG(A & 0x01, CF);
+                op1 = A;
                 A = A >> 1;
-                if (hi)
+                if (get_flag(CF)) {
                     A |= 0x80;
+                }
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
 		/* H,V unaffected */
+                COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x47:                  /* ASRA */
                 COND_SET_FLAG(A & 0x01, CF);
                 A = (A >> 1) | (A & 0x80);
@@ -1396,41 +1381,51 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
 		/* V unaffected */
                 break;
+
             case 0x48:                  /* ASLA */
-                COND_SET_FLAG(A & 0x80, CF);
+                op1 = A;
                 A = (A << 1) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+ 		COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x49:                  /* ROLA */
-                hi = get_flag(CF);
-                COND_SET_FLAG(A & 0x80, CF);
+                op1 = A;
                 A = (A << 1) & BYTEMASK;
-                if (hi)
+                if (get_flag(CF)) {
                     A |= 0x01;
+                }
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+                COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x4A:                  /* DECA */
                 COND_SET_FLAG(A == 0x80, VF);
                 A = (A - 1) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
+                /* C unaffected */
                 break;
+
             case 0x4C:                  /* INCA */
                 COND_SET_FLAG(A == 0x7F, VF);
                 A = (A + 1) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
+                /* C unaffected */
                 break;
+
             case 0x4D:                  /* TSTA */
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
-		/* C not affected */
+		/* C unaffected */
                 break;
+
             case 0x4F:                  /* CLRA */
                 A = 0;
                 CLR_FLAG(NF);
@@ -1443,11 +1438,12 @@ t_stat sim_instr (void)
             case 0x50:                  /* NEGB */
                 COND_SET_FLAG(B != 0, CF);
                 COND_SET_FLAG(B == 0x80, VF);
-                B = (0 - B);
+                B = 0 - B;
                 B &= 0xFF;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 break;
+
             case 0x53:                  /* COMB */
                 B = ~B;
                 B &= 0xFF;
@@ -1456,6 +1452,7 @@ t_stat sim_instr (void)
                 CLR_FLAG(VF);
                 SET_FLAG(CF);
                 break;
+
             case 0x54:                  /* LSRB */
                 COND_SET_FLAG(B & 0x01, CF);
                 B = (B >> 1) & BYTEMASK;
@@ -1463,16 +1460,19 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
 		/* H,V unaffected */
                 break;
+
             case 0x56:                  /* RORB */
-                hi = get_flag(CF);
-                COND_SET_FLAG(B & 0x01, CF);
+                op1 = B;
                 B = B >> 1;
-                if (hi)
+                if (get_flag(CF)) {
                     B |= 0x80;
+                }
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
 		/* H,V unaffected */
+                COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x57:                  /* ASRB */
                 COND_SET_FLAG(B & 0x01, CF);
                 B = (B >> 1) | (B & 0x80);
@@ -1481,41 +1481,51 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
 		/* C unaffected */
                 break;
+
             case 0x58:                  /* ASLB */
-                COND_SET_FLAG(B & 0x80, CF);
+                op1 = B;
                 B = (B << 1) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+ 		COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x59:                  /* ROLB */
-                hi = get_flag(CF);
-                COND_SET_FLAG(B & 0x80, CF);
+                op1 = B;
                 B = (B << 1) & BYTEMASK;
-                if (hi)
+                if (get_flag(CF)) {
                     B |= 0x01;
+                }
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+                COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x5A:                  /* DECB */
                 COND_SET_FLAG(B == 0x80, VF);
                 B = (B - 1) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
+                /* C unaffected */
                 break;
+
             case 0x5C:                  /* INCB */
                 COND_SET_FLAG(B == 0x7F, VF);
                 B = (B + 1) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
+                /* C unaffected */
                 break;
+
             case 0x5D:                  /* TSTB */
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
-                /* C not affected */
+                /* C unaffected */
                 break;
+
             case 0x5F:                  /* CLRB */
                 B = 0;
                 CLR_FLAG(NF);
@@ -1535,39 +1545,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 break;
+
             case 0x63:                  /* COM ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-                result = ~op1;
-		result &= 0xFF;
+                result = (~op1) & 0xFF;
                 CPU_BD_put_mbyte(addr, result);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 CLR_FLAG(VF);
                 SET_FLAG(CF);
                 break;
+
             case 0x64:                  /* LSR ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-                COND_SET_FLAG(op1 & 0x01, CF);
                 result = op1 >> 1;
                 CPU_BD_put_mbyte(addr, result);
                 CLR_FLAG(NF);
                 COND_SET_FLAG_Z(result);
 		/* H,V unaffected */
+                COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x66:                  /* ROR ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
                 result = op1 >> 1;
-                if (get_flag(CF))
+                if (get_flag(CF)) {
                     result |= 0x80;
+                }
                 CPU_BD_put_mbyte(addr, result);
-		/* H,V unaffected */
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+		/* H,V unaffected */
                 COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x67:                  /* ASR ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -1579,29 +1593,33 @@ t_stat sim_instr (void)
 		/* V unaffected */
                 COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x68:                  /* ASL ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
- 		COND_SET_FLAG(op1 & 0x80, CF);
                 result = (op1 << 1) & BYTEMASK;
                 CPU_BD_put_mbyte(addr, result);
 		/* H is undefined */
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+ 		COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x69:                  /* ROL ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
                 result = (op1 << 1) & BYTEMASK;
-                if (get_flag(CF))
+                if (get_flag(CF)) {
 		    result |= 0x01;
+                }
                 CPU_BD_put_mbyte(addr, result);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
- 		COND_SET_FLAG((op1 & 0x80) ^ (op1 & 0x40), VF);
                 COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x6A:                  /* DEC ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -1610,25 +1628,32 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 COND_SET_FLAG(op1 == 0x80, VF);
+                /* C unaffected */
                 break;
+
             case 0x6C:                  /* INC ind */
                 addr = get_indexed_addr();
                 op1 = CPU_BD_get_mbyte(addr);
+                result = (op1 + 1) & BYTEMASK;
+                CPU_BD_put_mbyte(addr, result);
+                COND_SET_FLAG_N(result);
+                COND_SET_FLAG_Z(result);
                 COND_SET_FLAG(op1 == 0x7F, VF);
-                op1 = (op1 + 1) & BYTEMASK;
-                CPU_BD_put_mbyte(addr, op1);
-                COND_SET_FLAG_N(op1);
-                COND_SET_FLAG_Z(op1);
+                /* C unaffected */
                 break;
+
             case 0x6D:                  /* TST ind */
                 result = get_indexed_byte_val();
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 CLR_FLAG(VF);
+                /* C unaffected */
                 break;
+
             case 0x6E:                  /* JMP ind */
                 PC = get_indexed_addr();
                 break;
+
             case 0x6F:                  /* CLR ind */
                 CPU_BD_put_mbyte(get_indexed_addr(), 0);
 		/* H not affected */
@@ -1649,39 +1674,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 break;
+
             case 0x73:                  /* COM ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-                result = ~op1;
-		result &= 0xFF;
+                result = (~op1) & 0xFF;
                 CPU_BD_put_mbyte(addr, result);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 CLR_FLAG(VF);
                 SET_FLAG(CF);
                 break;
+
             case 0x74:                  /* LSR ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-                COND_SET_FLAG(op1 & 0x01, CF);
                 result = op1 >> 1;
                 CPU_BD_put_mbyte(addr, result);
                 CLR_FLAG(NF);
                 COND_SET_FLAG_Z(result);
 		/* H,V unaffected */
+                COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x76:                  /* ROR ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
                 result = op1 >> 1;
-                if (get_flag(CF))
+                if (get_flag(CF)) {
                     result |= 0x80;
+                }
                 CPU_BD_put_mbyte(addr, result);
-		/* H,V unaffected */
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+		/* H,V unaffected */
                 COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x77:                  /* ASR ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -1693,29 +1722,33 @@ t_stat sim_instr (void)
 		/* V unaffected */
 		COND_SET_FLAG(op1 & 0x01, CF);
                 break;
+
             case 0x78:                  /* ASL ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
-                COND_SET_FLAG(op1 & 0x80, CF);
                 result = (op1 << 1) & BYTEMASK;
                 CPU_BD_put_mbyte(addr, result);
 		/* H is undefined */
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
-                COND_SET_FLAG(get_flag(NF) ^ get_flag(CF), VF);
+                COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x79:                  /* ROL ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
                 result = (op1 << 1) & BYTEMASK;
-                if (get_flag(CF))
+                if (get_flag(CF)) {
 		    result |= 0x01;
+                }
                 CPU_BD_put_mbyte(addr, result);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
- 		COND_SET_FLAG((op1 & 0x80) ^ (op1 & 0x40), VF);
                 COND_SET_FLAG(op1 & 0x80, CF);
+                COND_SET_FLAG(EXOR(get_flag(NF),get_flag(CF)), VF);
                 break;
+
             case 0x7A:                  /* DEC ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
@@ -1724,25 +1757,33 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 COND_SET_FLAG(op1 == 0x80, VF);
+                /* C unaffected */
                 break;
+
             case 0x7C:                  /* INC ext */
                 addr = get_ext_addr();
                 op1 = CPU_BD_get_mbyte(addr);
+                result = (op1 + 1) & BYTEMASK;
+                CPU_BD_put_mbyte(addr, result);
+                COND_SET_FLAG_N(result);
+                COND_SET_FLAG_Z(result);
                 COND_SET_FLAG(op1 == 0x7F, VF);
-                op1 = (op1 + 1) & BYTEMASK;
-                CPU_BD_put_mbyte(addr, op1);
-                COND_SET_FLAG_N(op1);
-                COND_SET_FLAG_Z(op1);
+                /* C unaffected */
                 break;
+
+                /* C unaffected */
             case 0x7D:                  /* TST ext */
                 result = get_ext_byte_val();
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
                 CLR_FLAG(VF);
+                /* C unaffected */
                 break;
+
             case 0x7E:                  /* JMP ext */
                 PC = get_ext_addr();
                 break;
+
             case 0x7F:                  /* CLR ext */
                 CPU_BD_put_mbyte(get_ext_addr(), 0);
 		/* H not affected */
@@ -1751,19 +1792,20 @@ t_stat sim_instr (void)
                 CLR_FLAG(VF);
                 CLR_FLAG(CF);
                 break;
-
 /* 0x80 - immediate mode (except for BSR) */
             case 0x80:                  /* SUBA imm */
-                op1 = get_imm_byte_val();
-                op2 = A;
-                A = A - op1;
+                op1 = A;
+                op2 = get_imm_byte_val();
+                A = A - op2;
                 COND_SET_FLAG_C(A);
                 A &= 0xFF;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0x81:                  /* CMPA imm */
+                /* Do not modify A */
                 op2 = get_imm_byte_val();
                 result = A - op2;
                 COND_SET_FLAG_C(result);
@@ -1772,6 +1814,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(A, op2);
                 break;
+
             case 0x82:                  /* SBCA imm */
                 op1 = A;
                 op2 = get_imm_byte_val() + get_flag(CF);
@@ -1782,6 +1825,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0x83:                  /* SUBD imm */
 		D = (A << 8) | (B & BYTEMASK);
                 op2 = get_imm_word_val();
@@ -1794,30 +1838,36 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(result);
                 condevalVs16(D, op2);
                 break;
+
             case 0x84:                  /* ANDA imm */
                 A = (A & get_imm_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 break;
+
             case 0x85:                  /* BITA imm */
+                /* Do not modify A */
                 result = (A & get_imm_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0x86:                  /* LDA imm */
                 A = get_imm_byte_val();
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x88:                  /* EORA imm */
                 A = (A ^ get_imm_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x89:                  /* ADCA imm */
                 op1 = A;
                 op2 = get_imm_byte_val() + get_flag(CF);
@@ -1829,6 +1879,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0x8A:                  /* ORA imm */
                 A = A | get_imm_byte_val();
 		A &= 0xFF;
@@ -1836,6 +1887,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x8B:                  /* ADDA imm */
                 op1 = A;
                 op2 = get_imm_byte_val();
@@ -1847,20 +1899,24 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0x8C:                  /* CMPX imm */
+                /* Do not modify X */
                 op2 = get_imm_word_val();
                 result = IX - op2;
                 COND_SET_FLAG_C_16(result);
-		result = result & 0xFFFF;
-                COND_SET_FLAG_Z_16(result);
+		result &= 0xFFFF;
                 COND_SET_FLAG_N_16(result);
+                COND_SET_FLAG_Z_16(result);
 		condevalVs16(IX, op2);
                 break;
+
             case 0x8D:                  /* BSR rel */
                 addr = get_rel_addr();
                 push_sp_word(PC);
                 PC = (PC + addr) & ADDRMASK;
                 break;
+
             case 0x8E:                  /* LDX imm */
                 IX = get_imm_word_val();
                 COND_SET_FLAG_N_16(IX);
@@ -1872,14 +1928,16 @@ t_stat sim_instr (void)
             case 0x90:                  /* SUBA dir */
 		op1 = A;
                 op2 = get_dir_byte_val();
-                A =  A - op2;
+                A = A - op2;
                 COND_SET_FLAG_C(A);
                 A &= 0xFF;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0x91:                  /* CMPA dir */
+                /* Do not modify A */
 		op2 = get_dir_byte_val();
                 result = A - op2;
                 COND_SET_FLAG_C(result);
@@ -1888,6 +1946,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(A, op2);
                 break;
+
             case 0x92:                  /* SBCA dir */
                 op1 = A;
 		op2 = get_dir_byte_val() + get_flag(CF);
@@ -1898,6 +1957,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0x93:                  /* SUBD dir */
 		D = (A << 8) | (B & BYTEMASK);
                 op2 = get_dir_word_val();
@@ -1910,36 +1970,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(result);
                 condevalVs16(D, op2);
                 break;
+
             case 0x94:                  /* ANDA dir */
                 A = (A & get_dir_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 break;
+
             case 0x95:                  /* BITA dir */
+                /* Do not modify A */
                 result = (A & get_dir_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0x96:                  /* LDA dir */
                 A = get_dir_byte_val();
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x97:                  /* STA dir */
                 CPU_BD_put_mbyte(get_dir_addr(), A);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x98:                  /* EORA dir */
                 A = (A ^ get_dir_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x99:                  /* ADCA dir */
                 op1 = A;
                 op2 = get_dir_byte_val() + get_flag(CF);
@@ -1951,6 +2018,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0x9A:                  /* ORA dir */
                 A = A | get_dir_byte_val();
 		A &= 0xFF;
@@ -1958,6 +2026,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0x9B:                  /* ADDA dir */
                 op1 = A;
                 op2 = get_dir_byte_val();
@@ -1969,7 +2038,9 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0x9C:                  /* CMPX dir */
+                /* Do not modify X */
                 op2 = get_dir_word_val();
                 result = IX - op2;
                 COND_SET_FLAG_C_16(result);
@@ -1978,17 +2049,20 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(result);
                 condevalVs16(IX, op2);
                 break;
+
             case 0x9D:                  /* JSR dir */
 		addr = get_dir_addr();
 		push_sp_word(PC);
 		PC = addr;
                 break;
+
             case 0x9E:                  /* LDX dir */
                 IX = get_dir_word_val();
                 COND_SET_FLAG_N_16(IX);
                 COND_SET_FLAG_Z_16(IX);
                 CLR_FLAG(VF);
                 break;
+
             case 0x9F:                  /* STX dir */
                 CPU_BD_put_mword(get_dir_addr(), IX);
                 COND_SET_FLAG_N_16(IX);
@@ -1998,16 +2072,18 @@ t_stat sim_instr (void)
 
 /* 0xA0 - indexed mode */
             case 0xA0:                  /* SUBA ind */
-                op1 = get_indexed_byte_val();
-                result =  A - op1;
-                A = result;
+                op1 = A;
+                op2 = get_indexed_byte_val();
+                A = A - op2;
                 COND_SET_FLAG_C(A);
                 A &= 0xFF;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
-                condevalVs(op1, result);
+                condevalVs(op1, op2);
                 break;
+
             case 0xA1:                  /* CMPA ind */
+                /* Do not modify A */
                 op2 = get_indexed_byte_val();
                 result = A - op2;
                 COND_SET_FLAG_C(result);
@@ -2016,6 +2092,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(A, op2);
                 break;
+
             case 0xA2:                  /* SBCA ind */
                 op1 = A;
                 op2 = get_indexed_byte_val() + get_flag(CF);
@@ -2026,6 +2103,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0xA3:                  /* SUBD ind */
 		D = (A << 8) | (B & BYTEMASK);
                 op2 = get_indexed_word_val();
@@ -2038,36 +2116,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(result);
                 condevalVs16(D, op2);
                 break;
+
             case 0xA4:                  /* ANDA ind */
                 A = (A & get_indexed_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 break;
+
             case 0xA5:                  /* BITA ind */
+                /* Do not modify A */
                 result = (A & get_indexed_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0xA6:                  /* LDA ind */
                 A = get_indexed_byte_val();
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xA7:                  /* STA ind */
                 CPU_BD_put_mbyte(get_indexed_addr(), A);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xA8:                  /* EORA ind */
                 A = (A ^ get_indexed_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xA9:                  /* ADCA ind */
                 op1 = A;
                 op2 = get_indexed_byte_val() + get_flag(CF);
@@ -2079,6 +2164,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0xAA:                  /* ORA ind */
                 A = A | get_indexed_byte_val();
 		A &= 0xFF;
@@ -2086,6 +2172,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xAB:                  /* ADDA ind */
                 op1 = A;
                 op2 = get_indexed_byte_val();
@@ -2097,26 +2184,31 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0xAC:                  /* CMPX ind */
+                /* Do not modify X */
                 op2 = get_indexed_word_val();
-                result = (IX - op2) & ADDRMASK;
+                result = IX - op2;
                 COND_SET_FLAG_C_16(result);
 		result &= 0xFFFF;
                 COND_SET_FLAG_N_16(result);
                 COND_SET_FLAG_Z_16(result);
 		condevalVs16(IX, op2);
                 break;
+
             case 0xAD:                  /* JSR ind */
                 addr = get_indexed_addr();
                 push_sp_word(PC);
                 PC = addr;
                 break;
+
             case 0xAE:                  /* LDX ind */
                 IX = get_indexed_word_val();
                 COND_SET_FLAG_N_16(IX);
                 COND_SET_FLAG_Z_16(IX);
                 CLR_FLAG(VF);
                 break;
+
             case 0xAF:                  /* STX ind */
                 CPU_BD_put_mword(get_indexed_addr(), IX);
                 COND_SET_FLAG_N_16(IX);
@@ -2135,7 +2227,9 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0xB1:                  /* CMPA ext */
+                /* Do not modify A */
                 op2 = get_ext_byte_val();
                 result = A - op2;
                 COND_SET_FLAG_C(result);
@@ -2144,6 +2238,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(A, op2);
                 break;
+
             case 0xB2:                  /* SBCA ext */
                 op1 = A;
                 op2 = get_ext_byte_val() + get_flag(CF);
@@ -2154,6 +2249,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVs(op1, op2);
                 break;
+
             case 0xB3:                  /* SUBD ext */
 		D = (A << 8) | (B & BYTEMASK);
                 op2 = get_ext_word_val();
@@ -2166,36 +2262,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(result);
                 condevalVs16(D, op2);
                 break;
+
             case 0xB4:                  /* ANDA ext */
                 A = (A & get_ext_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 break;
+
             case 0xB5:                  /* BITA ext */
+                /* Do not modify A */
                 result = (A & get_ext_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0xB6:                  /* LDA ext */
                 A = get_ext_byte_val();
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xB7:                  /* STA ext */
                 CPU_BD_put_mbyte(get_ext_addr(), A);
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xB8:                  /* EORA ext */
                 A = (A ^ get_ext_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(A);
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xB9:                  /* ADCA ext */
                 op1 = A;
                 op2 = get_ext_byte_val() + get_flag(CF);
@@ -2207,6 +2310,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0xBA:                  /* ORA ext */
                 A = A | get_ext_byte_val();
 		A &= 0xFF;
@@ -2214,6 +2318,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 CLR_FLAG(VF);
                 break;
+
             case 0xBB:                  /* ADDA ext */
                 op1 = A;
                 op2 = get_ext_byte_val();
@@ -2225,26 +2330,31 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(A);
                 condevalVa(op1, op2);
                 break;
+
             case 0xBC:                  /* CMPX ext */
+                /* Do not modify X */
                 op2 = get_ext_word_val();
-                result = (IX - op2);
+                result = IX - op2;
                 COND_SET_FLAG_C_16(result);
-		result = result & 0xFFFF;
+		result &= 0xFFFF;
                 COND_SET_FLAG_N_16(result);
                 COND_SET_FLAG_Z_16(result);
 		condevalVs16(IX, op2);
                 break;
+
             case 0xBD:                  /* JSR ext */
                 addr = get_ext_addr();
                 push_sp_word(PC);
                 PC = addr;
                 break;
+
             case 0xBE:                  /* LDX ext */
                 IX = get_ext_word_val();
                 COND_SET_FLAG_N_16(IX);
                 COND_SET_FLAG_Z_16(IX);
                 CLR_FLAG(VF);
                 break;
+
             case 0xBF:                  /* STX ext */
                 CPU_BD_put_mword(get_ext_addr(), IX);
                 COND_SET_FLAG_N_16(IX);
@@ -2263,7 +2373,9 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xC1:                  /* CMPB imm */
+                /* Do not modify B */
                 op2 = get_imm_byte_val();
                 result = B - op2;
                 COND_SET_FLAG_C(result);
@@ -2272,6 +2384,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(B, op2);
                 break;
+
             case 0xC2:                  /* SBCB imm */
                 op1 = B;
                 op2 = get_imm_byte_val() + get_flag(CF);
@@ -2282,6 +2395,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xC3:                  /* ADDD imm */
 		op1 = (A << 8) | (B & BYTEMASK);
 		op2 = get_imm_word_val();
@@ -2292,32 +2406,38 @@ t_stat sim_instr (void)
 		B = D & BYTEMASK;
                 COND_SET_FLAG_N_16(D);
                 COND_SET_FLAG_Z_16(D);
-                condevalVa16(op1,op2);
+                condevalVa16(op1, op2);
                 break;
+
             case 0xC4:                  /* ANDB imm */
                 B = (B & get_imm_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 break;
+
             case 0xC5:                  /* BITB imm */
+                /* Do not modify B */
                 result = (B & get_imm_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0xC6:                  /* LDB imm */
                 B = get_imm_byte_val();
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xC8:                  /* EORB imm */
                 B = (B ^ get_imm_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xC9:                  /* ADCB imm */
 		op1 = B;
                 op2 = get_imm_byte_val() + get_flag(CF);
@@ -2329,6 +2449,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xCA:                  /* ORB imm */
                 B = B | get_imm_byte_val();
 		B &= 0xFF;
@@ -2336,6 +2457,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xCB:                  /* ADDB imm */
                 op1 = B;
                 op2 = get_imm_byte_val();
@@ -2347,14 +2469,16 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xCC:                  /* LDD imm */
                 D = get_imm_word_val();
-		A = D >> 8;
 		B = D & BYTEMASK;
+		A = D >> 8;
                 COND_SET_FLAG_N_16(D);
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xCE:                  /* LDU imm */
                 UP = get_imm_word_val();
                 COND_SET_FLAG_N_16(UP);
@@ -2373,7 +2497,9 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xD1:                  /* CMPB dir */
+                /* Do not modify B */
                 op2 = get_dir_byte_val();
                 result = B - op2;
                 COND_SET_FLAG_C(result);
@@ -2382,6 +2508,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(B, op2);
                 break;
+
             case 0xD2:                  /* SBCB dir */
 		op1 = B;
                 op2 = get_dir_byte_val() + get_flag(CF);
@@ -2392,6 +2519,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xD3:                  /* ADDD dir */
 		op1 = (A << 8) | (B & BYTEMASK);
                 op2 = get_dir_word_val();
@@ -2404,36 +2532,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(D);
                 condevalVa16(op1, op2);
                 break;
+
             case 0xD4:                  /* ANDB dir */
                 B = (B & get_dir_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 break;
+
             case 0xD5:                  /* BITB dir */
+                /* Do not modify B */
                 result = (B & get_dir_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0xD6:                  /* LDB dir */
                 B = get_dir_byte_val();
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xD7:                  /* STB dir */
                 CPU_BD_put_mbyte(get_dir_addr(), B);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xD8:                  /* EORB dir */
                 B = (B ^ get_dir_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xD9:                  /* ADCB dir */
                 op1 = B;
                 op2 = get_dir_byte_val() + get_flag(CF);
@@ -2445,6 +2580,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xDA:                  /* ORB dir */
                 B = B | get_dir_byte_val();
 		B &= 0xFF;
@@ -2452,6 +2588,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xDB:                  /* ADDB dir */
                 op1 = B;
                 op2 = get_dir_byte_val();
@@ -2463,14 +2600,16 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xDC:                  /* LDD dir */
                 D = get_dir_word_val();
-		A = D >> 8;
 		B = D & BYTEMASK;
+		A = D >> 8;
                 COND_SET_FLAG_N_16(D);
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xDD:                  /* STD dir */
 		D = (A << 8) | (B & BYTEMASK);
                 CPU_BD_put_mword(get_dir_addr(), D);
@@ -2478,12 +2617,14 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xDE:                  /* LDU dir */
                 UP = get_dir_word_val();
                 COND_SET_FLAG_N_16(UP);
                 COND_SET_FLAG_Z_16(UP);
                 CLR_FLAG(VF);
                 break;
+
             case 0xDF:                  /* STU dir */
                 CPU_BD_put_mword(get_dir_addr(), UP);
                 COND_SET_FLAG_N_16(UP);
@@ -2502,7 +2643,9 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xE1:                  /* CMPB ind */
+                /* do not modify B */
                 op2 = get_indexed_byte_val();
                 result = B - op2;
                 COND_SET_FLAG_C(result);
@@ -2511,6 +2654,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(B, op2);
                 break;
+
             case 0xE2:                  /* SBCB ind */
                 op1 = B;
                 op2 = get_indexed_byte_val() + get_flag(CF);
@@ -2521,6 +2665,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xE3:                  /* ADDD ind */
 		op1 = (A << 8) | (B & BYTEMASK);
                 op2 = get_indexed_word_val();
@@ -2533,36 +2678,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(D);
                 condevalVa16(op1, op2);
                 break;
+
             case 0xE4:                  /* ANDB ind */
                 B = (B & get_indexed_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 break;
+
             case 0xE5:                  /* BITB ind */
+                /* Do not modify B */
                 result = (B & get_indexed_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0xE6:                  /* LDB ind */
                 B = get_indexed_byte_val();
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xE7:                  /* STB ind */
                 CPU_BD_put_mbyte(get_indexed_addr(), B);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xE8:                  /* EORB ind */
                 B = (B ^ get_indexed_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xE9:                  /* ADCB ind */
                 op1 = B;
                 op2 = get_indexed_byte_val() + get_flag(CF);
@@ -2574,6 +2726,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xEA:                  /* ORB ind */
                 B = B | get_indexed_byte_val();
 		B &= 0xFF;
@@ -2581,6 +2734,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xEB:                  /* ADDB ind */
                 op1 = B;
                 op2 = get_indexed_byte_val();
@@ -2592,14 +2746,16 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xEC:                  /* LDD ind */
                 D = get_indexed_word_val();
-		A = D >> 8;
 		B = D & BYTEMASK;
+		A = D >> 8;
                 COND_SET_FLAG_N_16(D);
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xED:                  /* STD ind */
 		D = (A << 8) | (B & BYTEMASK);
                 CPU_BD_put_mword(get_indexed_addr(), D);
@@ -2607,12 +2763,14 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xEE:                  /* LDU ind */
                 UP = get_indexed_word_val();
                 COND_SET_FLAG_N_16(UP);
                 COND_SET_FLAG_Z_16(UP);
                 CLR_FLAG(VF);
                 break;
+
             case 0xEF:                  /* STU ind */
                 CPU_BD_put_mword(get_indexed_addr(), UP);
                 COND_SET_FLAG_N_16(UP);
@@ -2631,7 +2789,9 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xF1:                  /* CMPB ext */
+                /* Do not modify B */
                 op2 = get_ext_byte_val();
                 result = B - op2;
                 COND_SET_FLAG_C(result);
@@ -2640,6 +2800,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(result);
                 condevalVs(B, op2);
                 break;
+
             case 0xF2:                  /* SBCB ext */
 		op1 = B;
                 op2 = get_ext_byte_val() + get_flag(CF);
@@ -2650,6 +2811,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVs(op1, op2);
                 break;
+
             case 0xF3:                  /* ADDD ext */
 		op1 = (A << 8) | (B & BYTEMASK);
                 op2 = get_ext_word_val();
@@ -2662,36 +2824,43 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(D);
                 condevalVa16(op1, op2);
                 break;
+
             case 0xF4:                  /* ANDB ext */
                 B = (B & get_ext_byte_val()) & BYTEMASK;
                 CLR_FLAG(VF);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 break;
+
             case 0xF5:                  /* BITB ext */
+                /* Do not modify B */
                 result = (B & get_ext_byte_val()) & BYTEMASK;
-                CLR_FLAG(VF);
                 COND_SET_FLAG_N(result);
                 COND_SET_FLAG_Z(result);
+                CLR_FLAG(VF);
                 break;
+
             case 0xF6:                  /* LDB ext */
                 B = get_ext_byte_val();
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xF7:                  /* STB ext */
                 CPU_BD_put_mbyte(get_ext_addr(), B);
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xF8:                  /* EORB ext */
                 B = (B ^ get_ext_byte_val()) & BYTEMASK;
                 COND_SET_FLAG_N(B);
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xF9:                  /* ADCB ext */
                 op1 = B;
                 op2 = get_ext_byte_val() + get_flag(CF);
@@ -2703,6 +2872,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xFA:                  /* ORB ext */
                 B = B | get_ext_byte_val();
 		B &= 0xFF;
@@ -2710,6 +2880,7 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 CLR_FLAG(VF);
                 break;
+
             case 0xFB:                  /* ADDB ext */
                 op1 = B;
                 op2 = get_ext_byte_val();
@@ -2721,14 +2892,16 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z(B);
                 condevalVa(op1, op2);
                 break;
+
             case 0xFC:                  /* LDD ext */
                 D = get_ext_word_val();
-		A = D >> 8;
 		B = D & BYTEMASK;
+		A = D >> 8;
                 COND_SET_FLAG_N_16(D);
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xFD:                  /* STD ext */
 		D = (A << 8) | (B & BYTEMASK);
                 CPU_BD_put_mword(get_ext_addr(), D);
@@ -2736,12 +2909,14 @@ t_stat sim_instr (void)
                 COND_SET_FLAG_Z_16(D);
                 CLR_FLAG(VF);
                 break;
+
             case 0xFE:                  /* LDU ext */
                 UP = get_ext_word_val();
                 COND_SET_FLAG_N_16(UP);
                 COND_SET_FLAG_Z_16(UP);
                 CLR_FLAG(VF);
                 break;
+
             case 0xFF:                  /* STU ext */
                 CPU_BD_put_mword(get_ext_addr(), UP);
                 COND_SET_FLAG_N_16(UP);
@@ -2749,7 +2924,7 @@ t_stat sim_instr (void)
                 CLR_FLAG(VF);
                 break;
 
-            default:                    /* Unassigned */
+            default:                    /* Unassigned opcode */
                 if (m6809_unit.flags & UNIT_OPSTOP) {
                     reason = STOP_OPCODE;
                     PC--;
@@ -2780,16 +2955,15 @@ void dump_regs1(void)
 /* fetch an instruction or byte */
 int32 fetch_byte(int32 flag)
 {
-    uint8 val;
+    int32 val;
 
     val = CPU_BD_get_mbyte(PC);   /* fetch byte */
-    switch (flag) {
-        case 0:                     /* opcode fetch */
-            sim_debug (DEBUG_asm, &m6809_dev, "%04X %s\n", PC, opcode[val]);
-            break;
-        case 1:                     /* byte operand fetch */
-            sim_debug (DEBUG_asm, &m6809_dev, "0x%02XH\n", val);
-            break;
+    if (flag == 0) {
+        /* opcode fetch */
+        sim_debug(DEBUG_asm, &m6809_dev, "%04X: %s\n", PC, opcode[val]);
+    } else {
+        /* byte operand fetch */
+        sim_debug(DEBUG_asm, &m6809_dev, "%04X: 0x%02XH\n", PC, val);
     }
     PC = (PC + 1) & ADDRMASK;           /* increment PC */
     return val;
@@ -2798,15 +2972,16 @@ int32 fetch_byte(int32 flag)
 /* fetch a word - big endian */
 int32 fetch_word()
 {
-    uint16 val;
+    int32 val;
+    int32 temp_pc = PC;
 
     val = CPU_BD_get_mbyte(PC) << 8;     /* fetch high byte */
-    val |= (CPU_BD_get_mbyte(PC + 1)); /* fetch low byte */
+    PC = (PC + 1) & ADDRMASK;
+    val = val | CPU_BD_get_mbyte(PC); /* fetch low byte */
+    PC = (PC + 1) & ADDRMASK;
 
     /* 2-byte operand fetch */
-    sim_debug (DEBUG_asm, &m6809_dev, "0x%04XH\n", val);
-
-    PC = (PC + 2) & ADDRMASK;           /* increment PC */
+    sim_debug(DEBUG_asm, &m6809_dev, "%04X: 0x%04XH\n", temp_pc, val);
     return val;
 }
 
@@ -2884,7 +3059,7 @@ void go_rel(int32 cond)
     int32 temp;
 
     temp = get_rel_addr();
-    if (cond) {
+    if (cond != 0) {
         PC += temp;
         PC &= ADDRMASK;
     }
@@ -2910,37 +3085,37 @@ int32 get_rel_addr(void)
     temp = fetch_byte(1);
     if (temp & 0x80)
         temp |= 0xFF00;
-    return temp & ADDRMASK;
+    return(temp & ADDRMASK);
 }
 
 /* returns the long relative offset sign-extended */
 int32 get_long_rel_addr(void)
 {
-    return fetch_word();
+    return(fetch_word());
 }
 
 /* returns the byte value at the direct address pointed to by PC */
 int32 get_dir_byte_val(void)
 {
-    return CPU_BD_get_mbyte(get_dir_addr());
+    return(CPU_BD_get_mbyte(get_dir_addr()));
 }
 
 /* returns the word value at the direct address pointed to by PC */
 int32 get_dir_word_val(void)
 {
-    return CPU_BD_get_mword(get_dir_addr());
+    return(CPU_BD_get_mword(get_dir_addr()));
 }
 
 /* returns the immediate byte value pointed to by PC */
 int32 get_imm_byte_val(void)
 {
-    return fetch_byte(1);
+    return(fetch_byte(1));
 }
 
 /* returns the immediate word value pointed to by PC */
 int32 get_imm_word_val(void)
 {
-    return fetch_word();
+    return(fetch_word());
 }
 
 /* returns the direct address pointed to by PC */
@@ -2950,19 +3125,19 @@ int32 get_dir_addr(void)
     int32 temp;
 
     temp = (DP << 8) + fetch_byte(1);
-    return temp & 0xFFFF;
+    return(temp & ADDRMASK);
 }
 
 /* returns the byte value at the indexed address pointed to by PC */
 int32 get_indexed_byte_val(void)
 {
-    return CPU_BD_get_mbyte(get_indexed_addr());
+    return(CPU_BD_get_mbyte(get_indexed_addr()));
 }
 
 /* returns the word value at the indexed address pointed to by PC */
 int32 get_indexed_word_val(void)
 {
-    return CPU_BD_get_mword(get_indexed_addr());
+    return(CPU_BD_get_mword(get_indexed_addr()));
 }
 
 /* returns the indexed address. Note this also handles the indirect indexed mode */
@@ -2987,11 +3162,8 @@ int32 get_indexed_addr(void)
         }
         /* add 4 bit signed offset */
         if (post_byte & 0x10) {
-           /* subtract offset */
-           offset = (post_byte | 0xFFF0);
-           temp += offset;
+           temp += (post_byte | 0xFFF0);
 	} else {
-           /* add offset */
            temp += (post_byte & 0x0F);
 	}
     } else {
@@ -3048,11 +3220,22 @@ int32 get_indexed_addr(void)
 		break;
             case 0b0101:
                 /* R+-ACCB (non indirect)*/
+                switch ( post_byte & 0x60 ) {
+                    case 0b00000000: temp = IX; break;
+                    case 0b00100000: temp = IY; break;
+                    case 0b01000000: temp = UP; break;
+                    case 0b01100000: temp = SP; break;
+                    default: break;
+                };
 		if (B & 0x80) {
                     offset = B | 0xFF80;
 		} else {
                     offset = B;
                 }
+                temp += offset;
+		break;
+            case 0b0110:
+                /* R+-ACCA (non indirect)*/
                 switch ( post_byte & 0x60 ) {
                     case 0b00000000: temp = IX; break;
                     case 0b00100000: temp = IY; break;
@@ -3060,22 +3243,11 @@ int32 get_indexed_addr(void)
                     case 0b01100000: temp = SP; break;
                     default: break;
                 };
-                temp += offset;
-		break;
-            case 0b0110:
-                /* R+-ACCA (non indirect)*/
 		if (A & 0x80) {
                     offset = A | 0xFF80;
 		} else {
                     offset = A;
                 }
-                switch ( post_byte & 0x60 ) {
-                    case 0b00000000: temp = IX; break;
-                    case 0b00100000: temp = IY; break;
-                    case 0b01000000: temp = UP; break;
-                    case 0b01100000: temp = SP; break;
-                    default: break;
-                };
 		temp += offset;
                 break;
             case 0b1000:
@@ -3089,13 +3261,12 @@ int32 get_indexed_addr(void)
                 };
                 /* need to fetch 8-bit operand */
 		offset = fetch_byte(1);
-
                 /* add 7 bit signed offset */
                 if (offset & 0x80) {
-                   /* subtract offset */
-                   offset |= 0xFF00;
-	        }
-                temp += offset;
+                    temp += offset | 0xFF80;
+	        } else {
+                    temp += offset;
+                }
                 break;
             case 0b1001:
                 /* R+- 16-bit offset */
@@ -3108,8 +3279,8 @@ int32 get_indexed_addr(void)
                 };
                 /* need to fetch 16-bit operand */
 		offset = fetch_word();
-
                 /* add 16 bit signed offset */
+                /* calculation is the same for negative or positive offset! */
                 temp += offset;
                 break;
             case 0b1011:
@@ -3127,25 +3298,23 @@ int32 get_indexed_addr(void)
                 /* PC+- 7-bit offset (non indirect) */
                 /* need to fetch 8-bit operand */
 		offset = fetch_byte(1);
-                // PC value after fetch!!!
-                temp = PC;
+                // PC value updated after fetch!!!
 
                 /* add 7 bit signed offset */
                 if (offset & 0x80) {
-                   /* subtract offset */
-                   offset |= 0xFF00;
+                    temp = PC + (offset | 0xFF80);
+                } else {
+                    temp = PC + offset;
                 }
-                temp += offset;
 		break;
             case 0b1101:
                 /* PC+- 15-bit offset (non indirect)*/
                 /* need to fetch 16-bit operand */
 		offset = fetch_word();
-                // PC value after fetch!!!
-                temp = PC;
+                // PC value updated after fetch!!!
 
                 /* add 15 bit signed offset */
-                temp += offset;
+                temp = PC + offset;
 		break;
             case 0b1111:
 		// Extended indirect - fetch 16-bit address
@@ -3172,7 +3341,7 @@ int32 get_indexed_addr(void)
         }
     }
     /* make sure to truncate to 16-bit value */
-    return temp & 0xFFFF;
+    return(temp & 0xFFFF);
 }
 
 /* returns the value at the extended address pointed to by PC */
@@ -3197,7 +3366,7 @@ int32 get_ext_addr(void)
 }
 
 /* return 1 for flag set or 0 for flag clear */
-int32 get_flag(int32 flg)
+inline int32 get_flag(int32 flg)
 {
     if (CCR & flg) {
         return 1;
@@ -3210,56 +3379,73 @@ int32 get_flag(int32 flg)
 /* test and set V for 8-addition */
 void condevalVa(int32 op1, int32 op2)
 {
-    if (((op1 & 0x80) == (op2 & 0x80)) &&
-        (((op1 + op2) & 0x80) != (op1 & 0x80))) 
+    int32 temp;
+
+    /* op1 + op2 */
+    // If 2 Two's Complement numbers are added, and they both have the same sign (both positive or both negative),
+    // then overflow occurs if and only if the result has the opposite sign.
+    // Overflow never occurs when adding operands with different signs.
+    temp = op1 + op2;
+    if ( ((op1 & 0x80) == (op2 & 0x80)) && ((temp & 0x80) != (op1 & 0x80)) ) {
         SET_FLAG(VF);
-    else 
+    } else {
         CLR_FLAG(VF);
+    }
 }
 
 /* test and set V for 16-bit addition */
 void condevalVa16(int32 op1, int32 op2)
 {
-    /*
-       IF (the sign of the 2 operands are the same)
-       AND
-       (the sum of the operands has a different sign than both of the 2 operands)
-       THEN  set the Overflow flag
-       ELSE  clear the Overflow flag
-    */
-    if (((op1 & 0x8000) == (op2 & 0x8000)) &&
-        (((op1 + op2) & 0x8000) != (op1 & 0x8000))) 
+    int32 temp;
+
+    /* op1 + op2 */
+    // If 2 Two's Complement numbers are added, and they both have the same sign (both positive or both negative),
+    // then overflow occurs if and only if the result has the opposite sign.
+    // Overflow never occurs when adding operands with different signs.
+    temp = op1 + op2;
+    if ( ((op1 & 0x8000) == (op2 & 0x8000)) && ((temp & 0x8000) != (op1 & 0x8000)) ) {
         SET_FLAG(VF);
-    else 
+    } else {
         CLR_FLAG(VF);
+    }
 }
 
 /* test and set V for 8-bit subtraction */
 void condevalVs(int32 op1, int32 op2)
 {
-    if (((op1 & 0x80) != (op2 & 0x80)) &&
-        (((op1 - op2) & 0x80) == (op2 & 0x80)))
-        SET_FLAG(VF);
-    else 
-        CLR_FLAG(VF);
+    int32 temp;
 
+    /* op1 - op2 */
+    // If 2 Two's Complement numbers are subtracted, and their signs are different,
+    // then overflow occurs if and only if the result has the same sign as the subtrahend (op2).
+    temp = op1 - op2;
+    if ( ((op1 & 0x80) != (op2 & 0x80)) && ((temp & 0x80) == (op2 & 0x80)) ) {
+        SET_FLAG(VF);
+    } else {
+        CLR_FLAG(VF);
+    }
 }
 
 /* test and set V for 16-bit subtraction */
 void condevalVs16(int32 op1, int32 op2)
 {
-    if (((op1 & 0x8000) != (op2 & 0x8000)) &&
-        (((op1 - op2) & 0x8000) == (op2 & 0x8000)))
-        SET_FLAG(VF);
-    else 
-        CLR_FLAG(VF);
+    int32 temp;
 
+    /* op1 - op2 */
+    // If 2 Two's Complement numbers are subtracted, and their signs are different,
+    // then overflow occurs if and only if the result has the same sign as the subtrahend (op2).
+    temp = op1 - op2;
+    if ( ((op1 & 0x8000) != (op2 & 0x8000)) && ((temp & 0x8000) == (op2 & 0x8000)) ) {
+        SET_FLAG(VF);
+    } else {
+        CLR_FLAG(VF);
+    }
 }
 
 /* test and set H for addition (8-bit only) */
 void condevalHa(int32 op1, int32 op2)
 {
-    if (((op1 & 0x0f) + (op2 & 0x0f)) & 0x10) 
+    if (((op1 & 0x0F) + (op2 & 0x0F)) > 0x0F) 
         SET_FLAG(HF);
     else 
         CLR_FLAG(HF);
@@ -3270,6 +3456,8 @@ void condevalHa(int32 op1, int32 op2)
 /* Boot routine */
 t_stat m6809_boot(int32 unit_num, DEVICE *dptr)
 {
+    sim_debug(DEBUG_flow, &m6809_dev, "Call to m6809_boot()\n");
+
     /* retrieve the reset vector at $FFFE */
     saved_PC = CPU_BD_get_mword(0xFFFE);
     if (saved_PC == 0xFFFF) {
@@ -3281,6 +3469,8 @@ t_stat m6809_boot(int32 unit_num, DEVICE *dptr)
 /* Reset routine */
 t_stat m6809_reset (DEVICE *dptr)
 {
+    sim_debug(DEBUG_flow, &m6809_dev, "Call to m6809_reset()\n");
+
     CCR = EF | FF | IF;
     DP = 0;
     int_req = 0;
@@ -3297,11 +3487,15 @@ t_stat m6809_reset (DEVICE *dptr)
 /* examine routine */
 t_stat m6809_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switches)
 {
-    if (addr >= 0x10000) {
+    sim_debug(DEBUG_flow, &m6809_dev, "Call to m6809_examine()\n");
+
+    if (addr > ADDRMASK) {
         /* exceed 16-bit address space */
         return SCPE_NXM;
     } else {
-        *eval_array = CPU_BD_get_mbyte(addr);
+        if (eval_array != NULL) {
+            *eval_array = CPU_BD_get_mbyte(addr);
+        }
         return SCPE_OK;
     }
 }
@@ -3309,7 +3503,9 @@ t_stat m6809_examine(t_value *eval_array, t_addr addr, UNIT *uptr, int32 switche
 /* deposit routine */
 t_stat m6809_deposit(t_value value, t_addr addr, UNIT *uptr, int32 switches)
 {
-    if (addr >= 0x10000) {
+    sim_debug(DEBUG_flow, &m6809_dev, "Call to m6809_deposit()\n");
+
+    if (addr > ADDRMASK) {
         /* exceed 16-bit address space */
         return SCPE_NXM;
     } else {
@@ -3327,6 +3523,8 @@ t_stat m6809_deposit(t_value value, t_addr addr, UNIT *uptr, int32 switches)
 t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
     int32 i, addr = 0, cnt = 0;
+
+    sim_debug(DEBUG_flow, &m6809_dev, "Call to sim_load()\n");
 
     if ((*cptr != 0) || (flag != 0)) return SCPE_ARG;
     addr = saved_PC;
@@ -3353,7 +3551,9 @@ t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 */
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
-    int32 i, inst, inst1;
+    int32 i, inst;
+
+    sim_debug(DEBUG_flow, &m6809_dev, "Call to fprint_sym()\n");
 
     if (sw & SWMASK ('D')) {            // dump memory
         for (i=0; i<16; i++)
@@ -3371,27 +3571,31 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
             fprintf(of, "%02X", inst);
             return 0;
         }
-        inst1 = inst & 0xF0;
+
+        /* lookup mnemonic in table */
         fprintf (of, "%s", opcode[inst]); // mnemonic
         if (strlen(opcode[inst]) == 3)
             fprintf(of, " ");
-        if (inst1 == 0x20 || inst == 0x8D) { // rel operand
-            inst1 = val[1];
-            if (val[1] & 0x80)
-                inst1 |= 0xFF00;
-            fprintf(of, " $%04X", (addr + inst1 + 2) & ADDRMASK);
-        } else if (inst1 == 0x80 || inst1 == 0xC0) { // imm operand
-            if ((inst & 0x0F) < 0x0C)
-                fprintf(of, " #$%02X", val[1]);
-            else
-                fprintf(of, " #$%02X%02X", val[1], val[2]);
-        } else if (inst1 == 0x60 || inst1 == 0xA0 || inst1 == 0xE0) // ind operand
-            fprintf(of, " %d,X", val[1]);
-        else if (inst1 == 0x70 || inst1 == 0xb0 || inst1 == 0xF0) // ext operand
-            fprintf(of, " $%02X%02X", val[1], val[2]);
+
+        /* display some potential operands - this is not exact! */
+        switch (oplen[inst]) {
+            case 0:
+            case 1:
+                break;
+            case 2:
+                fprintf(of, " $%02X", val[1]);
+                break;
+            case 3:
+                fprintf(of, " $%02X $%02X", val[1], val[2]);
+                break;
+            case 4:
+                fprintf(of, " $%02X $%02X $%02x", val[1], val[2], val[3]);
+                break;
+        }
         return (-(oplen[inst] - 1));
-    } else
+    } else {
         return SCPE_ARG;
+    }
 }
 
 /* Symbolic input
@@ -3407,7 +3611,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 */
 t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
 {
-    return (-2);
+    return (1);
 }
 
 /* end of m6809.c */

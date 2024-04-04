@@ -52,7 +52,7 @@
     MODIFICATIONS:
 
         24 Apr 15 -- Modified to use simh_debug
-        24 Feb 24 -- Richard Lukes - Modified mp-8m.c to use for 1MB memory for swtp6809 emulator
+        04 Apr 24 -- Richard Lukes - Modified mp-8m.c to use for 1MB memory for swtp6809 emulator
 
     NOTES:
 
@@ -96,7 +96,7 @@ void mp_1m_put_mbyte(int32 addr, int32 val);
 void mp_1m_put_mword(int32 addr, int32 val);
 
 UNIT mp_1m_unit = { 
-    UDATA (NULL, UNIT_FIX + UNIT_BINK, ONE_MEGABYTE)
+    UDATA (NULL, UNIT_FIX + UNIT_BUF + UNIT_BINK, ONE_MEGABYTE)
 };
 
 MTAB mp_1m_mod[] = { 

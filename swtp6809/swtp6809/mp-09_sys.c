@@ -60,17 +60,17 @@
 
 /* externals */
 
-extern DEVICE CPU_BD_dev;
-extern DEVICE m6809_dev;
 extern REG m6809_reg[];
-extern DEVICE BOOTROM_dev;
 
+extern DEVICE m6809_dev;
+extern DEVICE BOOTROM_dev;
+extern DEVICE CPU_BD_dev;
 extern DEVICE MB_dev;
+extern DEVICE mp_1m_dev;
+extern DEVICE dsk_dev;
 extern DEVICE sio_dev;
 extern DEVICE ptr_dev;
 extern DEVICE ptp_dev;
-extern DEVICE mp_1m_dev;
-extern DEVICE dsk_dev;
 
 /* SCP data structures
 
@@ -94,10 +94,10 @@ DEVICE *sim_devices[] = {
     &CPU_BD_dev,
     &BOOTROM_dev,
     &MB_dev,
+    &mp_1m_dev,
     &sio_dev,
     &ptr_dev,
     &ptp_dev,
-    &mp_1m_dev,
     &dsk_dev,
     NULL
 };
@@ -106,7 +106,7 @@ const char *sim_stop_messages[] = {
     "Unknown error",
     "RESERVED",
     "Halt instruction",
-    "Breakpoint"
+    "Breakpoint",
     "Invalid opcode",
     "Invalid memory",
     "Unknown error"
