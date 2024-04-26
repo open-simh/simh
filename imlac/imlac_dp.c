@@ -45,6 +45,7 @@ static uint16 SYNC = 1;
 /* Function declaration. */
 static uint16 dp_iot (uint16, uint16);
 static t_stat dp_svc (UNIT *uptr);
+static t_stat dp_reset(DEVICE *dptr);
 static uint16 sync_iot (uint16, uint16);
 static t_stat sync_svc (UNIT *uptr);
 
@@ -83,7 +84,7 @@ static DEBTAB dp_deb[] = {
 DEVICE dp_dev = {
   "DP", &dp_unit, dp_reg, NULL,
   1, 8, 16, 1, 8, 16,
-  NULL, NULL, NULL,
+  NULL, NULL, dp_reset,
   NULL, NULL, NULL, &dp_imdev, DEV_DEBUG, 0, dp_deb,
   NULL, NULL, NULL, NULL, NULL, NULL
 };
@@ -131,7 +132,7 @@ dp_on (int flag)
     if (SYNC && HALT)
       flag_on (FLAG_SYNC);
   }
-  ON = flag;
+  ON = (uint16) flag;
 }
 
 uint16
@@ -468,9 +469,17 @@ dp_svc(UNIT * uptr)
   } else
     dp_insn (insn);
 
-  if (ON)
+  if (ON) {
     sim_activate_after (&dp_unit, 2);
+  }
 
+  return SCPE_OK;
+}
+
+static t_stat
+dp_reset(DEVICE * uptr)
+{
+  sim_activate_abs (&dp_unit, 0);
   return SCPE_OK;
 }
 
