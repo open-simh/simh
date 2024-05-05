@@ -270,6 +270,7 @@
     <ClCompile Include="..\AltairZ80\s100_2sio.c" />
     <ClCompile Include="..\AltairZ80\s100_64fdc.c" />
     <ClCompile Include="..\AltairZ80\s100_adcs6.c" />
+    <ClCompile Include="..\AltairZ80\s100_dazzler.c" />
     <ClCompile Include="..\AltairZ80\s100_disk1a.c" />
     <ClCompile Include="..\AltairZ80\s100_disk2.c" />
     <ClCompile Include="..\AltairZ80\s100_disk3.c" />

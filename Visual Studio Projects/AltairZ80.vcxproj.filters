@@ -102,6 +102,9 @@
     <ClCompile Include="..\AltairZ80\s100_adcs6.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\AltairZ80\s100_dazzler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\AltairZ80\s100_disk1a.c">
       <Filter>Source Files</Filter>
     </ClCompile>
