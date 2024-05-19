@@ -363,6 +363,7 @@ static void dpy_joy_button(int which, int button, int state)
   }
 }
 
+#if ITS
 static int dpy_keyboard (SIM_KEY_EVENT *ev)
 {
     sim_debug(DEBUG_DATA, &dpy_dev, "Key %d %s\n",
@@ -373,6 +374,7 @@ static int dpy_keyboard (SIM_KEY_EVENT *ev)
     }
     return 0;
 }
+#endif
 
 /* Reset routine */
 
