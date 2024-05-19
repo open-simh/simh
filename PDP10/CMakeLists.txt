@@ -89,6 +89,8 @@ add_simulator(pdp10-ka
         ${KA10D}/kx10_disk.c
         ${KA10D}/ka10_pclk.c
         ${KA10D}/ka10_tv.c
+        ${KA10D}/ka10_dd.c
+        ${KA10D}/kx10_ddc.c
         ${DISPLAY340}
         ${DISPLAYIII}
     INCLUDES
@@ -131,6 +133,8 @@ add_simulator(pdp10-ki
         ${KI10D}/kx10_imp.c
         ${KI10D}/kx10_dpy.c
         ${KI10D}/kx10_disk.c
+        ${KI10D}/kx10_ddc.c
+        ${KI10D}/kx10_tym.c
         ${DISPLAY340}
     INCLUDES
         ${KI10D}
@@ -218,6 +222,7 @@ add_simulator(pdp6
         ${PDP6D}/pdp6_dcs.c
         ${PDP6D}/kx10_dpy.c
         ${PDP6D}/pdp6_slave.c
+        ${PDP6D}/pdp6_ge.c
         ${DISPLAY340}
     INCLUDES
         ${PDP6D}
