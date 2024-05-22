@@ -407,7 +407,7 @@ void *blink(void *ptr)
                     leds |= (pi_enable) ? PION_LAMP : 0;
                     leds |= (PIR & PI_REQ_MASK6) << PI_REQ_V_6;
                     leds |= (PIH & PI_PRO_MASK6) << PI_PRO_V_6;
-		    leds |= (MI_flag) ? PI_LAMP : MI_LAMP;
+                    leds |= (MI_flag) ? PI_LAMP : MI_LAMP;
                     break;
             }
 

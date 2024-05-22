@@ -12263,7 +12263,7 @@ last:
         if (QITS)
             load_quantum();
 #endif
-	RUN = 0;
+        RUN = 0;
         return SCPE_STEP;
     }
 }
