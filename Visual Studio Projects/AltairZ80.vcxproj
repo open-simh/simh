@@ -292,6 +292,7 @@
     <ClCompile Include="..\AltairZ80\s100_ss1.c" />
     <ClCompile Include="..\AltairZ80\s100_tarbell.c" />
     <ClCompile Include="..\AltairZ80\s100_tdd.c" />
+    <ClCompile Include="..\AltairZ80\s100_tuart.c" />
     <ClCompile Include="..\AltairZ80\s100_vdm1.c" />
     <ClCompile Include="..\AltairZ80\sol20.c" />
     <ClCompile Include="..\AltairZ80\vfdhd.c" />

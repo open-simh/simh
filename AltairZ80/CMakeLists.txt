@@ -62,6 +62,7 @@ add_simulator(altairz80
         s100_scp300f.c
         s100_tarbell.c
         s100_tdd.c
+	s100_tuart.c
         wd179x.c
         s100_hdc1001.c
         s100_if3.c

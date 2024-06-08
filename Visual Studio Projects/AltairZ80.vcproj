@@ -411,6 +411,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\AltairZ80\s100_tuart.c"
+				>
+			</File>
+			<File
 				RelativePath="..\AltairZ80\s100_vdm1.c"
 				>
 			</File>
