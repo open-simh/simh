@@ -522,7 +522,7 @@ just want to know where the CSR is located, so they auto-calculate the range.
 The original RP11 had the following differences:  it responded to the address
 range 17776710 - 17776746:  RPM3 was followed by 3 buffer registers RPB1-RPB3,
 then 3 locations (42-46) were unused.  RPCA was both the cylinder address in the
-lower 8 bits <00:07> (read-write), and the selected unit current cylinder address
+lower 8 bits <00:07> (read-write), and the Selected Unit current cylinder address
 (a la SUCA in RP11-C) in the higher 8 bits <08:15> (read-only).  Since only the
 RP02 disk drives were supported, it only required 8 bits for cylinder addresses.
 There was no separate SUCA register (the location was occupied by RPB1).  The
@@ -623,7 +623,7 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access)
             rpds &= ~(data & RPDS_ATTN);                /* clr attention bits */
             if (!(rpds & RPDS_ATTN)  &&  (rpcs & RPCS_AIE)
                 &&  (!(rpcs & CSR_IE)  ||  !(rpcs & CSR_DONE))) {
-                sim_debug(RRDEB_INT, &rr_dev, "rr_wr(ATT:CLR_INT)\n");
+                sim_debug(RRDEB_INT, &rr_dev, "rr_wr(ATTN:CLR_INT)\n");
                 CLR_INT(RR);                            /* clr int request */
             }
         }
@@ -715,7 +715,7 @@ static void rr_go (int16 func)
     if (func == RPCS_RESET) {                           /* control reset? */
         rpds = 0;
         rper = 0;
-        rpcs = CSR_DONE;
+        rpcs = CSR_DONE | (rpcs & CSR_IE);
         rpwc = 0;
         rpba = 0;
         rpca = 0;
@@ -729,8 +729,13 @@ static void rr_go (int16 func)
             uptr->STATUS = 0;
             uptr->FUNC = 0;
         }
-        sim_debug(RRDEB_INT, &rr_dev, "rr_go(RESET:CLR_INT)\n");
-        CLR_INT(RR);                                    /* clr int request */
+        if (rpcs & CSR_IE) {
+            sim_debug(RRDEB_INT, &rr_dev, "rr_go(RESET:SET_INT)\n");
+            SET_INT(RR);                                /* set int request */
+        } else {
+            sim_debug(RRDEB_INT, &rr_dev, "rr_go(RESET:CLR_INT)\n");
+            CLR_INT(RR);                                /* clr int request */
+        }
         return;
     }
 
