@@ -103,7 +103,7 @@ int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
         // read word digits
         for (iDigit=0;iDigit<10;iDigit++) {
             c1 = image[iCol++];
-            c2 = sim_hol_to_ascii(c1);              // convert to ascii
+            c2 = hol_to_ascii(c1);                  // convert to ascii
             if ((c1 == 0xA00) || (c2 == '?')) {
                 c1 = 0xA00; c2 = '?';               // the punched value +0 should be represented by ascii ? 
             }
@@ -120,7 +120,7 @@ int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
             if ((iCol==10) && 
                 (c2 == '-')) NegPunch= 1;           // allow a minus on col 10
             c1 = c1 & 0x3FF;                        // remove X and Y punches
-            c2 = sim_hol_to_ascii(c1);              // convert to ascii again
+            c2 = hol_to_ascii(c1);                  // convert to ascii again
             c2 = c2 - '0';                          // convert ascii to binary digit 
             if (c2 > 9) c2 = 0;                     // nondigits chars interpreted as zero
             d = d * 10 + c2;
@@ -174,7 +174,7 @@ void decode_soap_symb_info(uint16 image[80])
     i2=0;
     for (i=40;i<80;i++) {
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1);        
+        c2 = hol_to_ascii(c1);        
         c2 = (strchr(mem_to_ascii, toupper(c2))) ? c2:' ';      
         if (c2 == '~') c2 = ' ';
         if ((i==47) || (i==50) || (i==56)) buf[i2++] = ' '; // add space separation between op, da, ia fields
@@ -267,7 +267,7 @@ void decode_soap_wiring(uint16 image[80], int bMultiPass)
     // keep 026 fortran charset
     for (i=0;i<80;i++) {
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1);        
+        c2 = hol_to_ascii(c1);        
         c2 = (strchr(mem_to_ascii, toupper(c2))) ? c2:' ';      
         if (c2 == '~') c2 = ' ';
         buf[i] = (char) c2; 
@@ -348,7 +348,7 @@ void decode_supersoap_wiring(uint16 image[80])
     // keep 026 fortran charset
     for (i=0;i<80;i++) {
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1);        
+        c2 = hol_to_ascii(c1);        
         c2 = (strchr(mem_to_ascii, toupper(c2))) ? c2:' ';      
         if (c2 == '~') c2 = ' ';
         buf[i] = (char) c2; 
@@ -456,7 +456,7 @@ void decode_is_wiring(uint16 image[80])
     // keep 0..9,+,-,<space>, replace anything else by <space>
     for (i=0;i<80;i++) {
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1);        
+        c2 = hol_to_ascii(c1);        
         buf[i] = (strchr("+-0123456789", c2)) ? ((char) (c2)):' ';      
     }
     buf[80] = 0; // terminate string
@@ -582,7 +582,7 @@ void decode_it_wiring(uint16 image[80])
     // keep 026 fortran charset
     for (i=0;i<80;i++) {
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1);        
+        c2 = hol_to_ascii(c1);        
         c2 = (strchr(mem_to_ascii, toupper(c2))) ? c2:' ';      
         if (c2 == '~') c2 = ' ';
         buf[i] = (char) c2; 
@@ -732,7 +732,7 @@ int decode_ra_wiring(uint16 image[80], int HiPunch)
     for (i=0;i<80;i++) {
         IsNeg = hbuf[i]=0;
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1); 
+        c2 = hol_to_ascii(c1); 
         c2 = toupper(c2);
         if ((c1 == 0xA00) || (c2 == '?') || c2 == '+') {
             hbuf[i]=1; c2='0';                  // '0' or blank + HiPunch Y(12)
@@ -888,7 +888,7 @@ int decode_fds_wiring(uint16 image[80], int HiPunch)
     for (i=0;i<80;i++) {
         IsNeg =0;
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1); 
+        c2 = hol_to_ascii(c1); 
         c2 = toupper(c2);
         if ((c1 == 0xA00) || (c2 == '?') || c2 == '+') {
             c2='0';                  // '0' or blank + HiPunch Y(12)
@@ -1063,7 +1063,7 @@ void decode_fortransit_wiring(uint16 image[80])
     // keep 026 fortran charset
     for (i=0;i<80;i++) {
         c1 = image[i];
-        c2 = sim_hol_to_ascii(c1); 
+        c2 = hol_to_ascii(c1); 
         c2 = toupper(c2);
         c2 = (strchr(mem_to_ascii, c2)) ? c2:' ';      
         if (c2 == '~') c2 = ' ';
@@ -1156,7 +1156,7 @@ uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
 
     // make local copy of card for debug output
     for (i=0; i<80; i++)
-        cbuf[i] = sim_hol_to_ascii(image[i]);
+        cbuf[i] = hol_to_ascii(image[i]);
     cbuf[80] = 0; // terminate string
     sim_debug(DEBUG_DETAIL, &cpu_dev, "Read Card: %s\n", sim_trim_endspc(cbuf));
 

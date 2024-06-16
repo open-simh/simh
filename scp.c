@@ -10931,6 +10931,26 @@ sim_internal_devices[sim_internal_device_count] = NULL;
 return SCPE_OK;
 }
 
+/* sim_unregister_internal_device   Remove device from internal device list
+
+   Inputs:
+        dptr    =       pointer to device
+*/
+
+t_stat sim_unregister_internal_device (DEVICE *dptr)
+{
+uint32 i;
+
+for (i = 0; i < sim_internal_device_count; i++)
+    if (sim_internal_devices[i] == dptr) {
+	sim_internal_devices[i] = sim_internal_devices[sim_internal_device_count - 1];
+	sim_internal_devices[sim_internal_device_count - 1] = NULL;
+	sim_internal_device_count--;
+        return SCPE_OK;
+    }
+return SCPE_OK;
+}
+
 /* Find_dev_from_unit   find device for unit
 
    Inputs:

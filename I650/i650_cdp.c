@@ -1403,7 +1403,7 @@ uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
             image[i] = 0;
         } else {
             // punch char
-            h = sim_ascii_to_hol(c);
+            h = ascii_to_hol(c);
             image[i] = h;
         }
     }
