@@ -77,8 +77,8 @@ static uint32 ncolors = 0, size_colors = 0;
 static uint32 *surface = NULL;
 static uint32 ws_palette[2];                            /* Monochrome palette */
 typedef struct cursor {
-    uint8 *data;
-    uint8 *mask;
+    uint8_t *data;
+    uint8_t *mask;
     int width;
     int height;
     int hot_x;
@@ -310,8 +310,8 @@ static const char *cross[] = {
 static CURSOR *ws_create_cursor(const char *image[])
 {
 int byte, bit, row, col;
-uint8 *data = NULL;
-uint8 *mask = NULL;
+uint8_t *data = NULL;
+uint8_t *mask = NULL;
 char black, white, transparent;
 CURSOR *result = NULL;
 int width, height, colors, cpp;
@@ -325,8 +325,8 @@ if ((cpp != 1) || (0 != width%8) || (colors != 3))
 black = image[1][0];
 white = image[2][0];
 transparent = image[3][0];
-data = (uint8 *)calloc (1, (width / 8) * height);
-mask = (uint8 *)calloc (1, (width / 8) * height);
+data = (uint8_t *)calloc (1, (width / 8) * height);
+mask = (uint8_t *)calloc (1, (width / 8) * height);
 if (!data || !mask) {
     free (data);
     free (mask);

@@ -284,12 +284,12 @@ static int SDL_SavePNG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst)
 #ifdef USE_ROW_POINTERS
     row_pointers = (png_bytep*) malloc(sizeof(png_bytep)*surface->h);
     for (i = 0; i < surface->h; i++)
-        row_pointers[i] = (png_bytep)(Uint8*)surface->pixels + i * surface->pitch;
+        row_pointers[i] = (png_bytep)(uint8_t*)surface->pixels + i * surface->pitch;
     png_write_image(png_ptr, row_pointers);
     free(row_pointers);
 #else
     for (i = 0; i < surface->h; i++)
-        png_write_row(png_ptr, (png_bytep)(Uint8*)surface->pixels + i * surface->pitch);
+        png_write_row(png_ptr, (png_bytep)(uint8_t*)surface->pixels + i * surface->pitch);
 #endif
     png_write_end(png_ptr, info_ptr);
 
@@ -388,9 +388,9 @@ static VID_DISPLAY vid_first;
 KEY_EVENT_QUEUE vid_key_events;                         /* keyboard events */
 MOUSE_EVENT_QUEUE vid_mouse_events;                     /* mouse events */
 
-static VID_DISPLAY *vid_get_event_window (SDL_Event *ev, Uint32 windowID)
+static VID_DISPLAY *vid_get_event_window (SDL_Event *ev, uint32_t windowID)
 {
-static Uint32 lastID = 0xffffffff;
+static uint32_t lastID = 0xffffffff;
 static VID_DISPLAY *last_display = NULL;
 VID_DISPLAY *vptr;
 SDL_KeyboardEvent *kev;
@@ -1447,7 +1447,7 @@ if (vptr == NULL)
    return;
 
 if (vptr->vid_mouse_captured) {
-    static const Uint8 *KeyStates = NULL;
+    static const uint8_t *KeyStates = NULL;
     static int numkeys;
 
     if (!KeyStates)
@@ -2708,7 +2708,7 @@ static int vid_beep_offset;
 static int vid_beep_duration;
 static int vid_beep_samples;
 
-static void vid_audio_callback(void *ctx, Uint8 *stream, int length)
+static void vid_audio_callback(void *ctx, uint8_t *stream, int length)
 {
 int i, sum, remnant = ((vid_beep_samples - vid_beep_offset) * sizeof (*vid_beep_data));
 
