@@ -322,7 +322,7 @@ void besm6_divide (t_value val)
  */
 void besm6_multiply (t_value val)
 {
-    uint8           neg = 0;
+    uint8_t           neg = 0;
     alureg_t        acc, word, a, b;
     t_uint64        mr, alo, blo, ahi, bhi;
 

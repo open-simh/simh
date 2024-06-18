@@ -268,7 +268,7 @@ static void clear_memory (t_value *p, int nwords)
 /*
  * Выполнение обращения к барабану.
  */
-void drum (int ctlr, uint32 cmd)
+void drum (int ctlr, uint32_t cmd)
 {
     UNIT *u = &drum_unit[ctlr];
 
