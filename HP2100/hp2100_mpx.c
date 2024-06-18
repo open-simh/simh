@@ -818,17 +818,17 @@ typedef enum {                                  /* controller execution states *
 
 static STATE  mpx_state = idle;                 /* current controller state */
 
-static uint16 mpx_ibuf = 0;                     /* status/data in */
-static uint16 mpx_obuf = 0;                     /* command/data out */
+static uint16_t mpx_ibuf = 0;                     /* status/data in */
+static uint16_t mpx_obuf = 0;                     /* command/data out */
 
-static uint32 mpx_cmd     = 0;                  /* current command */
-static uint32 mpx_param   = 0;                  /* current parameter */
-static uint32 mpx_port    = 0;                  /* current port number for R/W */
-static uint32 mpx_portkey = 0;                  /* current port's key */
+static uint32_t mpx_cmd     = 0;                  /* current command */
+static uint32_t mpx_param   = 0;                  /* current parameter */
+static uint32_t mpx_port    = 0;                  /* current port number for R/W */
+static uint32_t mpx_portkey = 0;                  /* current port's key */
 static  int32 mpx_iolen   = 0;                  /* length of current I/O xfer */
 
 static t_bool mpx_uien   = FALSE;               /* unsolicited interrupts enabled */
-static uint32 mpx_uicode = 0;                   /* unsolicited interrupt reason and port */
+static uint32_t mpx_uicode = 0;                   /* unsolicited interrupt reason and port */
 
 typedef struct {
     FLIP_FLOP  control;                         /* control flip-flop */
@@ -841,15 +841,15 @@ static CARD_STATE mpx;                          /* per-card state */
 
 /* Multiplexer per-line state */
 
-static uint8  mpx_key      [MPX_PORTS];         /* port keys */
-static uint16 mpx_config   [MPX_PORTS];         /* port configuration */
-static uint16 mpx_rcvtype  [MPX_PORTS];         /* receive type */
-static uint16 mpx_charcnt  [MPX_PORTS];         /* current character count */
-static uint16 mpx_termcnt  [MPX_PORTS];         /* termination character count */
-static uint16 mpx_flowcntl [MPX_PORTS];         /* flow control */
-static uint8  mpx_enq_cntr [MPX_PORTS];         /* ENQ character counter */
-static uint16 mpx_ack_wait [MPX_PORTS];         /* ACK wait timer */
-static uint16 mpx_flags    [MPX_PORTS];         /* line state flags */
+static uint8_t  mpx_key      [MPX_PORTS];         /* port keys */
+static uint16_t mpx_config   [MPX_PORTS];         /* port configuration */
+static uint16_t mpx_rcvtype  [MPX_PORTS];         /* receive type */
+static uint16_t mpx_charcnt  [MPX_PORTS];         /* current character count */
+static uint16_t mpx_termcnt  [MPX_PORTS];         /* termination character count */
+static uint16_t mpx_flowcntl [MPX_PORTS];         /* flow control */
+static uint8_t  mpx_enq_cntr [MPX_PORTS];         /* ENQ character counter */
+static uint16_t mpx_ack_wait [MPX_PORTS];         /* ACK wait timer */
+static uint16_t mpx_flags    [MPX_PORTS];         /* line state flags */
 
 
 /* Multiplexer buffer selectors */
@@ -869,25 +869,25 @@ static const char * const io_op [] = {          /* operation names, indexed by I
     "write"
     };
 
-static const uint16 buf_size [] = {             /* buffer sizes, indexed by IO_OPER */
+static const uint16_t buf_size [] = {             /* buffer sizes, indexed by IO_OPER */
     RD_BUF_SIZE,
     WR_BUF_SIZE
     };
 
-static uint32 emptying_flags [2];               /* buffer emptying flags [IO_OPER] */
-static uint32 filling_flags  [2];               /* buffer filling  flags [IO_OPER] */
+static uint32_t emptying_flags [2];               /* buffer emptying flags [IO_OPER] */
+static uint32_t filling_flags  [2];               /* buffer filling  flags [IO_OPER] */
 
 
 /* Multiplexer per-line buffers */
 
-typedef uint16 BUF_INDEX [MPX_PORTS] [2];               /* buffer index (read and write) */
+typedef uint16_t BUF_INDEX [MPX_PORTS] [2];               /* buffer index (read and write) */
 
 static BUF_INDEX mpx_put;                               /* read/write buffer add index */
 static BUF_INDEX mpx_sep;                               /* read/write buffer separator index */
 static BUF_INDEX mpx_get;                               /* read/write buffer remove index */
 
-static uint8 mpx_rbuf [MPX_PORTS] [RD_BUF_SIZE];        /* read buffer */
-static uint8 mpx_wbuf [MPX_PORTS] [WR_BUF_SIZE];        /* write buffer */
+static uint8_t mpx_rbuf [MPX_PORTS] [RD_BUF_SIZE];        /* read buffer */
+static uint8_t mpx_wbuf [MPX_PORTS] [WR_BUF_SIZE];        /* write buffer */
 
 
 /* Multiplexer local SCP support routines */
@@ -915,18 +915,18 @@ static t_stat show_status   (FILE   *st,   UNIT  *uptr, int32 val,        CONST 
 static t_bool exec_command     (void);
 static void   poll_connection  (void);
 static void   controller_reset (void);
-static uint32 service_time     (uint16 control_word);
-static int32  key_to_port      (uint32 key);
+static uint32_t service_time     (uint16_t control_word);
+static int32  key_to_port      (uint32_t key);
 
-static void   buf_init   (IO_OPER rw, uint32 port);
-static uint8  buf_get    (IO_OPER rw, uint32 port);
-static void   buf_put    (IO_OPER rw, uint32 port, uint8 ch);
-static void   buf_remove (IO_OPER rw, uint32 port);
-static void   buf_term   (IO_OPER rw, uint32 port, uint8 header);
-static void   buf_free   (IO_OPER rw, uint32 port);
-static void   buf_cancel (IO_OPER rw, uint32 port, BUF_SELECT which);
-static uint16 buf_len    (IO_OPER rw, uint32 port, BUF_SELECT which);
-static uint32 buf_avail  (IO_OPER rw, uint32 port);
+static void   buf_init   (IO_OPER rw, uint32_t port);
+static uint8_t  buf_get    (IO_OPER rw, uint32_t port);
+static void   buf_put    (IO_OPER rw, uint32_t port, uint8_t ch);
+static void   buf_remove (IO_OPER rw, uint32_t port);
+static void   buf_term   (IO_OPER rw, uint32_t port, uint8_t header);
+static void   buf_free   (IO_OPER rw, uint32_t port);
+static void   buf_cancel (IO_OPER rw, uint32_t port, BUF_SELECT which);
+static uint16_t buf_len    (IO_OPER rw, uint32_t port, BUF_SELECT which);
+static uint32_t buf_avail  (IO_OPER rw, uint32_t port);
 
 
 /* Multiplexer SCP data structures */
@@ -1246,7 +1246,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIOO:                                     /* I/O data output */
-            mpx_obuf = (uint16) inbound_value;          /* save word */
+            mpx_obuf = (uint16_t) inbound_value;          /* save word */
 
             tprintf (mpx_dev, DEB_CPU, "[OTx%s] %s = %06o\n",
                      hold_or_clear, output_state [mpx_state], mpx_obuf);
@@ -1434,8 +1434,8 @@ return outbound;                                        /* return the outbound s
 
 static t_stat cntl_service (UNIT *uptr)
 {
-uint8 ch;
-uint32 i;
+uint8_t ch;
+uint32_t i;
 t_bool add_crlf;
 t_bool set_flag = TRUE;
 STATE last_state = mpx_state;
@@ -1452,7 +1452,7 @@ switch (mpx_state) {                                                /* dispatch 
             if (mpx_uien == TRUE) {                                         /* interrupts enabled? */
                 mpx_port = GET_UIPORT (mpx_uicode);                         /* get port number */
                 mpx_portkey = mpx_key [mpx_port];                           /* get port key */
-                mpx_ibuf = (uint16) (mpx_uicode & UI_REASON_MASK | mpx_portkey); /* report UI reason and port key */
+                mpx_ibuf = (uint16_t) (mpx_uicode & UI_REASON_MASK | mpx_portkey); /* report UI reason and port key */
                 set_flag = TRUE;                                            /* reissue host interrupt */
                 mpx_uien = FALSE;                                           /* disable UI */
 
@@ -1486,7 +1486,7 @@ switch (mpx_state) {                                                /* dispatch 
 
                         if (mpx_uicode) {                                   /* UI to send? */
                             mpx_port = i;                                   /* set port number for Acknowledge */
-                            mpx_ibuf = (uint16) (mpx_uicode | mpx_portkey); /* merge UI reason and port key */
+                            mpx_ibuf = (uint16_t) (mpx_uicode | mpx_portkey); /* merge UI reason and port key */
                             mpx_uicode = mpx_uicode | mpx_port;             /* save UI reason and port */
                             set_flag = TRUE;                                /* interrupt host */
                             mpx_uien = FALSE;                               /* disable UI */
@@ -1540,7 +1540,7 @@ switch (mpx_state) {                                                /* dispatch 
                 for (i = 0; i < 2; i++)                     /* output one or two chars */
                     if (mpx_iolen > 0) {                    /* more to do? */
                         if (i)                              /* high or low byte? */
-                            ch = (uint8) (mpx_obuf & 0377); /* low byte */
+                            ch = (uint8_t) (mpx_obuf & 0377); /* low byte */
                         else
                             ch = mpx_obuf >> 8;             /* high byte */
 
@@ -1564,7 +1564,7 @@ switch (mpx_state) {                                                /* dispatch 
                         buf_put (iowrite, mpx_port, LF);            /* add LF to buffer */
                         }
 
-                    buf_term (iowrite, mpx_port, (uint8) (mpx_param  >> 8));    /* terminate buffer */
+                    buf_term (iowrite, mpx_port, (uint8_t) (mpx_param  >> 8));    /* terminate buffer */
                     mpx_iolen = -1;                                             /* mark as done */
                     }
 
@@ -1607,7 +1607,7 @@ switch (mpx_state) {                                                /* dispatch 
                         if (i)                                      /* high or low byte? */
                             mpx_ibuf = mpx_ibuf | ch;               /* low byte */
                         else
-                            mpx_ibuf = (uint16) (ch << 8);          /* high byte */
+                            mpx_ibuf = (uint16_t) (ch << 8);          /* high byte */
 
                         mpx_iolen = mpx_iolen - 1;                  /* drop count */
                         }
@@ -1787,14 +1787,14 @@ return SCPE_OK;
 static t_stat line_service (UNIT *uptr)
 {
 const  int32 port = uptr - mpx_unit;                            /* port number */
-const uint16 rt = mpx_rcvtype [port];                           /* receive type for port */
-const uint32 data_bits = 5 + GET_BPC (mpx_config [port]);       /* number of data bits */
-const uint32 data_mask = (1 << data_bits) - 1;                  /* mask for data bits */
+const uint16_t rt = mpx_rcvtype [port];                           /* receive type for port */
+const uint32_t data_bits = 5 + GET_BPC (mpx_config [port]);       /* number of data bits */
+const uint32_t data_mask = (1 << data_bits) - 1;                  /* mask for data bits */
 const t_bool fast_timing = (uptr->flags & UNIT_FASTTIME) != 0;  /* port is set for fast timing */
 const t_bool fast_binary_read = (mpx_cmd == CMD_BINARY_READ);   /* fast binary read in progress */
-uint8 ch;
+uint8_t ch;
 int32 chx;
-uint32 buffer_count, write_count;
+uint32_t buffer_count, write_count;
 t_stat status = SCPE_OK;
 t_bool recv_loop = !fast_binary_read;                               /* bypass if fast binary read */
 t_bool xmit_loop = !(fast_binary_read                               /* bypass if fast read */
@@ -1904,7 +1904,7 @@ while (recv_loop) {                                     /* OK to process? */
         continue;                                       /* discard NUL that accompanied BREAK */
         }
 
-    ch = (uint8) (chx & data_mask);                     /* mask to bits per char */
+    ch = (uint8_t) (chx & data_mask);                     /* mask to bits per char */
 
     if ((ch == XOFF) &&                                 /* XOFF? */
         (mpx_flowcntl [port] & FC_XONXOFF)) {           /*   and handshaking enabled? */
@@ -1970,7 +1970,7 @@ while (recv_loop) {                                     /* OK to process? */
                 }
 
         if (uptr->flags & UNIT_CAPSLOCK)                    /* caps lock mode? */
-            ch = (uint8) toupper (ch);                      /* convert to upper case if lower */
+            ch = (uint8_t) toupper (ch);                      /* convert to upper case if lower */
 
         if (rt & RT_ENAB_ECHO)                              /* echo enabled? */
             tmxr_putc_ln (&mpx_ldsc [port], ch);            /* echo the char */
@@ -2044,7 +2044,7 @@ while (recv_loop) {                                     /* OK to process? */
                 buf_remove (ioread, port);                  /* back out dummy char leaving header */
                 }
 
-            buf_term (ioread, port, (uint8) (mpx_param >> 8));  /* terminate buffer and set header */
+            buf_term (ioread, port, (uint8_t) (mpx_param >> 8));  /* terminate buffer and set header */
 
             if (buf_avail (ioread, port) == 1)              /* first read buffer? */
                 mpx_flags [port] |= FL_HAVEBUF;             /* indicate availability */
@@ -2116,7 +2116,7 @@ return status;
 
 static t_stat poll_service (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 t_stat status = SCPE_OK;
 
 poll_connection ();                                         /* check for new connection */
@@ -2438,7 +2438,7 @@ return SCPE_OK;
 static t_bool exec_command (void)
 {
 int32 port;
-uint32 svc_time;
+uint32_t svc_time;
 t_bool set_flag = TRUE;                                 /* flag is normally set on completion */
 STATE next_state = idle;                                /* command normally executes to completion */
 
@@ -2493,7 +2493,7 @@ switch (mpx_cmd) {
             case UI_RDBUF_AVAIL:                                /* read buffer notification */
                 mpx_flags [mpx_port] &= ~FL_HAVEBUF;            /* clear flag */
 
-                mpx_ibuf = (uint16) (buf_get (ioread, mpx_port) << 8 |  /* get header value and position */
+                mpx_ibuf = (uint16_t) (buf_get (ioread, mpx_port) << 8 |  /* get header value and position */
                                      buf_len (ioread, mpx_port, get));  /*   and include buffer length */
 
                 if (mpx_flags [mpx_port] & FL_RDOVFLOW) {       /* did a buffer overflow? */
@@ -2579,8 +2579,8 @@ switch (mpx_cmd) {
 
     case CMD_SET_KEY:                                   /* set port key and configuration */
         port = GET_PORT (mpx_param);                    /* get target port number */
-        mpx_key [port] = (uint8) mpx_portkey;           /* set port key */
-        mpx_config [port] = (uint16) mpx_param;         /* set port configuration word */
+        mpx_key [port] = (uint8_t) mpx_portkey;           /* set port key */
+        mpx_config [port] = (uint16_t) mpx_param;         /* set port configuration word */
 
         svc_time = service_time (mpx_config [port]);    /* get service time for baud rate */
 
@@ -2595,7 +2595,7 @@ switch (mpx_cmd) {
         port = key_to_port (mpx_portkey);               /* get port */
 
         if (port >= 0)                                  /* port defined? */
-            mpx_rcvtype [port] = (uint16) mpx_param;    /* save port receive type */
+            mpx_rcvtype [port] = (uint16_t) mpx_param;    /* save port receive type */
         break;
 
 
@@ -2603,7 +2603,7 @@ switch (mpx_cmd) {
         port = key_to_port (mpx_portkey);               /* get port */
 
         if (port >= 0) {                                /* port defined? */
-            mpx_termcnt [port] = (uint16) mpx_param;    /* save port termination character count */
+            mpx_termcnt [port] = (uint16_t) mpx_param;    /* save port termination character count */
             mpx_charcnt [port] = 0;                     /*   and clear the current character count */
             }
         break;
@@ -2713,7 +2713,7 @@ return;
 
 static void controller_reset (void)
 {
-uint32 i;
+uint32_t i;
 
 mpx_state = idle;                                       /* idle state */
 
@@ -2730,7 +2730,7 @@ for (i = 0; i < MPX_PORTS; i++) {                       /* clear per-line variab
     if (i == 0)                                         /* default port configurations */
         mpx_config [0] = SK_PWRUP_0;                    /* port 0 is separate from 1-7 */
     else
-        mpx_config [i] = (uint16) (SK_PWRUP_1 | i);
+        mpx_config [i] = (uint16_t) (SK_PWRUP_1 | i);
 
     mpx_rcvtype [i] = RT_PWRUP;                         /* power on config for echoplex */
     mpx_charcnt [i] = 0;                                /* clear character count */
@@ -2760,7 +2760,7 @@ return;
    the firmware defines these as 38400, 9600, and 9600 baud, respectively.
 */
 
-static uint32 service_time (uint16 control_word)
+static uint32_t service_time (uint16_t control_word)
 {
 /*           Baud Rates 0- 7 :    --,     50,     75,    110,  134.5,    150,   300,  1200, */
 /*           Baud Rates 8-15 :  1800,   2400,   4800,   9600,  19200,  38400,  9600,  9600  */
@@ -2782,7 +2782,7 @@ return ticks [GET_BAUDRATE (control_word)];             /* return service time f
    failure.
 */
 
-static int32 key_to_port (uint32 key)
+static int32 key_to_port (uint32_t key)
 {
 int32 i;
 
@@ -2946,7 +2946,7 @@ return -1;                                              /* return failure code *
 
 /* Increment a buffer index with wraparound */
 
-static uint16 buf_incr (BUF_INDEX index, uint32 port, IO_OPER rw, int increment)
+static uint16_t buf_incr (BUF_INDEX index, uint32_t port, IO_OPER rw, int increment)
 {
 index [port] [rw] =
   (index [port] [rw] + buf_size [rw] + increment) % buf_size [rw];
@@ -2961,7 +2961,7 @@ return index [port] [rw];
    flags.
 */
 
-static void buf_init (IO_OPER rw, uint32 port)
+static void buf_init (IO_OPER rw, uint32_t port)
 {
 mpx_get [port] [rw] = 0;                                /* clear indexes */
 mpx_sep [port] [rw] = 0;
@@ -2983,10 +2983,10 @@ return;
    characters have been removed from the buffer.
 */
 
-static uint8 buf_get (IO_OPER rw, uint32 port)
+static uint8_t buf_get (IO_OPER rw, uint32_t port)
 {
-uint8 ch;
-uint32 index = mpx_get [port] [rw];                     /* current get index */
+uint8_t ch;
+uint32_t index = mpx_get [port] [rw];                     /* current get index */
 
 if (rw == ioread)
     ch = mpx_rbuf [port] [index];                       /* get char from read buffer */
@@ -3019,9 +3019,9 @@ return ch;
    flag.
 */
 
-static void buf_put (IO_OPER rw, uint32 port, uint8 ch)
+static void buf_put (IO_OPER rw, uint32_t port, uint8_t ch)
 {
-uint32 index;
+uint32_t index;
 
 if ((mpx_flags [port] & filling_flags [rw]) == 0) {     /* first put to this buffer? */
     mpx_flags [port] |= filling_flags [rw];             /* set buffer filling flag */
@@ -3053,9 +3053,9 @@ return;
    "put" index with wraparound.
 */
 
-static void buf_remove (IO_OPER rw, uint32 port)
+static void buf_remove (IO_OPER rw, uint32_t port)
 {
-uint32 index;
+uint32_t index;
 
 index = buf_incr (mpx_put, port, rw, -1);               /* decrement circular put index */
 
@@ -3075,9 +3075,9 @@ return;
    cleared.
 */
 
-static void buf_term (IO_OPER rw, uint32 port, uint8 header)
+static void buf_term (IO_OPER rw, uint32_t port, uint8_t header)
 {
-uint32 index = mpx_sep [port] [rw];                         /* separator index */
+uint32_t index = mpx_sep [port] [rw];                         /* separator index */
 
 if (rw == ioread)
     mpx_rbuf [port] [index] = header;                       /* put header in read buffer */
@@ -3101,7 +3101,7 @@ return;
    "buffer emptying" flag is reset.
 */
 
-static void buf_free (IO_OPER rw, uint32 port)
+static void buf_free (IO_OPER rw, uint32_t port)
 {
 if ((mpx_flags [port] & filling_flags [rw]) == 0)           /* not filling next buffer? */
     mpx_sep [port] [rw] = mpx_put [port] [rw];              /* move separator to end of next buffer */
@@ -3119,7 +3119,7 @@ return;
    buffer or the "get" buffer may be selected.
 */
 
-static void buf_cancel (IO_OPER rw, uint32 port, BUF_SELECT which)
+static void buf_cancel (IO_OPER rw, uint32_t port, BUF_SELECT which)
 {
 if (which == put) {                                     /* cancel put buffer? */
     mpx_put [port] [rw] = mpx_sep [port] [rw];          /* move put back to separator */
@@ -3158,7 +3158,7 @@ return;
    length for the allocated header.
 */
 
-static uint16 buf_len (IO_OPER rw, uint32 port, BUF_SELECT which)
+static uint16_t buf_len (IO_OPER rw, uint32_t port, BUF_SELECT which)
 {
 int16 length;
 
@@ -3186,7 +3186,7 @@ else
    it contains no characters (including the header byte).
 */
 
-static uint32 buf_avail (IO_OPER rw, uint32 port)
+static uint32_t buf_avail (IO_OPER rw, uint32_t port)
 {
 if (mpx_get [port] [rw] == mpx_put [port] [rw])             /* get and put indexes equal? */
     return 2;                                               /* all buffers are free */

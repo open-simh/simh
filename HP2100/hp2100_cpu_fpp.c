@@ -24,10 +24,10 @@
    this Software without prior written authorization from the author.
 
    28-Jul-18    JDB     Renamed source file from hp2100_fp1.c
-   07-Sep-17    JDB     Replaced "uint16" casts with "HP_WORD" for OP assignments
+   07-Sep-17    JDB     Replaced "uint16_t" casts with "HP_WORD" for OP assignments
    16-May-16    JDB     Reformulated the definitions of op_mask
    24-Dec-14    JDB     Added casts for explicit downward conversions
-                        Changed fp_ucom return from uint32 to uint16
+                        Changed fp_ucom return from uint32_t to uint16_t
    18-Mar-13    JDB     Changed type of mantissa masks array to to unsigned
    06-Feb-12    JDB     Added missing precision on constant "one" in fp_trun
    21-Jun-11    JDB     Completed the comments for divide; no code changes
@@ -315,7 +315,7 @@ static const t_int64 n_half_lsb[6] = { 0,
                                        ((t_int64) 1 << (FP_V_TMANT - 1)) - 1,
                                        ((t_int64) 1 << (FP_V_EMANT - 1)) - 1 };
 
-static const uint32  op_start[6]   = { IN_V_SNUM,
+static const uint32_t  op_start[6]   = { IN_V_SNUM,
                                        IN_V_DNUM,
                                        FP_V_FMANT,
                                        FP_V_XMANT,
@@ -329,7 +329,7 @@ static const t_uint64 mant_mask[6] = { IN_SSMAGN,
                                        FP_STMANT,
                                        FP_SEMANT };
 
-static const uint32  op_bits[6]    = { IN_W_SMAGN,
+static const uint32_t  op_bits[6]    = { IN_W_SMAGN,
                                        IN_W_DMAGN,
                                        FP_W_FMANT + FP_W_MSIGN,
                                        FP_W_XMANT + FP_W_MSIGN,
@@ -343,7 +343,7 @@ static const t_int64 op_mask[6]    = { ~(((t_int64) 1 << IN_V_SNUM) - 1),
                                        ~(((t_int64) 1 << FP_V_TNUM) - 1),
                                        ~(((t_int64) 1 << FP_V_ENUM) - 1) };
 
-static const uint32  int_p_max[2]  = { IN_M_SMAGN,
+static const uint32_t  int_p_max[2]  = { IN_M_SMAGN,
                                        IN_M_DMAGN };
 
 
@@ -414,7 +414,7 @@ return bits_lost;
 
 static t_int64 unpack_int (OP packed, OPSIZE precision)
 {
-uint32 i;
+uint32_t i;
 t_uint64 unpacked = 0;
 
 if (precision == in_s)
@@ -460,7 +460,7 @@ switch (precision) {
     case fp_x:
     case fp_t:
         unpacked.exponent =                             /* unpack exponent from correct word */
-            TO_EXP (packed.fpk[(uint32) precision - 1]);
+            TO_EXP (packed.fpk[(uint32_t) precision - 1]);
         break;
 
     case fp_e:
@@ -492,7 +492,7 @@ if (precision == in_s)
     packed.word = (HP_WORD) (unpacked >> 48) & D16_MASK; /* pack single integer */
 
 else if (precision == in_d)
-    packed.dword = (uint32) (unpacked >> 32) & D32_MASK; /* pack double integer */
+    packed.dword = (uint32_t) (unpacked >> 32) & D32_MASK; /* pack double integer */
 
 else {
     if (precision == fp_e)                              /* five word operand? */
@@ -518,11 +518,11 @@ return packed;
 static OP pack (FPU unpacked)
 {
 OP packed;
-uint8 exp;
+uint8_t exp;
 
 packed = pack_int (unpacked.mantissa, unpacked.precision);  /* pack mantissa */
 
-exp = (uint8) (unpacked.exponent << FP_V_EXP |          /* rotate exponent */
+exp = (uint8_t) (unpacked.exponent << FP_V_EXP |          /* rotate exponent */
               (unpacked.exponent < 0) << FP_V_ESIGN);
 
 switch (unpacked.precision) {                           /* merge exponent into correct word */
@@ -534,8 +534,8 @@ switch (unpacked.precision) {                           /* merge exponent into c
     case fp_f:                                          /* merge into last word */
     case fp_x:
     case fp_t:
-        packed.fpk[(uint32) unpacked.precision - 1] =
-            (packed.fpk[(uint32) unpacked.precision - 1] & ~FP_SEXP) | exp;
+        packed.fpk[(uint32_t) unpacked.precision - 1] =
+            (packed.fpk[(uint32_t) unpacked.precision - 1] & ~FP_SEXP) | exp;
         break;
 
     case fp_e:                                          /* place in separate word */
@@ -599,9 +599,9 @@ return;
    The number to be rounded must be normalized upon entry.
 */
 
-static uint32 roundovf (FPU *unpacked, t_bool expand)
+static uint32_t roundovf (FPU *unpacked, t_bool expand)
 {
-uint32 overflow;
+uint32_t overflow;
 t_bool sign;
 
 sign = (unpacked->mantissa < 0);                        /* save mantissa sign */
@@ -654,9 +654,9 @@ return overflow;
 
 /* Normalize, round, and pack an unpacked floating-point number */
 
-static uint32 nrpack (OP *packed, FPU unpacked, t_bool expand)
+static uint32_t nrpack (OP *packed, FPU unpacked, t_bool expand)
 {
-uint32 overflow;
+uint32_t overflow;
 
 normalize (&unpacked);                                  /* normalize for rounding */
 overflow = roundovf (&unpacked, expand);                /* round and check for overflow */
@@ -829,7 +829,7 @@ return;
 
 static void multiply (FPU *product, FPU multiplicand, FPU multiplier)
 {
-uint32 ah, al, bh, bl, sign = 0;
+uint32_t ah, al, bh, bl, sign = 0;
 t_uint64 hh, hl, lh, ll, carry;
 int16 ch, cl, dh, dl;
 t_bool firmware;
@@ -857,10 +857,10 @@ else {
     product->exponent =                                 /* compute exponent */
         multiplicand.exponent + multiplier.exponent + 1;
 
-    ah = (uint32) (multiplicand.mantissa >> 32);        /* split multiplicand */
-    al = (uint32) (multiplicand.mantissa & D32_MASK);   /* into high and low parts */
-    bh = (uint32) (multiplier.mantissa >> 32);          /* split multiplier */
-    bl = (uint32) (multiplier.mantissa & D32_MASK);     /* into high and low parts */
+    ah = (uint32_t) (multiplicand.mantissa >> 32);        /* split multiplicand */
+    al = (uint32_t) (multiplicand.mantissa & D32_MASK);   /* into high and low parts */
+    bh = (uint32_t) (multiplier.mantissa >> 32);          /* split multiplier */
+    bl = (uint32_t) (multiplier.mantissa & D32_MASK);     /* into high and low parts */
 
     if (firmware && (product->precision == fp_f)) {     /* single-precision firmware? */
         ch = (int16) UPPER_WORD (ah);                   /* split 32-bit multiplicand */
@@ -869,8 +869,8 @@ else {
         dl = (int16) LOWER_WORD (bh) & ~LSB;            /* into high and low parts */
 
         hh = (t_uint64) (((int32) ch * dh) & ~1);       /* form cross products */
-        hl = (t_uint64) (((t_int64) ch * (t_int64) (uint16) dl +
-                          (t_int64) dh * (t_int64) (uint16) cl) &
+        hl = (t_uint64) (((t_int64) ch * (t_int64) (uint16_t) dl +
+                          (t_int64) dh * (t_int64) (uint16_t) cl) &
                          0xfffffffffffe0000);
 
         product->mantissa = (t_uint64) (((t_int64) hh << 32) +      /* sum partials */
@@ -883,7 +883,7 @@ else {
         lh = ((t_uint64) al * bh);                      /* 64-bit multiplies */
         ll = ((t_uint64) al * bl);
 
-        carry = ((ll >> 32) + (uint32) hl + (uint32) lh) >> 32;     /* form carry */
+        carry = ((ll >> 32) + (uint32_t) hl + (uint32_t) lh) >> 32;     /* form carry */
 
         product->mantissa = hh + (hl >> 32) + (lh >> 32) + carry;   /* sum partials */
 
@@ -933,7 +933,7 @@ return;
 
 static void divide (FPU *quotient, FPU dividend, FPU divisor)
 {
-uint32 sign = 0;
+uint32_t sign = 0;
 t_int64 bh, bl, r1, r0, p1, p0;
 t_uint64 q, q1, q0;
 t_bool firmware;
@@ -986,7 +986,7 @@ else {
         div = ((div % dh) & ~1) << 15;                  /* ASR 1, move rem to upper */
         pq2 = (int16) (div / dh);                       /* form second partial quotient */
 
-        div = (uint16) dl << 13;                        /* move divisor LSB to upper, LSR 3 */
+        div = (uint16_t) dl << 13;                        /* move divisor LSB to upper, LSR 3 */
         cq = (int16) (div / dh);                        /* form correction quotient */
         cp = -cq * pq1;                                 /* and correction product */
 
@@ -1045,9 +1045,9 @@ return;
    right-shifted to zero the exponent.  The result is then rounded.
 */
 
-static uint32 fix (FPU *result, FPU operand)
+static uint32_t fix (FPU *result, FPU operand)
 {
-uint32 overflow;
+uint32_t overflow;
 t_bool bits_lost;
 
 if (operand.exponent < 0) {                             /* value < 0.5? */
@@ -1123,7 +1123,7 @@ return;
        warning.
 */
 
-void fp_prec (uint16 opcode, OPSIZE *operand_l, OPSIZE *operand_r, OPSIZE *result)
+void fp_prec (uint16_t opcode, OPSIZE *operand_l, OPSIZE *operand_r, OPSIZE *result)
 {
 OPSIZE fp_size, int_size;
 
@@ -1217,12 +1217,12 @@ return;
    The function returns 1 if the operation overflows and 0 if not.
 */
 
-uint32 fp_exec (uint16 opcode, OP *result, OP operand_l, OP operand_r)
+uint32_t fp_exec (uint16_t opcode, OP *result, OP operand_l, OP operand_r)
 {
 static FPU accumulator;
 FPU uoperand_l, uoperand_r;
 OPSIZE op_l_prec, op_r_prec, rslt_prec;
-uint32 overflow;
+uint32_t overflow;
 
 if (opcode & D16_SIGN) {                                /* accumulator mode? */
     rslt_prec = (OPSIZE) (opcode & 0017);               /* get operation precision */
@@ -1323,7 +1323,7 @@ return overflow;
 OP fp_accum (const OP *operand, OPSIZE precision)
 {
 OP result = NOP;
-uint16 opcode = (uint16) precision | D16_SIGN;          /* add special mode bit */
+uint16_t opcode = (uint16_t) precision | D16_SIGN;          /* add special mode bit */
 
 if (operand)
     fp_exec (opcode, NULL, *operand, NOP);              /* set accum */
@@ -1341,7 +1341,7 @@ return result;
    (no masking is done).
 */
 
-uint32 fp_pack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
+uint32_t fp_pack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
 {
 FPU unpacked;
 
@@ -1361,7 +1361,7 @@ return 0;
    significant in the mantissa (no masking is done).
 */
 
-uint32 fp_nrpack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
+uint32_t fp_nrpack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
 {
 FPU unpacked;
 
@@ -1380,7 +1380,7 @@ return nrpack (result, unpacked, FALSE);                /* norm/rnd/pack them */
    null if that part isn't wanted.
 */
 
-uint32 fp_unpack (OP *mantissa, int32 *exponent, OP packed, OPSIZE precision)
+uint32_t fp_unpack (OP *mantissa, int32 *exponent, OP packed, OPSIZE precision)
 
 {
 FPU unpacked;
@@ -1404,7 +1404,7 @@ return 0;
    significant in the mantissa.
 */
 
-uint16 fp_ucom (OP *mantissa, OPSIZE precision)
+uint16_t fp_ucom (OP *mantissa, OPSIZE precision)
 {
 FPU unpacked;
 
@@ -1413,13 +1413,13 @@ unpacked.exponent = 0;                                  /* clear undefined expon
 unpacked.precision = precision;                         /* set precision */
 complement (&unpacked);                                 /* negate it */
 *mantissa = pack_int (unpacked.mantissa, precision);    /* replace mantissa */
-return (uint16) unpacked.exponent;                      /* return exponent increment */
+return (uint16_t) unpacked.exponent;                      /* return exponent increment */
 }
 
 
 /* Complement a floating-point number */
 
-uint32 fp_pcom (OP *packed, OPSIZE precision)
+uint32_t fp_pcom (OP *packed, OPSIZE precision)
 {
 FPU unpacked;
 
@@ -1431,7 +1431,7 @@ return nrpack (packed, unpacked, FALSE);                /* and norm/rnd/pack */
 
 /* Truncate a floating-point number */
 
-uint32 fp_trun (OP *result, OP source, OPSIZE precision)
+uint32_t fp_trun (OP *result, OP source, OPSIZE precision)
 {
 t_bool bits_lost;
 FPU unpacked;
@@ -1458,7 +1458,7 @@ return 0;                                               /* clear overflow on ret
 
 /* Convert a floating-point number from one precision to another */
 
-uint32 fp_cvt (OP *result, OPSIZE source_precision, OPSIZE dest_precision)
+uint32_t fp_cvt (OP *result, OPSIZE source_precision, OPSIZE dest_precision)
 {
 FPU unpacked;
 

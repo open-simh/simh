@@ -379,12 +379,12 @@ static int32 dpc_obuf = 0;                      /* cch buffers */
 static int32 dpd_xfer = 0;                      /* xfer in prog */
 static int32 dpd_wval = 0;                      /* write data valid */
 static int32 dp_ptr = 0;                        /* buffer ptr */
-static uint8 dpc_rarc = 0;                      /* RAR cylinder */
-static uint8 dpc_rarh = 0;                      /* RAR head */
-static uint8 dpc_rars = 0;                      /* RAR sector */
-static uint8 dpc_ucyl[DP_NUMDRV] = { 0 };       /* unit cylinder */
-static uint16 dpc_sta[DP_NUMDRV] = { 0 };       /* status regs */
-static uint16 dpxb[DP_NUMWD];                   /* sector buffer */
+static uint8_t dpc_rarc = 0;                      /* RAR cylinder */
+static uint8_t dpc_rarh = 0;                      /* RAR head */
+static uint8_t dpc_rars = 0;                      /* RAR sector */
+static uint8_t dpc_ucyl[DP_NUMDRV] = { 0 };       /* unit cylinder */
+static uint16_t dpc_sta[DP_NUMDRV] = { 0 };       /* status regs */
+static uint16_t dpxb[DP_NUMWD];                   /* sector buffer */
 
 
 /* Interface local SCP support routines */
@@ -1286,7 +1286,7 @@ switch (uptr->FNC) {                                    /* case function */
                 break;                                  /* done */
                 }
             }
-        dpxb[dp_ptr++] = dpd_wval ? (uint16) dpd_obuf : 0;  /* store word/fill */
+        dpxb[dp_ptr++] = dpd_wval ? (uint16_t) dpd_obuf : 0;  /* store word/fill */
         dpd_wval = 0;                                   /* clr data valid */
         if (dp_ptr >= DP_NUMWD) {                       /* buffer full? */
             da = GETDA (dpc_rarc, dpc_rarh, dpc_rars);  /* calc disk addr */
@@ -1395,7 +1395,7 @@ t_stat dpc_attach (UNIT *uptr, CONST char *cptr)
 {
 t_stat      result;
 t_addr      offset;
-const uint8 zero = 0;
+const uint8_t zero = 0;
 
 result = attach_unit (uptr, cptr);                      /* attach the drive */
 
@@ -1739,8 +1739,8 @@ static const LOADER_ARRAY dp_loaders = {
 t_stat dpc_boot (int32 unitno, DEVICE *dptr)
 {
 static const HP_WORD dp_preserved = 0000070u;                   /* S-register bits 5-3 are preserved */
-const uint32 subchannel = sim_switches & SWMASK ('R') ? 1 : 0;  /* the selected boot subchannel */
-uint32 start;
+const uint32_t subchannel = sim_switches & SWMASK ('R') ? 1 : 0;  /* the selected boot subchannel */
+uint32_t start;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (dp_loaders, unitno,            /*   then copy the boot loader to memory */

@@ -261,8 +261,8 @@ static const BITSET_FORMAT ptp_status_format =          /* names, offset, direct
 /* Interface local state declarations */
 
 typedef struct {
-    uint8        output_data;                   /* output data register */
-    uint8        input_data;                    /* input data register */
+    uint8_t        output_data;                   /* output data register */
+    uint8_t        input_data;                    /* input data register */
     FLIP_FLOP    command;                       /* command flip-flop */
     FLIP_FLOP    control;                       /* control flip-flop */
     FLIP_FLOP    flag;                          /* flag flip-flop */
@@ -970,7 +970,7 @@ static const LOADER_ARRAY ptr_loaders = {
 
 static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 {
-uint32 start;
+uint32_t start;
 
 if (dptr == NULL)                                               /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (ptr_loaders, unitno,               /*   then copy the boot loader to memory */

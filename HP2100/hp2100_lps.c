@@ -184,7 +184,7 @@ static int32  lps_ccnt = 0;                     /* character count */
 static int32  lps_lcnt = 0;                     /* line count */
 static int32  lps_sta = 0;                      /* printer status */
 static t_bool lps_fast_timing = TRUE;           /* timing type */
-static uint32 lps_power = LPS_ON;               /* power state */
+static uint32_t lps_power = LPS_ON;               /* power state */
 
 /* Hardware timing:
    (based on 1580 instr/msec)             instr   msec   calc msec
@@ -705,7 +705,7 @@ return result;
 
 static t_stat lps_set_timing (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i, factor;
+uint32_t i, factor;
 
 lps_fast_timing = (val != 0);                           /* determine choice */
 

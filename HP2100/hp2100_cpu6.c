@@ -30,7 +30,7 @@
    14-Jun-18    JDB     Renamed PRO to MP
    22-Jul-17    JDB     Renamed "intaddr" to CIR
    10-Jul-17    JDB     Renamed the global routine "iogrp" to "cpu_iog"
-   07-Jul-17    JDB     Changed "iotrap" from uint32 to t_bool
+   07-Jul-17    JDB     Changed "iotrap" from uint32_t to t_bool
    27-Mar-17    JDB     Expanded comments to describe instruction encoding
    17-Jan-17    JDB     Revised to use tprintf and TRACE_OPND for debugging
    05-Aug-16    JDB     Renamed the P register from "PC" to "PR"
@@ -691,7 +691,7 @@ static const char * const compare [3] = { "equal",      "less than", "greater th
 
 OPS     op;
 OP_PAT  pattern;
-uint32  i, irq;
+uint32_t  i, irq;
 HP_WORD entry, count, cp, sa, da, ma, eqta;
 HP_WORD vectors, save_area, priv_fence, eoreg, eqt, key;
 char    test [6], target [6];
@@ -798,7 +798,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             if (strncmp (target, test, 5) == 0) {       /* names match? */
                 AR = key + 15 & R_MASK;                 /* A = addr of IDSEG [15] */
                 BR = key;                               /* B = addr of IDSEG [0] */
-                E = (uint32) ((test[5] >> 4) & 1);      /* E = short ID segment bit */
+                E = (uint32_t) ((test[5] >> 4) & 1);      /* E = short ID segment bit */
                 PR = (PR + 1) & LA_MASK;                /* P+2 for found return */
                 break;
                 }
