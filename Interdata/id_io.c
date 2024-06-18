@@ -62,23 +62,23 @@
 #define SCHC_SSTA       0x04                            /* sel ch status */
 #define SCHC_EXM        0x03                            /* ext mem */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
-extern uint32 (*dev_tab[DEVNO])(uint32 dev, uint32 op, uint32 datout);
-extern uint32 pawidth;
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t (*dev_tab[DEVNO])(uint32_t dev, uint32_t op, uint32_t datout);
+extern uint32_t pawidth;
 extern UNIT cpu_unit;
 
-uint32 sch_max = 2;                                     /* sch count */
-uint32 sch_sa[SCH_NUMCH] = { 0 };                       /* start addr */
-uint32 sch_ea[SCH_NUMCH] = { 0 };                       /* end addr */
-uint8 sch_sdv[SCH_NUMCH] = { 0 };                       /* device */
-uint8 sch_cmd[SCH_NUMCH] = { 0 };                       /* command */
-uint8 sch_rdp[SCH_NUMCH] = { 0 };                       /* read ptr */
-uint8 sch_wdc[SCH_NUMCH] = { 0 };                       /* write ctr */
-uint32 sch_tab[DEVNO] = { 0 };                          /* dev to sch map */
-uint32 int_tab[INTSZ * 32] = { 0 };                     /* int to dev map */
-uint8 sch_tplte[SCH_NUMCH + 1];                         /* dnum template */
+uint32_t sch_max = 2;                                     /* sch count */
+uint32_t sch_sa[SCH_NUMCH] = { 0 };                       /* start addr */
+uint32_t sch_ea[SCH_NUMCH] = { 0 };                       /* end addr */
+uint8_t sch_sdv[SCH_NUMCH] = { 0 };                       /* device */
+uint8_t sch_cmd[SCH_NUMCH] = { 0 };                       /* command */
+uint8_t sch_rdp[SCH_NUMCH] = { 0 };                       /* read ptr */
+uint8_t sch_wdc[SCH_NUMCH] = { 0 };                       /* write ctr */
+uint32_t sch_tab[DEVNO] = { 0 };                          /* dev to sch map */
+uint32_t int_tab[INTSZ * 32] = { 0 };                     /* int to dev map */
+uint8_t sch_tplte[SCH_NUMCH + 1];                         /* dnum template */
 
-uint32 sch (uint32 dev, uint32 op, uint32 dat);
+uint32_t sch (uint32_t dev, uint32_t op, uint32_t dat);
 void sch_ini (t_bool dtpl);
 t_stat sch_reset (DEVICE *dptr);
 t_stat sch_set_nchan (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -147,9 +147,9 @@ DEVICE sch_dev = {
 
 #define SCH_EXR(ch)     ((sch_cmd[ch] & SCHC_EXA) && (pawidth == PAWIDTH32))
 
-uint32 sch (uint32 dev, uint32 op, uint32 dat)
+uint32_t sch (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 t, bank, sdv, ch = dev - sch_dib.dno;
+uint32_t t, bank, sdv, ch = dev - sch_dib.dno;
 
 switch (op) {                                           /* case IO op */
 
@@ -232,9 +232,9 @@ return 0;
 
 /* CPU call to test if channel blocks access to device */
 
-t_bool sch_blk (uint32 dev)
+t_bool sch_blk (uint32_t dev)
 {
-uint32 ch = sch_tab[dev] - 1;
+uint32_t ch = sch_tab[dev] - 1;
 
 if ((ch < sch_max) && (sch_cmd[ch] & SCHC_GO))
     return TRUE;
@@ -243,7 +243,7 @@ return FALSE;
 
 /* Device call to 'remember' last dev on channel */
 
-void sch_adr (uint32 ch, uint32 dev)
+void sch_adr (uint32_t ch, uint32_t dev)
 {
 if (ch < sch_max)
     sch_sdv[ch] = dev;
@@ -252,7 +252,7 @@ return;
 
 /* Device call to see if selector channel is active for device */
 
-t_bool sch_actv (uint32 ch, uint32 dev)
+t_bool sch_actv (uint32_t ch, uint32_t dev)
 {
 if ((ch < sch_max) &&                                   /* chan valid, */
     (sch_cmd[ch] & SCHC_GO) &&                          /* on, and */
@@ -263,9 +263,9 @@ return FALSE;                                           /* no */
 
 /* Device call to read a block of memory */
 
-uint32 sch_rdmem (uint32 ch, uint8 *buf, uint32 cnt)
+uint32_t sch_rdmem (uint32_t ch, uint8_t *buf, uint32_t cnt)
 {
-uint32 addr, end, xfr, inc;
+uint32_t addr, end, xfr, inc;
 
 if ((ch >= sch_max) || ((sch_cmd[ch] & SCHC_GO) == 0))
     return 0;
@@ -284,9 +284,9 @@ return inc;
 
 /* Device call to write a block of memory */
 
-uint32 sch_wrmem (uint32 ch, uint8 *buf, uint32 cnt)
+uint32_t sch_wrmem (uint32_t ch, uint8_t *buf, uint32_t cnt)
 {
-uint32 addr, end, xfr, inc;
+uint32_t addr, end, xfr, inc;
 
 if ((ch >= sch_max) || ((sch_cmd[ch] & SCHC_GO) == 0))
     return 0;
@@ -305,7 +305,7 @@ return inc;
 
 /* Device call to stop a selector channel */
 
-void sch_stop (uint32 ch)
+void sch_stop (uint32_t ch)
 {
 if (ch < sch_max) {
     SET_INT (v_SCH + ch);                               /* interrupt */
@@ -316,9 +316,9 @@ return;
 
 /* Reset */
 
-void sch_reset_ch (uint32 rst_lim)
+void sch_reset_ch (uint32_t rst_lim)
 {
-uint32 ch;
+uint32_t ch;
 
 for (ch = 0; ch < SCH_NUMCH; ch++) {
     if (ch >= rst_lim) {
@@ -345,7 +345,7 @@ t_stat sch_set_nchan (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, newmax;
+uint32_t i, newmax;
 t_stat r;
 
 if (cptr == NULL)
@@ -401,7 +401,7 @@ return SCPE_OK;
 
 void sch_ini (t_bool dtpl)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < sch_max; i++)
     sch_tplte[i] = i;
@@ -414,7 +414,7 @@ return;
 void int_eval (void)
 {
 int i;
-extern uint32 qevent;
+extern uint32_t qevent;
 
 for (i = 0; i < INTSZ; i++) {
     if (int_req[i] & int_enb[i]) {
@@ -428,10 +428,10 @@ return;
 
 /* Return interrupting device */
 
-uint32 int_getdev (void)
+uint32_t int_getdev (void)
 {
 int32 i, j, t;
-uint32 r;
+uint32_t r;
 
 for (i = t = 0; i < INTSZ; i++) {                       /* loop thru array */
     if ((r = int_req[i] & int_enb[i])) {                /* find nz int wd */
@@ -449,7 +449,7 @@ return 0;
 
 /* Update device interrupt status */
 
-int32 int_chg (uint32 irq, int32 dat, int32 armdis)
+int32 int_chg (uint32_t irq, int32 dat, int32 armdis)
 {
 int32 t = CMD_GETINT (dat);                             /* get int ctrl */
     
@@ -485,9 +485,9 @@ return old ^1;
 
 /* Block transfer routines */
 
-uint32 IOReadBlk (uint32 loc, uint32 cnt, uint8 *buf)
+uint32_t IOReadBlk (uint32_t loc, uint32_t cnt, uint8_t *buf)
 {
-uint32 i;
+uint32_t i;
 
 if (!MEM_ADDR_OK (loc) || (cnt == 0))
     return 0;
@@ -498,9 +498,9 @@ for (i = 0; i < cnt; i++)
 return cnt;
 }
 
-uint32 IOWriteBlk (uint32 loc, uint32 cnt, uint8 *buf)
+uint32_t IOWriteBlk (uint32_t loc, uint32_t cnt, uint8_t *buf)
 {
-uint32 i;
+uint32_t i;
 
 if (!MEM_ADDR_OK (loc) || (cnt == 0))
     return 0;
@@ -517,7 +517,7 @@ t_stat set_sch (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newch;
+uint32_t newch;
 t_stat r;
 
 if (cptr == NULL)
@@ -562,7 +562,7 @@ t_stat set_dev (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newdev;
+uint32_t newdev;
 t_stat r;
 
 if (cptr == NULL)
@@ -609,8 +609,8 @@ t_bool devtab_init (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, dno, dmsk, doff, t, dmap[DEVNO / 32];
-uint8 *tplte, dflt_tplte[] = { 0, TPL_END };
+uint32_t i, j, dno, dmsk, doff, t, dmap[DEVNO / 32];
+uint8_t *tplte, dflt_tplte[] = { 0, TPL_END };
 
 /* Clear tables, device map */
 

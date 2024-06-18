@@ -54,21 +54,21 @@
 #define STA_PAPE        0x40                            /* *paper empty */
 #define STA_MASK        (STA_BSY)                       /* static status */
 
-uint32 lpt_sta = STA_BSY;                               /* status */
+uint32_t lpt_sta = STA_BSY;                               /* status */
 char lpxb[LPT_WIDTH + 1];                               /* line buffer */
-uint32 lpt_bptr = 0;                                    /* buf ptr */
-uint32 lpt_spnd = 0;                                    /* space pending */
-uint32 lpt_vfup = 0;                                    /* VFU ptr */
-uint32 lpt_vful = 1;                                    /* VFU lnt */
-uint8 lpt_vfut[VFU_LNT] = { 0xFF };                     /* VFU tape */
-uint32 lpt_arm = 0;                                     /* int armed */
+uint32_t lpt_bptr = 0;                                    /* buf ptr */
+uint32_t lpt_spnd = 0;                                    /* space pending */
+uint32_t lpt_vfup = 0;                                    /* VFU ptr */
+uint32_t lpt_vful = 1;                                    /* VFU lnt */
+uint8_t lpt_vfut[VFU_LNT] = { 0xFF };                     /* VFU tape */
+uint32_t lpt_arm = 0;                                     /* int armed */
 int32 lpt_ctime = 10;                                   /* char time */
 int32 lpt_stime = 1000;                                 /* space time */
 int32 lpt_stopioe = 0;                                  /* stop on err */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint32 lpt (uint32 dev, uint32 op, uint32 dat);
+uint32_t lpt (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, CONST char *cptr);
@@ -124,7 +124,7 @@ DEVICE lpt_dev = {
 
 /* Line printer: IO routine */
 
-uint32 lpt (uint32 dev, uint32 op, uint32 dat)
+uint32_t lpt (uint32_t dev, uint32_t op, uint32_t dat)
 {
 int32 t;
 
@@ -235,7 +235,7 @@ return r;
 
 t_stat lpt_vfu (UNIT *uptr, int32 ch)
 {
-uint32 i, j;
+uint32_t i, j;
 
 if ((ch == (FF_VFU - 1)) && VFUP (ch, lpt_vfut[0])) {   /* top of form? */
     fputs ("\n\f", uptr->fileref);                      /* nl + ff */
@@ -299,7 +299,7 @@ return attach_unit (uptr, cptr);
 t_stat lp_load (FILE *fileref, CONST char *cptr, CONST char *fnam)
 {
 int32 col, ptr, mask, vfubuf[VFU_LNT];
-uint32 rpt;
+uint32_t rpt;
 t_stat r;
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
