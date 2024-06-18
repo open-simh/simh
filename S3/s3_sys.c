@@ -46,7 +46,7 @@ extern int32 saved_PC, IAR[];
 extern unsigned char ebcdic_to_ascii[];
 CONST char *parse_addr(CONST char *cptr,  char *gbuf, t_addr *addr, int32 *addrtype);
 
-int32 printf_sym (FILE *of, char *strg, t_addr addr, uint32 *val,
+int32 printf_sym (FILE *of, char *strg, t_addr addr, uint32_t *val,
     UNIT *uptr, int32 sw);
 
 /* SCP data structures
@@ -267,7 +267,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     return (r);
 }
 
-int32 printf_sym (FILE *of, char *strg, t_addr addr, uint32 *val,
+int32 printf_sym (FILE *of, char *strg, t_addr addr, uint32_t *val,
     UNIT *uptr, int32 sw)
 {
 int32 c1, c2, group, len1, len2, inst, aaddr, baddr;

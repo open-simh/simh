@@ -32,7 +32,7 @@
 
 #include "s3_defs.h"
 
-extern uint8 M[];
+extern uint8_t M[];
 extern char bcd_to_ascii[64];
 extern int32 iochk, ind[64];
 int32 cct[CCT_LNT] = { 03 };

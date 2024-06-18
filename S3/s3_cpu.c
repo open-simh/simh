@@ -365,7 +365,7 @@ Fx | HPL APL  JC SIO  -   -   -   -   -   -   -   -   -   -   -   -
 #define UNIT_V_MSIZE    (UNIT_V_UF+3)                   /* dummy mask */
 #define UNIT_MSIZE      (1 << UNIT_V_MSIZE)
 
-uint8 M[MAXMEMSIZE] = { 0 };                            /* memory */
+uint8_t M[MAXMEMSIZE] = { 0 };                            /* memory */
 int32 AAR = 0;                                          /* Operand 1 addr reg */
 int32 BAR = 0;                                          /* Operand 2 addr reg */
 int32 XR1 = 0;                                          /* Index register 1 */
@@ -399,10 +399,10 @@ int32 add_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2);
 int32 subtract_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2);
 static int32 compare(int32 byte1, int32 byte2, int32 cond);
 static int32 condition(int32 qbyte);
-static void store_decimal (int32 addr, int32 len, uint8 *dec, int sign);
-static void load_decimal (int32 addr, int32 len, uint8 *result, int *count, int *sign);
-static void add_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count);
-static void subtract_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count, int *sign);
+static void store_decimal (int32 addr, int32 len, uint8_t *dec, int sign);
+static void load_decimal (int32 addr, int32 len, uint8_t *result, int *count, int *sign);
+static void add_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count);
+static void subtract_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count, int *sign);
 int32 GetMem(int32 addr);
 int32 PutMem(int32 addr, int32 data);
 
@@ -568,7 +568,7 @@ if (debug_reg & 0x01) {
     val[3] = GetMem(PC+3);
     val[4] = GetMem(PC+4);
     val[5] = GetMem(PC+5);
-    fprint_sym(trace, PC, (uint32 *) val, &cpu_unit, SWMASK('M'));
+    fprint_sym(trace, PC, (uint32_t *) val, &cpu_unit, SWMASK('M'));
     fprintf(trace, "\n");   
 }
     
@@ -1381,9 +1381,9 @@ static int32 compare(int32 byte1, int32 byte2, int32 cond)
 int32 add_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2)
 {
 int     cc;                             /* Condition code            */
-uint8   dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
-uint8   dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
-uint8   dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
+uint8_t   dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
+uint8_t   dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
+uint8_t   dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
 int     count1, count2, count3;         /* Significant digit counters*/
 int     sign1, sign2, sign3;            /* Sign of operands & result */
 
@@ -1460,9 +1460,9 @@ int     sign1, sign2, sign3;            /* Sign of operands & result */
 int32 subtract_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2)
 {
 int     cc;                             /* Condition code            */
-uint8   dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
-uint8   dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
-uint8   dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
+uint8_t   dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
+uint8_t   dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
+uint8_t   dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
 int     count1, count2, count3;         /* Significant digit counters*/
 int     sign1, sign2, sign3;            /* Sign of operands & result */
 
@@ -1537,7 +1537,7 @@ int     sign1, sign2, sign3;            /* Sign of operands & result */
 /*              This field is set to zero if the result is all zero, */
 /*              or to MAX_DECIMAL_DIGITS+1 if overflow occurred.     */
 /*-------------------------------------------------------------------*/
-static void add_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count)
+static void add_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count)
 {
 int     d;                              /* Decimal digit             */
 int     i;                              /* Array subscript           */
@@ -1596,15 +1596,15 @@ int     carry = 0;                      /* Carry indicator           */
 /*      sign    -1 if the result is negative (operand2 > operand1)   */
 /*              +1 if the result is positive (operand2 <= operand1)  */
 /*-------------------------------------------------------------------*/
-static void subtract_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count, int *sign)
+static void subtract_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count, int *sign)
 {
 int     d;                              /* Decimal digit             */
 int     i;                              /* Array subscript           */
 int     n = 0;                          /* Significant digit counter */
 int     borrow = 0;                     /* Borrow indicator          */
 int     rc;                             /* Return code               */
-uint8   *higher;                        /* -> Higher value operand   */
-uint8   *lower;                         /* -> Lower value operand    */
+uint8_t   *higher;                        /* -> Higher value operand   */
+uint8_t   *lower;                         /* -> Lower value operand    */
 
     /* Compare digits to find which operand has higher numeric value */
     rc = memcmp (dec1, dec2, MAX_DECIMAL_DIGITS);
@@ -1680,7 +1680,7 @@ uint8   *lower;                         /* -> Lower value operand    */
 /*      exception, or if the operand causes a data exception         */
 /*      because of invalid decimal digits or sign.                   */
 /*-------------------------------------------------------------------*/
-static void load_decimal (int32 addr, int32 len, uint8 *result, int *count, int *sign)
+static void load_decimal (int32 addr, int32 len, uint8_t *result, int *count, int *sign)
 {
 int     h;                              /* Hexadecimal digit         */
 int     i, j;                           /* Array subscripts          */
@@ -1721,7 +1721,7 @@ int     n;                              /* Significant digit counter */
 /*      A program check may be generated if the logical address      */
 /*      causes an addressing, translation, or protection exception.  */
 /*-------------------------------------------------------------------*/
-static void store_decimal (int32 addr, int32 len, uint8 *dec, int sign)
+static void store_decimal (int32 addr, int32 len, uint8_t *dec, int sign)
 {
 int     i, j, a;                        /* Array subscripts          */
 
@@ -1810,7 +1810,7 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
