@@ -50,7 +50,7 @@ extern DEVICE mi1_dev, mi2_dev, mi3_dev, mi4_dev, mi5_dev;
 extern DEVICE hi1_dev, hi2_dev, hi3_dev, hi4_dev;
 #endif
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 
 /* SCP data structures and interface routines
 

@@ -68,17 +68,17 @@
 #include "h316_imp.h"                   // ARPAnet IMP/TIP definitions
 
 // Locals ...
-uint32 rtc_interval = RTC_INTERVAL;     // RTC tick interval (in microseconds)
-uint32 rtc_quantum  = RTC_QUANTUM;      // RTC update interval (in ticks)
-uint32 rtc_tps      = 1000000UL / (RTC_INTERVAL * RTC_QUANTUM);
-uint16 rtc_enabled  = 1;                // RTC enabled
-uint32 rtc_count    = 0;                // current RTC count
-uint32 wdt_delay    = WDT_DELAY;        // WDT timeout (in milliseconds, 0=none)
-uint32 wdt_count    = 0;                // current WDT countdown
-uint16 wdt_lights   = 0;                // last "set status lights" output
+uint32_t rtc_interval = RTC_INTERVAL;     // RTC tick interval (in microseconds)
+uint32_t rtc_quantum  = RTC_QUANTUM;      // RTC update interval (in ticks)
+uint32_t rtc_tps      = 1000000UL / (RTC_INTERVAL * RTC_QUANTUM);
+uint16_t rtc_enabled  = 1;                // RTC enabled
+uint32_t rtc_count    = 0;                // current RTC count
+uint32_t wdt_delay    = WDT_DELAY;        // WDT timeout (in milliseconds, 0=none)
+uint32_t wdt_count    = 0;                // current WDT countdown
+uint16_t wdt_lights   = 0;                // last "set status lights" output
 
 // Externals from other parts of simh ...
-extern uint16 dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
+extern uint16_t dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
 extern int32 PC;                        // current PC (for debug messages)
 extern int32 stop_inst;                 // needed by IOBADFNC()
 
@@ -238,7 +238,7 @@ t_stat rtc_service (UNIT *uptr)
   // Note that we can't simply check the low byte for zero to detect overflows
   // because of the quantum.  Since we aren't necessarily incrementing by 1, we
   // may never see a value of exactly zero.  We'll have to be more clever.
-  uint8 rtc_high = HIBYTE(rtc_count);
+  uint8_t rtc_high = HIBYTE(rtc_count);
   rtc_count = (rtc_count + rtc_quantum) & DMASK;
   if (HIBYTE(rtc_count) != rtc_high) {
     sim_debug(IMP_DBG_IOT, &rtc_dev, "interrupt request\n");
@@ -320,7 +320,7 @@ t_stat wdt_reset (DEVICE *dptr)
 // Set/Show RTC interval ...
 t_stat rtc_set_interval (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-  uint32 newint, newtps;  t_stat ret;
+  uint32_t newint, newtps;  t_stat ret;
   if (cptr == NULL) return SCPE_ARG;
   newint = get_uint (cptr, 10, 1000000, &ret);
   if (ret != SCPE_OK) return ret;
@@ -341,7 +341,7 @@ t_stat rtc_show_interval (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 // Set/Show RTC quantum ...
 t_stat rtc_set_quantum (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-  uint32 newquant, newtps;  t_stat ret;
+  uint32_t newquant, newtps;  t_stat ret;
   if (cptr == NULL) return SCPE_ARG;
   newquant = get_uint (cptr, 10, 1000000, &ret);
   if (ret != SCPE_OK) return ret;
@@ -362,7 +362,7 @@ t_stat rtc_show_quantum (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 // Set/Show WDT delay ...
 t_stat wdt_set_delay (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-  uint32 newint;  t_stat ret;
+  uint32_t newint;  t_stat ret;
   if (cptr == NULL) return SCPE_ARG;
   newint = get_uint (cptr, 10, 65535, &ret);
   if (ret != SCPE_OK) return ret;
