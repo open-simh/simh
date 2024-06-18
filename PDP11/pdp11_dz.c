@@ -220,17 +220,17 @@ BITFIELD dz_tdr_bits[] = {
 extern int32 IREQ (HLVL);
 extern int32 tmxr_poll;                                 /* calibrated delay */
 
-uint16 dz_csr[MAX_DZ_MUXES] = { 0 };                    /* csr */
-uint16 dz_rbuf[MAX_DZ_MUXES] = { 0 };                   /* rcv buffer */
-uint16 dz_lpr[MAX_DZ_MUXES] = { 0 };                    /* line param */
-uint16 dz_tcr[MAX_DZ_MUXES] = { 0 };                    /* xmit control */
-uint16 dz_msr[MAX_DZ_MUXES] = { 0 };                    /* modem status */
-uint16 dz_tdr[MAX_DZ_MUXES] = { 0 };                    /* xmit data */
-uint16 dz_silo[MAX_DZ_MUXES][DZ_SILO_ALM] = { {0} };    /* silo */
-uint16 dz_scnt[MAX_DZ_MUXES] = { 0 };                   /* silo used */
-uint8 dz_sae[MAX_DZ_MUXES] = { 0 };                     /* silo alarm enabled */
-uint32 dz_rxi = 0;                                      /* rcv interrupts */
-uint32 dz_txi = 0;                                      /* xmt interrupts */
+uint16_t dz_csr[MAX_DZ_MUXES] = { 0 };                    /* csr */
+uint16_t dz_rbuf[MAX_DZ_MUXES] = { 0 };                   /* rcv buffer */
+uint16_t dz_lpr[MAX_DZ_MUXES] = { 0 };                    /* line param */
+uint16_t dz_tcr[MAX_DZ_MUXES] = { 0 };                    /* xmit control */
+uint16_t dz_msr[MAX_DZ_MUXES] = { 0 };                    /* modem status */
+uint16_t dz_tdr[MAX_DZ_MUXES] = { 0 };                    /* xmit data */
+uint16_t dz_silo[MAX_DZ_MUXES][DZ_SILO_ALM] = { {0} };    /* silo */
+uint16_t dz_scnt[MAX_DZ_MUXES] = { 0 };                   /* silo used */
+uint8_t dz_sae[MAX_DZ_MUXES] = { 0 };                     /* silo alarm enabled */
+uint32_t dz_rxi = 0;                                      /* rcv interrupts */
+uint32_t dz_txi = 0;                                      /* xmt interrupts */
 int32 dz_mctl = 0;                                      /* modem ctrl enabled */
 int32 dz_auto = 0;                                      /* autodiscon enabled */
 TMLN *dz_ldsc = NULL;                                   /* line descriptors */
@@ -272,7 +272,7 @@ t_stat dz_reset (DEVICE *dptr);
 t_stat dz_attach (UNIT *uptr, CONST char *cptr);
 t_stat dz_detach (UNIT *uptr);
 t_stat dz_clear (int32 dz, t_bool flag);
-uint16 dz_getc (int32 dz);
+uint16_t dz_getc (int32 dz);
 void dz_update_rcvi (void);
 void dz_update_xmti (void);
 void dz_clr_rxint (int32 dz);
@@ -436,7 +436,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
         }
 
 sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, dz_rd_regs[(PA >> 1) & 03], access, *data);
-sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), TRUE);
+sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32_t)(*data), (uint32_t)(*data), TRUE);
 
 return SCPE_OK;
 }
@@ -448,13 +448,13 @@ static BITFIELD* bitdefs[] = {dz_csr_bits, dz_lpr_bits, dz_tcr_bits, dz_tdr_bits
 int32 i, c, line;
 char lineconfig[16];
 TMLN *lp;
-uint16 data = (uint16)ldata;
+uint16_t data = (uint16_t)ldata;
 
 if (dz > DZ_MAXMUX)
     return SCPE_IERR;
 
 sim_debug(DBG_REG, &dz_dev, "dz_wr(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, dz_wr_regs[(PA >> 1) & 03], access, data);
-sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), TRUE);
+sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32_t)((PA & 1) ? data<<8 : data), (uint32_t)((PA & 1) ? data<<8 : data), TRUE);
 
 switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
 
@@ -600,10 +600,10 @@ return SCPE_OK;
 
 /* Get first available character for mux, if any */
 
-uint16 dz_getc (int32 dz)
+uint16_t dz_getc (int32 dz)
 {
-uint16 ret;
-uint32 i;
+uint16_t ret;
+uint32_t i;
 
 if (!dz_scnt[dz])
     return 0;
@@ -633,7 +633,7 @@ for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* loop thru muxes */
                 c = RBUF_FRME;
             if (c) {                                    /* save in silo */
                 c = (c & (RBUF_CHAR | RBUF_FRME)) | RBUF_VALID | (i << RBUF_V_RLINE);
-                dz_silo[dz][dz_scnt[dz]] = (uint16)c;
+                dz_silo[dz][dz_scnt[dz]] = (uint16_t)c;
                 ++dz_scnt[dz];
                 }
             if (dz_mctl && !lp->conn)                   /* if disconn */

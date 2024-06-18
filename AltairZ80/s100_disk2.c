@@ -53,10 +53,10 @@
 #define DISK2_MAX_DRIVES    4
 
 typedef union {
-    uint8 raw[2051];
+    uint8_t raw[2051];
     struct {
-        uint8 header[3];
-        uint8 data[2048];
+        uint8_t header[3];
+        uint8_t data[2048];
     } u;
 } SECTOR_FORMAT;
 
@@ -65,32 +65,32 @@ static SECTOR_FORMAT sdata;
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint16 ntracks;  /* number of tracks */
-    uint8 nheads;    /* number of heads */
-    uint8 nsectors;  /* number of sectors/track */
-    uint32 sectsize; /* sector size, not including pre/postamble */
-    uint16 track;    /* Current Track */
-    uint8 ready;     /* Is drive ready? */
+    uint16_t ntracks;  /* number of tracks */
+    uint8_t nheads;    /* number of heads */
+    uint8_t nsectors;  /* number of sectors/track */
+    uint32_t sectsize; /* sector size, not including pre/postamble */
+    uint16_t track;    /* Current Track */
+    uint8_t ready;     /* Is drive ready? */
 } DISK2_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8   sel_drive;  /* Currently selected drive */
-    uint8   head_sel;   /* Head select (signals to drive itself) */
-    uint8   head;       /* Head set by write to the HEAD register */
-    uint8   cyl;        /* Cyl that the current operation is targeting */
-    uint8   sector;     /* Sector the current READ/WRITE operation is targeting */
-    uint8   hdr_sector; /* Current sector for WRITE_HEADER */
-    uint8   ctl_attn;
-    uint8   ctl_run;
-    uint8   ctl_op;
-    uint8   ctl_fault_clr;
-    uint8   ctl_us;
-    uint8   timeout;
-    uint8   crc_error;
-    uint8   overrun;
-    uint8   seek_complete;
-    uint8   write_fault;
+    uint8_t   sel_drive;  /* Currently selected drive */
+    uint8_t   head_sel;   /* Head select (signals to drive itself) */
+    uint8_t   head;       /* Head set by write to the HEAD register */
+    uint8_t   cyl;        /* Cyl that the current operation is targeting */
+    uint8_t   sector;     /* Sector the current READ/WRITE operation is targeting */
+    uint8_t   hdr_sector; /* Current sector for WRITE_HEADER */
+    uint8_t   ctl_attn;
+    uint8_t   ctl_run;
+    uint8_t   ctl_op;
+    uint8_t   ctl_fault_clr;
+    uint8_t   ctl_us;
+    uint8_t   timeout;
+    uint8_t   crc_error;
+    uint8_t   overrun;
+    uint8_t   seek_complete;
+    uint8_t   write_fault;
     DISK2_DRIVE_INFO drive[DISK2_MAX_DRIVES];
 } DISK2_INFO;
 
@@ -108,14 +108,14 @@ static int32 nheads       = C20MB_NHEADS;
 static int32 nsectors     = C20MB_NSECTORS;
 static int32 sectsize     = C20MB_SECTSIZE;
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern int32 selchan_dma(uint8 *buf, uint32 len);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern int32 selchan_dma(uint8_t *buf, uint32_t len);
 extern int32 find_unit_index(UNIT *uptr);
-extern void raise_ss1_interrupt(uint8 intnum);
+extern void raise_ss1_interrupt(uint8_t intnum);
 
 #define UNIT_V_DISK2_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
 #define UNIT_DISK2_VERBOSE      (1 << UNIT_V_DISK2_VERBOSE)
@@ -130,8 +130,8 @@ static void raise_disk2_interrupt(void);
 
 static int32 disk2dev(const int32 port, const int32 io, const int32 data);
 
-static uint8 DISK2_Read(const uint32 Addr);
-static uint8 DISK2_Write(const uint32 Addr, uint8 cData);
+static uint8_t DISK2_Read(const uint32_t Addr);
+static uint8_t DISK2_Write(const uint32_t Addr, uint8_t cData);
 
 static UNIT disk2_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, DISK2_CAPACITY) },
@@ -327,9 +327,9 @@ static int32 disk2dev(const int32 port, const int32 io, const int32 data)
 #define DISK2_CSR   0   /* R=DISK2 Status / W=DISK2 Control Register */
 #define DISK2_DATA  1   /* R=Step Pulse / W=Write Data Register */
 
-static uint8 DISK2_Read(const uint32 Addr)
+static uint8_t DISK2_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
     DISK2_DRIVE_INFO *pDrive;
 
     pDrive = &disk2_info->drive[disk2_info->sel_drive];
@@ -382,11 +382,11 @@ static uint8 DISK2_Read(const uint32 Addr)
 #define DISK2_CMD_WRITE_HEADER  0x03
 #define DISK2_CMD_READ_HEADER   0x04
 
-static uint8 DISK2_Write(const uint32 Addr, uint8 cData)
+static uint8_t DISK2_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint32 track_offset;
-    uint8 result = 0;
-    uint8 i;
+    uint32_t track_offset;
+    uint8_t result = 0;
+    uint8_t i;
     long file_offset;
     DISK2_DRIVE_INFO *pDrive;
     size_t rtn;

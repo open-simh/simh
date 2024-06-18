@@ -81,13 +81,13 @@
 
 extern int32 tmxr_poll;
 
-uint16 dli_csr[DLX_LINES] = { 0 };                      /* control/status */
-uint16 dli_buf[DLX_LINES] = { 0 };
-uint32 dli_buftime[DLX_LINES] = { 0 };
-uint32 dli_ireq[2] = { 0, 0};
-uint16 dlo_csr[DLX_LINES] = { 0 };                      /* control/status */
-uint8 dlo_buf[DLX_LINES] = { 0 };
-uint32 dlo_ireq = 0;
+uint16_t dli_csr[DLX_LINES] = { 0 };                      /* control/status */
+uint16_t dli_buf[DLX_LINES] = { 0 };
+uint32_t dli_buftime[DLX_LINES] = { 0 };
+uint32_t dli_ireq[2] = { 0, 0};
+uint16_t dlo_csr[DLX_LINES] = { 0 };                      /* control/status */
+uint8_t dlo_buf[DLX_LINES] = { 0 };
+uint32_t dlo_ireq = 0;
 TMLN dlx_ldsc[DLX_LINES] = { {0} };                     /* line descriptors */
 TMXR dlx_desc = { DLX_LINES, 0, 0, dlx_ldsc };          /* mux descriptor */
 
@@ -100,8 +100,8 @@ t_stat dlx_attach (UNIT *uptr, CONST char *cptr);
 t_stat dlx_detach (UNIT *uptr);
 t_stat dlx_set_lines (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 void dlx_enbdis (int32 dis);
-void dli_clr_int (int32 ln, uint32 wd);
-void dli_set_int (int32 ln, uint32 wd);
+void dli_clr_int (int32 ln, uint32_t wd);
+void dli_set_int (int32 ln, uint32_t wd);
 int32 dli_iack (void);
 void dlo_clr_int (int32 ln);
 void dlo_set_int (int32 ln);
@@ -340,9 +340,9 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
                                                         /* clr CDT,RNG,CTS */
                     }                                   /* end DTR 1->0 */
                 }                                       /* end DTR chg */
-            dli_csr[ln] = (uint16) ((dli_csr[ln] & ~DLICSR_WR_M) | (data & DLICSR_WR_M));
+            dli_csr[ln] = (uint16_t) ((dli_csr[ln] & ~DLICSR_WR_M) | (data & DLICSR_WR_M));
             }                                           /* end modem */
-        dli_csr[ln] = (uint16) ((dli_csr[ln] & ~DLICSR_WR) | (data & DLICSR_WR));
+        dli_csr[ln] = (uint16_t) ((dli_csr[ln] & ~DLICSR_WR) | (data & DLICSR_WR));
         return SCPE_OK;
 
     case 01:                                            /* tti buf */
@@ -355,7 +355,7 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
             dlo_clr_int (ln);
         else if ((dlo_csr[ln] & (CSR_DONE + CSR_IE)) == CSR_DONE)
             dlo_set_int (ln);
-        dlo_csr[ln] = (uint16) ((dlo_csr[ln] & ~DLOCSR_WR) | (data & DLOCSR_WR));
+        dlo_csr[ln] = (uint16_t) ((dlo_csr[ln] & ~DLOCSR_WR) | (data & DLOCSR_WR));
         return SCPE_OK;
 
     case 03:                                            /* tto buf */
@@ -406,7 +406,7 @@ for (ln = 0; ln < DLX_LINES; ln++) {                    /* loop thru lines */
             else dli_csr[ln] |= CSR_DONE;
             if (dli_csr[ln] & CSR_IE)
                 dli_set_int (ln, DLI_RCI);
-            dli_buf[ln] = (uint16)c;
+            dli_buf[ln] = (uint16_t)c;
             dli_buftime[ln] = sim_os_msec ();
             }
         }
@@ -455,7 +455,7 @@ return SCPE_OK;
 
 /* Interrupt routines */
 
-void dli_clr_int (int32 ln, uint32 wd)
+void dli_clr_int (int32 ln, uint32_t wd)
 {
 sim_debug(DBG_INT, &dli_dev, "dli_clr_int(dl=%d, wd=%d)\n", ln, wd);
 
@@ -466,7 +466,7 @@ else SET_INT (DLI);                                     /* no, set intr */
 return;
 }
 
-void dli_set_int (int32 ln, uint32 wd)
+void dli_set_int (int32 ln, uint32_t wd)
 {
 sim_debug(DBG_INT, &dli_dev, "dli_set_int(dl=%d, wd=%d)\n", ln, wd);
 

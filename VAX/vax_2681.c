@@ -62,12 +62,12 @@
 
 void ua2681_update_rxi (UART2681 *ctx);
 void ua2681_update_txi (UART2681 *ctx);
-uint8 ua2681_oport (UART2681 *ctx);
+uint8_t ua2681_oport (UART2681 *ctx);
 
 
-void ua2681_wr (UART2681 *ctx, uint32 rg, uint32 data)
+void ua2681_wr (UART2681 *ctx, uint32_t rg, uint32_t data)
 {
-uint32 mp;
+uint32_t mp;
 
 switch (rg) {
 
@@ -123,7 +123,7 @@ switch (rg) {
             }
         else {
             if (ctx->port[PORT_A].put_char != NULL)
-                ctx->port[PORT_A].put_char ((uint8)data);
+                ctx->port[PORT_A].put_char ((uint8_t)data);
             }
         ua2681_update_txi (ctx);
         break;
@@ -188,7 +188,7 @@ switch (rg) {
             }
         else {
             if (ctx->port[PORT_B].put_char != NULL)
-                ctx->port[PORT_B].put_char ((uint8)data);
+                ctx->port[PORT_B].put_char ((uint8_t)data);
             }
         ua2681_update_txi (ctx);
         break;
@@ -212,9 +212,9 @@ switch (rg) {
     }
 }
 
-uint32 ua2681_rd(UART2681 *ctx, uint32 rg)
+uint32_t ua2681_rd(UART2681 *ctx, uint32_t rg)
 {
-uint32 data;
+uint32_t data;
 
 switch (rg) {
 
@@ -309,7 +309,7 @@ if (ctx->opcr & 0xc0)
 
 void ua2681_update_rxi (UART2681 *ctx)
 {
-uint8 c;
+uint8_t c;
 t_stat r;
 
 if (ctx->port[PORT_A].cmd & CMD_ERX) {
@@ -361,9 +361,9 @@ if (ctx->opcr & 0x30)
 
 }
 
-uint8 ua2681_oport (UART2681 *ctx)
+uint8_t ua2681_oport (UART2681 *ctx)
 {
-uint8 t = ctx->oport;
+uint8_t t = ctx->oport;
 
 if (ctx->opcr & 0x80) {
     t &= ~0x80;
@@ -387,9 +387,9 @@ return t ^ 0xff;
 
 /* input ports */
 
-void ua2681_ip0_wr (UART2681 *ctx, uint32 set)
+void ua2681_ip0_wr (UART2681 *ctx, uint32_t set)
 {
-uint8 new_val = (ctx->iport & ~1) | (set ? 1 : 0);
+uint8_t new_val = (ctx->iport & ~1) | (set ? 1 : 0);
 
 if (new_val != ctx->iport) {
     ctx->ipcr &= ~0x0f;
@@ -402,9 +402,9 @@ if (new_val != ctx->iport) {
 ctx->iport = new_val;
 }
 
-void ua2681_ip1_wr (UART2681 *ctx, uint32 set)
+void ua2681_ip1_wr (UART2681 *ctx, uint32_t set)
 {
-uint8 new_val = (ctx->iport & ~2) | (set ? 2 : 0);
+uint8_t new_val = (ctx->iport & ~2) | (set ? 2 : 0);
 
 if (new_val != ctx->iport) {
     ctx->ipcr &= ~0x0f;
@@ -417,9 +417,9 @@ if (new_val != ctx->iport) {
 ctx->iport = new_val;
 }
 
-void ua2681_ip2_wr (UART2681 *ctx, uint32 set)
+void ua2681_ip2_wr (UART2681 *ctx, uint32_t set)
 {
-uint8 new_val = (ctx->iport & ~4) | (set ? 4 : 0);
+uint8_t new_val = (ctx->iport & ~4) | (set ? 4 : 0);
 
 if (new_val != ctx->iport) {
     ctx->ipcr &= ~0x0f;
@@ -432,9 +432,9 @@ if (new_val != ctx->iport) {
 ctx->iport = new_val;
 }
 
-void ua2681_ip3_wr (UART2681 *ctx, uint32 set)
+void ua2681_ip3_wr (UART2681 *ctx, uint32_t set)
 {
-uint8 new_val = (ctx->iport & ~8) | (set ? 8 : 0);
+uint8_t new_val = (ctx->iport & ~8) | (set ? 8 : 0);
 
 if (new_val != ctx->iport) {
     ctx->ipcr &= ~0x0f;

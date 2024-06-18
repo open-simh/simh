@@ -309,7 +309,7 @@ return result_op;                                       /* return the result */
 static FPU unpack (FP_OPND packed)
 {
 FPU    unpacked;
-uint32 word;
+uint32_t word;
 
 switch (packed.precision) {                             /* dispatch based on the operand precision */
 
@@ -670,7 +670,7 @@ return trap_None;                                       /* report that the subtr
 
 static TRAP_CLASS multiply (FPU *product, FPU multiplicand, FPU multiplier)
 {
-uint32   ah, al, bh, bl;
+uint32_t   ah, al, bh, bl;
 t_uint64 hh, hl, lh, ll, carry;
 
 if (multiplicand.mantissa == 0 || multiplier.mantissa == 0) {   /* if either operand is zero */
@@ -684,11 +684,11 @@ else {                                                  /* otherwise both operan
     product->exponent = multiplicand.exponent           /* the product exponent */
                           + multiplier.exponent;        /*   is the sum of the operand exponents */
 
-    ah = (uint32) (multiplicand.mantissa >> D32_WIDTH); /* split the multiplicand */
-    al = (uint32) (multiplicand.mantissa &  D32_MASK);  /*   into high and low double-words */
+    ah = (uint32_t) (multiplicand.mantissa >> D32_WIDTH); /* split the multiplicand */
+    al = (uint32_t) (multiplicand.mantissa &  D32_MASK);  /*   into high and low double-words */
 
-    bh = (uint32) (multiplier.mantissa   >> D32_WIDTH); /* split the multiplier */
-    bl = (uint32) (multiplier.mantissa   &  D32_MASK);  /*   into high and low double-words */
+    bh = (uint32_t) (multiplier.mantissa   >> D32_WIDTH); /* split the multiplier */
+    bl = (uint32_t) (multiplier.mantissa   &  D32_MASK);  /*   into high and low double-words */
 
     hh = ((t_uint64) ah * bh);                          /* form the */
     hl = ((t_uint64) ah * bl);                          /*   four cross products */

@@ -92,12 +92,12 @@
 #define GET_TWORD(x)    ((int32) fmod (sim_gtime() / ((double) (x)), \
                         ((double) (DRM_NUMSC * DRM_PHYWD))))
 
-extern uint32 M[];                                      /* memory */
-extern uint32 alert, int_req;
+extern uint32_t M[];                                      /* memory */
+extern uint32_t alert, int_req;
 extern int32 stop_invins, stop_invdev, stop_inviop;
-uint32 drm_da = 0;                                      /* disk address */
-uint32 drm_ca = 0;                                      /* core address */
-uint32 drm_wc = 0;                                      /* word count */
+uint32_t drm_da = 0;                                      /* disk address */
+uint32_t drm_ca = 0;                                      /* core address */
+uint32_t drm_wc = 0;                                      /* word count */
 int32 drm_par = 0;                                      /* cumulative par */
 int32 drm_err = 0;                                      /* error */
 int32 drm_rw = 0;                                       /* read/write */
@@ -106,7 +106,7 @@ int32 drm_ftime = 3;                                    /* time to fetch */
 int32 drm_xtime = 1;                                    /* time to xfr */
 int32 drm_stopioe = 1;                                  /* stop on error */
 
-t_stat drm (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat drm (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat drm_svc (UNIT *uptr);
 t_stat drm_reset (DEVICE *dptr);
 
@@ -148,7 +148,7 @@ DEVICE drm_dev = {
 
 /* Drum routine -  EOM/SKS 3xx04 */
 
-t_stat drm (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat drm (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 t, op = inst & 07700;
 
@@ -192,8 +192,8 @@ return SCPE_OK;
 t_stat drm_svc (UNIT *uptr)
 {
 int32 t, rda;
-uint32 dpc, dwd;
-uint32 *fbuf = (uint32 *) uptr->filebuf;
+uint32_t dpc, dwd;
+uint32_t *fbuf = (uint32_t *) uptr->filebuf;
 
 if (drm_sta != DRM_SXFR) {                              /* fetch drum prog? */
     dpc = M[DRM_PC];                                    /* get drum PC */

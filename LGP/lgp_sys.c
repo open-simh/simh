@@ -37,9 +37,9 @@ extern UNIT cpu_unit;
 extern DEVICE tti_dev, tto_dev;
 extern DEVICE ptr_dev, ptp_dev;
 extern REG cpu_reg[];
-extern uint32 M[];
-extern uint32 PC;
-extern uint32 ts_flag;
+extern uint32_t M[];
+extern uint32_t PC;
+extern uint32_t ts_flag;
 
 /* SCP data structures and interface routines
 
@@ -92,7 +92,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* Utility routine - read characters until ' (conditional stop) */
 
-t_stat load_getw (FILE *fi, uint32 *wd)
+t_stat load_getw (FILE *fi, uint32_t *wd)
 {
 int32 flex, c;
 
@@ -114,9 +114,9 @@ return SCPE_FMT;
 
 /* Utility routine - convert ttss decimal address to binary */
 
-t_stat load_geta (uint32 wd, uint32 *ad)
+t_stat load_geta (uint32_t wd, uint32_t *ad)
 {
-uint32 n1, n2, n3, n4, tr, sc;
+uint32_t n1, n2, n3, n4, tr, sc;
 
 n1 = (wd >> 12) & 0xF;
 n2 = (wd >> 8) & 0xF;
@@ -136,7 +136,7 @@ return SCPE_OK;
 
 t_stat sim_load (FILE *fi, CONST char *cptr, CONST char *fnam, int flag)
 {
-uint32 wd, origin, amod, csum, cnt, tr, sc, ad, cmd;
+uint32_t wd, origin, amod, csum, cnt, tr, sc, ad, cmd;
 
 origin = amod = 0;
 for (;;) {                                              /* until stopped */
@@ -280,7 +280,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
 int32 i, c;
-uint32 inst, op, ea;
+uint32_t inst, op, ea;
 
 inst = val[0];
 if (sw & SWMASK ('A')) {                                /* alphabetic? */
@@ -380,7 +380,7 @@ return SCPE_ARG;
 
 t_stat parse_sym_m (CONST char *cptr, t_value *val, int32 sw)
 {
-uint32 ea, sgn;
+uint32_t ea, sgn;
 CONST char *tptr;
 char gbuf[CBUFSIZE];
 

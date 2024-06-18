@@ -78,7 +78,7 @@
 
 extern int32 dev_int, dev_enb;
 extern int32 stop_inst;
-extern uint32 chan_req;
+extern uint32_t chan_req;
 
 int32 lpt_wdpos = 0;                                    /* word position */
 int32 lpt_drpos = 0;                                    /* drum position */

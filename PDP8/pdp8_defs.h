@@ -70,7 +70,7 @@
 #define MAXMEMSIZE      32768                           /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
 #define ADDRMASK        (MAXMEMSIZE - 1)                /* address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* IOT subroutine return codes */
 
@@ -90,13 +90,13 @@
 #define DEV_MAX         64                              /* total devices */
 
 typedef struct {
-    uint32              dev;                            /* device number */
+    uint32_t              dev;                            /* device number */
     int32               (*dsp)(int32 IR, int32 dat);    /* dispatch */
     } DIB_DSP;
 
 typedef struct {
-    uint32              dev;                            /* base dev number */
-    uint32              num;                            /* number of slots */
+    uint32_t              dev;                            /* base dev number */
+    uint32_t              num;                            /* number of slots */
     int32               (*dsp[DEV_MAXBLK])(int32 IR, int32 dat);
     DIB_DSP             *dsp_tbl;                       /* optional table */
     } DIB;

@@ -81,24 +81,24 @@
 #define GET_PSC(x)      ((int32) fmod (sim_gtime() / ((double) (x * DK_WDSC)), \
                         ((double) DK_SCTK)))
 
-uint32 dk_cmd = 0;                                      /* state */
-uint32 dk_flags = 0;                                    /* status flags */
-uint32 dk_ad = 0;                                       /* disk address */
-uint32 dk_time = 5;                                     /* inter-word time */
-uint32 dk_stime = 20;                                   /* inter-track time */
-uint32 dk_stopioe = 1;                                  /* stop on I/O error */
+uint32_t dk_cmd = 0;                                      /* state */
+uint32_t dk_flags = 0;                                    /* status flags */
+uint32_t dk_ad = 0;                                       /* disk address */
+uint32_t dk_time = 5;                                     /* inter-word time */
+uint32_t dk_stime = 20;                                   /* inter-track time */
+uint32_t dk_stopioe = 1;                                  /* stop on I/O error */
 
-extern uint32 chan_ctl_time;
+extern uint32_t chan_ctl_time;
 
-uint32 dk_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 dk_tio_status (uint32 un);
-uint32 dk_tdv_status (uint32 un);
-t_stat dk_chan_err (uint32 dva, uint32 st);
+uint32_t dk_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t dk_tio_status (uint32_t un);
+uint32_t dk_tdv_status (uint32_t un);
+t_stat dk_chan_err (uint32_t dva, uint32_t st);
 t_stat dk_svc (UNIT *uptr);
 t_stat dk_reset (DEVICE *dptr);
-t_bool dk_inv_ad (uint32 *da);
+t_bool dk_inv_ad (uint32_t *da);
 t_bool dk_inc_ad (void);
-t_bool dk_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
+t_bool dk_end_sec (UNIT *uptr, uint32_t lnt, uint32_t exp, uint32_t st);
 
 /* DK data structures
 
@@ -159,10 +159,10 @@ DEVICE dk_dev = {
    For AIO, the handler must return the unit number
 */
 
-uint32 dk_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t dk_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
-uint32 i;
-uint32 un = DVA_GETUNIT (dva);
+uint32_t i;
+uint32_t un = DVA_GETUNIT (dva);
 int32 iu;
 UNIT *uptr;
 
@@ -227,12 +227,12 @@ return 0;
 
 t_stat dk_svc (UNIT *uptr)
 {
-uint32 i, sc, da, wd, wd1, cmd, c[3];
-uint32 *fbuf = (uint32 *) uptr->filebuf;
-uint32 un = uptr - dk_unit;
-uint32 dva = dk_dib.dva | un;
+uint32_t i, sc, da, wd, wd1, cmd, c[3];
+uint32_t *fbuf = (uint32_t *) uptr->filebuf;
+uint32_t un = uptr - dk_unit;
+uint32_t dva = dk_dib.dva | un;
 int32 t, dc;
-uint32 st;
+uint32_t st;
 
 switch (dk_cmd) {
 
@@ -395,10 +395,10 @@ return SCPE_OK;
    case 4 - transfer done, no length error - return FALSE (sched end state)
 */
 
-t_bool dk_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
+t_bool dk_end_sec (UNIT *uptr, uint32_t lnt, uint32_t exp, uint32_t st)
 {
-uint32 un = uptr - dk_unit;
-uint32 dva = dk_dib.dva | un;
+uint32_t un = uptr - dk_unit;
+uint32_t dva = dk_dib.dva | un;
 
 if (st != CHS_ZBC) {                                    /* end record? */
     if (dk_inc_ad ())                                   /* inc addr, ovf? */
@@ -415,9 +415,9 @@ return FALSE;                                           /* cmd done */
 
 /* DK status routine */
 
-uint32 dk_tio_status (uint32 un)
+uint32_t dk_tio_status (uint32_t un)
 {
-uint32 i, st;
+uint32_t i, st;
 
 st = DVS_AUTO;                                          /* flags */
 if (sim_is_active (&dk_unit[un]))                       /* active => busy */
@@ -432,17 +432,17 @@ for (i = 0; i < DK_NUMDR; i++) {                        /* loop thru units */
 return DVS_AUTO;
 }
 
-uint32 dk_tdv_status (uint32 un)
+uint32_t dk_tdv_status (uint32_t un)
 {
 return dk_flags | (dk_inv_ad (NULL)? DKV_BADS: 0);
 }
 
 /* Validate disk address */
 
-t_bool dk_inv_ad (uint32 *da)
+t_bool dk_inv_ad (uint32_t *da)
 {
-uint32 tk = DKA_GETTK (dk_ad);
-uint32 sc = DKA_GETSC (dk_ad);
+uint32_t tk = DKA_GETTK (dk_ad);
+uint32_t sc = DKA_GETSC (dk_ad);
 
 if (tk >= DK_TKUN)                                      /* badtrk? */
     return TRUE;
@@ -455,8 +455,8 @@ return FALSE;
 
 t_bool dk_inc_ad (void)
 {
-uint32 tk = DKA_GETTK (dk_ad);
-uint32 sc = DKA_GETSC (dk_ad);
+uint32_t tk = DKA_GETTK (dk_ad);
+uint32_t sc = DKA_GETSC (dk_ad);
 
 sc = sc + 1;                                            /* sector++ */
 if (sc >= DK_SCTK) {                                    /* overflow? */
@@ -472,7 +472,7 @@ return FALSE;
 
 /* Channel error */
 
-t_stat dk_chan_err (uint32 dva, uint32 st)
+t_stat dk_chan_err (uint32_t dva, uint32_t st)
 {
 chan_uen (dva);                                         /* uend */
 if (st < CHS_ERR)
@@ -484,7 +484,7 @@ return SCPE_OK;
 
 t_stat dk_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < DK_NUMDR; i++) {
     sim_cancel (&dk_unit[i]);                          /* stop dev thread */

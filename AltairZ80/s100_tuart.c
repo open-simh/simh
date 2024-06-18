@@ -87,22 +87,22 @@ typedef struct {
     TMLN *tmln;          /* TMLN pointer      */
     TMXR *tmxr;          /* TMXR pointer      */
     int32 baud;          /* Baud rate         */
-    uint8 hbd;           /* High baud mult    */
-    uint8 sbits;         /* Stop bits         */
-    uint8 rxb;           /* Receive Buffer    */
-    uint8 txb;           /* Transmit Buffer   */
+    uint8_t hbd;           /* High baud mult    */
+    uint8_t sbits;         /* Stop bits         */
+    uint8_t rxb;           /* Receive Buffer    */
+    uint8_t txb;           /* Transmit Buffer   */
     t_bool txp;          /* Transmit Pending  */
-    uint8 stb;           /* Status Buffer     */
+    uint8_t stb;           /* Status Buffer     */
     t_bool inta;         /* Interrupt Ack Ena */
-    uint8 intmask;       /* Int Enable Mask   */
-    uint8 intadr;        /* Interrupt Address */
-    uint8 intvector;     /* Interrupt Vector  */
+    uint8_t intmask;       /* Int Enable Mask   */
+    uint8_t intadr;        /* Interrupt Address */
+    uint8_t intvector;     /* Interrupt Vector  */
 } TUART_CTX;
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 
 static const char* tuart_description(DEVICE *dptr);
@@ -126,8 +126,8 @@ static int32 tuart_command(DEVICE *dptr, int32 io, int32 data);
 static int32 tuart_intadrmsk(DEVICE *dptr, int32 io, int32 data);
 static void tuart_int(UNIT *uptr);
 
-extern uint32 vectorInterrupt;          /* Vector Interrupt bits */
-extern uint8 dataBus[MAX_INT_VECTORS];  /* Data bus value        */
+extern uint32_t vectorInterrupt;          /* Vector Interrupt bits */
+extern uint8_t dataBus[MAX_INT_VECTORS];  /* Data bus value        */
 
 /* Debug Flags */
 static DEBTAB tuart_dt[] = {

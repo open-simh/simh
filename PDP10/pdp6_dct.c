@@ -47,7 +47,7 @@
 uint64        dct_buf[NUM_DEVS_DCT];
 uint64        dct_acc[NUM_DEVS_DCT];
 
-t_stat        dct_devio(uint32 dev, uint64 *data);
+t_stat        dct_devio(uint32_t dev, uint64 *data);
 t_stat        dct_svc(UNIT *);
 t_stat        dct_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                  const char *cptr);
@@ -87,7 +87,7 @@ DEVICE              dct_dev = {
 
 
 t_stat
-dct_devio(uint32 dev, uint64 *data) {
+dct_devio(uint32_t dev, uint64 *data) {
      int            u;
      UNIT          *uptr = NULL;
 
@@ -111,7 +111,7 @@ dct_devio(uint32 dev, uint64 *data) {
           if (uptr->STATUS & DB_RQ)
               set_interrupt(dev, uptr->STATUS);
           sim_debug(DEBUG_CONO, &dct_dev, "DCT %03o CONO %06o %d PC=%o %06o\n", dev,
-                  (uint32)*data, u, PC, uptr->STATUS);
+                  (uint32_t)*data, u, PC, uptr->STATUS);
           break;
 
      case DATAI:

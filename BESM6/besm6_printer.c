@@ -128,7 +128,7 @@ t_stat printer_detach (UNIT *u)
 /*
  * Управление двигателями, прогон
  */
-void printer_control (int num, uint32 cmd)
+void printer_control (int num, uint32_t cmd)
 {
     UNIT *u = &printer_unit[num];
     struct acpu_t * dev = acpu + num;
@@ -168,7 +168,7 @@ void printer_control (int num, uint32 cmd)
 /*
  * Управление молоточками
  */
-void printer_hammer (int num, int pos, uint32 mask)
+void printer_hammer (int num, int pos, uint32_t mask)
 {
     struct acpu_t * dev = acpu + num;
     while (mask) {

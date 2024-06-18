@@ -37,7 +37,7 @@ Bugs Found and Fixed During Simulator Debug
 42. CPU: LCHx, RCHx miscoded in decode table.
 43. IO: Only 7607 error completions (IOxT without new command) set trap.
 44. CPU: 7067 channel trap flags misdefined with extraneous decrement shift.
-45. CPU: pcq array misdeclared as uint32 instead of uint16.
+45. CPU: pcq array misdeclared as uint32_t instead of uint16_t.
 46. IO: SDC and SCD tested chan_flags instead of chan_dev.flags.
 47. SYS: 7907 opcodes defined incorrectly.
 48. SYS: TCH not decoding bit<19>.

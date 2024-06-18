@@ -134,7 +134,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 
     if (match_ext(fnam, "crd")) {
         int                 firstcard = 1;
-        uint16              cbuf[80];
+        uint16_t              cbuf[80];
         t_uint64            lbuff[24];
         int                 i;
 
@@ -209,7 +209,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t              opbase;
     CONST char          *name;
 }
 t_opcode;

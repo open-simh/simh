@@ -127,21 +127,21 @@
 #define NEG(x)          ((~(x) + 1) & DMASK)
 #define ABS(x)          (((x) & SIGN)? NEG (x): (x))
 
-uint32 M[MEMSIZE] = { 0 };                              /* memory */
-uint32 PC = 0;                                          /* counter */
-uint32 A = 0;                                           /* accumulator */
-uint32 IR = 0;                                          /* instr register */
-uint32 OVF = 0;                                         /* overflow indicator */
-uint32 t_switch = 0;                                    /* transfer switch */
-uint32 bp32 = 0;                                        /* BP32 switch */
-uint32 bp16 = 0;                                        /* BP16 switch */
-uint32 bp8 = 0;                                         /* BP8 switch */
-uint32 bp4 = 0;                                         /* BP4 switch */
-uint32 inp_strt = 0;                                    /* input started */
-uint32 inp_done = 0;                                    /* input done */
-uint32 out_strt = 0;                                    /* output started */
-uint32 out_done = 0;                                    /* output done */
-uint32 lgp21_sov = 0;                                   /* LGP-21 sense pending */
+uint32_t M[MEMSIZE] = { 0 };                              /* memory */
+uint32_t PC = 0;                                          /* counter */
+uint32_t A = 0;                                           /* accumulator */
+uint32_t IR = 0;                                          /* instr register */
+uint32_t OVF = 0;                                         /* overflow indicator */
+uint32_t t_switch = 0;                                    /* transfer switch */
+uint32_t bp32 = 0;                                        /* BP32 switch */
+uint32_t bp16 = 0;                                        /* BP16 switch */
+uint32_t bp8 = 0;                                         /* BP8 switch */
+uint32_t bp4 = 0;                                         /* BP4 switch */
+uint32_t inp_strt = 0;                                    /* input started */
+uint32_t inp_done = 0;                                    /* input done */
+uint32_t out_strt = 0;                                    /* output started */
+uint32_t out_done = 0;                                    /* output done */
+uint32_t lgp21_sov = 0;                                   /* LGP-21 sense pending */
 int32 delay = 0;
 int16 pcq[PCQ_SIZE] = { 0 };                            /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
@@ -157,14 +157,14 @@ t_stat cpu_set_30opt_i (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat cpu_set_30opt_o (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat cpu_set_fill (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat cpu_set_exec (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-t_stat cpu_one_inst (uint32 opc, uint32 ir);
-uint32 Mul64 (uint32 a, uint32 b, uint32 *low);
-t_bool Div32 (uint32 dvd, uint32 dvr, uint32 *q);
-uint32 I_delay (uint32 opc, uint32 ea, uint32 op);
-uint32 shift_in (uint32 a, uint32 dat, uint32 sh4);
+t_stat cpu_one_inst (uint32_t opc, uint32_t ir);
+uint32_t Mul64 (uint32_t a, uint32_t b, uint32_t *low);
+t_bool Div32 (uint32_t dvd, uint32_t dvr, uint32_t *q);
+uint32_t I_delay (uint32_t opc, uint32_t ea, uint32_t op);
+uint32_t shift_in (uint32_t a, uint32_t dat, uint32_t sh4);
 
-extern t_stat op_p (uint32 dev, uint32 ch);
-extern t_stat op_i (uint32 dev, uint32 ch, uint32 sh4);
+extern t_stat op_p (uint32_t dev, uint32_t ch);
+extern t_stat op_i (uint32_t dev, uint32_t ch, uint32_t sh4);
 extern void lgp_vm_init (void);
 
 /* CPU data structures
@@ -241,7 +241,7 @@ static const int32 max_21[16] = {
      0, 16, 16, 16,  0, 58, 81, 79,  0, 16,  0,  0, 16, 16, 16, 16
      };
 
-static const uint32 log_to_phys_30[NSC_30] = {          /* drum interlace chart */
+static const uint32_t log_to_phys_30[NSC_30] = {          /* drum interlace chart */
     0, 57, 50, 43, 36, 29, 22, 15, 8 ,
     1, 58, 51, 44, 37, 30, 23, 16, 9 ,
     2, 59, 52, 45, 38, 31, 24, 17, 10,
@@ -252,7 +252,7 @@ static const uint32 log_to_phys_30[NSC_30] = {          /* drum interlace chart 
     7
     };
 
-static const uint32 log_to_phys_21[NSC_21] = {          /* disk interlace chart */
+static const uint32_t log_to_phys_21[NSC_21] = {          /* disk interlace chart */
     0, 64, 57, 121, 50, 114, 43, 107, 36, 100, 29, 93, 22, 86, 15, 79,  8, 72,
     1, 65, 58, 122, 51, 115, 44, 108, 37, 101, 30, 94, 23, 87, 16, 80,  9, 73,
     2, 66, 59, 123, 52, 116, 45, 109, 38, 102, 31, 95, 24, 88, 17, 81, 10, 74,
@@ -266,7 +266,7 @@ static const uint32 log_to_phys_21[NSC_21] = {          /* disk interlace chart 
 t_stat sim_instr (void)
 {
 t_stat r = 0;
-uint32 oPC;
+uint32_t oPC;
 
 /* Restore register state */
 
@@ -321,9 +321,9 @@ return r;
 
 /* Execute one instruction */
 
-t_stat cpu_one_inst (uint32 opc, uint32 ir)
+t_stat cpu_one_inst (uint32_t opc, uint32_t ir)
 {
-uint32 ea, op, dat, res, dev, sh4, ch;
+uint32_t ea, op, dat, res, dev, sh4, ch;
 t_bool ovf_this_cycle = FALSE;
 t_stat reason = 0;
 
@@ -500,12 +500,12 @@ return reason;
 
 /* Support routines */
 
-uint32 Read (uint32 ea)
+uint32_t Read (uint32_t ea)
 {
 return M[ea] & MMASK;
 }
 
-void Write (uint32 ea, uint32 dat)
+void Write (uint32_t ea, uint32_t dat)
 {
 M[ea] = dat & MMASK;
 return;
@@ -513,7 +513,7 @@ return;
 
 /* Input shift */
 
-uint32 shift_in (uint32 a, uint32 dat, uint32 sh4)
+uint32_t shift_in (uint32_t a, uint32_t dat, uint32_t sh4)
 {
 if (sh4)
     return (((a << 4) | (dat >> 2)) & DMASK);
@@ -522,10 +522,10 @@ return (((a << 6) | dat) & DMASK);
 
 /* 32b * 32b multiply, signed */
 
-uint32 Mul64 (uint32 a, uint32 b, uint32 *low)
+uint32_t Mul64 (uint32_t a, uint32_t b, uint32_t *low)
 {
-uint32 sgn = a ^ b;
-uint32 ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
+uint32_t sgn = a ^ b;
+uint32_t ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
 
 if ((a == 0) || (b == 0)) {                             /* zero argument? */
     if (low)
@@ -560,10 +560,10 @@ return rhi & M32;
 
 /* 32b/32b divide (done as 32b'0/32b) */
 
-t_bool Div32 (uint32 dvd, uint32 dvr, uint32 *q)
+t_bool Div32 (uint32_t dvd, uint32_t dvr, uint32_t *q)
 {
-uint32 sgn = dvd ^ dvr;
-uint32 i, quo;
+uint32_t sgn = dvd ^ dvr;
+uint32_t i, quo;
 
 dvd = ABS (dvd);
 dvr = ABS (dvr);
@@ -587,11 +587,11 @@ return FALSE;                                           /* no overflow */
 
 /* Rotational delay */
 
-uint32 I_delay (uint32 opc, uint32 ea, uint32 op)
+uint32_t I_delay (uint32_t opc, uint32_t ea, uint32_t op)
 {
-uint32 tmin = Q_LGP21? min_21[op]: min_30[op];
-uint32 tmax = Q_LGP21? max_21[op]: max_30[op];
-uint32 nsc, curp, newp, oprp, pcdelta, opdelta;
+uint32_t tmin = Q_LGP21? min_21[op]: min_30[op];
+uint32_t tmax = Q_LGP21? max_21[op]: max_30[op];
+uint32_t nsc, curp, newp, oprp, pcdelta, opdelta;
 
 if (Q_LGP21) {                                          /* LGP21 */
     nsc = NSC_21;                                       /* full rotation delay */
@@ -728,7 +728,7 @@ return SCPE_OK;
 
 t_stat cpu_set_exec (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 inst;
+uint32_t inst;
 t_stat r;
 
 if (cptr) {
@@ -749,7 +749,7 @@ return r;
 
 t_stat cpu_set_fill (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 inst;
+uint32_t inst;
 t_stat r;
 
 if (cptr) {

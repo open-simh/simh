@@ -51,8 +51,8 @@
 #define RPT_BC          0x7                             /* button code */
 #define RPT_EC          0x7F                            /* error code */
 
-t_stat vs_wr (uint8 c);
-t_stat vs_rd (uint8 *c);
+t_stat vs_wr (uint8_t c);
+t_stat vs_rd (uint8_t *c);
 void vs_event (SIM_MOUSE_EVENT *ev);
 
 #endif

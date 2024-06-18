@@ -42,20 +42,20 @@
 
 /* prototypes */
 
-t_stat isbc464_cfg(uint16 base, uint16 size, uint8 dummy);
+t_stat isbc464_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 t_stat isbc464_clr(void);
 t_stat isbc464_set_base(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat isbc464_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat isbc464_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat isbc464_reset (DEVICE *dptr);
 t_stat isbc464_attach (UNIT *uptr, CONST char *cptr);
-uint8 isbc464_get_mbyte(uint16 addr);
+uint8_t isbc464_get_mbyte(uint16_t addr);
 
 /* external function prototypes */
 
 /* external globals */
 
-extern uint8 xack;                         /* XACK signal */
+extern uint8_t xack;                         /* XACK signal */
 
 /* local globals */
 
@@ -122,11 +122,11 @@ DEVICE isbc464_dev = {
 
 // isbc464 configuration
 
-t_stat isbc464_cfg(uint16 base, uint16 size, uint8 dummy)
+t_stat isbc464_cfg(uint16_t base, uint16_t size, uint8_t dummy)
 {
     isbc464_unit.capac = size;
     isbc464_unit.u3 = base; 
-    isbc464_unit.filebuf = (uint8 *)calloc(size, sizeof(uint8));
+    isbc464_unit.filebuf = (uint8_t *)calloc(size, sizeof(uint8_t));
     if (isbc464_unit.filebuf == NULL) {
         sim_printf ("    isbc464: Calloc error\n");
         return SCPE_MEM;
@@ -148,7 +148,7 @@ t_stat isbc464_clr(void)
 
 t_stat isbc464_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     
     if (cptr == NULL)
         return SCPE_ARG;
@@ -182,7 +182,7 @@ t_stat isbc464_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat isbc464_set_base(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     
     if (cptr == NULL)
         return SCPE_ARG;
@@ -234,7 +234,7 @@ t_stat isbc464_reset (DEVICE *dptr)
         isbc464_onetime = 0;
     }
     if ((dptr->flags & DEV_DIS) == 0) { //already enabled
-        isbc464_dev.units->filebuf = (uint8 *)calloc(isbc464_dev.units->capac, sizeof(uint8)); //alloc buffer
+        isbc464_dev.units->filebuf = (uint8_t *)calloc(isbc464_dev.units->capac, sizeof(uint8_t)); //alloc buffer
         if (isbc464_dev.units->filebuf == NULL) { //CALLOC error
             sim_printf ("    sbc464: Calloc error\n");
             return SCPE_MEM;
@@ -265,11 +265,11 @@ t_stat isbc464_attach (UNIT *uptr, CONST char *cptr)
 
 /*  get a byte from memory */
 
-uint8 isbc464_get_mbyte(uint16 addr)
+uint8_t isbc464_get_mbyte(uint16_t addr)
 {
-    uint8 val;
+    uint8_t val;
 
-    val = *((uint8 *)isbc464_unit.filebuf + (addr - isbc464_unit.BASE_ADDR));
+    val = *((uint8_t *)isbc464_unit.filebuf + (addr - isbc464_unit.BASE_ADDR));
     return (val & BYTEMASK);
 }
 

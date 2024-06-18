@@ -152,17 +152,17 @@ t_int64 GlobalWordTimeCount=1;
 
 
 // cpu registers
-uint16              IC;                          // Added register not part of cpu. Has addr of current intr in execution, just for displaying purposes. IBM 650 has no program counter
-uint16              PROP;                        // Added register not part of cpu. Has operation code of current intr in execution, just for scp scripting purposes. Contains the two higher digits of PR register
+uint16_t              IC;                          // Added register not part of cpu. Has addr of current intr in execution, just for displaying purposes. IBM 650 has no program counter
+uint16_t              PROP;                        // Added register not part of cpu. Has operation code of current intr in execution, just for scp scripting purposes. Contains the two higher digits of PR register
 t_int64             ACC[2];                      /* lower, upper accumulator. 10 digits (=one word) each*/
 t_int64             DIST;                        /* ditributor. 10 digits */
 t_int64             CSW = 0;                     /* Console Switches, 10 digits */
 t_int64             PR;                          /* Program Register: hold current instr in execution, 10 digits*/
-uint16              AR;                          /* Address Register: address references to drum */
-uint8               OV;                          /* Overflow flag */
-uint8               CSWProgStop     = 1;         /* Console programmed stop switch */
-uint8               CSWOverflowStop = 0;         /* Console stop on overflow switch */
-uint8 HalfCycle          = 0;                    // set to 0 for normal run, =1 to execute I-Half-cycle, =2 to execute D-half-cycle
+uint16_t              AR;                          /* Address Register: address references to drum */
+uint8_t               OV;                          /* Overflow flag */
+uint8_t               CSWProgStop     = 1;         /* Console programmed stop switch */
+uint8_t               CSWOverflowStop = 0;         /* Console stop on overflow switch */
+uint8_t HalfCycle          = 0;                    // set to 0 for normal run, =1 to execute I-Half-cycle, =2 to execute D-half-cycle
 int ProgStopFlag         = 0;                    // set to 1 if programmed stop was the previous inst executed
 int AccNegativeZeroFlag  = 0;                    // set to 1 if acc has a negative zero
 int DistNegativeZeroFlag = 0;                    // set to 1 if distributor has a negative zero
@@ -1850,7 +1850,7 @@ sim_instr(void)
                                            IC, opcode, (opname == NULL) ? "???":opname, DA, IA,
                                            (Symbolic_Buffer) ? "            symb: ": "",
                                            (Symbolic_Buffer) ? Symbolic_Buffer     : "");
-            PROP = (uint16) opcode;
+            PROP = (uint16_t) opcode;
             if (opname == NULL) {
                 reason = STOP_UUO;
                 goto end_of_cycle;
@@ -2097,7 +2097,7 @@ t_stat
 cpu_set_size(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 {
     int                 mc = 0;
-    uint32              i;
+    uint32_t              i;
     int32               v;
 
     v = val >> UNIT_V_MSIZE;

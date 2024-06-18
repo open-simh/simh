@@ -33,29 +33,29 @@
 
 /* function prototypes */
 
-t_stat monitor_cfg(uint16 base, uint16 size, uint8 devnum);
+t_stat monitor_cfg(uint16_t base, uint16_t size, uint8_t devnum);
 t_stat monitor_reset (DEVICE *dptr);
 
 /* external function prototypes */
 
 extern t_stat i8251_reset(DEVICE *dptr);
-extern t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy);
+extern t_stat i8251_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 extern t_stat EPROM_reset(DEVICE *dptr);
-extern t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
-extern uint8 i3214_monitor_do_boot(t_bool io, uint8 data, uint8 devnum);
+extern t_stat EPROM_cfg(uint16_t base, uint16_t size, uint8_t devnum);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
+extern uint8_t i3214_monitor_do_boot(t_bool io, uint8_t data, uint8_t devnum);
 
 // external globals
 
-extern uint32 PCX;                    /* program counter */
+extern uint32_t PCX;                    /* program counter */
 extern DEVICE i8251_dev;
 extern DEVICE EPROM_dev;
-extern uint8 monitor_boot;
+extern uint8_t monitor_boot;
 
 // globals
 
-t_stat monitor_cfg(uint16 base, uint16 size, uint8 devnum)
+t_stat monitor_cfg(uint16_t base, uint16_t size, uint8_t devnum)
 {
     return SCPE_OK;
 }

@@ -194,14 +194,14 @@
 
 /* external globals */
 
-extern uint16    PCX;
+extern uint16_t    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
-extern uint8 get_mbyte(uint16 addr);
-extern void put_mbyte(uint16 addr, uint8 val);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
+extern uint8_t get_mbyte(uint16_t addr);
+extern void put_mbyte(uint16_t addr, uint8_t val);
 
 /* internal function prototypes */
 
@@ -213,14 +213,14 @@ t_stat zx200a_reset(DEVICE *dptr);
 void zx200a_reset_dev(void);
 t_stat zx200a_attach (UNIT *uptr, CONST char *cptr);
 t_stat zx200a_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-uint8 zx200ar0SD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar0DD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar1SD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar1DD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar2SD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar2DD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar3(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar7(t_bool io, uint8 data, uint8 devnum);
+uint8_t zx200ar0SD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar0DD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar1SD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar1DD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar2SD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar2DD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar3(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t zx200ar7(t_bool io, uint8_t data, uint8_t devnum);
 void zx200a_diskio(void);
 
 /* globals */
@@ -231,23 +231,23 @@ static const char* zx200a_desc(DEVICE *dptr) {
 }
 
 typedef    struct    {                  //FDD definition
-    uint8   sec;
-    uint8   cyl;
-    uint8   dd;
+    uint8_t   sec;
+    uint8_t   cyl;
+    uint8_t   dd;
     }    FDDDEF;
 
 typedef    struct    {                  //FDC definition
-    uint8   baseport;                   //FDC base port
-    uint8   intnum;                     //interrupt number
-    uint8   verb;                       //verbose flag
-    uint16  iopb;                       //FDC IOPB
-    uint8   DDstat;                     //FDC DD status
-    uint8   SDstat;                     //FDC SD status
-    uint8   rdychg;                     //FDC ready change
-    uint8   rtype;                      //FDC result type
-    uint8   rbyte0;                     //FDC result byte for type 00
-    uint8   rbyte1;                     //FDC result byte for type 10
-    uint8   intff;                      //fdc interrupt FF
+    uint8_t   baseport;                   //FDC base port
+    uint8_t   intnum;                     //interrupt number
+    uint8_t   verb;                       //verbose flag
+    uint16_t  iopb;                       //FDC IOPB
+    uint8_t   DDstat;                     //FDC DD status
+    uint8_t   SDstat;                     //FDC SD status
+    uint8_t   rdychg;                     //FDC ready change
+    uint8_t   rtype;                      //FDC result type
+    uint8_t   rbyte0;                     //FDC result byte for type 00
+    uint8_t   rbyte1;                     //FDC result byte for type 10
+    uint8_t   intff;                      //fdc interrupt FF
     FDDDEF  fdd[FDD_NUM];               //indexed by the FDD number
     }    FDCDEF;
 
@@ -356,7 +356,7 @@ t_stat zx200a_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat zx200a_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result;
+    uint32_t size, result;
     
     if (uptr == NULL)
         return SCPE_ARG;
@@ -384,7 +384,7 @@ t_stat zx200a_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat zx200a_set_int(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result;
+    uint32_t size, result;
     
     if (uptr == NULL)
         return SCPE_ARG;
@@ -540,7 +540,7 @@ void zx200a_reset_dev(void)
 t_stat zx200a_attach (UNIT *uptr, CONST char *cptr)
 {
     t_stat r;
-    uint8 fddnum;
+    uint8_t fddnum;
 
     sim_debug (DEBUG_flow, &zx200a_dev, "   zx200a_attach: Entered with cptr=%s\n", cptr);
     if ((r = attach_unit (uptr, cptr)) != SCPE_OK) { 
@@ -585,7 +585,7 @@ t_stat zx200a_attach (UNIT *uptr, CONST char *cptr)
 
 /* zx200a control port functions */
 
-uint8 zx200ar0SD(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar0SD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read ststus*/
         return zx200a.SDstat;
@@ -593,7 +593,7 @@ uint8 zx200ar0SD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar0DD(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar0DD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read ststus*/
         return zx200a.DDstat;
@@ -601,7 +601,7 @@ uint8 zx200ar0DD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar1SD(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar1SD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read operation */
         zx200a.intff = 0;               //clear interrupt FF
@@ -614,7 +614,7 @@ uint8 zx200ar1SD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar1DD(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar1DD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read operation */
         zx200a.intff = 0;               //clear interrupt FF
@@ -627,7 +627,7 @@ uint8 zx200ar1DD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar2SD(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar2SD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -640,7 +640,7 @@ uint8 zx200ar2SD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar2DD(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar2DD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -653,7 +653,7 @@ uint8 zx200ar2DD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar3(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar3(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         if (zx200a.rtype == ROK) {
@@ -672,7 +672,7 @@ uint8 zx200ar3(t_bool io, uint8 data, uint8 devnum)
 }
 
 /* reset ZX-200A */
-uint8 zx200ar7(t_bool io, uint8 data, uint8 devnum)
+uint8_t zx200ar7(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -686,13 +686,13 @@ uint8 zx200ar7(t_bool io, uint8 data, uint8 devnum)
 
 void zx200a_diskio(void)
 {
-    uint8 cw, di, nr, ta, sa, data, nrptr;
-    uint16 ba;
-    uint32 dskoff;
-    uint8 fddnum, fmtb;
-    uint32 i;
+    uint8_t cw, di, nr, ta, sa, data, nrptr;
+    uint16_t ba;
+    uint32_t dskoff;
+    uint8_t fddnum, fmtb;
+    uint32_t i;
     UNIT *uptr;
-    uint8 *fbuf;
+    uint8_t *fbuf;
 
     //parse the IOPB 
     cw = get_mbyte(zx200a.iopb);
@@ -704,7 +704,7 @@ void zx200a_diskio(void)
     ba |= (get_mbyte(zx200a.iopb + 6) << 8);
     fddnum = (di & 0x30) >> 4;
     uptr = zx200a_dev.units + fddnum;
-    fbuf = (uint8 *) uptr->filebuf;
+    fbuf = (uint8_t *) uptr->filebuf;
     if (zx200a.verb)
         sim_printf("\n   zx200a: FDD %d - nr=%02XH ta=%02XH sa=%02XH IOPB=%04XH PCX=%04XH",
             fddnum, nr, ta, sa, zx200a.iopb, PCX);
@@ -835,13 +835,13 @@ void zx200a_diskio(void)
             if (zx200a.fdd[fddnum].dd == 1) {
                 //calculate offset into DD disk image
                 dskoff = ((ta * MAXSECDD) + (sa - 1)) * 128;
-                for(i=0; i<=((uint32)(MAXSECDD) * 128); i++) {
+                for(i=0; i<=((uint32_t)(MAXSECDD) * 128); i++) {
                     *(fbuf + (dskoff + i)) = fmtb;
                 }
             } else {
                 //calculate offset into SD disk image
                 dskoff = ((ta * MAXSECSD) + (sa - 1)) * 128;
-                for(i=0; i<=((uint32)(MAXSECSD) * 128); i++) {
+                for(i=0; i<=((uint32_t)(MAXSECSD) * 128); i++) {
                     *(fbuf + (dskoff + i)) = fmtb;
                 }
             }

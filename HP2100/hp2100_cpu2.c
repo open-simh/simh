@@ -30,7 +30,7 @@
    02-Aug-18    JDB     Moved FP and IOP dispatchers to hp2100_cpu1.c
    30-Jul-18    JDB     Renamed "dms_[rw]map" to "meu_read_map", "meu_write_map"
    24-Jul-18    JDB     Removed unneeded "iotrap" parameter from "cpu_iog" routine
-   07-Sep-17    JDB     Removed unnecessary "uint16" casts
+   07-Sep-17    JDB     Removed unnecessary "uint16_t" casts
    10-Jul-17    JDB     Renamed the global routine "iogrp" to "cpu_iog"
    26-Jun-17    JDB     Replaced SEXT with SEXT16
    22-Mar-17    JDB     Corrected comments regarding IR bit 11 selecting A/B
@@ -149,12 +149,12 @@ static const OP_PAT op_dms[32] = {
   OP_A,    OP_A,    OP_A,    OP_A                       /* SJP    SJS    UJP    UJS   */
   };
 
-t_stat cpu_dms (uint32 intrq)
+t_stat cpu_dms (uint32_t intrq)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint8 byte;
-uint32 entry, absel, i;
+uint8_t byte;
+uint32_t entry, absel, i;
 HP_WORD t;
 MEU_STATE operation;
 MEU_MAP_SELECTOR mapi, mapj;
@@ -525,12 +525,12 @@ static const OP_PAT op_eig[32] = {
   OP_KA,   OP_KK,   OP_KV,   OP_KV                      /* CBS    TBS    CMW    MVW   */
   };
 
-t_stat cpu_eig (HP_WORD IR, uint32 intrq)
+t_stat cpu_eig (HP_WORD IR, uint32_t intrq)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint8 byte, b1, b2;
-uint32 entry, absel, sum;
+uint8_t byte, b1, b2;
+uint32_t entry, absel, sum;
 HP_WORD t, v1, v2, wc;
 int32 sop1, sop2;
 

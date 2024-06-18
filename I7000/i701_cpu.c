@@ -95,8 +95,8 @@ struct InstHistory
     t_int64             mq;
     t_int64             op;
     t_int64             sr;
-    uint32              ic;
-    uint16              ea;
+    uint32_t              ic;
+    uint16_t              ea;
 };
 
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
@@ -117,27 +117,27 @@ const char          *cpu_description (DEVICE *dptr);
 
 t_uint64            M[MAXMEMSIZE] = { 0 };      /* memory */
 t_uint64            AC, MQ;                     /* registers */
-uint16              IC;                         /* program counter */
-uint8               SL;                         /* Sense lights */
-uint8               SW = 0;                     /* Sense switch */
-uint8               dcheck;                     /* Divide check */
-uint8               acoflag;                    /* AC Overflow */
-uint8               ihold = 0;                  /* Hold interrupts */
-uint16              iotraps;                    /* IO trap flags */
+uint16_t              IC;                         /* program counter */
+uint8_t               SL;                         /* Sense lights */
+uint8_t               SW = 0;                     /* Sense switch */
+uint8_t               dcheck;                     /* Divide check */
+uint8_t               acoflag;                    /* AC Overflow */
+uint8_t               ihold = 0;                  /* Hold interrupts */
+uint16_t              iotraps;                    /* IO trap flags */
 t_uint64            ioflags;                    /* Trap enable flags */
-uint8               iocheck;
-uint8               iowait;                     /* Waiting on io */
-uint8               dualcore;                   /* Set to true if dual core in
+uint8_t               iocheck;
+uint8_t               iowait;                     /* Waiting on io */
+uint8_t               dualcore;                   /* Set to true if dual core in
                                                          use */
-uint16              dev_pulse[NUM_CHAN];        /* SPRA device pulses */
+uint16_t              dev_pulse[NUM_CHAN];        /* SPRA device pulses */
 int                 cycle_time = 120;           /* Cycle time of 12us */
 
 /* History information */
 int32               hst_p = 0;                  /* History pointer */
 int32               hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
-extern uint32       drum_addr;
-uint32              hsdrm_addr;
+extern uint32_t       drum_addr;
+uint32_t              hsdrm_addr;
 extern UNIT         chan_unit[];
 
 #undef  AMASK           /* Change definition of AMASK here */
@@ -194,9 +194,9 @@ sim_instr(void)
     t_uint64        temp = 0;
     t_uint64        ibr;
     t_uint64        SR;
-    uint16          opcode;
-    uint16          MA;
-    uint8           f;
+    uint16_t          opcode;
+    uint16_t          MA;
+    uint8_t           f;
     int             shiftcnt;
     int             stopnext = 0;
     int             instr_count = 0;   /* Number of instructions to execute */
@@ -257,8 +257,8 @@ sim_instr(void)
             IC = (IC + 1) & AMASK;
         }
         ihold = 0;
-        opcode = ((uint16)(temp >> 12L)) & 077;
-        MA = (uint16)(temp & AMASK);
+        opcode = ((uint16_t)(temp >> 12L)) & 077;
+        MA = (uint16_t)(temp & AMASK);
         ibr = SR = ReadP(MA>>1);
         if ((opcode & 040) == 0) {
            if (MA & 1)
@@ -651,7 +651,7 @@ store:
 /* 704 Input output Instructions */
             case 29:            /* SET DR */
                 if (chan_test(0, DEV_SEL)) {
-                    drum_addr = (uint32)MA;
+                    drum_addr = (uint32_t)MA;
                     chan_clear(0, DEV_FULL);    /* Incase something got
                                                   read while waiting */
                 } else
@@ -673,7 +673,7 @@ store:
                 /* Instruct is NOP first time */
                 /* Incomplete last word leaves result in MQ */
                 if (chan_select(0)) {
-                    extern uint8 bcnt[NUM_CHAN];
+                    extern uint8_t bcnt[NUM_CHAN];
                     chan_set(0, STA_ACTIVE);
                     switch (chan_flags[0] & (DEV_WRITE | DEV_FULL)) {
                     case DEV_WRITE | DEV_FULL:

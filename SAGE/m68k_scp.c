@@ -246,7 +246,7 @@ static t_stat symtrace_cmd(int32 arg, CONST char* buf)
     return SCPE_OK;
 }
 
-static void putascii(uint32* buf)
+static void putascii(uint32_t* buf)
 {
     int i;
     putchar('|');
@@ -263,7 +263,7 @@ static t_stat hdump_cmd(int32 arg, CONST char* buf)
     t_addr low, high, base, top;
     char gbuf[2*CBUFSIZE];
     char *token;
-    uint32 byte[16];
+    uint32_t byte[16];
     t_bool ascii = FALSE;
     t_bool first = TRUE;
     
@@ -272,7 +272,7 @@ static t_stat hdump_cmd(int32 arg, CONST char* buf)
         buf += 2;
         while (*buf && isspace(*buf)) buf++;
     }
-    memset(byte,0,sizeof(uint32)*16);
+    memset(byte,0,sizeof(uint32_t)*16);
     
     gbuf[sizeof(gbuf)-1] = '\0';
     strncpy(gbuf, buf, sizeof(gbuf)-1);

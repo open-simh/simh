@@ -76,7 +76,7 @@
 #define CLK_DELAY       16667
 
 int32 tti_csr = 0;                                      /* control/status */
-uint32 tti_buftime;                                     /* time input character arrived */
+uint32_t tti_buftime;                                     /* time input character arrived */
 int32 tto_csr = 0;                                      /* control/status */
 int32 clk_csr = 0;                                      /* control/status */
 int32 clk_tps = 60;                                     /* ticks/second */

@@ -118,12 +118,12 @@
 #define HIST_ILNT       3                               /* max inst length */
 
 typedef struct {
-    uint16              pc;
-    uint16              sp;
-    uint8               cc;
-    uint8               a;
-    uint8               b;
-    uint16              ix;
+    uint16_t              pc;
+    uint16_t              sp;
+    uint8_t               cc;
+    uint8_t               a;
+    uint8_t               b;
+    uint16_t              ix;
     t_value             inst[HIST_ILNT];
     } InstHistory;
 
@@ -155,10 +155,10 @@ t_stat m6800_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw);
 void dump_regs(void);
 int32 fetch_byte(void);
 int32 fetch_word(void);
-uint8 pop_byte(void);
-uint16 pop_word(void);
-void push_byte(uint8 val);
-void push_word(uint16 val);
+uint8_t pop_byte(void);
+uint16_t pop_word(void);
+void push_byte(uint8_t val);
+void push_word(uint16_t val);
 void go_rel(int32 cond);
 int32 get_vec_val(int32 vec);
 int32 get_imm_val(void);
@@ -1811,7 +1811,7 @@ void dump_regs(void)
 /* fetch an instruction or byte */
 int32 fetch_byte(void)
 {
-    uint8 val;
+    uint8_t val;
 
     val = CPU_BD_get_mbyte(PC) & BYTEMASK;   /* fetch byte */
     //rsv fix on opernd order but moved the "& BYTEMASK" here
@@ -1822,7 +1822,7 @@ int32 fetch_byte(void)
 /* fetch a word */
 int32 fetch_word(void)
 {
-    uint16 val;
+    uint16_t val;
 
     val = CPU_BD_get_mbyte(PC) << 8;     /* fetch high byte */
     val |= CPU_BD_get_mbyte(PC + 1) & BYTEMASK; /* fetch low byte */
@@ -1831,7 +1831,7 @@ int32 fetch_word(void)
 }
 
 /* push a byte to the stack */
-void push_byte(uint8 val)
+void push_byte(uint8_t val)
 {
     CPU_BD_put_mbyte(SP, val & BYTEMASK);
     //rsv fix on opernd order but moved the "& BYTEMASK" here
@@ -1839,16 +1839,16 @@ void push_byte(uint8 val)
 }
 
 /* push a word to the stack */
-void push_word(uint16 val)
+void push_word(uint16_t val)
 {
     push_byte(val & BYTEMASK);
     push_byte(val >> 8);
 }
 
 /* pop a byte from the stack */
-uint8 pop_byte(void)
+uint8_t pop_byte(void)
 {
-    register uint8 res;
+    register uint8_t res;
 
     SP = (SP + 1) & ADDRMASK;
     res = CPU_BD_get_mbyte(SP);
@@ -1856,9 +1856,9 @@ uint8 pop_byte(void)
 }
 
 /* pop a word from the stack */
-uint16 pop_word(void)
+uint16_t pop_word(void)
 {
-    register uint16 res;
+    register uint16_t res;
 
     res = pop_byte() << 8;
     res |= pop_byte();

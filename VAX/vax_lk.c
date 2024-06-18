@@ -61,14 +61,14 @@ typedef struct {
     int32 head;
     int32 tail;
     int32 count;
-    uint8 buf[LK_BUF_LEN];
+    uint8_t buf[LK_BUF_LEN];
 } LK_FIFO;
 
 /* Scan codes */
 
 typedef struct {
     int8 group;
-    uint8 code;
+    uint8_t code;
 } LK_KEYDATA;
 
 LK_KEYDATA LK_KEY_UNKNOWN    = { 0, LK_UNKNOWN };
@@ -180,14 +180,14 @@ LK_FIFO lk_sndf;                                        /* send FIFO */
 LK_FIFO lk_rcvf;                                        /* receive FIFO */
 int32 lk_mode[16];                                      /* mode of each key group */
 
-t_stat lk_wr (uint8 c);
-t_stat lk_rd (uint8 *c);
+t_stat lk_wr (uint8_t c);
+t_stat lk_rd (uint8_t *c);
 t_stat lk_reset (DEVICE *dptr);
 void lk_reset_mode (void);
 void lk_cmd (void);
 const char *lk_description (DEVICE *dptr);
-t_stat lk_put_fifo (LK_FIFO *fifo, uint8 data);
-t_stat lk_get_fifo (LK_FIFO *fifo, uint8 *data);
+t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data);
+t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data);
 void lk_clear_fifo (LK_FIFO *fifo);
 
 /* LK data structures
@@ -227,7 +227,7 @@ DEVICE lk_dev = {
 
 /* Incoming data on serial line */
 
-t_stat lk_wr (uint8 c)
+t_stat lk_wr (uint8_t c)
 {
 sim_debug (DBG_SERIAL, &lk_dev, "vax -> lk: %02X\n", c);
 if (c == 0)
@@ -244,7 +244,7 @@ return SCPE_OK;
 
 /* Outgoing data on serial line */
 
-t_stat lk_rd (uint8 *c)
+t_stat lk_rd (uint8_t *c)
 {
 t_stat r;
 
@@ -255,7 +255,7 @@ if (r == SCPE_OK)
 return r;
 }
 
-t_stat lk_put_fifo (LK_FIFO *fifo, uint8 data)
+t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data)
 {
 if (fifo->count < LK_BUF_LEN) {
     fifo->buf[fifo->head++] = data;
@@ -268,7 +268,7 @@ else
     return SCPE_EOF;
 }
 
-t_stat lk_get_fifo (LK_FIFO *fifo, uint8 *data)
+t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data)
 {
 if (fifo->count > 0) {
     *data = fifo->buf[fifo->tail++];
@@ -293,7 +293,7 @@ fifo->count = 0;
 void lk_cmd ()
 {
 int32 i, group, mode;
-uint8 data;
+uint8_t data;
 
 lk_get_fifo (&lk_rcvf, &data);
 

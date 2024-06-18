@@ -70,7 +70,7 @@
                         ((((t_uint64) (h)) << 16) & 0x0000FFFF00000000) | \
                         ((((t_uint64) (l)) << 16) & 0x00000000FFFF0000) | \
                         ((((t_uint64) (l)) >> 16) & 0x000000000000FFFF))
-#define CONCAT(h,l)     ((((t_uint64) (h)) << 32) | ((uint32) (l)))
+#define CONCAT(h,l)     ((((t_uint64) (h)) << 32) | ((uint32_t) (l)))
 
 typedef struct {
     int32               sign;
@@ -102,8 +102,8 @@ void unpackg (int32 hi, int32 lo, UFP *a);
 void norm (UFP *a);
 int32 rpackfd (UFP *a, int32 *rh);
 int32 rpackg (UFP *a, int32 *rh);
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo);
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo);
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo);
+void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32_t mhi, uint32_t mlo);
 void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias);
 void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg);
 
@@ -346,7 +346,7 @@ return rpackg (&a, flo);                                /* return frac */
 
 /* Unpacked floating point routines */
 
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo)
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo)
 {
 int32 ediff;
 UFP t;
@@ -394,7 +394,7 @@ return;
 
 /* Floating multiply - 64b * 64b with cross products */
 
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo)
+void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32_t mhi, uint32_t mlo)
 {
 t_uint64 ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
 t_uint64 mask = (((t_uint64) mhi) << 32) | ((t_uint64) mlo);
@@ -445,7 +445,7 @@ else if (a->exp <= (bias + 64)) {                       /* in range [1,64]? */
     *intgr = (int32) (a->frac >> (64 - (a->exp - bias)));
     if ((a->exp > (bias + 32)) ||                       /* test ovflo */
         ((a->exp == (bias + 32)) &&
-         (((uint32) *intgr) > (a->sign? 0x80000000: 0x7FFFFFFF))))
+         (((uint32_t) *intgr) > (a->sign? 0x80000000: 0x7FFFFFFF))))
         *flg = CC_V;
     else *flg = 0;
     if (a->sign)                                        /* -? comp int */
@@ -620,8 +620,8 @@ return r->sign | (r->exp << G_V_EXP) | UF_GETGHI (r->frac);
 #define WORDSWAP(x)     ((((x) & WMASK) << 16) | (((x) >> 16) & WMASK))
 
 typedef struct {
-    uint32              lo;
-    uint32              hi;
+    uint32_t              lo;
+    uint32_t              hi;
     } UDP;
 
 typedef struct {
@@ -639,23 +639,23 @@ typedef struct {
 #define UF_GRND_L       0x00000400
 #define UF_V_NM         63
 
-void unpackf (uint32 hi, UFP *a);
-void unpackd (uint32 hi, uint32 lo, UFP *a);
-void unpackg (uint32 hi, uint32 lo, UFP *a);
+void unpackf (uint32_t hi, UFP *a);
+void unpackd (uint32_t hi, uint32_t lo, UFP *a);
+void unpackg (uint32_t hi, uint32_t lo, UFP *a);
 void norm (UFP *a);
 int32 rpackfd (UFP *a, int32 *rh);
 int32 rpackg (UFP *a, int32 *rh);
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo);
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo);
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo);
+void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32_t mhi, uint32_t mlo);
 void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg);
 void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias);
 void dp_add (UDP *a, UDP *b);
 void dp_inc (UDP *a);
 void dp_sub (UDP *a, UDP *b);
-void dp_imul (uint32 a, uint32 b, UDP *r);
-void dp_lsh (UDP *a, uint32 sc);
-void dp_rsh (UDP *a, uint32 sc);
-void dp_rsh_s (UDP *a, uint32 sc, uint32 neg);
+void dp_imul (uint32_t a, uint32_t b, UDP *r);
+void dp_lsh (UDP *a, uint32_t sc);
+void dp_rsh (UDP *a, uint32_t sc);
+void dp_rsh_s (UDP *a, uint32_t sc, uint32_t neg);
 void dp_neg (UDP *a);
 int32 dp_cmp (UDP *a, UDP *b);
 
@@ -669,7 +669,7 @@ int32 dp_cmp (UDP *a, UDP *b);
 int32 op_ashq (int32 *opnd, int32 *rh, int32 *flg)
 {
 UDP r, sr;
-uint32 sc = opnd[0];
+uint32_t sc = opnd[0];
 
 r.lo = opnd[1];                                         /* get source */
 r.hi = opnd[2];
@@ -680,8 +680,8 @@ else {
     dp_lsh (&r, sc);                                    /* left shift */
     sr = r;                                             /* copy result */
     dp_rsh_s (&sr, sc, sr.hi & LSIGN);                  /* signed right */
-    if ((sr.hi != ((uint32) opnd[2])) ||                /* reshift != orig? */
-        (sr.lo != ((uint32) opnd[1]))) *flg = 1;        /* overflow */
+    if ((sr.hi != ((uint32_t) opnd[2])) ||                /* reshift != orig? */
+        (sr.lo != ((uint32_t) opnd[1]))) *flg = 1;        /* overflow */
     }
 *rh = r.hi;                                             /* hi result */
 return r.lo;                                            /* lo result */
@@ -714,7 +714,7 @@ return r.lo;
 int32 op_ediv (int32 *opnd, int32 *rh, int32 *flg)
 {
 UDP dvd;
-uint32 i, dvr, quo;
+uint32_t i, dvr, quo;
 
 dvr = opnd[0];                                          /* get divisor */
 dvd.lo = opnd[1];                                       /* get dividend */
@@ -820,7 +820,7 @@ int32 op_cvtfdgi (int32 *opnd, int32 *flg, int32 opc)
 UFP a;
 int32 lnt = opc & 03;
 int32 ubexp;
-static uint32 maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
+static uint32_t maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
 
 *flg = 0;
 if (opc & 0x100) {                                      /* G? */
@@ -902,7 +902,7 @@ return rpackg (&a, flo);                                /* return frac */
 
 /* Floating add */
 
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo)
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo)
 {
 int32 ediff;
 UFP t;
@@ -948,7 +948,7 @@ return;
 
 /* Floating multiply - 64b * 64b with cross products */
 
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo)
+void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32_t mhi, uint32_t mlo)
 {
 UDP rhi, rlo, rmid1, rmid2;
 
@@ -1103,7 +1103,7 @@ a->hi = (a->hi - b->hi) & LMASK;                        /* sub hi */
 return;
 }
 
-void dp_lsh (UDP *r, uint32 sc)
+void dp_lsh (UDP *r, uint32_t sc)
 {
 if (sc > 63)                                            /* > 63? result 0 */
     r->hi = r->lo = 0;
@@ -1118,7 +1118,7 @@ else if (sc != 0) {
 return;
 }
 
-void dp_rsh (UDP *r, uint32 sc)
+void dp_rsh (UDP *r, uint32_t sc)
 {
 if (sc > 63)                                            /* > 63? result 0 */
     r->hi = r->lo = 0;
@@ -1133,7 +1133,7 @@ else if (sc != 0) {
 return;
 }
 
-void dp_rsh_s (UDP *r, uint32 sc, uint32 neg)
+void dp_rsh_s (UDP *r, uint32_t sc, uint32_t neg)
 {
 dp_rsh (r, sc);                                         /* do unsigned right */
 if (neg && sc) {                                        /* negative? */
@@ -1149,9 +1149,9 @@ if (neg && sc) {                                        /* negative? */
 return;
 }
 
-void dp_imul (uint32 a, uint32 b, UDP *r)
+void dp_imul (uint32_t a, uint32_t b, UDP *r)
 {
-uint32 ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
+uint32_t ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
 
 if ((a == 0) || (b == 0)) {                             /* zero argument? */
     r->hi = r->lo = 0;                                  /* result is zero */
@@ -1186,7 +1186,7 @@ return;
 
 /* Support routines */
 
-void unpackf (uint32 hi, UFP *r)
+void unpackf (uint32_t hi, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -1202,7 +1202,7 @@ dp_lsh (&r->frac, FD_GUARD);
 return;
 }
 
-void unpackd (uint32 hi, uint32 lo, UFP *r)
+void unpackd (uint32_t hi, uint32_t lo, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -1218,7 +1218,7 @@ dp_lsh (&r->frac, FD_GUARD);
 return;
 }
 
-void unpackg (uint32 hi, uint32 lo, UFP *r)
+void unpackg (uint32_t hi, uint32_t lo, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = G_GETEXP (hi);                                 /* get exponent */
@@ -1237,7 +1237,7 @@ return;
 void norm (UFP *r)
 {
 int32 i;
-static uint32 normmask[5] = {
+static uint32_t normmask[5] = {
  0xc0000000, 0xf0000000, 0xff000000, 0xffff0000, 0xffffffff
  };
 static int32 normtab[6] = { 1, 2, 4, 8, 16, 32};

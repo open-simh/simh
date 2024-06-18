@@ -27,7 +27,7 @@
                 instructions
 
    28-Jul-18    JDB     Renamed hp2100_fp1.h to hp2100_cpu_fp.h
-   07-Sep-17    JDB     Replaced "uint16" cast with "HP_WORD" for FPK assignment
+   07-Sep-17    JDB     Replaced "uint16_t" cast with "HP_WORD" for FPK assignment
    05-Aug-16    JDB     Renamed the P register from "PC" to "PR"
    24-Dec-14    JDB     Added casts for explicit downward conversions
    09-May-12    JDB     Separated assignments from conditional expressions
@@ -259,14 +259,14 @@ OP fpop;
 OPS op;
 OPSIZE op1_prec, op2_prec, rslt_prec, cvt_prec;
 HP_WORD rtn_addr, stk_ptr;
-uint16 opcode;
-uint32 entry;
+uint16_t opcode;
+uint32_t entry;
 t_stat reason = SCPE_OK;
 
 if (cpu_configuration & CPU_1000_F)                     /* F-Series? */
-    opcode = (uint16) (IR & 0377);                      /* yes, use full opcode */
+    opcode = (uint16_t) (IR & 0377);                      /* yes, use full opcode */
 else
-    opcode = (uint16) (IR & 0160);                      /* no, use 6 SP FP opcodes */
+    opcode = (uint16_t) (IR & 0160);                      /* no, use 6 SP FP opcodes */
 
 entry = opcode & 0177;                                  /* map to <6:0> */
 
@@ -340,7 +340,7 @@ switch (entry) {                                        /* decode IR<6:0> */
                 break;                                  /* done */
                 }
 
-            fp_prec ((uint16) (op[0].word & 0377),      /* determine operand precisions */
+            fp_prec ((uint16_t) (op[0].word & 0377),      /* determine operand precisions */
                      &op1_prec, &op2_prec, &rslt_prec);
 
             if (TO_COUNT(op1_prec) != op[1].word) {     /* first operand precisions agree? */
@@ -360,11 +360,11 @@ switch (entry) {                                        /* decode IR<6:0> */
                 op[2] = ReadOp (op[4].word, op2_prec);  /* no, so get operand 2 */
 
             O = O |                                     /* execute instruction */
-                fp_exec ((uint16) (op[0].word & 0377),  /* and accumulate overflow */
+                fp_exec ((uint16_t) (op[0].word & 0377),  /* and accumulate overflow */
                                   &fpop, op[1], op[2]);
 
             if (op[5].word) {                           /* precision conversion? */
-                fp_prec ((uint16) (op[5].word & 0377),  /* determine conversion precision */
+                fp_prec ((uint16_t) (op[5].word & 0377),  /* determine conversion precision */
                          NULL, NULL, &cvt_prec);
 
                 fpop = fp_accum (NULL, cvt_prec);       /* convert result */
@@ -518,10 +518,10 @@ return reason;
      argument = argument * multiplier - multiple
 */
 
-static uint32 reduce (OP *argument, int32 *multiple, OP multiplier)
+static uint32_t reduce (OP *argument, int32 *multiple, OP multiplier)
 {
 OP product, count;
-uint32 overflow;
+uint32_t overflow;
 
 fp_cvt (argument, fp_f, fp_x);                          /* convert to extended precision */
 fp_exec (0041, &product, *argument, multiplier);        /* product = argument * multiplier */
@@ -556,7 +556,7 @@ OPS op;
 OP arg, coeff, pwr, product, count, result;
 int16 f, p;
 int32 multiple, power, exponent, rsltexp;
-uint32 entry, i;
+uint32_t entry, i;
 t_bool flag, sign;
 t_stat reason = SCPE_OK;
 
@@ -1094,11 +1094,11 @@ switch (entry) {                                        /* decode IR<3:0> */
             fp_accum (&op[2], (OPSIZE) (fp_f + p));     /* acc = arg */
 
             while (exponent-- > 0) {
-                O = O | fp_exec ((uint16) (0054 | p),   /* square acc */
+                O = O | fp_exec ((uint16_t) (0054 | p),   /* square acc */
                                  ACCUM, NOP, NOP);
 
                 if (i & D16_SIGN)
-                    O = O | fp_exec ((uint16) (0050 | p),   /* acc = acc * arg */
+                    O = O | fp_exec ((uint16_t) (0050 | p),   /* acc = acc * arg */
                                      ACCUM, NOP, op[2]);
                 i = i << 1;
                 }

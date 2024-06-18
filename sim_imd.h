@@ -41,11 +41,11 @@
 #include "sim_defs.h"
 
 typedef struct {
-    uint8 mode;
-    uint8 cyl;
-    uint8 head;
-    uint8 nsects;
-    uint8 sectsize;
+    uint8_t mode;
+    uint8_t cyl;
+    uint8_t head;
+    uint8_t nsects;
+    uint8_t sectsize;
 } IMD_HEADER;
 
 
@@ -91,45 +91,45 @@ typedef struct {
 #define IMAGE_TYPE_CPT          3               /* CP/M Transfer "CPT" image file.          */
 
 typedef struct {
-    uint8 mode;
-    uint8 nsects;
-    uint32 sectsize;
-    uint32 sectorOffsetMap[MAX_SPT];
-    uint8 start_sector;
-    uint8 logicalHead[MAX_SPT];
-    uint8 logicalCyl[MAX_SPT];
+    uint8_t mode;
+    uint8_t nsects;
+    uint32_t sectsize;
+    uint32_t sectorOffsetMap[MAX_SPT];
+    uint8_t start_sector;
+    uint8_t logicalHead[MAX_SPT];
+    uint8_t logicalCyl[MAX_SPT];
 } TRACK_INFO;
 
 typedef struct {
     FILE *file;
-    uint32 ntracks;
-    uint8 nsides;
-    uint8 flags;
+    uint32_t ntracks;
+    uint8_t nsides;
+    uint8_t flags;
     DEVICE *device;
-    uint32 debugmask;
-    uint32 verbosedebugmask;
+    uint32_t debugmask;
+    uint32_t verbosedebugmask;
     TRACK_INFO track[MAX_CYL][MAX_HEAD];
 } DISK_INFO;
 
-extern DISK_INFO *diskOpen(FILE *fileref, uint32 isVerbose);
-extern DISK_INFO *diskOpenEx(FILE *fileref, uint32 isVerbose, DEVICE *device, uint32 debugmask, uint32 verbosedebugmask);
+extern DISK_INFO *diskOpen(FILE *fileref, uint32_t isVerbose);
+extern DISK_INFO *diskOpenEx(FILE *fileref, uint32_t isVerbose, DEVICE *device, uint32_t debugmask, uint32_t verbosedebugmask);
 extern t_stat diskClose(DISK_INFO **myDisk);
 extern t_stat diskCreate(FILE *fileref, const char *ctlr_comment);
-extern uint32 imdGetSides(DISK_INFO *myDisk);
-extern uint32 imdIsWriteLocked(DISK_INFO *myDisk);
+extern uint32_t imdGetSides(DISK_INFO *myDisk);
+extern uint32_t imdIsWriteLocked(DISK_INFO *myDisk);
 
-extern t_stat sectSeek(DISK_INFO *myDisk, uint32 Cyl, uint32 Head);
-extern t_stat sectRead(DISK_INFO *myDisk, uint32 Cyl, uint32 Head, uint32 Sector, uint8 *buf, uint32 buflen, uint32 *flags, uint32 *readlen);
-extern t_stat sectWrite(DISK_INFO *myDisk, uint32 Cyl, uint32 Head, uint32 Sector, uint8 *buf, uint32 buflen, uint32 *flags, uint32 *writelen);
+extern t_stat sectSeek(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head);
+extern t_stat sectRead(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head, uint32_t Sector, uint8_t *buf, uint32_t buflen, uint32_t *flags, uint32_t *readlen);
+extern t_stat sectWrite(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head, uint32_t Sector, uint8_t *buf, uint32_t buflen, uint32_t *flags, uint32_t *writelen);
 extern t_stat trackWrite(DISK_INFO *myDisk,
-               uint32 Cyl,
-               uint32 Head,
-               uint32 numSectors,
-               uint32 sectorLen,
-               uint8 *sectorMap,
-               uint8 mode,
-               uint8 fillbyte,
-               uint32 *flags);
+               uint32_t Cyl,
+               uint32_t Head,
+               uint32_t numSectors,
+               uint32_t sectorLen,
+               uint8_t *sectorMap,
+               uint8_t mode,
+               uint8_t fillbyte,
+               uint32_t *flags);
 extern t_stat assignDiskType(UNIT *uptr);
 
 #endif

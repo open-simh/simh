@@ -44,8 +44,8 @@
 #define FLAG_SYNC    000002
 
 typedef struct {
-  uint16 num;
-  uint16 (*iot)(uint16 insn, uint16 AC);
+  uint16_t num;
+  uint16_t (*iot)(uint16_t insn, uint16_t AC);
   const char *mnemonics[8];
 } SUBDEV;
 
@@ -55,23 +55,23 @@ typedef struct {
 } IMDEV;
 
 extern t_bool build_dev_tab (void);
-extern void flag_on (uint16 flag);
-extern void flag_off (uint16 flag);
-extern uint16 flag_check (uint16 flag);
+extern void flag_on (uint16_t flag);
+extern void flag_off (uint16_t flag);
+extern uint16_t flag_check (uint16_t flag);
 extern void dp_on (int flag);
-extern uint16 dp_is_on (void);
-extern void crt_point (uint16 x, uint16 y);
-extern void crt_line (uint16 x1, uint16 y1, uint16 x2, uint16 y2);
+extern uint16_t dp_is_on (void);
+extern void crt_point (uint16_t x, uint16_t y);
+extern void crt_line (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 extern void crt_idle (void);
 extern void crt_hvc (void);
-extern void rom_data (uint16 *data);
+extern void rom_data (uint16_t *data);
 extern void rom_tty (void);
 extern void rom_stty (void);
 extern void rom_ptr (void);
 
 extern REG cpu_reg[];
-extern uint16 M[];
-extern uint16 memmask;
+extern uint16_t M[];
+extern uint16_t memmask;
 extern SUBDEV *dev_tab[0100];
 extern DEVICE cpu_dev, irq_dev, rom_dev, dp_dev, crt_dev, kbd_dev;
 extern DEVICE tty_dev, ptr_dev, ptp_dev, sync_dev;

@@ -38,7 +38,7 @@
 extern t_bool build_dev_tab (void);
 
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 extern DEVICE cpu_dev;
 
 #endif /* STUB_DEFS_H_ */

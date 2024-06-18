@@ -509,7 +509,7 @@ DEVICE cp_dev = {
 #define CR_DSW_2501_NOT_READY           0x0001
 
 typedef struct {
-    uint16 hollerith;
+    uint16_t hollerith;
     unsigned char ascii;
 } CPCODE;
 
@@ -740,8 +740,8 @@ static int list_nargs = 0;
 static const char* (*tab_proc)(char* str, int width) = NULL;        /* tab reformatting routine */
 static int tab_width = 8;
 
-static uint16 punchstation[80];
-static uint16 readstation[80];
+static uint16_t punchstation[80];
+static uint16_t readstation[80];
 static enum {STATION_EMPTY, STATION_LOADED, STATION_READ, STATION_PUNCHED} punchstate = STATION_EMPTY, readstate = STATION_EMPTY;
 
 static t_bool nextdeck (void);
@@ -826,7 +826,7 @@ static int32 guess_cr_code (void)
     long filepos;
     int32 guess;
     union {
-        uint16 w[80];               /* one card image, viewed as 80 short words */
+        uint16_t w[80];               /* one card image, viewed as 80 short words */
         char   c[160];              /* same, viewed as 160 characters */
     } line;
 
@@ -900,8 +900,8 @@ t_stat load_cr_boot (int32 drvno, int switches)
     const char *name;
     char msg[80];
     t_bool expand;
-    uint16 word, *boot;
-    static uint16 dms_boot_data[] = {               /* DMSV2M12, already expanded to 16 bits */
+    uint16_t word, *boot;
+    static uint16_t dms_boot_data[] = {               /* DMSV2M12, already expanded to 16 bits */
         0xc80a, 0x18c2, 0xd008, 0xc019, 0x8007, 0xd017, 0xc033, 0x100a,
         0xd031, 0x7015, 0x000c, 0xe800, 0x0020, 0x08f8, 0x4828, 0x7035,
         0x70fa, 0x4814, 0xf026, 0x2000, 0x8800, 0x9000, 0x9800, 0xa000,
@@ -913,7 +913,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
         0x080d, 0x08c4, 0x1003, 0x4810, 0x70d9, 0x3000, 0x08df, 0x3000,
         0x7010, 0x00d1, 0x0028, 0x000a, 0x70f3, 0x0000, 0x00d0, 0xa0c0
     };
-    static uint16 apl_boot_data[] = {               /* APLIPL, already expanded */
+    static uint16_t apl_boot_data[] = {               /* APLIPL, already expanded */
         0x7021, 0x3000, 0x7038, 0xa0c0, 0x0002, 0x4808, 0x0003, 0x0026,
         0x0001, 0x0001, 0x000c, 0x0000, 0x0000, 0x0800, 0x48f8, 0x0027,
         0x7002, 0x08f2, 0x3800, 0xe0fe, 0x18cc, 0x100e, 0x10c1, 0x4802,
@@ -924,7 +924,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
         0x70e7, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
         0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
         0x9000, 0x4004, 0x40c0, 0x8001, 0x4004, 0x40c0, 0x0000, 0x0000  };
-    static uint16 aplp_boot_data[] = {              /* APLIPL Privileged, already expanded */
+    static uint16_t aplp_boot_data[] = {              /* APLIPL Privileged, already expanded */
         0x7021, 0x3000, 0x7038, 0xa0c0, 0x0002, 0x4808, 0x0003, 0x0026,
         0x0001, 0x0001, 0x000c, 0x0000, 0x0000, 0x0800, 0x48f8, 0x0027,
         0x7002, 0x08f2, 0x3800, 0xe0fe, 0x18cc, 0x100e, 0x10c1, 0x4802,
@@ -1020,7 +1020,7 @@ t_stat cr_boot (int32 unitno, DEVICE *dptr)
     return SCPE_OK;
 }
 
-char card_to_ascii (uint16 hol)
+char card_to_ascii (uint16_t hol)
 {
     size_t i;
 
@@ -1033,7 +1033,7 @@ char card_to_ascii (uint16 hol)
 
 /* hollerith_to_ascii - provide a generic conversion for simulator debugging  */
 
-char hollerith_to_ascii (uint16 hol)
+char hollerith_to_ascii (uint16_t hol)
 {
     size_t i;
 
@@ -1929,7 +1929,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
 {
     char msg[80];
     int ch;
-    uint16 wd;
+    uint16_t wd;
     t_bool lastcard;
 
     switch (func) {
@@ -2018,7 +2018,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
                     cp_unit.COLUMN = 81;
                 }
                 else if (cp_unit.COLUMN < 80) {
-                    wd = (uint16) ReadW(addr);          /* store one word to punch buffer */
+                    wd = (uint16_t) ReadW(addr);          /* store one word to punch buffer */
                     punchstation[cp_unit.COLUMN] = wd & 0xFFF0;
                     if (wd & 0x0008)            /* mark this as last column to be punched */
                         SETBIT(cp_unit.flags, UNIT_LASTPUNCH);

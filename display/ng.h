@@ -28,9 +28,9 @@
 extern "C" {
 #endif
 #ifndef SIM_DEFS_H_
-typedef unsigned short uint16;
+typedef unsigned short uint16_t;
 typedef int int32;
-typedef unsigned int uint32;
+typedef unsigned int uint32_t;
 #endif /* SIM_DEFS_H_ */
 
 /* Hardware type. */
@@ -50,14 +50,14 @@ extern int32 ng_scale;
 
 extern int32 ng_get_csr(void);
 extern int32 ng_get_reloc(void);
-extern void ng_set_csr(uint16);
-extern void ng_set_reloc(uint16);
+extern void ng_set_csr(uint16_t);
+extern void ng_set_reloc(uint16_t);
 
 extern int  ng_init(void *, int);
 extern int  ng_cycle(int, int);
 
-extern int  ng_fetch(uint32, uint16 *);       /* get a display-file word */
-extern int  ng_store(uint32, uint16);
+extern int  ng_fetch(uint32_t, uint16_t *);       /* get a display-file word */
+extern int  ng_store(uint32_t, uint16_t);
 
 #if defined(__cplusplus)
 }

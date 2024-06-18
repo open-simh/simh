@@ -154,15 +154,15 @@ struct _MIDB {
   // Receiver data ...
   t_bool      rxpending;        // TRUE if a read is pending on this line
   t_bool      rxerror;          // TRUE if any modem error detected
-  uint32      rxtotal;          // total number of H316 words received
+  uint32_t      rxtotal;          // total number of H316 words received
   // Transmitter data ...
-  uint32      txtotal;          // total number of H316 words transmitted
-  uint32      txdelay;          // RTC ticks until TX done interrupt
+  uint32_t      txtotal;          // total number of H316 words transmitted
+  uint32_t      txdelay;          // RTC ticks until TX done interrupt
   // Other data ...
   t_bool      lloop;            // line loop back enabled
   t_bool      iloop;            // interface loop back enabled
   int32       link;             // h316_udp link number
-  uint32      bps;              // simulated line speed or COM port baud rate
+  uint32_t      bps;              // simulated line speed or COM port baud rate
 };
 typedef struct _MIDB MIDB;
 
@@ -172,13 +172,13 @@ struct _HIDB {
   // Receiver (HOST -> IMP) data ...
   t_bool      rxpending;        // TRUE if a read is pending on this line
   t_bool      rxerror;          // TRUE if any modem error detected
-  uint32      rxtotal;          // total host messages received
-  uint16      rxdata[MAXDATA];  // UDP packet received.
-  uint16      rxnext;           // Index to next word in UDP packet.
-  uint16      rxsize;           // Size of UDP packet.
+  uint32_t      rxtotal;          // total host messages received
+  uint16_t      rxdata[MAXDATA];  // UDP packet received.
+  uint16_t      rxnext;           // Index to next word in UDP packet.
+  uint16_t      rxsize;           // Size of UDP packet.
   // Transmitter (IMP -> HOST) data ...
-  uint32      txdelay;          // RTC ticks until TX done interrupt
-  uint32      txtotal;          // total host messages sent
+  uint32_t      txdelay;          // RTC ticks until TX done interrupt
+  uint32_t      txtotal;          // total host messages sent
   // Other data ...
   t_bool      iloop;            // local loop back enabled
   t_bool      enabled;          // TRUE if the host is enabled
@@ -187,34 +187,34 @@ struct _HIDB {
   t_bool      full;             // TRUE if the host buffer is full
   t_bool      eom;              // TRUE when end of message is reached
   int32       link;             // h316_udp link number
-  uint32      bps;              // simulated line speed or COM port baud rate
+  uint32_t      bps;              // simulated line speed or COM port baud rate
 };
 typedef struct _HIDB HIDB;
 
 // I can't believe Bob managed to live without these, but I can't!
 #ifndef LOBYTE  // these are in winsock.h too!
-#define LOBYTE(x)       ((uint8) ( (x)       & 0xFF))
-#define HIBYTE(x)       ((uint8) (((x) >> 8) & 0xFF))
-#define MKWORD(h,l)     ((uint16) ( (((h)&0xFF) << 8) | ((l)&0xFF) ))
-#define LOWORD(x)       ((uint16) ( (x)        & 0xFFFF))
-#define HIWORD(x)       ((uint16) (((x) >> 16) & 0xFFFF))
-#define MKLONG(h,l)     ((uint32) ( (((h)&0xFFFF) << 16) | ((l)&0xFFFF) ))
+#define LOBYTE(x)       ((uint8_t) ( (x)       & 0xFF))
+#define HIBYTE(x)       ((uint8_t) (((x) >> 8) & 0xFF))
+#define MKWORD(h,l)     ((uint16_t) ( (((h)&0xFF) << 8) | ((l)&0xFF) ))
+#define LOWORD(x)       ((uint16_t) ( (x)        & 0xFFFF))
+#define HIWORD(x)       ((uint16_t) (((x) >> 16) & 0xFFFF))
+#define MKLONG(h,l)     ((uint32_t) ( (((h)&0xFFFF) << 16) | ((l)&0xFFFF) ))
 #endif
 
 // Prototypes for the RTC module ...
 //   I really hate sharing things like this, but it's the only way to get the
 // modem transmitter timing exactly right!
-extern uint32 rtc_interval;
-extern t_stat mi_tx_service (uint32 quantum);
-extern t_stat hi_tx_service (uint32 quantum);
+extern uint32_t rtc_interval;
+extern t_stat mi_tx_service (uint32_t quantum);
+extern t_stat hi_tx_service (uint32_t quantum);
 
 // Prototypes for UDP modem/host interface emulation routines ...
 #define NOLINK  (-1)
 t_stat udp_create (DEVICE *pdtr, const char *premote, int32 *plink);
 t_stat udp_release (DEVICE *dptr, int32 link);
-t_stat udp_send (DEVICE *pdtr, int32 link, uint16 *pdata, uint16 count);
+t_stat udp_send (DEVICE *pdtr, int32 link, uint16_t *pdata, uint16_t count);
 t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, t_bool enable_loopback);
-int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbufg);
+int32 udp_receive (DEVICE *dptr, int32 link, uint16_t *pdata, uint16_t maxbufg);
 
 #endif  // #ifndef _H316_IMP_H_
 #endif  // #ifdef VM_IMPTIP

@@ -118,30 +118,30 @@
 int debug = 0;
 
 /* hardware registers */
-uint8 g2kb_done = 0;                    /* keyboard flag */
-uint32 g2kb_buf = 0;                    /* keyboard buffer */
-uint8 g2bb_flag = 0;                    /* button flag */
-uint32 g2bb_bbuf = 0;                   /* button buffer */
-uint32 g2bb_lbuf = 0;                   /* button lights buffer */
-uint32 g2out_addr = 0;                  /* display address */
+uint8_t g2kb_done = 0;                    /* keyboard flag */
+uint32_t g2kb_buf = 0;                    /* keyboard buffer */
+uint8_t g2bb_flag = 0;                    /* button flag */
+uint32_t g2bb_bbuf = 0;                   /* button buffer */
+uint32_t g2bb_lbuf = 0;                   /* button lights buffer */
+uint32_t g2out_addr = 0;                  /* display address */
 #define PB7 02000
 
 /* not hardware registers: */
-uint32 g2out_count = 0;
-uint8 g2out_stuffcr = 0;                /* need to stuff a CR */
+uint32_t g2out_count = 0;
+uint8_t g2out_stuffcr = 0;                /* need to stuff a CR */
 
 
 /* keep old and new version of characters to display
  * a count & checksum of the "old" screen contents might suffice,
  * time will tell....
  */
-uint8 g2out_which = 0;
+uint8_t g2out_which = 0;
 #define OLD g2out_which
 #define NEW (g2out_which ^ 1)
 
 #define MAXBUFCHARS 700                 /* larger than kernel display list */
 static struct dspbuf {
-    uint16 count;
+    uint16_t count;
     char buffer[MAXBUFCHARS];           /* 7-bit ASCII */
 } g2out_dspbufs[2];
 
@@ -482,12 +482,12 @@ static void g2out_clear() {
  * quits early if display list doesn't conform to what's expected
  */
 static void g2out_process_display_list() {
-    uint32 i;
+    uint32_t i;
     struct dspbuf *dp = g2out_dspbufs + NEW;
 
     dp->count = 0;
     for (i = g2out_addr; i < 020000; i++) {
-        uint32 w = M[i] & 0777777;
+        uint32_t w = M[i] & 0777777;
         int offset = i - g2out_addr;
         char c;
 

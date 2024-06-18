@@ -32,11 +32,11 @@
 #define RD_DATA_DETAIL_MSG  (1 << 6)
 #define WR_DATA_DETAIL_MSG  (1 << 7)
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 #define MDSA_MAX_DRIVES        3
 #define MDSA_SECTOR_LEN        256
@@ -46,38 +46,38 @@ extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_typ
 
 typedef union {
     struct {
-        uint8 zeros[16];
-        uint8 sync[1];
-        uint8 data[MDSA_SECTOR_LEN];
-        uint8 checksum;
+        uint8_t zeros[16];
+        uint8_t sync[1];
+        uint8_t data[MDSA_SECTOR_LEN];
+        uint8_t checksum;
     } u;
-    uint8 raw[MDSA_RAW_LEN];
+    uint8_t raw[MDSA_RAW_LEN];
 
 } SECTOR_FORMAT;
 
 typedef struct {
     UNIT    *uptr;
-    uint8   track;
-    uint8   wp;         /* Disk write protected */
-    uint8   sector;     /* Current Sector number */
-    uint32  sector_wait_count;
+    uint8_t   track;
+    uint8_t   wp;         /* Disk write protected */
+    uint8_t   sector;     /* Current Sector number */
+    uint32_t  sector_wait_count;
 } MDSA_DRIVE_INFO;
 
 typedef struct {
-    uint8   sf;         /* Sector Flag: set when sector hole detected, reset by software. */
-    uint8   wi;         /* Window: true during 96-microsecond window at beginning of sector. */
-    uint8   mo;         /* Motor On: true while motor(s) are on. */
+    uint8_t   sf;         /* Sector Flag: set when sector hole detected, reset by software. */
+    uint8_t   wi;         /* Window: true during 96-microsecond window at beginning of sector. */
+    uint8_t   mo;         /* Motor On: true while motor(s) are on. */
 } COM_STATUS;
 
 typedef struct {
-    uint8   wr;         /* Write: controller ready to receive write data */
-    uint8   bd;         /* Body: set when sync character is detected. */
-    uint8   wp;         /* Write Protect: true while the diskette installed in the selected drive is write protected. */
-    uint8   t0;         /* Track 0: true if selected drive is at track zero. */
+    uint8_t   wr;         /* Write: controller ready to receive write data */
+    uint8_t   bd;         /* Body: set when sync character is detected. */
+    uint8_t   wp;         /* Write Protect: true while the diskette installed in the selected drive is write protected. */
+    uint8_t   t0;         /* Track 0: true if selected drive is at track zero. */
 } A_STATUS;
 
 typedef struct {
-    uint8   sc;         /* Sector Counter: indicates the current sector position. */
+    uint8_t   sc;         /* Sector Counter: indicates the current sector position. */
 } B_STATUS;
 
 typedef struct {
@@ -87,11 +87,11 @@ typedef struct {
     A_STATUS    a_status;
     B_STATUS    b_status;
 
-    uint8       int_enable;     /* Interrupt Enable */
-    uint8       stepState;      /* state of step flip-flop*/
-    uint8       stepDir;        /* state of step direction flip-flop */
-    uint8       currentDrive;   /* currently selected drive */
-    uint32      datacount;      /* Number of data bytes transferred from controller for current sector */
+    uint8_t       int_enable;     /* Interrupt Enable */
+    uint8_t       stepState;      /* state of step flip-flop*/
+    uint8_t       stepDir;        /* state of step direction flip-flop */
+    uint8_t       currentDrive;   /* currently selected drive */
+    uint32_t      datacount;      /* Number of data bytes transferred from controller for current sector */
     MDSA_DRIVE_INFO drive[MDSA_MAX_DRIVES];
 } MDSA_INFO;
 
@@ -99,7 +99,7 @@ static MDSA_INFO mdsa_info_data = { { 0xE800, 1024, 0, 0 } };
 static MDSA_INFO *mdsa_info = &mdsa_info_data;
 
 static SECTOR_FORMAT sdata;
-static uint32 stepCleared = TRUE;   /* true when step bit has returned to zero */
+static uint32_t stepCleared = TRUE;   /* true when step bit has returned to zero */
 
 #define UNIT_V_MDSA_VERBOSE    (UNIT_V_UF + 1)   /* verbose mode, i.e. show error messages       */
 #define UNIT_MDSA_VERBOSE      (1 << UNIT_V_MDSA_VERBOSE)
@@ -147,7 +147,7 @@ static t_stat mdsa_reset(DEVICE *mdsa_dev);
 static t_stat mdsa_attach(UNIT *uptr, CONST char *cptr);
 static t_stat mdsa_detach(UNIT *uptr);
 static t_stat mdsa_boot(int32 unitno, DEVICE *dptr);
-static uint8 MDSA_Read(const uint32 Addr);
+static uint8_t MDSA_Read(const uint32_t Addr);
 static const char* mdsa_description(DEVICE *dptr);
 
 static int32 mdsadev(const int32 Addr, const int32 rw, const int32 data);
@@ -324,7 +324,7 @@ static int32 mdsadev(const int32 Addr, const int32 rw, const int32 data)
 
 /* This ROM image is taken from the ROMs on the single density controller. This is an
    older version of the ROM which retries forever. Newer ROMs give up after 10 tries. */
-static uint8 mdsa_rom[] = {
+static uint8_t mdsa_rom[] = {
     0x31,0x14,0x21,0x3E,0x59,0x32,0x00,0x20,0x32,0x03,0x20,0x01,0x01,0x00,0x79,0x16,  /* 00 */
     0x04,0x59,0x21,0x00,0x20,0xCD,0x1E,0xE9,0xC2,0x00,0xE9,0xC3,0x04,0x20,0xF5,0xE5,  /* 10 */
     0xD5,0xC5,0x06,0xEB,0x3A,0x90,0xEB,0xE6,0x10,0xC2,0x34,0xE9,0x16,0x32,0xCD,0xD0,  /* 20 */
@@ -355,17 +355,17 @@ static void showdata(int32 isRead) {
 }
 
 static int checksum;
-static uint32 sec_offset;
+static uint32_t sec_offset;
 
-static uint32 calculate_mdsa_sec_offset(uint8 track, uint8 sector)
+static uint32_t calculate_mdsa_sec_offset(uint8_t track, uint8_t sector)
 {
     return ((track * (MDSA_SECTOR_LEN * MDSA_SECTORS_PER_TRACK)) + (sector * MDSA_SECTOR_LEN));
 }
 
-static uint8 MDSA_Read(const uint32 Addr)
+static uint8_t MDSA_Read(const uint32_t Addr)
 {
-    uint8 cData;
-    uint8 driveNum;
+    uint8_t cData;
+    uint8_t driveNum;
     MDSA_DRIVE_INFO *pDrive;
     int32 rtn;
 

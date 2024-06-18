@@ -125,7 +125,7 @@
 #define COMI_QUIT       002004  /* quit */
 #define COMI_HANGUP     002005  /* hangup */
 #define COMI_EOM        013777  /* end of medium */
-#define COMI_COMP(x)    ((uint16) (03000 + ((x) & COMI_CMAX)))
+#define COMI_COMP(x)    ((uint16_t) (03000 + ((x) & COMI_CMAX)))
 #define COMI_K35        6       /* KSR-35 ID */
 #define COMI_K37        7       /* KSR-37 ID */
 #define COMI_2741       8       /* 2741 ID */
@@ -162,7 +162,7 @@
 #define PROG_MSGLEN     0x4400  /* Invalid message length */
 
 /* Input and output ring buffers */
-uint16          in_buff[256];
+uint16_t          in_buff[256];
 int             in_head;
 int             in_tail;
 int             in_count;    /* Number of entries in queue */
@@ -171,37 +171,37 @@ int             in_delay = 5000;
 
 typedef struct
 {
-    uint16              link;
-    uint16              data;
+    uint16_t              link;
+    uint16_t              data;
 } OLIST;
 
-uint32              com_posti = 0;      /* Posted a IRQ */
-uint32              com_active = 0;     /* Channel active */
-uint32              com_ocnt = 0;       /* Number of characters to output */
-uint32              com_oln = 0;        /* Output line number */
-uint32              com_o12b = 0;       /* Outputing 12 bit */
-uint32              com_enab = 0;       /* 7750 enabled */
-uint32              com_msgn = 0;       /* next input msg num */
-uint32              com_sta = 0;        /* 7750 state */
-uint32              com_quit = 3;       /* quit code */
-uint32              com_intr = 4;       /* interrupt code */
-uint32              com_tps = 50;       /* polls/second */
-uint8               com_out_inesc[COM_TLINES];
-uint16              com_out_head[COM_TLINES];
-uint16              com_out_tail[COM_TLINES];
-uint16              com_comp_cnt[COM_TLINES];
+uint32_t              com_posti = 0;      /* Posted a IRQ */
+uint32_t              com_active = 0;     /* Channel active */
+uint32_t              com_ocnt = 0;       /* Number of characters to output */
+uint32_t              com_oln = 0;        /* Output line number */
+uint32_t              com_o12b = 0;       /* Outputing 12 bit */
+uint32_t              com_enab = 0;       /* 7750 enabled */
+uint32_t              com_msgn = 0;       /* next input msg num */
+uint32_t              com_sta = 0;        /* 7750 state */
+uint32_t              com_quit = 3;       /* quit code */
+uint32_t              com_intr = 4;       /* interrupt code */
+uint32_t              com_tps = 50;       /* polls/second */
+uint8_t               com_out_inesc[COM_TLINES];
+uint16_t              com_out_head[COM_TLINES];
+uint16_t              com_out_tail[COM_TLINES];
+uint16_t              com_comp_cnt[COM_TLINES];
 int                 com_line;           /* Current line */
-uint16              com_free;           /* free list */
+uint16_t              com_free;           /* free list */
 OLIST               com_buf[10240];
 TMLN                com_ldsc[COM_TLINES];       /* line descriptors */
 TMXR                com_desc = { COM_TLINES, 0, 0, com_ldsc };  /* mux descriptor */
-uint32              com_sense = 0;      /* Sense word */
-uint16              com_data;
-uint8               com_dflg = 0;
+uint32_t              com_sense = 0;      /* Sense word */
+uint16_t              com_data;
+uint8_t               com_dflg = 0;
 
 
 /* 2741 convertion table */
-static const uint8 com_2741_out[256] = {
+static const uint8_t com_2741_out[256] = {
 /* Upper case */
 /*   0    1    2    3    4    5    6    7 */
     ' ', '-', '2', '+', '*', 'Q', 'Y', 'H',             /* 000 */
@@ -224,7 +224,7 @@ static const uint8 com_2741_out[256] = {
 
 /* 76 43 177 15 */
 /* 76 23 177 16 */
-static const uint8 com_2741_in[128] = {
+static const uint8_t com_2741_in[128] = {
    /* Control                              */
     0000, 0000, 0000, 0000, 0000, 0000, 0000, 0000,     /*0-37*/
    /*Control*/
@@ -261,7 +261,7 @@ static const uint8 com_2741_in[128] = {
 
 
 
-uint32              com_cmd(UNIT * uptr, uint16 cmd, uint16 dev);
+uint32_t              com_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev);
 t_stat              com_svc(UNIT * uptr);
 t_stat              comi_svc(UNIT * uptr);
 t_stat              como_svc(UNIT * uptr);
@@ -272,16 +272,16 @@ t_stat              com_attach(UNIT * uptr, CONST char *cptr);
 t_stat              com_detach(UNIT * uptr);
 t_stat              com_summ(FILE * st, UNIT * uptr, int32 val, CONST void *desc);
 t_stat              com_show(FILE * st, UNIT * uptr, int32 val, CONST void *desc);
-void                com_reset_ln(uint32 i);
-t_stat              com_queue_in(uint32 ln, uint16 ch);
-uint32              com_queue_out(uint32 ln, uint16 * c1);
-t_stat              com_send_id(uint32 ln);
-t_stat              com_send_ccmp(uint32 ln);
-void                com_skip_outc(uint32 ln);
-t_bool              com_get(int ln, uint16 *ch);
-t_bool              com_put(int ln, uint16 ch);
+void                com_reset_ln(uint32_t i);
+t_stat              com_queue_in(uint32_t ln, uint16_t ch);
+uint32_t              com_queue_out(uint32_t ln, uint16_t * c1);
+t_stat              com_send_id(uint32_t ln);
+t_stat              com_send_ccmp(uint32_t ln);
+void                com_skip_outc(uint32_t ln);
+t_bool              com_get(int ln, uint16_t *ch);
+t_bool              com_put(int ln, uint16_t ch);
 void                com_post_eom();
-t_bool              com_inp_msg(uint32 ln, uint16 msg);
+t_bool              com_inp_msg(uint32_t ln, uint16_t msg);
 const char          *com_description(DEVICE *dptr);
 t_stat              com_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char          *coml_description(DEVICE *dptr);
@@ -412,7 +412,7 @@ DEVICE              coml_dev = {
 };
 
 /* COM: channel select */
-uint32 com_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t com_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     /* Activate the com device */
     sim_activate(&com_unit[COM_CHU], 10);
@@ -438,7 +438,7 @@ t_stat com_svc(UNIT * uptr)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 sel = (uptr->flags & UNIT_SELECT) ? 1 : 0;
-    uint8               ch;
+    uint8_t               ch;
 
     if (sel != chan_test(chan, CTL_SEL))
         return SCPE_OK;
@@ -514,7 +514,7 @@ t_stat com_svc(UNIT * uptr)
                 /* Grab next entry. */
                 in_head++;
                 /* Wrap around end of ring */
-                if (in_head >= (int)((sizeof(in_buff)/sizeof(uint16))))
+                if (in_head >= (int)((sizeof(in_buff)/sizeof(uint16_t))))
                     in_head = 0;
                 com_data = in_buff[in_head];
                 /* Check if end of current transfer */
@@ -546,7 +546,7 @@ t_stat com_svc(UNIT * uptr)
     }
 
     if (chan_test(chan, CTL_WRITE)) {
-        uint32              ln;
+        uint32_t              ln;
 
         /* Read in two characters */
         if (com_dflg == 0) {
@@ -760,7 +760,7 @@ comi_svc(UNIT * uptr)
 t_stat
 comto_svc(UNIT * uptr)
 {
-    uint16              c, c1;
+    uint16_t              c, c1;
 
     if (com_out_head[0] == 0)
         return com_send_ccmp(0);  /* Send out a completion code */
@@ -780,7 +780,7 @@ comto_svc(UNIT * uptr)
 t_stat
 como_svc(UNIT * uptr)
 {
-    uint16              c, c1;
+    uint16_t              c, c1;
     int32               ln = uptr - coml_unit;  /* line # */
 
     if (com_out_head[ln] == 0)  /* no more characters? */
@@ -804,7 +804,7 @@ como_svc(UNIT * uptr)
 /* Send ID sequence on input */
 
 t_stat
-com_send_id(uint32 ln)
+com_send_id(uint32_t ln)
 {
     com_inp_msg(ln, COMI_DIALUP);       /* input message: */
     if (coml_unit[ln].flags & UNIT_2741)        /* dialup, ID, endID */
@@ -828,10 +828,10 @@ com_send_id(uint32 ln)
 /* Translate and queue input character */
 
 t_stat
-com_queue_in(uint32 ln, uint16 c)
+com_queue_in(uint32_t ln, uint16_t c)
 {
-    uint16              out;
-    uint16              parity;
+    uint16_t              out;
+    uint16_t              parity;
 
     if (c == com_intr)
         out = COMI_INTR;
@@ -850,7 +850,7 @@ com_queue_in(uint32 ln, uint16 c)
             c = com_2741_in[c];
             if (c & 0200) {             /* Check if lower case */
                  if ((com_out_inesc[ln] & 2) == 0) {    /* In upper case? */
-                    uint8       c2;
+                    uint8_t       c2;
                     c2 = com_2741_out[c & 077]; /* Check if no need to change */
                     if (c2 != com_2741_out[(c&077)|0100]) {
                         com_inp_msg(ln, 0034);  /* Switch case */
@@ -859,7 +859,7 @@ com_queue_in(uint32 ln, uint16 c)
                 }
             } else {
                  if (com_out_inesc[ln] & 2) {   /* In lower case? */
-                    uint8       c2;
+                    uint8_t       c2;
                     c2 = com_2741_out[c & 077]; /* Check if no need to change */
                     if (c2 != com_2741_out[(c&077)|0100]) {
                         com_inp_msg(ln, 0037);  /* Switch case */
@@ -885,10 +885,10 @@ com_queue_in(uint32 ln, uint16 c)
 
 /* Retrieve and translate output character */
 
-uint32
-com_queue_out(uint32 ln, uint16 * c1)
+uint32_t
+com_queue_out(uint32_t ln, uint16_t * c1)
 {
-    uint16              c, raw;
+    uint16_t              c, raw;
 
     *c1 = 0;                    /* assume non-printing */
     if (com_get(ln, &raw))      /* Try to get character */
@@ -899,7 +899,7 @@ com_queue_out(uint32 ln, uint16 * c1)
     }
     c = (~raw >> 1) & 0177;     /* remove start, parity */
     if (coml_unit[ln].flags & UNIT_2741) {
-        uint8           c2;
+        uint8_t           c2;
         c2 = c & 077;
         if (com_out_inesc[ln] & 4) {
             com_out_inesc[ln] &= 3;
@@ -1013,9 +1013,9 @@ com_queue_out(uint32 ln, uint16 * c1)
 /* Generate completion message, if needed */
 
 t_stat
-com_send_ccmp(uint32 ln)
+com_send_ccmp(uint32_t ln)
 {
-    uint32              t;
+    uint32_t              t;
 
     t = com_comp_cnt[ln];
     if (t != 0) {               /* chars not returned? */
@@ -1031,9 +1031,9 @@ com_send_ccmp(uint32 ln)
 /* Skip next char in output queue */
 
 void
-com_skip_outc(uint32 ln)
+com_skip_outc(uint32_t ln)
 {
-    uint16      tmp;
+    uint16_t      tmp;
     if (com_get(ln, &tmp))
         com_comp_cnt[ln]++;     /* count it */
     return;
@@ -1042,9 +1042,9 @@ com_skip_outc(uint32 ln)
 /* List routines - remove from head and free */
 
 t_bool
-com_get(int ln, uint16 *ch)
+com_get(int ln, uint16_t *ch)
 {
-    uint16              ent;
+    uint16_t              ent;
 
     ent = com_out_head[ln];
     if (ent == 0)               /* Check if anything to send. */
@@ -1062,9 +1062,9 @@ com_get(int ln, uint16 *ch)
 
 /* Put a character onto output queue for a line */
 t_bool
-com_put(int ln, uint16 ch)
+com_put(int ln, uint16_t ch)
 {
-    uint16              ent;
+    uint16_t              ent;
 
     ln -= COM_LBASE;
     ent = com_free;             /* Get a character spot */
@@ -1097,7 +1097,7 @@ com_post_eom()
          sim_debug(DEBUG_EXP, &com_dev, "inserting eom %d %d %d\n",
                 in_head, in_tail, in_count);
          ent = in_tail + 1;
-         if (ent >= (int)((sizeof(in_buff)/sizeof(uint16)))) /* Wrap around */
+         if (ent >= (int)((sizeof(in_buff)/sizeof(uint16_t)))) /* Wrap around */
              ent = 0;
          if (ent != in_head) { /* If next element would be head, queue is full */
             /* If we can't put one on, handler will do it for us */
@@ -1113,19 +1113,19 @@ com_post_eom()
 /* Insert line and message into input queue */
 
 t_bool
-com_inp_msg(uint32 ln, uint16 msg)
+com_inp_msg(uint32_t ln, uint16_t msg)
 {
     int          ent1, ent2;
 
     sim_debug(DEBUG_EXP, &com_dev, "inserting %d %04o %d %d %d\n", ln, msg,
                 in_head, in_tail, in_count);
     ent1 = in_tail + 1;
-    if (ent1 >= (int)((sizeof(in_buff)/sizeof(uint16)))) /* Wrap around */
+    if (ent1 >= (int)((sizeof(in_buff)/sizeof(uint16_t)))) /* Wrap around */
         ent1 = 0;
     if (ent1 == in_head) /* If next element would be head, queue is full */
         return TRUE;
     ent2 = ent1 + 1;
-    if (ent2 >= (int)((sizeof(in_buff)/sizeof(uint16)))) /* Wrap around */
+    if (ent2 >= (int)((sizeof(in_buff)/sizeof(uint16_t)))) /* Wrap around */
         ent2 = 0;
     if (ent2 == in_head) /* If next element would be head, queue is full */
         return TRUE;
@@ -1147,7 +1147,7 @@ com_inp_msg(uint32 ln, uint16 msg)
 t_stat
 com_reset(DEVICE * dptr)
 {
-    uint32              i;
+    uint32_t              i;
 
     if (dptr->flags & DEV_DIS) {        /* disabled? */
         com_dev.flags = com_dev.flags | DEV_DIS;        /* disable lines */
@@ -1211,7 +1211,7 @@ com_attach(UNIT * uptr, CONST char *cptr)
 t_stat
 com_detach(UNIT * uptr)
 {
-    uint32              i;
+    uint32_t              i;
     t_stat              r;
 
     r = tmxr_detach(&com_desc, uptr);   /* detach */
@@ -1226,7 +1226,7 @@ com_detach(UNIT * uptr)
 t_stat
 com_summ(FILE * st, UNIT * uptr, int32 val, CONST void *desc)
 {
-    uint32              i, t;
+    uint32_t              i, t;
 
     t = 0;
     for (i = 0; i < COM_TLINES; i++)
@@ -1263,9 +1263,9 @@ com_show(FILE * st, UNIT * uptr, int32 val, CONST void *desc)
 /* Reset an individual line */
 
 void
-com_reset_ln(uint32 ln)
+com_reset_ln(uint32_t ln)
 {
-    uint16      ch;
+    uint16_t      ch;
 
     while (!com_get(ln, &ch)) ;
     com_comp_cnt[ln] = 0;

@@ -29,7 +29,7 @@
    19-Jun-18    JDB     Fixed display of $MPV instruction
    07-Mar-18    JDB     Added the GET_SWITCHES macro from scp.c
    22-Feb-18    JDB     Added the <dev> option to the LOAD command
-   07-Sep-17    JDB     Replaced "uint16" cast with "MEMORY_WORD" for loader ROM
+   07-Sep-17    JDB     Replaced "uint16_t" cast with "MEMORY_WORD" for loader ROM
    07-Aug-17    JDB     Added "hp_attach" to attach a file for appending
    01-Aug-17    JDB     Added "ispunct" test for implied mnemonic parse
    20-Jul-17    JDB     Removed STOP_OFFLINE, STOP_PWROFF messages
@@ -249,7 +249,7 @@ typedef enum {
 typedef struct {
     t_value  mask;                              /* operand mask */
     int32    count;                             /* operand count */
-    uint32   address_set;                       /* address operand bitset */
+    uint32_t   address_set;                       /* address operand bitset */
     } OP_PROP;
 
 static const OP_PROP op_props [] = {            /* operand properties, indexed by OP_TYPE */
@@ -420,9 +420,9 @@ static const OP_PROP op_props [] = {            /* operand properties, indexed b
 #define AB_UNUSED           0000000u            /* mask to use when the A/B register bit is not used */
 
 typedef struct {                                /* opcode descriptor */
-    uint32          mask;                       /*   mask to get opcode selection */
-    uint32          shift;                      /*   shift to get the opcode selection */
-    uint32          ab_selector;                /*   mask to get the A/B-register selector */
+    uint32_t          mask;                       /*   mask to get opcode selection */
+    uint32_t          shift;                      /*   shift to get the opcode selection */
+    uint32_t          ab_selector;                /*   mask to get the A/B-register selector */
     CPU_OPTION_SET  feature;                    /*   feature set to which opcodes apply */
     } OP_DESC;
 
@@ -1881,16 +1881,16 @@ static t_stat hp_load_cmd  (int32 arg, CONST char *buf);
 
 /* System interface local utility routines */
 
-static t_stat  fprint_value       (FILE *ofile, t_value val,  uint32 radix, uint32 width, uint32 format);
-static t_stat  fprint_instruction (FILE *ofile, t_addr addr, t_value *val, uint32 radix,
+static t_stat  fprint_value       (FILE *ofile, t_value val,  uint32_t radix, uint32_t width, uint32_t format);
+static t_stat  fprint_instruction (FILE *ofile, t_addr addr, t_value *val, uint32_t radix,
                                    const OP_DESC op_desc, const OP_TABLE ops);
 
 static t_value parse_address     (CONST char *cptr, t_stat *status);
-static t_value parse_value       (CONST char *cptr, uint32 radix, t_value max, t_stat *status);
-static t_stat  parse_cpu         (CONST char *cptr, t_addr addr, t_value *val, uint32 radix, SYMBOL_SOURCE target);
-static t_stat  parse_instruction (CONST char *cptr, t_addr addr, t_value *val, uint32 radix, const OP_ENTRY *optr);
+static t_value parse_value       (CONST char *cptr, uint32_t radix, t_value max, t_stat *status);
+static t_stat  parse_cpu         (CONST char *cptr, t_addr addr, t_value *val, uint32_t radix, SYMBOL_SOURCE target);
+static t_stat  parse_instruction (CONST char *cptr, t_addr addr, t_value *val, uint32_t radix, const OP_ENTRY *optr);
 static t_stat  parse_micro_ops   (const OP_ENTRY *optr, char *gbuf, t_value *val,
-                                  CONST char **gptr, uint32 *accumulator);
+                                  CONST char **gptr, uint32_t *accumulator);
 
 static int fgetword (FILE *fileref);
 static int fputword (int data, FILE *fileref);
@@ -2358,7 +2358,7 @@ return SCPE_OK;
 t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
 int32         formats, modes, i;
-uint32        radix;
+uint32_t        radix;
 SYMBOL_SOURCE source;
 
 if ((sw & (SIM_SW_REG | ALL_SWITCHES)) == SIM_SW_REG)   /* if we are formatting a register without overrides */
@@ -2550,7 +2550,7 @@ else                                                    /* otherwise the modes c
 t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
 {
 int32         formats, modes;
-uint32        radix;
+uint32_t        radix;
 t_stat        status;
 SYMBOL_SOURCE target;
 
@@ -2730,7 +2730,7 @@ t_stat hp_set_dib (UNIT *uptr, int32 count, CONST char *cptr, void *desc)
 {
 DIB    *dibptr = (DIB *) desc;                          /* a pointer to the associated DIB array */
 t_stat status = SCPE_OK;
-uint32 value;
+uint32_t value;
 int32  index;
 
 if (cptr == NULL || *cptr == '\0')                      /* if the expected value is missing */
@@ -2740,7 +2740,7 @@ else {                                                  /* otherwise a value is 
     if (count < 0)                                      /* if the count has been complemented */
         count = ~count;                                 /*   then restore it to a positive value */
 
-    value = (uint32) get_uint (cptr, SC_BASE,           /* parse the supplied device number */
+    value = (uint32_t) get_uint (cptr, SC_BASE,           /* parse the supplied device number */
                                SC_MAX + 1 - count, &status);
 
     if (status == SCPE_OK) {                            /* if it is valid */
@@ -2890,7 +2890,7 @@ return SCPE_OK;                                         /* return the display re
        micro-ops table.
 */
 
-t_stat fprint_cpu (FILE *ofile, t_addr addr, t_value *val, uint32 radix, SYMBOL_SOURCE source)
+t_stat fprint_cpu (FILE *ofile, t_addr addr, t_value *val, uint32_t radix, SYMBOL_SOURCE source)
 {
 const  t_value opcode = val [0];                        /* the instruction opcode */
 t_bool separator = FALSE;                               /* TRUE if a separator between multiple ops is needed */
@@ -3126,7 +3126,7 @@ return status;                                          /* return the consumptio
        or more strings from the earliest calls will be overwritten.
 */
 
-const char *fmt_char (uint32 charval)
+const char *fmt_char (uint32_t charval)
 {
 static const char * const control [] = {
     "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
@@ -3284,7 +3284,7 @@ else {
        either side of the name and a terminating NUL character.
 */
 
-const char *fmt_bitset (uint32 bitset, const BITSET_FORMAT bitfmt)
+const char *fmt_bitset (uint32_t bitset, const BITSET_FORMAT bitfmt)
 {
 static const char separator [] = " | ";                     /* the separator to use between names */
 static char fmt_buffer [1024];                              /* the return buffer */
@@ -3292,7 +3292,7 @@ static char *freeptr = fmt_buffer;                          /* pointer to the fi
 static char *endptr  = fmt_buffer + sizeof fmt_buffer       /* pointer to the end of the buffer */
                          - 2 * (sizeof separator - 1) - 1;  /*   less allowance for two separators and a terminator */
 const char *bnptr, *fmtptr;
-uint32     test_bit, index, bitmask;
+uint32_t     test_bit, index, bitmask;
 size_t     name_length;
 
 if (bitfmt.name_count < D32_WIDTH)                      /* if the name count is the less than the mask width */
@@ -3385,7 +3385,7 @@ return fmtptr;                                          /* return a pointer to t
    during the CPU's I/O initialization for use in aligning the trace statements.
 */
 
-void hp_initialize_trace (uint32 device_max, uint32 flag_max)
+void hp_initialize_trace (uint32_t device_max, uint32_t flag_max)
 {
 device_size = device_max;                               /* set the device and trace flag name sizes */
 flag_size = flag_max;                                   /*   to the largest of those actively tracing */
@@ -3431,7 +3431,7 @@ return;
 #define FLAG_SIZE           32                          /* sufficiently large to accommodate all flag names */
 #define FORMAT_SIZE         1024                        /* sufficiently large to accommodate all format strings */
 
-void hp_trace (DEVICE *dptr, uint32 flag, ...)
+void hp_trace (DEVICE *dptr, uint32_t flag, ...)
 {
 const char *nptr;
 va_list    argptr;
@@ -3639,7 +3639,7 @@ return TRUE;                                            /* return TRUE to append
 
 static void fprint_addr (FILE *st, DEVICE *dptr, t_addr addr)
 {
-uint32 page, offset;
+uint32_t page, offset;
 
 if (dptr == &cpu_dev && addr > LA_MAX) {                /* if a CPU address is outside of the logical address space */
     page = P_PAGE (addr);                               /*   then separate the physical page and offset */
@@ -3886,11 +3886,11 @@ return load_cmd (arg, buf);                             /* if it's not a device 
    printed successfully, or SCPE_ARG if the value could not be printed.
 */
 
-static t_stat fprint_value (FILE *ofile, t_value val, uint32 radix, uint32 width, uint32 format)
+static t_stat fprint_value (FILE *ofile, t_value val, uint32_t radix, uint32_t width, uint32_t format)
 {
 if (radix == 256)                                       /* if ASCII character display is requested */
     if (val <= D8_SMAX) {                               /*   then if the value is a single character */
-        fputs (fmt_char ((uint32) val), ofile);         /*     then format and print it */
+        fputs (fmt_char ((uint32_t) val), ofile);         /*     then format and print it */
         return SCPE_OK;                                 /*       and report success */
         }
 
@@ -4012,17 +4012,17 @@ else                                                        /* otherwise format 
        none of these take operands.
 */
 
-static t_stat fprint_instruction (FILE *ofile, t_addr addr, t_value *val, uint32 radix,
+static t_stat fprint_instruction (FILE *ofile, t_addr addr, t_value *val, uint32_t radix,
                                   const OP_DESC op_desc, const OP_TABLE ops)
 {
 OP_TYPE    op_type;
-uint32     op_index, op_size, op_count, op_radix, op_address_set;
+uint32_t     op_index, op_size, op_count, op_radix, op_address_set;
 t_value    instruction, op_value;
 t_stat     status;
 const char *prefix   = NULL;                            /* label to print before the operand */
 t_bool     clear     = FALSE;                           /* TRUE if the instruction contains a CLF micro-op */
 t_bool     separator = FALSE;                           /* TRUE if a separator between multiple ops is needed */
-uint32     op_start  = 1;                               /* the "val" array index of the first operand */
+uint32_t     op_start  = 1;                               /* the "val" array index of the first operand */
 
 if (!(cpu_configuration & op_desc.feature & CPU_OPTION_MASK /* if the required feature set is not enabled */
   && cpu_configuration & op_desc.feature & CPU_MODEL_MASK)) /*   for the current CPU configuration */
@@ -4033,7 +4033,7 @@ instruction = TO_DWORD (val [1], val [0]);              /* merge the two supplie
 op_size = (op_desc.mask >> op_desc.shift)               /* determine the size of the primary table part */
             + (op_desc.mask != 0);                      /*   if it is present */
 
-op_index = ((uint32) instruction & op_desc.mask) >> op_desc.shift;  /* extract the opcode primary index */
+op_index = ((uint32_t) instruction & op_desc.mask) >> op_desc.shift;  /* extract the opcode primary index */
 
 if (op_desc.ab_selector) {                              /* if the A/B-register selector is significant */
     if (op_desc.ab_selector & instruction)              /*   then if the A/B-register selector bit is set */
@@ -4090,7 +4090,7 @@ op_type = ops [op_index].type;                          /* get the type of the i
 
 op_value = val [0] & ~op_props [op_type].mask;          /* mask the first instruction word to the operand value */
 
-op_count = (uint32) op_props [op_type].count;           /* get the number of operands */
+op_count = (uint32_t) op_props [op_type].count;           /* get the number of operands */
 status = (t_stat) - op_props [op_type].count;           /*   and set the initial number of words consumed */
 
 op_address_set = op_props [op_type].address_set;        /* get the address/data-selector bit set */
@@ -4358,7 +4358,7 @@ else {                                                  /* otherwise there are e
    Otherwise, a numeric parse is attempted.
 */
 
-static t_value parse_value (CONST char *cptr, uint32 radix, t_value max, t_stat *status)
+static t_value parse_value (CONST char *cptr, uint32_t radix, t_value max, t_stat *status)
 {
 if (radix == 256)                                       /* if ASCII character parsing is requested */
     if (cptr [0] != '\0' && (t_value) cptr [0] < max) { /*   then if a character is present and within range */
@@ -4419,7 +4419,7 @@ else                                                    /* otherwise parse as a 
        is used to separate the multiple mnemonics of SRG and ASG instructions.
 */
 
-static t_stat parse_cpu (CONST char *cptr, t_addr addr, t_value *val, uint32 radix, SYMBOL_SOURCE target)
+static t_stat parse_cpu (CONST char *cptr, t_addr addr, t_value *val, uint32_t radix, SYMBOL_SOURCE target)
 {
 CONST char *gptr;
 const PARSER_ENTRY *pptr;
@@ -4568,25 +4568,25 @@ return SCPE_ARG;                                        /* no match was found, s
        0 => 16, and +15 => 31).
 */
 
-static t_stat parse_instruction (CONST char *cptr, t_addr addr, t_value *val, uint32 radix, const OP_ENTRY *optr)
+static t_stat parse_instruction (CONST char *cptr, t_addr addr, t_value *val, uint32_t radix, const OP_ENTRY *optr)
 {
 CONST char *gptr;
 const char *mptr;
 char       gbuf [CBUFSIZE];
 OP_TYPE    op_type;
-uint32     accumulator, op_index, op_count, op_radix, op_address_set;
+uint32_t     accumulator, op_index, op_count, op_radix, op_address_set;
 t_stat     status, consumption;
 t_value    op_value;
 t_bool     op_implicit;
 t_bool     op_flag  = FALSE;
-uint32     op_start = 1;                                /* the "val" array index of the first operand */
+uint32_t     op_start = 1;                                /* the "val" array index of the first operand */
 
 val [0] = LOWER_WORD (optr->opcode);                    /* set the (initial) opcode */
 val [1] = UPPER_WORD (optr->opcode);                    /*   and the subopcode if it is a two-word instruction */
 
 if (*cptr != '\0'                                       /* if there is more to parse */
   && (SRGOP (optr->opcode) || ASGOP (optr->opcode))) {  /*   and the first opcode is SRG or ASG */
-    accumulator = (uint32) optr->op_bits;               /*     then accumulate the significant opcode bits */
+    accumulator = (uint32_t) optr->op_bits;               /*     then accumulate the significant opcode bits */
 
     gptr = get_glyph (cptr, gbuf, ',');                 /* parse the next opcode, if present */
 
@@ -4646,7 +4646,7 @@ if (*cptr != '\0'                                       /* if there is more to p
 else {                                                  /* otherwise, it's a single opcode */
     op_type = optr->type;                               /*   so get the type of the instruction operand(s) */
 
-    op_count = (uint32) op_props [op_type].count;       /* get the number of operands */
+    op_count = (uint32_t) op_props [op_type].count;       /* get the number of operands */
     consumption = (t_stat) - op_props [op_type].count;  /*   and set the initial number of words consumed */
 
     op_address_set = op_props [op_type].address_set;    /* get the address/data-selector bit set */
@@ -4945,7 +4945,7 @@ return SCPE_ARG;                                        /* return an error for e
        micro-op.
 */
 
-static t_stat parse_micro_ops (const OP_ENTRY *optr, char *gbuf, t_value *val, CONST char **gptr, uint32 *accumulator)
+static t_stat parse_micro_ops (const OP_ENTRY *optr, char *gbuf, t_value *val, CONST char **gptr, uint32_t *accumulator)
 {
 while (optr->mnemonic != NULL)                                  /* search the table until the NULL entry at the end */
     if (strcmp (optr->mnemonic, gbuf) == 0) {                   /* if the mnemonic matches this entry */

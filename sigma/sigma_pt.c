@@ -48,19 +48,19 @@
 #define PTDV_PMAN       0x20
 #define PTDV_RMAN       0x10
 
-uint32 pt_cmd = 0;
-uint32 ptr_nzc = 0;
-uint32 ptr_stopioe = 1;
-uint32 ptp_stopioe = 1;
+uint32_t pt_cmd = 0;
+uint32_t ptr_nzc = 0;
+uint32_t ptr_stopioe = 1;
+uint32_t ptp_stopioe = 1;
 
-extern uint32 chan_ctl_time;
-extern uint8 ascii_to_ebcdic[128];
-extern uint8 ebcdic_to_ascii[256];
+extern uint32_t chan_ctl_time;
+extern uint8_t ascii_to_ebcdic[128];
+extern uint8_t ebcdic_to_ascii[256];
 
-uint32 pt_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 pt_tio_status (void);
-uint32 pt_tdv_status (void);
-t_stat pt_chan_err (uint32 st);
+uint32_t pt_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t pt_tio_status (void);
+uint32_t pt_tdv_status (void);
+t_stat pt_chan_err (uint32_t st);
 t_stat pt_svc (UNIT *uptr);
 t_stat pt_reset (DEVICE *dptr);
 t_stat pt_attach (UNIT *uptr, CONST char *cptr);
@@ -113,7 +113,7 @@ DEVICE pt_dev = {
 
 /* Reader/punch: IO dispatch routine */
 
-uint32 pt_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t pt_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
 switch (op) {                                           /* case on op */
 
@@ -162,8 +162,8 @@ return 0;
 t_stat pt_svc (UNIT *uptr)
 {
 int32 c;
-uint32 uc, cmd;
-uint32 st;
+uint32_t uc, cmd;
+uint32_t st;
 
 switch (pt_cmd) {                                       /* case on state */
 
@@ -200,7 +200,7 @@ switch (pt_cmd) {                                       /* case on state */
         if (c != 0)                                     /* leader done? */
             ptr_nzc = 1;                                /* set flag */
         if ((pt_cmd == PTS_READI) || ptr_nzc) {
-            st = chan_WrMemB (pt_dib.dva, ((uint32) c));/* write to memory */
+            st = chan_WrMemB (pt_dib.dva, ((uint32_t) c));/* write to memory */
             if (CHS_IFERR (st))                         /* channel error? */
                 return pt_chan_err (st);
             if (st == CHS_ZBC)                          /* bc == 0? */
@@ -242,9 +242,9 @@ return SCPE_OK;
 
 /* PT status routine */
 
-uint32 pt_tio_status (void)
+uint32_t pt_tio_status (void)
 {
-uint32 st;
+uint32_t st;
 
 if (((pt_unit[PTR].flags & UNIT_ATT) == 0) ||           /* rdr not att? */
     ((pt_unit[PTP].flags & UNIT_ATT) == 0))             /* pun not att? */
@@ -255,9 +255,9 @@ if (sim_is_active (&pt_unit[PTR]))                      /* dev busy? */
 return st;
 }
 
-uint32 pt_tdv_status (void)
+uint32_t pt_tdv_status (void)
 {
-uint32 st;
+uint32_t st;
 
 st = 0;
 if ((pt_unit[PTR].flags & UNIT_ATT) == 0)               /* rdr not att? */
@@ -269,7 +269,7 @@ return st;
 
 /* Channel error */
 
-t_stat pt_chan_err (uint32 st)
+t_stat pt_chan_err (uint32_t st)
 {
 sim_cancel (&pt_unit[PTR]);                             /* stop dev thread */
 chan_uen (pt_dib.dva);                                  /* uend */

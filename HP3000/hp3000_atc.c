@@ -38,7 +38,7 @@
    09-Jun-16    JDB     Added casts for ptrdiff_t to int32 values
    16-May-16    JDB     Fixed interrupt mask setting
    13-May-16    JDB     Modified for revised SCP API function parameter types
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    26-Aug-15    JDB     First release version
    31-Jul-15    JDB     Passes the terminal control diagnostic (D438A)
    11-Aug-14    JDB     Passes the terminal data diagnostic (D427A)
@@ -514,7 +514,7 @@ static const BITSET_FORMAT tdi_status_format =          /* names, offset, direct
 #define PAD_BITS(c)         (~((1u << bits_per_char [DPI_CHAR_SIZE (c)] - 2) - 1))
 
 
-static const uint32 bits_per_char [8] = {       /* bits per character, indexed by DPI_CHAR_SIZE encoding */
+static const uint32_t bits_per_char [8] = {       /* bits per character, indexed by DPI_CHAR_SIZE encoding */
     9, 10, 11, 12, 5, 6, 7, 8
     };
 
@@ -750,7 +750,7 @@ static HP_WORD send_buffer [SEND_CHAN_COUNT];   /* send character buffers */
 
 static HP_WORD tci_control_word = 0;            /* control word */
 static HP_WORD tci_status_word  = 0;            /* status word */
-static uint32  tci_cntr         = 0;            /* channel counter */
+static uint32_t  tci_cntr         = 0;            /* channel counter */
 
 static FLIP_FLOP tci_interrupt_mask = SET;      /* interrupt mask flip-flop */
 static FLIP_FLOP tci_scan           = CLEAR;    /* scanning enabled flip-flop */
@@ -758,8 +758,8 @@ static FLIP_FLOP tci_scan           = CLEAR;    /* scanning enabled flip-flop */
 
 /* TCI per-channel state */
 
-static uint8 cntl_status [TERM_COUNT];          /* C2/C1/S2/S1 line status */
-static uint8 cntl_param  [TERM_COUNT];          /* ES2/ES1/S2/S1 parameter RAM */
+static uint8_t cntl_status [TERM_COUNT];          /* C2/C1/S2/S1 line status */
+static uint8_t cntl_param  [TERM_COUNT];          /* ES2/ES1/S2/S1 parameter RAM */
 
 
 /* ATC local SCP support routines */
@@ -788,7 +788,7 @@ static void tci_master_reset  (void);
 static t_stat  line_service  (UNIT    *uptr);
 static t_stat  poll_service  (UNIT    *uptr);
 static int32   activate_unit (UNIT    *uptr,   ACTIVATOR reason);
-static uint32  service_time  (HP_WORD control, ACTIVATOR reason);
+static uint32_t  service_time  (HP_WORD control, ACTIVATOR reason);
 static void    store         (HP_WORD control, HP_WORD   data);
 static void    receive       (int32   channel, int32 data, t_bool loopback);
 static void    diagnose      (HP_WORD control, int32 data);
@@ -1762,7 +1762,7 @@ return SCPE_OK;
 
 static t_stat atcc_reset (DEVICE *dptr)
 {
-uint32 channel;
+uint32_t channel;
 
 tci_master_reset ();                                        /* perform a master reset */
 
@@ -1843,7 +1843,7 @@ return status;
 
 static t_stat atcd_detach (UNIT *uptr)
 {
-uint32 channel;
+uint32_t channel;
 t_stat status = SCPE_OK;
 
 if (uptr == line_unit || uptr == &poll_unit) {                  /* if we're detaching the base unit or poll unit */
@@ -1906,7 +1906,7 @@ return;
 
 static void tdi_master_reset (void)
 {
-uint32 chan;
+uint32_t chan;
 
 atcd_dib.interrupt_request = CLEAR;                     /* clear any current */
 atcd_dib.interrupt_active  = CLEAR;                     /*   interrupt request */
@@ -1965,7 +1965,7 @@ return;
 
 static void tci_master_reset (void)
 {
-uint32 chan;
+uint32_t chan;
 
 atcc_dib.interrupt_request = CLEAR;                     /* clear any current */
 atcc_dib.interrupt_active  = CLEAR;                     /*   interrupt request */
@@ -2561,11 +2561,11 @@ return delay;                                           /*   and return the acti
        "addition" of the receive overhead may actually be a subtraction.
 */
 
-static uint32 service_time (HP_WORD control, ACTIVATOR reason)
+static uint32_t service_time (HP_WORD control, ACTIVATOR reason)
 {
 const  double recirc_time = 69.44;                                  /* microseconds per memory recirculation */
-const  uint32 recirc_per_bit = DPI_BAUD_RATE (control) + 1;         /* number of memory recirculations per bit */
-const  uint32 char_size = bits_per_char [DPI_CHAR_SIZE (control)];  /* number of bits per character */
+const  uint32_t recirc_per_bit = DPI_BAUD_RATE (control) + 1;         /* number of memory recirculations per bit */
+const  uint32_t char_size = bits_per_char [DPI_CHAR_SIZE (control)];  /* number of bits per character */
 double usec_per_char;
 
 usec_per_char = recirc_time *                           /* calculate the overhead for sending */
@@ -2576,7 +2576,7 @@ if (reason == Receive)                                  /* if we're receiving */
                        (12 - char_size + 1
                         - recirc_per_bit / 2.0);
 
-return (uint32) (usec_per_char / USEC_PER_EVENT);       /* return the service time for indicated rate */
+return (uint32_t) (usec_per_char / USEC_PER_EVENT);       /* return the service time for indicated rate */
 }
 
 
@@ -2608,7 +2608,7 @@ return (uint32) (usec_per_char / USEC_PER_EVENT);       /* return the service ti
 
 static void store (HP_WORD control, HP_WORD data)
 {
-const uint32 channel = DCN_CHAN (control);              /* current channel number */
+const uint32_t channel = DCN_CHAN (control);              /* current channel number */
 
 if (data & DDS_IS_SEND)                                 /* if this is a send parameter or data */
     if (channel > LAST_TERM)                            /*   then report if the channel number is out of range */
@@ -2940,7 +2940,7 @@ return;                                                     /* no channel has co
 
 static HP_WORD scan_status (void)
 {
-uint32  chan_count;
+uint32_t  chan_count;
 HP_WORD interrupts;
 
 if (tci_scan)                                               /* if the control interface is scanning */

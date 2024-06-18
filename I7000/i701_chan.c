@@ -30,9 +30,9 @@
 
 #include "i7090_defs.h"
 
-extern uint8        iocheck;
+extern uint8_t        iocheck;
 extern UNIT         cpu_unit;
-extern uint16       IC;
+extern uint16_t       IC;
 extern t_uint64     MQ;
 
 t_stat              chan_reset(DEVICE * dptr);
@@ -40,7 +40,7 @@ void                chan_fetch(int chan);
 t_stat              chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                         const char *cptr);
 const char          *chan_description (DEVICE *dptr);
-uint32              dly_cmd(UNIT *, uint16, uint16);
+uint32_t              dly_cmd(UNIT *, uint16_t, uint16_t);
 
 /* Channel data structures
 
@@ -51,8 +51,8 @@ uint32              dly_cmd(UNIT *, uint16, uint16);
 */
 
 t_uint64            assembly[NUM_CHAN];       /* Assembly register */
-uint32              chan_flags[NUM_CHAN];     /* Unit status */
-uint8               bcnt[NUM_CHAN];           /* Character count */
+uint32_t              chan_flags[NUM_CHAN];     /* Unit status */
+uint8_t               bcnt[NUM_CHAN];           /* Character count */
 
 const char     *chan_type_name[] = {
     "Polled", "", "", "", ""};
@@ -91,7 +91,7 @@ DEVICE              chan_dev = {
 
 
 /* Nothing special to do, just return true if cmd is write and we got here */
-uint32 dly_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t dly_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     if (cmd == IO_WRS)
         return SCPE_OK;
@@ -148,7 +148,7 @@ chan_proc()
 
 /* Issue a command to a channel */
 int
-chan_cmd(uint16 dev, uint16 dcmd)
+chan_cmd(uint16_t dev, uint16_t dcmd)
 {
     UNIT               *uptr;
     int32               chan;
@@ -296,7 +296,7 @@ chan_read(int chan, t_uint64 * data, int flags)
  * Write a char to the assembly register.
  */
 int
-chan_write_char(int chan, uint8 * data, int flags)
+chan_write_char(int chan, uint8_t * data, int flags)
 {
 
     /* Check if last data still not taken */
@@ -348,7 +348,7 @@ chan_write_char(int chan, uint8 * data, int flags)
  * Read next char from assembly register.
  */
 int
-chan_read_char(int chan, uint8 * data, int flags)
+chan_read_char(int chan, uint8_t * data, int flags)
 {
 
     /* Return END_RECORD if requested */
@@ -396,7 +396,7 @@ chan_read_char(int chan, uint8 * data, int flags)
 }
 
 void
-chan9_set_error(int chan, uint32 mask)
+chan9_set_error(int chan, uint32_t mask)
 {
 }
 

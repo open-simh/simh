@@ -47,8 +47,8 @@ extern DEVICE tty_dev;
 extern DEVICE fdc_dev;
 extern DEVICE tim_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
-extern uint16 reg_pc;
+extern uint16_t M[];
+extern uint16_t reg_pc;
 
 /* SCP data structures and interface routines
    sim_name             simulator name string
@@ -115,7 +115,7 @@ t_stat sim_load (FILE *fi, CONST char *cptr, CONST char *fnam, int flag)
   while (!feof(fi) && i<0x1ff) {
     if ((c1 = fgetc(fi))==EOF) return SCPE_EOF;
     if ((c2 = fgetc(fi))==EOF) return SCPE_EOF;
-    rom_write(rombase+i, (uint16)(c1 + c2*256));
+    rom_write(rombase+i, (uint16_t)(c1 + c2*256));
     i++;
   }
   reg_romsize = i;
@@ -195,7 +195,7 @@ return;
 static t_stat pdq3_cmd_exstack(int32 arg, CONST char *buf)
 {
   t_stat rc;
-  uint16 data;
+  uint16_t data;
   int i;
   int n = buf[0] ? atol(buf) : 0;
   if (n < 0) n = 0;
@@ -224,8 +224,8 @@ static t_stat pdq3_cmd_extib(int32 arg, CONST char *buf)
 static t_stat pdq3_cmd_exseg(int32 arg, CONST char *buf)
 {
   t_stat rc;
-  uint16 nsegs;
-  uint16 segnum, segptr;
+  uint16_t nsegs;
+  uint16_t segnum, segptr;
   CONST char* next;
   FILE* fd = stdout; /* XXX */
   
@@ -389,18 +389,18 @@ OPTABLE optable[] = {
 /*e6*/  { "IND",    OP_B },        { "INC",    OP_B },
 };
 
-static uint16 UB(t_value arg) 
+static uint16_t UB(t_value arg) 
 {
   return arg & 0xff;
 }
-static uint16 DB(t_value arg) 
+static uint16_t DB(t_value arg) 
 {
   return UB(arg);
 }
 static int16 W(t_value arg1, t_value arg2)
 {
-  uint16 wl = arg1 & 0xff;
-  uint16 wh = arg2 & 0xff;
+  uint16_t wl = arg1 & 0xff;
+  uint16_t wh = arg2 & 0xff;
   return wl | ((wh << 8) & 0xff00);
 }
 
@@ -414,9 +414,9 @@ static int16 SB(t_value arg)
   if (w & 0x80) w |= 0xff00;
   return w;
 }
-static uint16 B(t_value arg1, t_value arg2, int* sz) {
-  uint16 wh = arg1 & 0xff;
-  uint16 wl;
+static uint16_t B(t_value arg1, t_value arg2, int* sz) {
+  uint16_t wh = arg1 & 0xff;
+  uint16_t wl;
   if (wh & 0x80) {
     wl = arg2 & 0xff;
     wl |= ((wh & 0x7f) << 8);
@@ -430,7 +430,7 @@ static uint16 B(t_value arg1, t_value arg2, int* sz) {
 
 t_stat print_hd(FILE *of, t_value val, t_bool hexdec, t_bool isbyte)
 {
-  uint16 data = isbyte ? (val & 0xff) : (val & 0xffff);
+  uint16_t data = isbyte ? (val & 0xff) : (val & 0xffff);
      
   if (hexdec)
     fprintf(of,"%0xh",data);
@@ -442,7 +442,7 @@ t_stat print_hd(FILE *of, t_value val, t_bool hexdec, t_bool isbyte)
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
-  uint16 op, arg1, arg2, arg3;
+  uint16_t op, arg1, arg2, arg3;
   int16 sarg;
   t_stat size = 0;
   int optype, sz;

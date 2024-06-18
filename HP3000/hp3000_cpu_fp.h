@@ -69,7 +69,7 @@ typedef enum {
 
 /* Conversion from operand size to word count */
 
-#define TO_COUNT(s)     ((uint32) (s + (s < fp_f)))
+#define TO_COUNT(s)     ((uint32_t) (s + (s < fp_f)))
 
 
 /* Floating point operations */
@@ -98,7 +98,7 @@ typedef enum {
 typedef struct {
     HP_WORD    words [4];                       /* integer or floating-point value */
     FP_OPSIZE  precision;                       /* operand size descriptor */
-    uint32     trap;                            /* validity of the result */
+    uint32_t     trap;                            /* validity of the result */
     } FP_OPND;
 
 

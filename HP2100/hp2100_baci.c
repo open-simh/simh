@@ -341,32 +341,32 @@ static CARD_STATE baci;                         /* per-card state */
 
 /* BACI state variables */
 
-static uint16 baci_ibuf = 0;                                   /* status/data in */
-static uint16 baci_obuf = 0;                                   /* command/data out */
-static uint16 baci_status = 0;                                 /* current status */
+static uint16_t baci_ibuf = 0;                                   /* status/data in */
+static uint16_t baci_obuf = 0;                                   /* command/data out */
+static uint16_t baci_status = 0;                                 /* current status */
 
-static uint16 baci_edsiw = 0;                                  /* enable device status word */
-static uint16 baci_dsrw = 0;                                   /* device status reference word */
-static uint16 baci_cfcw = 0;                                   /* character frame control word */
-static uint16 baci_icw = 0;                                    /* interface control word */
-static uint16 baci_isrw = 0;                                   /* interrupt status reset word */
+static uint16_t baci_edsiw = 0;                                  /* enable device status word */
+static uint16_t baci_dsrw = 0;                                   /* device status reference word */
+static uint16_t baci_cfcw = 0;                                   /* character frame control word */
+static uint16_t baci_icw = 0;                                    /* interface control word */
+static uint16_t baci_isrw = 0;                                   /* interrupt status reset word */
 
-static uint32 baci_fput = 0;                                   /* FIFO buffer add index */
-static uint32 baci_fget = 0;                                   /* FIFO buffer remove index */
-static uint32 baci_fcount = 0;                                 /* FIFO buffer counter */
-static uint32 baci_bcount = 0;                                 /* break counter */
+static uint32_t baci_fput = 0;                                   /* FIFO buffer add index */
+static uint32_t baci_fget = 0;                                   /* FIFO buffer remove index */
+static uint32_t baci_fcount = 0;                                 /* FIFO buffer counter */
+static uint32_t baci_bcount = 0;                                 /* break counter */
 
-static uint8 baci_fifo [FIFO_SIZE];                            /* read/write buffer FIFO */
-static uint8 baci_spchar [256];                                /* special character RAM */
+static uint8_t baci_fifo [FIFO_SIZE];                            /* read/write buffer FIFO */
+static uint8_t baci_spchar [256];                                /* special character RAM */
 
-static uint16 baci_uart_thr = CLEAR_HR;                        /* UART transmitter holding register */
-static uint16 baci_uart_rhr = CLEAR_HR;                        /* UART receiver holding register */
+static uint16_t baci_uart_thr = CLEAR_HR;                        /* UART transmitter holding register */
+static uint16_t baci_uart_rhr = CLEAR_HR;                        /* UART receiver holding register */
 static  int32 baci_uart_tr  = CLEAR_R;                         /* UART transmitter register */
 static  int32 baci_uart_rr  = CLEAR_R;                         /* UART receiver register */
-static uint32 baci_uart_clk = 0;                               /* UART transmit/receive clock */
+static uint32_t baci_uart_clk = 0;                               /* UART transmit/receive clock */
 
 static t_bool baci_enq_seen = FALSE;                           /* ENQ seen flag */
-static uint32 baci_enq_cntr = 0;                               /* ENQ seen counter */
+static uint32_t baci_enq_cntr = 0;                               /* ENQ seen counter */
 
 
 /* BACI local SCP support routines */
@@ -375,12 +375,12 @@ static INTERFACE baci_interface;
 
 /* BACI local routines */
 
-static int32 service_time  (uint32 control_word);
+static int32 service_time  (uint32_t control_word);
 static void  update_status (void);
 static void  master_reset  (void);
 
-static uint16 fifo_get   (void);
-static void   fifo_put   (uint8 ch);
+static uint16_t fifo_get   (void);
+static void   fifo_put   (uint8_t ch);
 static void   clock_uart (void);
 
 /* BACI local SCP support routines */
@@ -594,8 +594,8 @@ DEVICE baci_dev = {
 static SIGNALS_VALUE baci_interface (const DIB *dibptr, INBOUND_SET inbound_signals, HP_WORD inbound_value)
 {
 const char * const hold_or_clear = (inbound_signals & ioCLF ? ",C" : "");
-uint8              ch;
-uint32             mask;
+uint8_t              ch;
+uint32_t             mask;
 INBOUND_SIGNAL     signal;
 INBOUND_SET        working_set = inbound_signals;
 SIGNALS_VALUE      outbound    = { ioNONE, 0 };
@@ -670,7 +670,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIOO:                                     /* I/O data output */
-            baci_obuf = (uint16) inbound_value;         /* get data value */
+            baci_obuf = (uint16_t) inbound_value;         /* get data value */
 
             tprintf (baci_dev, DEB_CPU, "[OTx%s] Command = %06o\n",
                      hold_or_clear, baci_obuf);
@@ -951,7 +951,7 @@ return outbound;                                        /* return the outbound s
 
 static t_stat baci_term_svc (UNIT *uptr)
 {
-uint32 data_bits, data_mask;
+uint32_t data_bits, data_mask;
 const t_bool fast_timing = (baci_term.flags & UNIT_FASTTIME) != 0;
 const t_bool is_attached = (baci_term.flags & UNIT_ATT) != 0;
 t_stat status = SCPE_OK;
@@ -988,11 +988,11 @@ while (xmit_loop && (baci_uart_thr & IN_VALID)) {       /* valid character in UA
 
             if (status == SCPE_OK)                      /* transmitted OK? */
                 tprintf (baci_dev, DEB_XFER, "Character %s transmitted from the UART\n",
-                                             fmt_char ((uint8) baci_uart_tr));
+                                             fmt_char ((uint8_t) baci_uart_tr));
 
             else {
                 tprintf (baci_dev, DEB_XFER, "Character %s transmission failed with status %d\n",
-                                             fmt_char ((uint8) baci_uart_tr), status);
+                                             fmt_char ((uint8_t) baci_uart_tr), status);
 
                 if (status == SCPE_LOST)                /* if the line is not connected */
                     status = SCPE_OK;                   /*   then ignore the output */
@@ -1030,9 +1030,9 @@ if (recv_loop &&                                        /* ok to process? */
     baci_uart_rhr = baci_uart_rhr & ~IN_VALID;          /* clear valid bit */
 
     tprintf (baci_dev, DEB_XFER, "Deferred character %s processed\n",
-             fmt_char ((uint8) baci_uart_rhr));
+             fmt_char ((uint8_t) baci_uart_rhr));
 
-    fifo_put ((uint8) baci_uart_rhr);                   /* move deferred character to FIFO */
+    fifo_put ((uint8_t) baci_uart_rhr);                   /* move deferred character to FIFO */
     baci_uart_rhr = CLEAR_HR;                           /* clear RHR */
     update_status ();                                   /* update FIFO status */
     }
@@ -1054,20 +1054,20 @@ while (recv_loop) {                                     /* OK to process? */
 
     data_bits = 5 + (baci_cfcw & OUT_CHARSIZE);             /* calculate number of data bits */
     data_mask = (1 << data_bits) - 1;                       /* generate mask for data bits */
-    baci_uart_rhr = (uint16) (baci_uart_rr & data_mask);    /* mask data into holding register */
+    baci_uart_rhr = (uint16_t) (baci_uart_rr & data_mask);    /* mask data into holding register */
     baci_uart_rr = CLEAR_R;                                 /* clear receiver register */
 
     tprintf (baci_dev, DEB_XFER, "Character %s received by the UART\n",
-             fmt_char ((uint8) baci_uart_rhr));
+             fmt_char ((uint8_t) baci_uart_rhr));
 
     if (baci_term.flags & UNIT_CAPSLOCK)                    /* caps lock mode? */
-        baci_uart_rhr = (uint16) toupper (baci_uart_rhr);   /* convert to upper case if lower */
+        baci_uart_rhr = (uint16_t) toupper (baci_uart_rhr);   /* convert to upper case if lower */
 
     if (baci_cfcw & OUT_ECHO)                           /* echo wanted? */
         tmxr_putc_ln (baci_ldsc, baci_uart_rhr);        /* send it back */
 
     if ((IO_MODE == RECV) && !baci_enq_seen) {          /* receive mode and not ENQ/ACK? */
-        fifo_put ((uint8) baci_uart_rhr);               /* put data in FIFO */
+        fifo_put ((uint8_t) baci_uart_rhr);               /* put data in FIFO */
         baci_uart_rhr = CLEAR_HR;                       /* clear RHR */
         update_status ();                               /* update FIFO status (may set flag) */
 
@@ -1344,7 +1344,7 @@ return;
    shortened arbitrarily.
 */
 
-static int32 service_time (uint32 control_word)
+static int32 service_time (uint32_t control_word)
 {
 /*           Baud Rates 0- 7 :   ext.,     50,     75,    110,  134.5,    150,   300,   600, */
 /*           Baud Rates 8-15 :    900,   1200,   1800,   2400,   3600,   4800,  7200,  9600  */
@@ -1438,9 +1438,9 @@ return ticks [GET_BAUDRATE (control_word)];             /* return service time f
    not 0.
 */
 
-static uint16 fifo_get (void)
+static uint16_t fifo_get (void)
 {
-uint16 data;
+uint16_t data;
 
 data = baci_fifo [baci_fget];                           /* get character */
 
@@ -1450,7 +1450,7 @@ if ((baci_fget != baci_fput) || (baci_fcount >= 128)) { /* FIFO occupied? */
 
     tprintf (baci_dev, DEB_BUF, "Character %s get from FIFO [%d], "
                                 "character counter = %d\n",
-                                fmt_char ((uint8) data), baci_fget, baci_fcount);
+                                fmt_char ((uint8_t) data), baci_fget, baci_fcount);
 
     baci_fget = (baci_fget + 1) % FIFO_SIZE;            /* bump index modulo array size */
 
@@ -1485,9 +1485,9 @@ return data;                                            /* return character */
    stores always load the FIFO and increment the counter.
 */
 
-static void fifo_put (uint8 ch)
+static void fifo_put (uint8_t ch)
 {
-uint32 index = 0;
+uint32_t index = 0;
 t_bool pass_thru;
 
 pass_thru = (IO_MODE == XMIT) &&                        /* pass thru if XMIT and THR empty */
@@ -1564,7 +1564,7 @@ return;
 
 static void clock_uart (void)
 {
-uint32 uart_bits, data_bits, data_mask, parity, bit_low, i;
+uint32_t uart_bits, data_bits, data_mask, parity, bit_low, i;
 
 if (baci_uart_clk > 0) {                                /* transfer in progress? */
     bit_low = (baci_icw & OUT_CD);                      /* get current receive bit */
@@ -1617,13 +1617,13 @@ if (baci_uart_clk > 0) {                                /* transfer in progress?
                     ((baci_cfcw & OUT_PARITY) != 0) +   /*   plus parity bit if used */
                     ((baci_cfcw & OUT_STBITS) != 0);    /*   plus extra stop bit if used */
 
-        baci_uart_rhr = (uint16) (baci_uart_rr >> (16 - uart_bits));    /* position data to right align */
+        baci_uart_rhr = (uint16_t) (baci_uart_rr >> (16 - uart_bits));    /* position data to right align */
         baci_uart_rr = CLEAR_R;                                         /* clear receiver register */
 
         tprintf (baci_dev, DEB_XFER, "UART receiver = %06o (%s)\n",
-                 baci_uart_rhr, fmt_char ((uint8) (baci_uart_rhr & data_mask)));
+                 baci_uart_rhr, fmt_char ((uint8_t) (baci_uart_rhr & data_mask)));
 
-        fifo_put ((uint8) (baci_uart_rhr & data_mask)); /* put data in FIFO */
+        fifo_put ((uint8_t) (baci_uart_rhr & data_mask)); /* put data in FIFO */
         update_status ();                               /* update FIFO status */
 
         if (baci_cfcw & OUT_PARITY) {                   /* parity present? */
@@ -1680,7 +1680,7 @@ if ((baci_uart_clk == 0) &&                             /* start of transfer? */
 
         tprintf (baci_dev, DEB_XFER, "UART transmitter = %06o (%s), "
                                      "clock count = %d\n", baci_uart_tr & D16_MASK,
-                                     fmt_char ((uint8) (baci_uart_thr & data_mask)),
+                                     fmt_char ((uint8_t) (baci_uart_thr & data_mask)),
                                      baci_uart_clk);
         }
 

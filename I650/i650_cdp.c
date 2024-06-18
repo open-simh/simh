@@ -42,7 +42,7 @@
    cdp_mod      Card Punch modifiers list
 */
 
-uint32              cdp_cmd(UNIT *, uint16, uint16);
+uint32_t              cdp_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              cdp_srv(UNIT *);
 t_stat              cdp_reset(DEVICE *);
 t_stat              cdp_attach(UNIT *, CONST char *);
@@ -1319,11 +1319,11 @@ void encode_fortransit_wiring(void)
 
 
 /* Card punch routine */
-uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
+uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t addr)
 {
     int i,c,h;
-    uint16 image[80];
-    uint32              wiring;
+    uint16_t image[80];
+    uint32_t              wiring;
 
     /* Are we currently tranfering? */
     if (uptr->u5 & URCSTA_BUSY)

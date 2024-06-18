@@ -35,7 +35,7 @@
 #include "s3_defs.h"
 #include <ctype.h>
 
-extern uint8 M[];
+extern uint8_t M[];
 extern int32 IAR[], level;
 extern FILE *trace;
 extern int32 debug_reg;

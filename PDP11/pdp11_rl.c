@@ -263,12 +263,12 @@ const char *rl_regnames[] = {
 #define RLDEB_DAT      0100                             /* transfer data */
 
 
-uint16 *rlxb = NULL;                                    /* xfer buffer */
+uint16_t *rlxb = NULL;                                    /* xfer buffer */
 int32 rlcs = 0;                                         /* control/status */
 int32 rlba = 0;                                         /* memory address */
 int32 rlbae = 0;                                        /* mem addr extension */
 int32 rlda = 0;                                         /* disk addr */
-uint16 rlmp = 0, rlmp1 = 0, rlmp2 = 0;                  /* mp register queue */
+uint16_t rlmp = 0, rlmp1 = 0, rlmp2 = 0;                  /* mp register queue */
 int32 rl_swait = 10;                                    /* seek wait */
 int32 rl_rwait = 10;                                    /* rotate wait */
 int32 rl_stopioe = 1;                                   /* stop on error */
@@ -579,7 +579,7 @@ max 17ms for 1 track seek w/head switch
             if (rlda & RLDA_GS_CLR)                 /* reset errors? */
                 uptr->STAT &= ~RLDS_ERR;
                 /* develop drive state */
-            rlmp = (uint16)(uptr->STAT | (uptr->TRK & RLDS_HD));
+            rlmp = (uint16_t)(uptr->STAT | (uptr->TRK & RLDS_HD));
             if (uptr->flags & UNIT_RL02)
                 rlmp |= RLDS_RL02;
             if (uptr->flags & UNIT_WPRT)
@@ -639,7 +639,7 @@ says, bit 0 can be written and read (as 1) on an RLV12 (verified
     case 3:                                             /* RLMP */
         if (access == WRITEB)
             data = (PA & 1)? (rlmp & 0377) | (data << 8): (rlmp & ~0377) | data;
-        rlmp = rlmp1 = rlmp2 = (uint16)data;
+        rlmp = rlmp1 = rlmp2 = (uint16_t)data;
         sim_debug (RLDEB_RWR, &rl_dev, ">>RL wr: RLMP %06o\n", rlmp);
         break;
 
@@ -660,9 +660,9 @@ return SCPE_OK;
 }
 
 /* CRC16 as implemented by the DEC 9401 chip */
-static uint16 calcCRC (const int wc, const uint16 *data)
+static uint16_t calcCRC (const int wc, const uint16_t *data)
 {
-    uint32  crc, j, d;
+    uint32_t  crc, j, d;
     int32   i;
 
     crc = 0;
@@ -675,7 +675,7 @@ static uint16 calcCRC (const int wc, const uint16 *data)
             d >>= 1;
         }
     }
-    return (uint16)crc;
+    return (uint16_t)crc;
 }
 
 /*
@@ -687,8 +687,8 @@ for -511 is incorrect.
 static void rlv_maint (void)
 {
     int32   i;
-    uint32  ma;
-    uint16  w;
+    uint32_t  ma;
+    uint16_t  w;
 
     sim_debug (RLDEB_OPS, &rl_dev, ">>RL maint: RLDA %06o\n", rlda);
     /* 1: check internal logic */
@@ -727,12 +727,12 @@ static void rlv_maint (void)
     rlba = ma & RLBA_IMP;                               /* lower 16b */
 
     /* 4: check the CRC of (DAR + 3) */
-    w = (uint16)rlda;
+    w = (uint16_t)rlda;
     rlxb[0] = calcCRC (1, &w);                          /* calculate CRC */
     rlda = (rlda & ~0377) | ((rlda + 1) & 0377);
 
     /* 5: check the CRC of (DAR + 4) */
-    w = (uint16)rlda;
+    w = (uint16_t)rlda;
     rlxb[1] = calcCRC (1, &w);                          /* calculate CRC */
     rlda = (rlda & ~0377) | ((rlda + 1) & 0377);
 
@@ -759,8 +759,8 @@ int32 wc, maxwc, t;
 t_stat err = 0;
 t_seccnt sectsread;
 int32 i, da, awc;
-uint32 ma;
-uint16 comp;
+uint32_t ma;
+uint16_t comp;
 DEVICE *dptr = find_dev_from_unit (uptr);
 static const char * const funcname[] = {
     "NOP", "WCK", "GSTA", "SEEK",
@@ -872,7 +872,7 @@ if (uptr->FNC == RLCS_SEEK) {                           /* seek? */
     }
 
 if (uptr->FNC == RLCS_RHDR) {                           /* read header? */
-    uint16 hdr[2];
+    uint16_t hdr[2];
     hdr[0] = rlmp = uptr->TRK & 0177777;
     hdr[1] = rlmp1 = 0;
     rlmp2 = calcCRC (2, &hdr[0]);                       /* calculate header CRC */
@@ -911,8 +911,8 @@ if (wc > maxwc)                                         /* track overrun? */
 sim_debug (RLDEB_OPS, &rl_dev, ">>RL svc: cyl %d, sect %d, wc %d, maxwc %d\n", GET_CYL (rlda), GET_SECT (rlda), wc, maxwc);
 
 if (uptr->FNC >= RLCS_READ) {                           /* read (no hdr)? */
-    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8 *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
-    sim_disk_data_trace (uptr, (uint8 *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
+    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8_t *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
+    sim_disk_data_trace (uptr, (uint8_t *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
     if ((t = Map_WriteW (ma, wc << 1, rlxb))) {         /* store buffer */
         rlcs = rlcs | RLCS_ERR | RLCS_NXM;              /* nxm */
         wc = wc - t;                                    /* adjust wc */
@@ -929,15 +929,15 @@ if (uptr->FNC == RLCS_WRITE) {                          /* write? */
         awc = (wc + (RL_NUMWD - 1)) & ~(RL_NUMWD - 1);  /* clr to */
         for (i = wc; i < awc; i++)                      /* end of blk */
             rlxb[i] = 0;
-        sim_disk_data_trace (uptr, (uint8 *)rlxb, da/RL_NUMWD, awc, "sim_disk_wrsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
-        err = sim_disk_wrsect (uptr, da/RL_NUMWD, (uint8 *)rlxb, NULL, awc/RL_NUMWD);
+        sim_disk_data_trace (uptr, (uint8_t *)rlxb, da/RL_NUMWD, awc, "sim_disk_wrsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
+        err = sim_disk_wrsect (uptr, da/RL_NUMWD, (uint8_t *)rlxb, NULL, awc/RL_NUMWD);
         }
     }                                                   /* end write */
 
 else
 if (uptr->FNC == RLCS_WCHK) {                           /* write check? */
-    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8 *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
-    sim_disk_data_trace (uptr, (uint8 *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
+    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8_t *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
+    sim_disk_data_trace (uptr, (uint8_t *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
     awc = wc;                                           /* save wc */
     for (wc = 0; (err == 0) && (wc < awc); wc++)  {     /* loop thru buf */
         if (Map_ReadW (ma + (wc << 1), 2, &comp)) {     /* mem wd */
@@ -1012,7 +1012,7 @@ for (i = 0; i < RL_NUMDR; i++) {
     uptr->STAT &= ~RLDS_ERR;
     }
 if (rlxb == NULL)
-    rlxb = (uint16 *) calloc (RL_MAXFR, sizeof (uint16));
+    rlxb = (uint16_t *) calloc (RL_MAXFR, sizeof (uint16_t));
 if (rlxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -1026,8 +1026,8 @@ t_stat r;
 static const char *drives[] = {"RL01", "RL02", NULL};
 
 uptr->capac = (uptr->flags & UNIT_RL02)? RL02_SIZE: RL01_SIZE;
-r = sim_disk_attach_ex (uptr, cptr, RL_NUMWD * sizeof (uint16), 
-                        sizeof (uint16), TRUE, 0, 
+r = sim_disk_attach_ex (uptr, cptr, RL_NUMWD * sizeof (uint16_t), 
+                        sizeof (uint16_t), TRUE, 0, 
                         (uptr->capac == RL02_SIZE) ? "RL02" : "RL01", RL_NUMSC, 0,
                         (uptr->flags & UNIT_NOAUTO) ? NULL : drives);
 if (r != SCPE_OK)                                       /* error? */
@@ -1187,7 +1187,7 @@ t_stat rl_show_ctrl (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 #define BOOT_CSR        (BOOT_START + 020)              /* CSR */
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042114,                        /* "LD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012700, 0000000,               /* MOV #unit, R0 */

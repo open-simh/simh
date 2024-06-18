@@ -92,23 +92,23 @@
 
 #define CMD_TYP         0x01                            /* command type */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 extern int32 lfc_poll;
 
-uint8 pas_sta[PAS_LINES];                               /* status */
-uint16 pas_cmd[PAS_LINES];                              /* command */
-uint8 pas_rbuf[PAS_LINES];                              /* rcv buf */
-uint8 pas_xbuf[PAS_LINES];                              /* xmt buf */
-uint8 pas_rarm[PAS_LINES];                              /* rcvr int armed */
-uint8 pas_xarm[PAS_LINES];                              /* xmt int armed */
-uint8 pas_rchp[PAS_LINES];                              /* rcvr chr pend */
-uint8 pas_tplte[PAS_LINES * 2 + 1];                     /* template */
+uint8_t pas_sta[PAS_LINES];                               /* status */
+uint16_t pas_cmd[PAS_LINES];                              /* command */
+uint8_t pas_rbuf[PAS_LINES];                              /* rcv buf */
+uint8_t pas_xbuf[PAS_LINES];                              /* xmt buf */
+uint8_t pas_rarm[PAS_LINES];                              /* rcvr int armed */
+uint8_t pas_xarm[PAS_LINES];                              /* xmt int armed */
+uint8_t pas_rchp[PAS_LINES];                              /* rcvr chr pend */
+uint8_t pas_tplte[PAS_LINES * 2 + 1];                     /* template */
 
 TMLN pas_ldsc[PAS_LINES] = { {0} };                     /* line descriptors */
 TMXR pas_desc = { 8, 0, 0, pas_ldsc };                  /* mux descriptor */
 #define PAS_ENAB        pas_desc.lines
 
-uint32 pas (uint32 dev, uint32 op, uint32 dat);
+uint32_t pas (uint32_t dev, uint32_t op, uint32_t dat);
 void pas_ini (t_bool dtpl);
 t_stat pasi_svc (UNIT *uptr);
 t_stat paso_svc (UNIT *uptr);
@@ -244,7 +244,7 @@ DEVICE pasl_dev = {
 
 /* PAS: IO routine */
 
-uint32 pas (uint32 dev, uint32 op, uint32 dat)
+uint32_t pas (uint32_t dev, uint32_t op, uint32_t dat)
 {
 int32 ln = (dev - pas_dib.dno) >> 1;
 int32 xmt = (dev - pas_dib.dno) & 1;
@@ -376,7 +376,7 @@ return SCPE_OK;
 t_stat paso_svc (UNIT *uptr)
 {
 int32 c;
-uint32 ln = uptr - pasl_unit;                           /* line # */
+uint32_t ln = uptr - pasl_unit;                           /* line # */
 
 if (pas_ldsc[ln].conn) {                                /* connected? */
     if (pas_ldsc[ln].xmte) {                            /* xmt enabled? */
@@ -404,7 +404,7 @@ return SCPE_OK;
 int32 pas_par (int32 cmd, int32 c)
 {
 int32 pf = GET_PAR (cmd);
-static const uint8 odd_par[] = {
+static const uint8_t odd_par[] = {
     0x80, 0, 0, 0x80, 0, 0x80, 0x80, 0,                 /* 00 */
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,                 /* 10 */

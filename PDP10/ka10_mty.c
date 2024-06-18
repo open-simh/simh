@@ -49,7 +49,7 @@
 #define MTY_CONI_BITS   (MTY_PIA | MTY_DONE | MTY_LINE)
 #define MTY_CONO_BITS   (MTY_PIA | MTY_LINE)
 
-static t_stat       mty_devio(uint32 dev, uint64 *data);
+static t_stat       mty_devio(uint32_t dev, uint64 *data);
 static t_stat       mty_input_svc (UNIT *uptr);
 static t_stat       mty_output_svc (UNIT *uptr);
 static t_stat       mty_reset (DEVICE *dptr);
@@ -60,7 +60,7 @@ static t_stat       mty_help (FILE *st, DEVICE *dptr, UNIT *uptr,
                                int32 flag, const char *cptr);
 extern int32        tmxr_poll;
 
-static uint32       mty_active_bitmask;
+static uint32_t       mty_active_bitmask;
 static uint64       mty_output_word[MTY_LINES];
 static int32        mty_input_character;
 
@@ -97,7 +97,7 @@ DEVICE mty_dev = {
     NULL, NULL, mty_help, NULL, NULL, mty_description
 };
 
-static t_stat mty_devio(uint32 dev, uint64 *data)
+static t_stat mty_devio(uint32_t dev, uint64 *data)
 {
     int line;
     uint64 word;

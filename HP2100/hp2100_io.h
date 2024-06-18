@@ -347,8 +347,8 @@ typedef SIGNALS_VALUE INTERFACE                 /* the I/O device interface func
 
 struct dib {                                    /* the Device Information Block */
     INTERFACE   *io_interface;                  /*   the controller I/O interface function pointer */
-    uint32      select_code;                    /*   the device's select code (02-77) */
-    uint32      card_index;                     /*   the card index if multiple interfaces are supported */
+    uint32_t      select_code;                    /*   the device's select code (02-77) */
+    uint32_t      card_index;                     /*   the card index if multiple interfaces are supported */
     const char  *card_description;              /*   the card description (model number and name) */
     const char  *rom_description;               /*   the 1000 boot loader ROM description (model number and name) */
     };
@@ -432,9 +432,9 @@ struct dib {                                    /* the Device Information Block 
 
 
 typedef struct {
-    uint32       start_index;                   /* the array index of the start of the program */
-    uint32       dma_index;                     /* the array index of the DMA configuration word */
-    uint32       fwa_index;                     /* the array index of the negative starting address */
+    uint32_t       start_index;                   /* the array index of the start of the program */
+    uint32_t       dma_index;                     /* the array index of the DMA configuration word */
+    uint32_t       fwa_index;                     /* the array index of the negative starting address */
     MEMORY_WORD  loader [IBL_SIZE];             /* the 64-word bootstrap loader program */
     } BOOT_LOADER;
 
@@ -443,7 +443,7 @@ typedef BOOT_LOADER LOADER_ARRAY [2];           /* array (21xx, 1000) of bootstr
 
 /* CPU global utility routine declarations */
 
-extern uint32 cpu_copy_loader (const LOADER_ARRAY boot, uint32 sc, HP_WORD sr_clear, HP_WORD sr_set);
+extern uint32_t cpu_copy_loader (const LOADER_ARRAY boot, uint32_t sc, HP_WORD sr_clear, HP_WORD sr_set);
 extern t_bool cpu_io_stop     (UNIT *uptr);
 
 
@@ -454,5 +454,5 @@ extern void io_assert (DEVICE *dptr, IO_ASSERTION assertion);
 
 /* Main memory global utility routine declarations */
 
-extern HP_WORD mem_examine  (uint32 address);
-extern void    mem_deposit  (uint32 address, HP_WORD value);
+extern HP_WORD mem_examine  (uint32_t address);
+extern void    mem_deposit  (uint32_t address, HP_WORD value);

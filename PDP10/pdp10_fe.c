@@ -49,7 +49,7 @@ static t_stat kaf_svc (UNIT *uptr);
 t_stat fe_reset (DEVICE *dptr);
 t_stat fe_stop_os (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 a10 fe_xct = 0;
-uint32 fe_bootrh = 0;
+uint32_t fe_bootrh = 0;
 int32 fe_bootunit = -1;
 extern DIB *dib_tab[];
 
@@ -221,7 +221,7 @@ return SCPE_OK;
 static t_stat kaf_svc (UNIT *uptr)
 {
 if (M[FE_KEEPA] & INT64_C(0020000000000)) {              /* KSRLD - "Forced" (actually, requested) reload */
-    uint32 oldsw = sim_switches;
+    uint32_t oldsw = sim_switches;
     DEVICE *bdev = NULL;
     int32 i;
 

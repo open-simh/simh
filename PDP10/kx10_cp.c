@@ -88,14 +88,14 @@
 #define STATUS      u3
 #define COL         u4
 
-t_stat              cp_devio(uint32 dev, uint64 *data);
+t_stat              cp_devio(uint32_t dev, uint64 *data);
 t_stat              cp_srv(UNIT *);
 t_stat              cp_reset(DEVICE *);
 t_stat              cp_attach(UNIT *, CONST char *);
 t_stat              cp_detach(UNIT *);
 t_stat              cp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 const char         *cp_description(DEVICE *dptr);
-uint16              cp_buffer[80];
+uint16_t              cp_buffer[80];
 
 
 DIB cp_dib = { CP_DEVNUM, 1, cp_devio, NULL};
@@ -115,7 +115,7 @@ MTAB                cp_mod[] = {
 };
 
 REG                 cp_reg[] = {
-    {BRDATA(BUFF, cp_buffer, 16, 16, sizeof(cp_buffer)/sizeof(uint16)), REG_HRO},
+    {BRDATA(BUFF, cp_buffer, 16, 16, sizeof(cp_buffer)/sizeof(uint16_t)), REG_HRO},
     {0}
 };
 
@@ -133,9 +133,9 @@ DEVICE              cp_dev = {
 /* Card punch routine
 */
 
-t_stat cp_devio(uint32 dev, uint64 *data) {
+t_stat cp_devio(uint32_t dev, uint64 *data) {
      UNIT                *uptr = &cp_unit;
-     uint16              col;
+     uint16_t              col;
 
      switch(dev & 3) {
      case CONI:

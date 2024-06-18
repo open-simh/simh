@@ -164,52 +164,52 @@ t_uint64 AC = 0;                                        /* AC */
 t_uint64 MQ = 0;                                        /* MQ */
 t_uint64 SI = 0;                                        /* indicators */
 t_uint64 KEYS = 0;                                      /* storage keys */
-uint32 PC = 0;                                          /* PC (IC) */
-uint32 oldPC = 0;                                       /* prior PC */
-uint32 XR[8] = { 0 };                                   /* index registers */
-uint32 SSW = 0;                                         /* sense switches */
-uint32 SLT = 0;                                         /* sense lights */
-uint32 ch_req = 0;                                      /* channel requests */
-uint32 chtr_pend = 0;                                   /* chan trap pending */
-uint32 chtr_inht = 0;                                   /* chan trap inhibit trap */
-uint32 chtr_inhi = 0;                                   /* chan trap inhibit inst */
-uint32 chtr_enab = 0;                                   /* chan trap enables */
-uint32 mode_ttrap = 0;                                  /* transfer trap mode */
-uint32 mode_ctrap = 0;                                  /* copy trap mode */
-uint32 mode_strap = 0;                                  /* select trap mode */
-uint32 mode_ftrap = 0;                                  /* floating trap mode */
-uint32 mode_storn = 0;                                  /* storage nullification */
-uint32 mode_multi = 0;                                  /* multi-index mode */
-uint32 ind_ovf = 0;                                     /* overflow */
-uint32 ind_mqo = 0;                                     /* MQ overflow */
-uint32 ind_dvc = 0;                                     /* divide check */
-uint32 ind_ioc = 0;                                     /* IO check */
-uint32 cpu_model = I_9X|I_94;                           /* CPU type */
-uint32 mode_user = 0;                                   /* (CTSS) user mode */
-uint32 mode_reloc = 0;                                  /* (CTSS) relocation mode */
-uint32 user_buf = 0;                                    /* (CTSS) user mode buffer */
-uint32 reloc_buf = 0;                                   /* (CTSS) reloc mode buffer */
-uint32 ind_reloc = 0;                                   /* (CTSS) relocation */
-uint32 ind_start = 0;                                   /* (CTSS) prot start */
-uint32 ind_limit = 0;                                   /* (CTSS) prot limit */
-uint32 inst_base = 0;                                   /* (CTSS) inst A/B sel */
-uint32 data_base = 0;                                   /* (CTSS) data A/B sel */
-uint32 xec_max = 16;                                    /* XEC chain limit */
-uint32 ht_pend = 0;                                     /* HTR pending */
-uint32 ht_addr = 0;                                     /* HTR address */
-uint32 stop_illop = 1;                                  /* stop on ill op */
-uint32 cpu_astop = 0;                                   /* address stop */
+uint32_t PC = 0;                                          /* PC (IC) */
+uint32_t oldPC = 0;                                       /* prior PC */
+uint32_t XR[8] = { 0 };                                   /* index registers */
+uint32_t SSW = 0;                                         /* sense switches */
+uint32_t SLT = 0;                                         /* sense lights */
+uint32_t ch_req = 0;                                      /* channel requests */
+uint32_t chtr_pend = 0;                                   /* chan trap pending */
+uint32_t chtr_inht = 0;                                   /* chan trap inhibit trap */
+uint32_t chtr_inhi = 0;                                   /* chan trap inhibit inst */
+uint32_t chtr_enab = 0;                                   /* chan trap enables */
+uint32_t mode_ttrap = 0;                                  /* transfer trap mode */
+uint32_t mode_ctrap = 0;                                  /* copy trap mode */
+uint32_t mode_strap = 0;                                  /* select trap mode */
+uint32_t mode_ftrap = 0;                                  /* floating trap mode */
+uint32_t mode_storn = 0;                                  /* storage nullification */
+uint32_t mode_multi = 0;                                  /* multi-index mode */
+uint32_t ind_ovf = 0;                                     /* overflow */
+uint32_t ind_mqo = 0;                                     /* MQ overflow */
+uint32_t ind_dvc = 0;                                     /* divide check */
+uint32_t ind_ioc = 0;                                     /* IO check */
+uint32_t cpu_model = I_9X|I_94;                           /* CPU type */
+uint32_t mode_user = 0;                                   /* (CTSS) user mode */
+uint32_t mode_reloc = 0;                                  /* (CTSS) relocation mode */
+uint32_t user_buf = 0;                                    /* (CTSS) user mode buffer */
+uint32_t reloc_buf = 0;                                   /* (CTSS) reloc mode buffer */
+uint32_t ind_reloc = 0;                                   /* (CTSS) relocation */
+uint32_t ind_start = 0;                                   /* (CTSS) prot start */
+uint32_t ind_limit = 0;                                   /* (CTSS) prot limit */
+uint32_t inst_base = 0;                                   /* (CTSS) inst A/B sel */
+uint32_t data_base = 0;                                   /* (CTSS) data A/B sel */
+uint32_t xec_max = 16;                                    /* XEC chain limit */
+uint32_t ht_pend = 0;                                     /* HTR pending */
+uint32_t ht_addr = 0;                                     /* HTR address */
+uint32_t stop_illop = 1;                                  /* stop on ill op */
+uint32_t cpu_astop = 0;                                   /* address stop */
 
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
-uint32 hst_ch = 0;                                      /* channel history */
+uint32_t hst_ch = 0;                                      /* channel history */
 InstHistory *hst = NULL;                                /* instruction history */
 
-extern uint32 ch_sta[NUM_CHAN];
-extern uint32 ch_flags[NUM_CHAN];
+extern uint32_t ch_sta[NUM_CHAN];
+extern uint32_t ch_flags[NUM_CHAN];
 extern DEVICE mt_dev[NUM_CHAN];
 extern DEVICE ch_dev[NUM_CHAN];
 
@@ -222,46 +222,46 @@ t_stat cpu_set_model (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-t_bool ReadI (uint32 va, t_uint64 *dat);
-t_bool Read (uint32 va, t_uint64 *dat);
-t_bool Write (uint32 va, t_uint64 dat);
-void WriteTA (uint32 pa, uint32 addr);
-void WriteTAD (uint32 pa, uint32 addr, uint32 decr);
-void TrapXfr (uint32 newpc);
-t_bool fp_trap (uint32 spill);
-t_bool prot_trap (uint32 decr);
-t_bool sel_trap (uint32 va);
-t_bool cpy_trap (uint32 va);
-uint32 get_xri (uint32 tag);
-uint32 get_xrx (uint32 tag);
-void put_xr (uint32 tag, uint32 dat);
-t_stat cpu_fprint_one_inst (FILE *st, uint32 pc, uint32 rpt, uint32 ea,
+t_bool ReadI (uint32_t va, t_uint64 *dat);
+t_bool Read (uint32_t va, t_uint64 *dat);
+t_bool Write (uint32_t va, t_uint64 dat);
+void WriteTA (uint32_t pa, uint32_t addr);
+void WriteTAD (uint32_t pa, uint32_t addr, uint32_t decr);
+void TrapXfr (uint32_t newpc);
+t_bool fp_trap (uint32_t spill);
+t_bool prot_trap (uint32_t decr);
+t_bool sel_trap (uint32_t va);
+t_bool cpy_trap (uint32_t va);
+uint32_t get_xri (uint32_t tag);
+uint32_t get_xrx (uint32_t tag);
+void put_xr (uint32_t tag, uint32_t dat);
+t_stat cpu_fprint_one_inst (FILE *st, uint32_t pc, uint32_t rpt, uint32_t ea,
     t_uint64 ir, t_uint64 ac, t_uint64 mq, t_uint64 si, t_uint64 opnd);
 
-extern uint32 chtr_eval (uint32 *decr);
+extern uint32_t chtr_eval (uint32_t *decr);
 extern void op_add (t_uint64 sr);
-extern void op_mpy (t_uint64 ac, t_uint64 sr, uint32 sc);
-extern t_bool op_div (t_uint64 sr, uint32 sc);
-extern uint32 op_fad (t_uint64 sr, t_bool norm);
-extern uint32 op_fmp (t_uint64 sr, t_bool norm);
-extern uint32 op_fdv (t_uint64);
-extern uint32 op_dfad (t_uint64 shi, t_uint64 slo, t_bool norm);
-extern uint32 op_dfmp (t_uint64 shi, t_uint64 slo, t_bool norm);
-extern uint32 op_dfdv (t_uint64 shi, t_uint64 slo);
-extern void op_als (uint32 ea);
-extern void op_ars (uint32 ea);
-extern void op_lls (uint32 ea);
-extern void op_lrs (uint32 ea);
-extern void op_lgl (uint32 ea);
-extern void op_lgr (uint32 ea);
-extern t_stat op_pse (uint32 ea);
-extern t_stat op_mse (uint32 ea);
-extern t_stat ch_op_ds (uint32 ch, uint32 ds, uint32 unit);
-extern t_stat ch_op_nds (uint32 ch, uint32 ds, uint32 unit);
-extern t_stat ch_op_start (uint32 ch, uint32 clc, t_bool reset);
-extern t_stat ch_op_store (uint32 ch, t_uint64 *dat);
-extern t_stat ch_op_store_diag (uint32 ch, t_uint64 *dat);
-extern t_stat ch_proc (uint32 ch);
+extern void op_mpy (t_uint64 ac, t_uint64 sr, uint32_t sc);
+extern t_bool op_div (t_uint64 sr, uint32_t sc);
+extern uint32_t op_fad (t_uint64 sr, t_bool norm);
+extern uint32_t op_fmp (t_uint64 sr, t_bool norm);
+extern uint32_t op_fdv (t_uint64);
+extern uint32_t op_dfad (t_uint64 shi, t_uint64 slo, t_bool norm);
+extern uint32_t op_dfmp (t_uint64 shi, t_uint64 slo, t_bool norm);
+extern uint32_t op_dfdv (t_uint64 shi, t_uint64 slo);
+extern void op_als (uint32_t ea);
+extern void op_ars (uint32_t ea);
+extern void op_lls (uint32_t ea);
+extern void op_lrs (uint32_t ea);
+extern void op_lgl (uint32_t ea);
+extern void op_lgr (uint32_t ea);
+extern t_stat op_pse (uint32_t ea);
+extern t_stat op_mse (uint32_t ea);
+extern t_stat ch_op_ds (uint32_t ch, uint32_t ds, uint32_t unit);
+extern t_stat ch_op_nds (uint32_t ch, uint32_t ds, uint32_t unit);
+extern t_stat ch_op_start (uint32_t ch, uint32_t clc, t_bool reset);
+extern t_stat ch_op_store (uint32_t ch, t_uint64 *dat);
+extern t_stat ch_op_store_diag (uint32_t ch, t_uint64 *dat);
+extern t_stat ch_proc (uint32_t ch);
 
 /* CPU data structures
 
@@ -354,7 +354,7 @@ DEVICE cpu_dev = {
 
 /* Instruction decode table */
 
-const uint8 op_flags[1024] = {
+const uint8_t op_flags[1024] = {
  I_XN      , 0         , 0         , 0         ,        /* +000 */
  0         , 0         , 0         , 0         ,
  0         , 0         , 0         , 0         ,
@@ -620,9 +620,9 @@ t_stat sim_instr (void)
 {
 t_stat reason = SCPE_OK;
 t_uint64 IR, SR, t, t1, t2, sr1 = 0;
-uint32 op, fl, tag, tagi, addr, ea;
-uint32 ch, dec, xr, xec_cnt, trp;
-uint32 i, j, sc, s1, s2, spill;
+uint32_t op, fl, tag, tagi, addr, ea;
+uint32_t ch, dec, xr, xec_cnt, trp;
+uint32_t i, j, sc, s1, s2, spill;
 t_bool tracing;
 
 /* Restore register state */
@@ -709,7 +709,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
     XEC:
 
     tag = GET_TAG (IR);                                 /* get tag */
-    addr = (uint32) IR & EAMASK;                        /* get base addr */
+    addr = (uint32_t) IR & EAMASK;                        /* get base addr */
 
 /* Decrement format instructions */
 
@@ -807,7 +807,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
         if (TST_IND (IR) && (fl & I_N)) {               /* indirect? */
             if (!ReadI (ea, &SR))                       /* get ind; trap? */
                 continue;
-            addr = (uint32) SR & EAMASK;                /* get address */
+            addr = (uint32_t) SR & EAMASK;                /* get address */
             tagi = GET_TAG (SR);                        /* get tag */
             if (tagi)                                   /* tag? */
                 ea = (addr - get_xri (tagi)) & EAMASK;  /* do indexing */
@@ -972,7 +972,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
             sc = GET_CCNT (IR);
             SR = ea;
             while (sc) {
-                ea = (uint32) ((AC & 077) + SR) & EAMASK;
+                ea = (uint32_t) ((AC & 077) + SR) & EAMASK;
                 if (!Read (ea, &SR))
                     break;
                 AC = (AC & AC_S) | ((AC >> 6) & 0017777777777) |
@@ -980,7 +980,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
                 sc--;
                 }
             if ((sc == 0) && (IR & INST_T_CXR1))
-                put_xr (1, (uint32) SR);
+                put_xr (1, (uint32_t) SR);
             break;
 
         case 00120:                                     /* TPL */
@@ -1269,12 +1269,12 @@ while (reason == SCPE_OK) {                             /* loop until error */
 
         case 00534:                                     /* LXA */
             if (tag)                                    /* M addr -> xr */
-                put_xr (tag, (uint32) SR);
+                put_xr (tag, (uint32_t) SR);
             break;
 
         case 00535:                                     /* LAC */
             if (tag)                                    /* -M addr -> xr */
-                put_xr (tag, NEG ((uint32) SR));
+                put_xr (tag, NEG ((uint32_t) SR));
             break;
 
         case 00560:                                     /* LDQ */
@@ -1284,7 +1284,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
         case 00562:                                     /* (CTSS) LRI */
             if (prot_trap (0))                          /* user mode? */
                 break;
-            ind_reloc = ((uint32) SR) & VA_BLK;
+            ind_reloc = ((uint32_t) SR) & VA_BLK;
             reloc_buf = 1;                              /* set mode buffer */
             chtr_inhi = 1;                              /* delay traps */
             chtr_pend = 0;                              /* no trap now */
@@ -1293,7 +1293,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
         case 00564:                                     /* ENB */
             if (prot_trap (0))                          /* user mode? */
                 break;
-            chtr_enab = (uint32) SR;                    /* set enables */
+            chtr_enab = (uint32_t) SR;                    /* set enables */
             chtr_inht = 0;                              /* clear inhibit */
             chtr_inhi = 1;                              /* 1 cycle delay */
             chtr_pend = 0;                              /* no traps now */
@@ -1354,12 +1354,12 @@ while (reason == SCPE_OK) {                             /* loop until error */
 
         case 00734:                                     /* PAX */
             if (tag)                                    /* AC addr -> xr */
-                put_xr (tag, (uint32) AC);
+                put_xr (tag, (uint32_t) AC);
             break;
 
         case 00737:                                     /* PAC */
             if (tag)                                    /* -AC addr -> xr */
-                put_xr (tag, NEG ((uint32) AC));
+                put_xr (tag, NEG ((uint32_t) AC));
             break;
 
         case 00754:                                     /* PXA */
@@ -1469,7 +1469,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
             sc = GET_CCNT (IR);
             SR = ea;
             while (sc) {
-                ea = (uint32) ((MQ >> 30) + SR) & EAMASK;
+                ea = (uint32_t) ((MQ >> 30) + SR) & EAMASK;
                 if (!Read (ea, &SR))
                     break;
                 MQ = ((MQ << 6) & DMASK) | (MQ >> 30);
@@ -1477,7 +1477,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
                 sc--;
                 }
             if ((sc == 0) && (IR & INST_T_CXR1))
-                put_xr (1, (uint32) SR);
+                put_xr (1, (uint32_t) SR);
             break;
 
         case 01120:                                     /* TMI */
@@ -1513,14 +1513,14 @@ while (reason == SCPE_OK) {                             /* loop until error */
             sc = GET_CCNT (IR);
             SR = ea;
             while (sc) {
-                ea = (uint32) ((MQ >> 30) + SR) & EAMASK;
+                ea = (uint32_t) ((MQ >> 30) + SR) & EAMASK;
                 if (!Read (ea, &SR))
                     break;
                 MQ = ((MQ << 6) & DMASK) | (SR >> 30);
                 sc--;
                 }
             if ((sc == 0) && (IR & INST_T_CXR1))
-                put_xr (1, (uint32) SR);
+                put_xr (1, (uint32_t) SR);
             break;
 
         case 01200:                                     /* MPR */
@@ -1650,7 +1650,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
         case 01564:                                     /* (CTSS) LPI */
             if (prot_trap (0))                          /* user mode? */
                 break;
-            ind_start = ((uint32) SR) & VA_BLK;
+            ind_start = ((uint32_t) SR) & VA_BLK;
             ind_limit = (GET_DEC (SR) & VA_BLK) | VA_OFF;
             user_buf = 1;                               /* set mode buffer */
             chtr_inhi = 1;                              /* delay traps */
@@ -1994,13 +1994,13 @@ return reason;
 
 /* Get index register for indexing */
 
-uint32 get_xri (uint32 tag)
+uint32_t get_xri (uint32_t tag)
 {
 tag = tag & INST_M_TAG;
 
 if (tag) {
     if (mode_multi) {
-        uint32 r = 0;
+        uint32_t r = 0;
         if (tag & 1)
             r = r | XR[1];
         if (tag & 2)
@@ -2020,13 +2020,13 @@ return 0;
    the index register value.  In multi-tag mode, this causes all registers
    involved in the OR function to receive the OR'd value. */
 
-uint32 get_xrx (uint32 tag)
+uint32_t get_xrx (uint32_t tag)
 {
 tag = tag & INST_M_TAG;
 
 if (tag) {
     if (mode_multi) {
-        uint32 r = 0;
+        uint32_t r = 0;
         if (tag & 1)
             r = r | XR[1];
         if (tag & 2)
@@ -2043,7 +2043,7 @@ return 0;
 
 /* Store index register */
 
-void put_xr (uint32 tag, uint32 dat)
+void put_xr (uint32_t tag, uint32_t dat)
 {
 tag = tag & INST_M_TAG;
 dat = dat & EAMASK;
@@ -2064,7 +2064,7 @@ return;
 
 /* Floating point trap */
 
-t_bool fp_trap (uint32 spill)
+t_bool fp_trap (uint32_t spill)
 {
 if (mode_ftrap) {
     WriteTAD (TRAP_STD_SAV, PC, spill);
@@ -2083,7 +2083,7 @@ return FALSE;
 
 /* (CTSS) Protection trap */
 
-t_bool prot_trap (uint32 decr)
+t_bool prot_trap (uint32_t decr)
 {
 if (mode_user) {
     WriteTAD (TRAP_PROT_SAV, PC, decr);
@@ -2096,7 +2096,7 @@ return FALSE;
 
 /* Store trap address and decrement, with A/B select flags; clear A/B, user mode */
 
-void WriteTAD (uint32 pa, uint32 addr, uint32 decr)
+void WriteTAD (uint32_t pa, uint32_t addr, uint32_t decr)
 {
 t_uint64 mem;
 
@@ -2120,7 +2120,7 @@ return;
 
 /* Copy trap */
 
-t_bool cpy_trap (uint32 va)
+t_bool cpy_trap (uint32_t va)
 {
 if (mode_ctrap) {
     WriteTA (TRAP_704_SAV, va);
@@ -2133,7 +2133,7 @@ return FALSE;
 
 /* Select trap */
 
-t_bool sel_trap (uint32 va)
+t_bool sel_trap (uint32_t va)
 {
 if (mode_strap) {
     WriteTA (TRAP_704_SAV, va);
@@ -2146,7 +2146,7 @@ return FALSE;
 
 /* Store trap address - do not alter state yet (might be TRA) */
 
-void WriteTA (uint32 pa, uint32 dat)
+void WriteTA (uint32_t pa, uint32_t dat)
 {
 t_uint64 mem;
 
@@ -2158,7 +2158,7 @@ return;
 
 /* Set trap PC - second half of address-only trap */
 
-void TrapXfr (uint32 newpc)
+void TrapXfr (uint32_t newpc)
 {
 PC = newpc;
 mode_ctrap = 0;
@@ -2173,7 +2173,7 @@ return;
 
 /* Read instruction and indirect */
 
-t_bool ReadI (uint32 va, t_uint64 *val)
+t_bool ReadI (uint32_t va, t_uint64 *val)
 {
 if (mode_reloc)
     va = (va + ind_reloc) & AMASK;
@@ -2187,7 +2187,7 @@ return TRUE;
 
 /* Read */
 
-t_bool Read (uint32 va, t_uint64 *val)
+t_bool Read (uint32_t va, t_uint64 *val)
 {
 if (mode_reloc)
     va = (va + ind_reloc) & AMASK;
@@ -2201,7 +2201,7 @@ return TRUE;
 
 /* Write */
 
-t_bool Write (uint32 va, t_uint64 dat)
+t_bool Write (uint32_t va, t_uint64 dat)
 {
 if (mode_reloc)
     va = (va + ind_reloc) & AMASK;
@@ -2317,14 +2317,14 @@ return SCPE_OK;
 
 /* Insert history entry */
 
-static uint32 inst_io_tab[32] = {
+static uint32_t inst_io_tab[32] = {
     0, 0, 0, 0,          0, 0, 0, 0,                        /* 0000 - 0377 */
     0, 0, 0, 0x000000FF, 0, 0, 0, 0x45540000,               /* 0400 - 0777 */
     0, 0, 0, 0,          0, 0, 0, 0,                        /* 1000 - 1400 */
     0, 0, 0, 0x000000FF, 0, 0, 0, 0                         /* 1400 - 1777 */
     };
 
-void cpu_ent_hist (uint32 pc, uint32 ea, t_uint64 ir, t_uint64 opnd)
+void cpu_ent_hist (uint32_t pc, uint32_t ea, t_uint64 ir, t_uint64 opnd)
 {
 int32 prv_p;
 
@@ -2339,7 +2339,7 @@ if (pc & HIST_PC) {
         return;
         }
     if (hst_ch & HIST_CH_I) {                               /* IO only? */
-        uint32 op = GET_OPC (ir);                           /* get opcode */
+        uint32_t op = GET_OPC (ir);                           /* get opcode */
         if ((ir & INST_T_DEC) ||
             !(inst_io_tab[op / 32] & (1u << (op & 037))))
             return;
@@ -2397,7 +2397,7 @@ return SCPE_OK;
 
 /* Print one instruction */
 
-t_stat cpu_fprint_one_inst (FILE *st, uint32 pc, uint32 rpt, uint32 ea,
+t_stat cpu_fprint_one_inst (FILE *st, uint32_t pc, uint32_t rpt, uint32_t ea,
     t_uint64 ir, t_uint64 ac, t_uint64 mq, t_uint64 si, t_uint64 opnd)
 {
 int32 ch;

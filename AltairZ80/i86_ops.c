@@ -24,8 +24,8 @@
 #include "altairz80_defs.h"
 #include "i86.h"
 
-extern void out(const uint32 Port, const uint32 Value);
-extern uint32 in(const uint32 Port);
+extern void out(const uint32_t Port, const uint32_t Value);
+extern uint32_t in(const uint32_t Port);
 
 /* $Log: i86_ops.c,v $
  * Revision 0.11  1991/07/30  02:02:04  hudgens
@@ -108,7 +108,7 @@ extern uint32 in(const uint32 Port);
   So, without further ado, ...
 */
 
-extern uint8 parity_tab[];
+extern uint8_t parity_tab[];
 
 static void i86op_illegal_op(PC_ENV *m)
 {
@@ -118,10 +118,10 @@ static void i86op_illegal_op(PC_ENV *m)
 /*opcode=0x00*/
 static void i86op_add_byte_RM_R(PC_ENV *m)
 {
-   uint16     mod,rl,rh;
-   uint8      *destreg,*srcreg;
-   uint16     destoffset;
-   uint8      destval;
+   uint16_t     mod,rl,rh;
+   uint8_t      *destreg,*srcreg;
+   uint16_t     destoffset;
+   uint8_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -158,10 +158,10 @@ static void i86op_add_byte_RM_R(PC_ENV *m)
 /*opcode=0x01*/
 static void i86op_add_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16        destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t        destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -198,10 +198,10 @@ static void i86op_add_word_RM_R(PC_ENV *m)
 /*opcode=0x02*/
 static void i86op_add_byte_R_RM(PC_ENV *m)
 {
-   uint16     mod,rl,rh;
-   uint8      *destreg,*srcreg;
-   uint16     srcoffset;
-   uint8      srcval;
+   uint16_t     mod,rl,rh;
+   uint8_t      *destreg,*srcreg;
+   uint16_t     srcoffset;
+   uint8_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -235,10 +235,10 @@ static void i86op_add_byte_R_RM(PC_ENV *m)
 /*opcode=0x03*/
 static void i86op_add_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -272,7 +272,7 @@ static void i86op_add_word_R_RM(PC_ENV *m)
 /*opcode=0x04*/
 static void i86op_add_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = add_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -281,7 +281,7 @@ static void i86op_add_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x05*/
 static void i86op_add_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = add_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -304,10 +304,10 @@ static void i86op_pop_ES(PC_ENV *m)
 /*opcode=0x08*/
 static void i86op_or_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -344,10 +344,10 @@ static void i86op_or_byte_RM_R(PC_ENV *m)
 /*opcode=0x09*/
 static void i86op_or_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -384,10 +384,10 @@ static void i86op_or_word_RM_R(PC_ENV *m)
 /*opcode=0x0a*/
 static void i86op_or_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -421,10 +421,10 @@ static void i86op_or_byte_R_RM(PC_ENV *m)
 /*opcode=0x0b*/
 static void i86op_or_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -458,7 +458,7 @@ static void i86op_or_word_R_RM(PC_ENV *m)
 /*opcode=0x0c*/
 static void i86op_or_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = or_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -467,7 +467,7 @@ static void i86op_or_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x0d*/
 static void i86op_or_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = or_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -485,10 +485,10 @@ static void i86op_push_CS(PC_ENV *m)
 /*opcode=0x10*/
 static void i86op_adc_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -525,10 +525,10 @@ static void i86op_adc_byte_RM_R(PC_ENV *m)
 /*opcode=0x11*/
 static void i86op_adc_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -565,10 +565,10 @@ static void i86op_adc_word_RM_R(PC_ENV *m)
 /*opcode=0x12*/
 static void i86op_adc_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -602,10 +602,10 @@ static void i86op_adc_byte_R_RM(PC_ENV *m)
 /*opcode=0x13*/
 static void i86op_adc_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -639,7 +639,7 @@ static void i86op_adc_word_R_RM(PC_ENV *m)
 /*opcode=0x14*/
 static void i86op_adc_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = adc_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -648,7 +648,7 @@ static void i86op_adc_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x15*/
 static void i86op_adc_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = adc_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -671,10 +671,10 @@ static void i86op_pop_SS(PC_ENV *m)
 /*opcode=0x18*/
 static void i86op_sbb_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -711,10 +711,10 @@ static void i86op_sbb_byte_RM_R(PC_ENV *m)
 /*opcode=0x19*/
 static void i86op_sbb_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -751,10 +751,10 @@ static void i86op_sbb_word_RM_R(PC_ENV *m)
 /*opcode=0x1a*/
 static void i86op_sbb_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -788,10 +788,10 @@ static void i86op_sbb_byte_R_RM(PC_ENV *m)
 /*opcode=0x1b*/
 static void i86op_sbb_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -825,7 +825,7 @@ static void i86op_sbb_word_R_RM(PC_ENV *m)
 /*opcode=0x1c*/
 static void i86op_sbb_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = sbb_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -834,7 +834,7 @@ static void i86op_sbb_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x1d*/
 static void i86op_sbb_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = sbb_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -857,10 +857,10 @@ static void i86op_pop_DS(PC_ENV *m)
 /*opcode=0x20*/
 static void i86op_and_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -897,10 +897,10 @@ static void i86op_and_byte_RM_R(PC_ENV *m)
 /*opcode=0x21*/
 static void i86op_and_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -937,10 +937,10 @@ static void i86op_and_word_RM_R(PC_ENV *m)
 /*opcode=0x22*/
 static void i86op_and_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -974,10 +974,10 @@ static void i86op_and_byte_R_RM(PC_ENV *m)
 /*opcode=0x23*/
 static void i86op_and_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1011,7 +1011,7 @@ static void i86op_and_word_R_RM(PC_ENV *m)
 /*opcode=0x24*/
 static void i86op_and_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = and_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1020,7 +1020,7 @@ static void i86op_and_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x25*/
 static void i86op_and_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = and_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1039,7 +1039,7 @@ static void i86op_segovr_ES(PC_ENV *m)
 /*opcode=0x27*/
 static void i86op_daa(PC_ENV *m)
 {
-   uint16 dbyte;
+   uint16_t dbyte;
    dbyte = m->R_AL;
    if (ACCESS_FLAG(m,F_AF)|| (dbyte&0xf) > 9)
      {
@@ -1057,7 +1057,7 @@ static void i86op_daa(PC_ENV *m)
      }
    else
      CLEAR_FLAG(m, F_CF);
-   m->R_AL = (uint8) dbyte;
+   m->R_AL = (uint8_t) dbyte;
    CONDITIONAL_SET_FLAG((m->R_AL & 0x80),m,F_SF);
    CONDITIONAL_SET_FLAG((m->R_AL == 0), m,F_ZF);
    CONDITIONAL_SET_FLAG((parity_tab[m->R_AL]),m,F_PF);
@@ -1067,10 +1067,10 @@ static void i86op_daa(PC_ENV *m)
 /*opcode=0x28*/
 static void i86op_sub_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1107,10 +1107,10 @@ static void i86op_sub_byte_RM_R(PC_ENV *m)
 /*opcode=0x29*/
 static void i86op_sub_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1147,10 +1147,10 @@ static void i86op_sub_word_RM_R(PC_ENV *m)
 /*opcode=0x2a*/
 static void i86op_sub_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1184,10 +1184,10 @@ static void i86op_sub_byte_R_RM(PC_ENV *m)
 /*opcode=0x2b*/
 static void i86op_sub_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1221,7 +1221,7 @@ static void i86op_sub_word_R_RM(PC_ENV *m)
 /*opcode=0x2c*/
 static void i86op_sub_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = sub_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1230,7 +1230,7 @@ static void i86op_sub_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x2d*/
 static void i86op_sub_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = sub_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1246,7 +1246,7 @@ static void i86op_segovr_CS(PC_ENV *m)
 /*opcode=0x2f*/
 static void i86op_das(PC_ENV *m)
 {
-   uint16 dbyte;
+   uint16_t dbyte;
    dbyte = m->R_AL;
    if ( ACCESS_FLAG(m,F_AF) || (dbyte&0xf) > 9)
      {
@@ -1264,7 +1264,7 @@ static void i86op_das(PC_ENV *m)
      }
    else
      CLEAR_FLAG(m, F_CF);
-   m->R_AL = (uint8) dbyte;
+   m->R_AL = (uint8_t) dbyte;
    CONDITIONAL_SET_FLAG(m->R_AL & 0x80,m,F_SF);
    CONDITIONAL_SET_FLAG(m->R_AL == 0,m,F_ZF);
    CONDITIONAL_SET_FLAG(parity_tab[m->R_AL],m,F_PF);
@@ -1274,10 +1274,10 @@ static void i86op_das(PC_ENV *m)
 /*opcode=0x30*/
 static void i86op_xor_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1314,10 +1314,10 @@ static void i86op_xor_byte_RM_R(PC_ENV *m)
 /*opcode=0x31*/
 static void i86op_xor_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1354,10 +1354,10 @@ static void i86op_xor_word_RM_R(PC_ENV *m)
 /*opcode=0x32*/
 static void i86op_xor_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1391,10 +1391,10 @@ static void i86op_xor_byte_R_RM(PC_ENV *m)
 /*opcode=0x33*/
 static void i86op_xor_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1428,7 +1428,7 @@ static void i86op_xor_word_R_RM(PC_ENV *m)
 /*opcode=0x34*/
 static void i86op_xor_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    m->R_AL  = xor_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1437,7 +1437,7 @@ static void i86op_xor_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x35*/
 static void i86op_xor_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    m->R_AX = xor_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1472,10 +1472,10 @@ static void i86op_aaa(PC_ENV *m)
 /*opcode=0x38*/
 static void i86op_cmp_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8         destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t         destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1509,10 +1509,10 @@ static void i86op_cmp_byte_RM_R(PC_ENV *m)
 /*opcode=0x39*/
 static void i86op_cmp_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1546,10 +1546,10 @@ static void i86op_cmp_word_RM_R(PC_ENV *m)
 /*opcode=0x3a*/
 static void i86op_cmp_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1583,10 +1583,10 @@ static void i86op_cmp_byte_R_RM(PC_ENV *m)
 /*opcode=0x3b*/
 static void i86op_cmp_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -1620,7 +1620,7 @@ static void i86op_cmp_word_R_RM(PC_ENV *m)
 /*opcode=0x3c*/
 static void i86op_cmp_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 srcval;
+   uint8_t srcval;
    srcval  =  fetch_byte_imm(m);
    cmp_byte(m, m->R_AL, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1629,7 +1629,7 @@ static void i86op_cmp_byte_AL_IMM(PC_ENV *m)
 /*opcode=0x3d*/
 static void i86op_cmp_word_AX_IMM(PC_ENV *m)
 {
-   uint16 srcval;
+   uint16_t srcval;
    srcval  =  fetch_word_imm(m);
    cmp_word(m, m->R_AX, srcval);
    DECODE_CLEAR_SEGOVR(m);
@@ -1916,7 +1916,7 @@ static void i86op_pop_DI(PC_ENV *m)
 static void i86op_jump_near_O(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if overflow flag is set */
    offset = (int8) fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -1929,7 +1929,7 @@ static void i86op_jump_near_O(PC_ENV *m)
 static void i86op_jump_near_NO(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if overflow is not set */
    offset = (int8) fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -1942,7 +1942,7 @@ static void i86op_jump_near_NO(PC_ENV *m)
 static void i86op_jump_near_B(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if carry flag is set. */
    offset = (int8)fetch_byte_imm(m);   /* sign extended ??? */
    target = (int16)(m->R_IP) + offset;
@@ -1955,7 +1955,7 @@ static void i86op_jump_near_B(PC_ENV *m)
 static void i86op_jump_near_NB(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if carry flag is clear. */
    offset = (int8)fetch_byte_imm(m);   /* sign extended ??? */
    target = (int16)(m->R_IP) + offset;
@@ -1968,7 +1968,7 @@ static void i86op_jump_near_NB(PC_ENV *m)
 static void i86op_jump_near_Z(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if zero flag is set. */
    offset = (int8)fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -1981,7 +1981,7 @@ static void i86op_jump_near_Z(PC_ENV *m)
 static void i86op_jump_near_NZ(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if zero flag is clear. */
    offset = (int8)fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -1994,7 +1994,7 @@ static void i86op_jump_near_NZ(PC_ENV *m)
 static void i86op_jump_near_BE(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if carry flag is set or if the zero
       flag is set. */
    offset = (int8)fetch_byte_imm(m);
@@ -2008,7 +2008,7 @@ static void i86op_jump_near_BE(PC_ENV *m)
 static void i86op_jump_near_NBE(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if carry flag is clear and if the zero
       flag is clear */
    offset = (int8)fetch_byte_imm(m);
@@ -2022,7 +2022,7 @@ static void i86op_jump_near_NBE(PC_ENV *m)
 static void i86op_jump_near_S(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if sign flag is set */
    offset = (int8)fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -2035,7 +2035,7 @@ static void i86op_jump_near_S(PC_ENV *m)
 static void i86op_jump_near_NS(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if sign flag is clear */
    offset = (int8)fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -2048,7 +2048,7 @@ static void i86op_jump_near_NS(PC_ENV *m)
 static void i86op_jump_near_P(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if parity flag is set (even parity) */
    offset = (int8)fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -2061,7 +2061,7 @@ static void i86op_jump_near_P(PC_ENV *m)
 static void i86op_jump_near_NP(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    /* jump to byte offset if parity flag is clear (odd parity) */
    offset = (int8)fetch_byte_imm(m);
    target = (int16)(m->R_IP) + offset;
@@ -2076,7 +2076,7 @@ static void i86op_jump_near_NP(PC_ENV *m)
 static void i86op_jump_near_L(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    int   sf,of;
    /* jump to byte offset if sign flag not equal to overflow flag. */
    offset = (int8)fetch_byte_imm(m);
@@ -2103,7 +2103,7 @@ static void i86op_jump_near_L(PC_ENV *m)
 static void i86op_jump_near_NL(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    int sf,of;
    /* jump to byte offset if sign flag not equal to overflow flag. */
    offset = (int8)fetch_byte_imm(m);
@@ -2121,7 +2121,7 @@ static void i86op_jump_near_NL(PC_ENV *m)
 static void i86op_jump_near_LE(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    int sf,of;
    /* jump to byte offset if sign flag not equal to overflow flag
     or the zero flag is set */
@@ -2142,7 +2142,7 @@ static void i86op_jump_near_LE(PC_ENV *m)
 static void i86op_jump_near_NLE(PC_ENV *m)
 {
    int8  offset;
-   uint16 target;
+   uint16_t target;
    int sf,of;
    /* jump to byte offset if sign flag equal to overflow flag.
     and the zero flag is clear*/
@@ -2158,7 +2158,7 @@ static void i86op_jump_near_NLE(PC_ENV *m)
    DECODE_CLEAR_SEGOVR(m);
 }
 
-static uint8    (*opc80_byte_operation[])(PC_ENV *m,uint8 d,uint8 s) =
+static uint8_t    (*opc80_byte_operation[])(PC_ENV *m,uint8_t d,uint8_t s) =
 {
     add_byte,/*00*/
     or_byte, /*01*/
@@ -2173,11 +2173,11 @@ static uint8    (*opc80_byte_operation[])(PC_ENV *m,uint8 d,uint8 s) =
 /*opcode=0x80*/
 static void i86op_opc80_byte_RM_IMM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg;
-   uint16      destoffset;
-   uint8       imm;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg;
+   uint16_t      destoffset;
+   uint8_t       imm;
+   uint8_t       destval;
    /* weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -2222,7 +2222,7 @@ static void i86op_opc80_byte_RM_IMM(PC_ENV *m)
    DECODE_CLEAR_SEGOVR(m);
 }
 
-static uint16    (*opc81_word_operation[])(PC_ENV *m,uint16 d,uint16 s) =
+static uint16_t    (*opc81_word_operation[])(PC_ENV *m,uint16_t d,uint16_t s) =
 {    add_word,/*00*/
     or_word, /*01*/
     adc_word,/*02*/
@@ -2236,11 +2236,11 @@ static uint16    (*opc81_word_operation[])(PC_ENV *m,uint16 d,uint16 s) =
 /*opcode=0x81*/
 static void i86op_opc81_word_RM_IMM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg;
-   uint16      destoffset;
-   uint16      imm;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg;
+   uint16_t      destoffset;
+   uint16_t      imm;
+   uint16_t      destval;
    /* weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -2285,7 +2285,7 @@ static void i86op_opc81_word_RM_IMM(PC_ENV *m)
    DECODE_CLEAR_SEGOVR(m);
     }
 
-static uint8    (*opc82_byte_operation[])(PC_ENV *m,uint8 s,uint8 d) =
+static uint8_t    (*opc82_byte_operation[])(PC_ENV *m,uint8_t s,uint8_t d) =
 {
     add_byte,/*00*/
     or_byte, /*01*/  /*YYY UNUSED ????*/
@@ -2300,11 +2300,11 @@ static uint8    (*opc82_byte_operation[])(PC_ENV *m,uint8 s,uint8 d) =
 /*opcode=0x82*/
 static void i86op_opc82_byte_RM_IMM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg;
-   uint16      destoffset;
-   uint8       imm;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg;
+   uint16_t      destoffset;
+   uint8_t       imm;
+   uint8_t       destval;
    /* weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -2351,7 +2351,7 @@ static void i86op_opc82_byte_RM_IMM(PC_ENV *m)
    DECODE_CLEAR_SEGOVR(m);
 }
 
-static uint16 (*opc83_word_operation[])(PC_ENV *m,uint16 s,uint16 d) =
+static uint16_t (*opc83_word_operation[])(PC_ENV *m,uint16_t s,uint16_t d) =
 {
     add_word,/*00*/
     or_word, /*01*/  /*YYY UNUSED ????*/
@@ -2366,11 +2366,11 @@ static uint16 (*opc83_word_operation[])(PC_ENV *m,uint16 s,uint16 d) =
 /*opcode=0x83*/
 static void i86op_opc83_word_RM_IMM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg;
-   uint16      destoffset;
-   uint16      imm;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg;
+   uint16_t      destoffset;
+   uint16_t      imm;
+   uint16_t      destval;
    /* weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -2420,10 +2420,10 @@ static void i86op_opc83_word_RM_IMM(PC_ENV *m)
 /*opcode=0x84*/
 static void i86op_test_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2457,10 +2457,10 @@ static void i86op_test_byte_RM_R(PC_ENV *m)
 /*opcode=0x85*/
 static void i86op_test_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2494,11 +2494,11 @@ static void i86op_test_word_RM_R(PC_ENV *m)
 /*opcode=0x86*/
 static void i86op_xchg_byte_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      destoffset;
-   uint8       destval;
-   uint8       tmp;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
+   uint8_t       tmp;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2543,11 +2543,11 @@ static void i86op_xchg_byte_RM_R(PC_ENV *m)
 /*opcode=0x87*/
 static void i86op_xchg_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
-   uint16      tmp;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
+   uint16_t      tmp;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2592,9 +2592,9 @@ static void i86op_xchg_word_RM_R(PC_ENV *m)
 /*opcode=0x88*/
 static void i86op_mov_byte_RM_R(PC_ENV *m)
 {
-   uint16       mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16       destoffset;
+   uint16_t       mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t       destoffset;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2625,9 +2625,9 @@ static void i86op_mov_byte_RM_R(PC_ENV *m)
 /*opcode=0x89*/
 static void i86op_mov_word_RM_R(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2658,10 +2658,10 @@ static void i86op_mov_word_RM_R(PC_ENV *m)
 /*opcode=0x8a*/
 static void i86op_mov_byte_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg,*srcreg;
-   uint16      srcoffset;
-   uint8       srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint8_t       srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2695,10 +2695,10 @@ static void i86op_mov_byte_R_RM(PC_ENV *m)
  /*opcode=0x8b*/
 static void i86op_mov_word_R_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2732,10 +2732,10 @@ static void i86op_mov_word_R_RM(PC_ENV *m)
 /*opcode=0x8c*/
 static void i86op_mov_word_RM_SR(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2769,9 +2769,9 @@ static void i86op_mov_word_RM_SR(PC_ENV *m)
 /*opcode=0x8d*/
 static void i86op_lea_word_R_M(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *srcreg;
-   uint16      destoffset;
+   uint16_t      mod,rl,rh;
+   uint16_t      *srcreg;
+   uint16_t      destoffset;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2800,10 +2800,10 @@ static void i86op_lea_word_R_M(PC_ENV *m)
 /*opcode=0x8e*/
 static void i86op_mov_word_SR_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg,*srcreg;
-   uint16      srcoffset;
-   uint16      srcval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg,*srcreg;
+   uint16_t      srcoffset;
+   uint16_t      srcval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -2843,10 +2843,10 @@ static void i86op_mov_word_SR_RM(PC_ENV *m)
 /*opcode=0x8f*/
 static void i86op_pop_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    if (rh != 0)
        {
@@ -2886,7 +2886,7 @@ static void i86op_nop(PC_ENV *m)
 /*opcode=0x91*/
 static void i86op_xchg_word_AX_CX(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_CX;
    m->R_CX = tmp;
@@ -2896,7 +2896,7 @@ static void i86op_xchg_word_AX_CX(PC_ENV *m)
 /*opcode=0x92*/
 static void i86op_xchg_word_AX_DX(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_DX;
    m->R_DX = tmp;
@@ -2906,7 +2906,7 @@ static void i86op_xchg_word_AX_DX(PC_ENV *m)
 /*opcode=0x93*/
 static void i86op_xchg_word_AX_BX(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_BX;
    m->R_BX = tmp;
@@ -2916,7 +2916,7 @@ static void i86op_xchg_word_AX_BX(PC_ENV *m)
 /*opcode=0x94*/
 static void i86op_xchg_word_AX_SP(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_SP;
    m->R_SP = tmp;
@@ -2926,7 +2926,7 @@ static void i86op_xchg_word_AX_SP(PC_ENV *m)
 /*opcode=0x95*/
 static void i86op_xchg_word_AX_BP(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_BP;
    m->R_BP = tmp;
@@ -2936,7 +2936,7 @@ static void i86op_xchg_word_AX_BP(PC_ENV *m)
 /*opcode=0x96*/
 static void i86op_xchg_word_AX_SI(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_SI;
    m->R_SI = tmp;
@@ -2946,7 +2946,7 @@ static void i86op_xchg_word_AX_SI(PC_ENV *m)
 /*opcode=0x97*/
 static void i86op_xchg_word_AX_DI(PC_ENV *m)
 {
-   uint16 tmp;
+   uint16_t tmp;
    tmp = m->R_AX;
    m->R_AX = m->R_DI;
    m->R_DI = tmp;
@@ -2984,7 +2984,7 @@ static void i86op_cwd(PC_ENV *m)
 /*opcode=0x9a*/
 static void i86op_call_far_IMM(PC_ENV *m)
 {
-   uint16 farseg,faroff;
+   uint16_t farseg,faroff;
    faroff = fetch_word_imm(m);
    farseg = fetch_word_imm(m);
    /* XXX
@@ -3010,7 +3010,7 @@ static void i86op_wait(PC_ENV *m)
 /*opcode=0x9c*/
 static void i86op_pushf_word(PC_ENV *m)
 {
-   uint16 flags;
+   uint16_t flags;
    flags = m->R_FLG;
    /* clear out *all* bits not representing flags */
    flags &= F_MSK;
@@ -3050,8 +3050,8 @@ static void i86op_lahf(PC_ENV *m)
 /*opcode=0xa0*/
 static void i86op_mov_AL_M_IMM(PC_ENV *m)
 {
-   uint16      offset;
-   uint8       destval;
+   uint16_t      offset;
+   uint8_t       destval;
    offset = fetch_word_imm(m);
    destval = fetch_data_byte(m,offset);
    m->R_AL  = destval;
@@ -3061,8 +3061,8 @@ static void i86op_mov_AL_M_IMM(PC_ENV *m)
 /*opcode=0xa1*/
 static void i86op_mov_AX_M_IMM(PC_ENV *m)
 {
-   uint16  offset;
-   uint16  destval;
+   uint16_t  offset;
+   uint16_t  destval;
    offset = fetch_word_imm(m);
    destval = fetch_data_word(m,offset);
    m->R_AX  = destval;
@@ -3072,7 +3072,7 @@ static void i86op_mov_AX_M_IMM(PC_ENV *m)
 /*opcode=0xa2*/
 static void i86op_mov_M_AL_IMM(PC_ENV *m)
 {
-   uint16  offset;
+   uint16_t  offset;
    offset = fetch_word_imm(m);
    store_data_byte(m,offset,m->R_AL);
    DECODE_CLEAR_SEGOVR(m);
@@ -3081,7 +3081,7 @@ static void i86op_mov_M_AL_IMM(PC_ENV *m)
 /*opcode=0xa3*/
 static void i86op_mov_M_AX_IMM(PC_ENV *m)
 {
-   uint16  offset;
+   uint16_t  offset;
    offset = fetch_word_imm(m);
    store_data_word(m,offset,m->R_AX);
    DECODE_CLEAR_SEGOVR(m);
@@ -3092,7 +3092,7 @@ static void i86op_mov_M_AX_IMM(PC_ENV *m)
 /*opcode=0xa4*/
 static void i86op_movs_byte(PC_ENV *m)
 {
-   uint8 val;
+   uint8_t val;
    int  inc;
    if (ACCESS_FLAG(m,F_DF)) /* down */
      inc = -1;
@@ -3492,7 +3492,7 @@ static void i86op_scas_word(PC_ENV *m)
 /*opcode=0xb0*/
 static void i86op_mov_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_AL = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3501,7 +3501,7 @@ static void i86op_mov_byte_AL_IMM(PC_ENV *m)
 /*opcode=0xb1*/
 static void i86op_mov_byte_CL_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_CL = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3510,7 +3510,7 @@ static void i86op_mov_byte_CL_IMM(PC_ENV *m)
 /*opcode=0xb2*/
 static void i86op_mov_byte_DL_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_DL = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3519,7 +3519,7 @@ static void i86op_mov_byte_DL_IMM(PC_ENV *m)
 /*opcode=0xb3*/
 static void i86op_mov_byte_BL_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_BL = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3528,7 +3528,7 @@ static void i86op_mov_byte_BL_IMM(PC_ENV *m)
 /*opcode=0xb4*/
 static void i86op_mov_byte_AH_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_AH = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3537,7 +3537,7 @@ static void i86op_mov_byte_AH_IMM(PC_ENV *m)
 /*opcode=0xb5*/
 static void i86op_mov_byte_CH_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_CH = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3546,7 +3546,7 @@ static void i86op_mov_byte_CH_IMM(PC_ENV *m)
 /*opcode=0xb6*/
 static void i86op_mov_byte_DH_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_DH = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3555,7 +3555,7 @@ static void i86op_mov_byte_DH_IMM(PC_ENV *m)
 /*opcode=0xb7*/
 static void i86op_mov_byte_BH_IMM(PC_ENV *m)
 {
-   uint8 imm;
+   uint8_t imm;
    imm  =  fetch_byte_imm(m);
    m->R_BH = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3564,7 +3564,7 @@ static void i86op_mov_byte_BH_IMM(PC_ENV *m)
 /*opcode=0xb8*/
 static void i86op_mov_word_AX_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_AX = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3573,7 +3573,7 @@ static void i86op_mov_word_AX_IMM(PC_ENV *m)
 /*opcode=0xb9*/
 static void i86op_mov_word_CX_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_CX = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3582,7 +3582,7 @@ static void i86op_mov_word_CX_IMM(PC_ENV *m)
 /*opcode=0xba*/
 static void i86op_mov_word_DX_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_DX = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3591,7 +3591,7 @@ static void i86op_mov_word_DX_IMM(PC_ENV *m)
 /*opcode=0xbb*/
 static void i86op_mov_word_BX_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_BX = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3600,7 +3600,7 @@ static void i86op_mov_word_BX_IMM(PC_ENV *m)
 /*opcode=0xbc*/
 static void i86op_mov_word_SP_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_SP = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3609,7 +3609,7 @@ static void i86op_mov_word_SP_IMM(PC_ENV *m)
 /*opcode=0xbd*/
 static void i86op_mov_word_BP_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_BP = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3618,7 +3618,7 @@ static void i86op_mov_word_BP_IMM(PC_ENV *m)
 /*opcode=0xbe*/
 static void i86op_mov_word_SI_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_SI = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3627,7 +3627,7 @@ static void i86op_mov_word_SI_IMM(PC_ENV *m)
 /*opcode=0xbf*/
 static void i86op_mov_word_DI_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_DI = imm;
    DECODE_CLEAR_SEGOVR(m);
@@ -3639,7 +3639,7 @@ static void i86op_mov_word_DI_IMM(PC_ENV *m)
 /*opcode=0xc2*/
 static void i86op_ret_near_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_IP = pop_word(m);
    m->R_SP += imm;
@@ -3656,9 +3656,9 @@ static void i86op_ret_near(PC_ENV *m)
 /*opcode=0xc4*/
 static void i86op_les_R_IMM(PC_ENV *m)
 {
-   uint16      mod,rh,rl;
-   uint16      *dstreg;
-   uint16      srcoffset;
+   uint16_t      mod,rh,rl;
+   uint16_t      *dstreg;
+   uint16_t      srcoffset;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -3690,9 +3690,9 @@ static void i86op_les_R_IMM(PC_ENV *m)
 /*opcode=0xc5*/
 static void i86op_lds_R_IMM(PC_ENV *m)
 {
-   uint16      mod,rh,rl;
-   uint16      *dstreg;
-   uint16      srcoffset;
+   uint16_t      mod,rh,rl;
+   uint16_t      *dstreg;
+   uint16_t      srcoffset;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
        {
@@ -3724,10 +3724,10 @@ static void i86op_lds_R_IMM(PC_ENV *m)
 /*opcode=0xc6*/
 static void i86op_mov_byte_RM_IMM(PC_ENV *m)
 {
-   uint16       mod,rl,rh;
-   uint8         *destreg;
-   uint16           destoffset;
-   uint8           imm;
+   uint16_t       mod,rl,rh;
+   uint8_t         *destreg;
+   uint16_t           destoffset;
+   uint8_t           imm;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    if (rh != 0)
        {
@@ -3762,10 +3762,10 @@ static void i86op_mov_byte_RM_IMM(PC_ENV *m)
 /*opcode=0xc7*/
 static void i86op_mov_word_RM_IMM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg;
-   uint16      destoffset;
-   uint16      imm;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg;
+   uint16_t      destoffset;
+   uint16_t      imm;
    FETCH_DECODE_MODRM(m,mod,rh,rl);
    if (rh != 0)
        {
@@ -3803,7 +3803,7 @@ static void i86op_mov_word_RM_IMM(PC_ENV *m)
 /*opcode=0xca*/
 static void i86op_ret_far_IMM(PC_ENV *m)
 {
-   uint16 imm;
+   uint16_t imm;
    imm  =  fetch_word_imm(m);
    m->R_IP = pop_word(m);
    m->R_CS = pop_word(m);
@@ -3822,7 +3822,7 @@ static void i86op_ret_far(PC_ENV *m)
 /* opcode=0xcc*/
 static void i86op_int3(PC_ENV *m)
 {
-    uint16 tmp;
+    uint16_t tmp;
     /* access the segment register */
     {
        tmp = m->R_FLG;
@@ -3851,8 +3851,8 @@ static void i86op_int3(PC_ENV *m)
 /* opcode=0xcd*/
 static void i86op_int_IMM(PC_ENV *m)
 {
-    uint16 tmp;
-    uint8 intnum;
+    uint16_t tmp;
+    uint8_t intnum;
     intnum = fetch_byte_imm(m);
     {
        tmp = m->R_FLG;
@@ -3881,7 +3881,7 @@ static void i86op_int_IMM(PC_ENV *m)
 /* opcode=0xce*/
 static void i86op_into(PC_ENV *m)
 {
-    uint16 tmp;
+    uint16_t tmp;
     if (ACCESS_FLAG(m,F_OF))
     {
            {
@@ -3918,7 +3918,7 @@ static void i86op_iret(PC_ENV *m)
     DECODE_CLEAR_SEGOVR(m);
 }
 
-static uint8 (*opcD0_byte_operation[])(PC_ENV *m,uint8 d, uint8 s) =
+static uint8_t (*opcD0_byte_operation[])(PC_ENV *m,uint8_t d, uint8_t s) =
       /* used by opcodes d0 and d2. */
 {
     rol_byte,
@@ -3934,10 +3934,10 @@ static uint8 (*opcD0_byte_operation[])(PC_ENV *m,uint8 d, uint8 s) =
 /* opcode=0xd0*/
 static void i86op_opcD0_byte_RM_1(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg;
-   uint16      destoffset;
-   uint8       destval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
    /* Yet another weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -3974,7 +3974,7 @@ static void i86op_opcD0_byte_RM_1(PC_ENV *m)
    DECODE_CLEAR_SEGOVR(m);
      }
 
-static uint16 (*opcD1_word_operation[])(PC_ENV *m,uint16 s,uint16 d) =
+static uint16_t (*opcD1_word_operation[])(PC_ENV *m,uint16_t s,uint16_t d) =
       /* used by opcodes d1 and d3. */
 {    rol_word,
     ror_word,
@@ -3989,10 +3989,10 @@ static uint16 (*opcD1_word_operation[])(PC_ENV *m,uint16 s,uint16 d) =
 /* opcode=0xd1*/
 static void i86op_opcD1_word_RM_1(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg;
-   uint16      destoffset;
-   uint16      destval;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
    /* Yet another weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -4032,11 +4032,11 @@ static void i86op_opcD1_word_RM_1(PC_ENV *m)
 /* opcode=0xd2*/
 static void i86op_opcD2_byte_RM_CL(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg;
-   uint16      destoffset;
-   uint8       destval;
-   uint8       amt;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg;
+   uint16_t      destoffset;
+   uint8_t       destval;
+   uint8_t       amt;
    /* Yet another weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -4077,11 +4077,11 @@ static void i86op_opcD2_byte_RM_CL(PC_ENV *m)
 /* opcode=0xd3*/
 static void i86op_opcD3_word_RM_CL(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint16      *destreg;
-   uint16      destoffset;
-   uint16      destval;
-   uint8       amt;
+   uint16_t      mod,rl,rh;
+   uint16_t      *destreg;
+   uint16_t      destoffset;
+   uint16_t      destval;
+   uint8_t       amt;
    /* Yet another weirdo special case instruction format.  Part of the
       opcode held below in "RH".  Doubly nested case would
       result, except that the decoded instruction
@@ -4120,7 +4120,7 @@ static void i86op_opcD3_word_RM_CL(PC_ENV *m)
 
 /* opcode=0xd4*/
 static void i86op_aam(PC_ENV *m)
-{   uint8 a;
+{   uint8_t a;
     a = fetch_byte_imm(m);
     if (a != 10)
         sim_printf("CPU: " ADDRESS_FORMAT " Error decoding AAM: Expected 0x0a but got 0x%2x.\n", m->Sp_regs.IP.I16_reg.x_reg, a);
@@ -4132,7 +4132,7 @@ static void i86op_aam(PC_ENV *m)
 /* opcode=0xd5*/
 static void i86op_aad(PC_ENV *m)
 {
-    uint8 a;
+    uint8_t a;
     a = fetch_byte_imm(m);
     if (a != 10)
         sim_printf("CPU: " ADDRESS_FORMAT " Error decoding AAD: Expected 0x0a but got 0x%2x.\n", m->Sp_regs.IP.I16_reg.x_reg, a);
@@ -4145,8 +4145,8 @@ static void i86op_aad(PC_ENV *m)
 /* opcode=0xd7 */
 static void i86op_xlat(PC_ENV *m)
 {
-   uint16 addr;
-   addr = m->R_BX + (uint8)m->R_AL;
+   uint16_t addr;
+   addr = m->R_BX + (uint8_t)m->R_AL;
    m->R_AL = fetch_data_byte(m,addr);
    DECODE_CLEAR_SEGOVR(m);
 }
@@ -4202,8 +4202,8 @@ static void i86op_jcxz(PC_ENV *m)
 /*opcode=0xe4*/
 static void i86op_in_byte_AL_IMM(PC_ENV *m)
 {
-   uint8 port;
-   port = (uint8)fetch_byte_imm(m);
+   uint8_t port;
+   port = (uint8_t)fetch_byte_imm(m);
    m->R_AL = in(port);
    DECODE_CLEAR_SEGOVR(m);
 }
@@ -4211,8 +4211,8 @@ static void i86op_in_byte_AL_IMM(PC_ENV *m)
 /*opcode=0xe5*/
 static void i86op_in_word_AX_IMM(PC_ENV *m)
 {
-   uint8 port;
-   port = (uint8)fetch_byte_imm(m);
+   uint8_t port;
+   port = (uint8_t)fetch_byte_imm(m);
    m->R_AX = in(port);
    DECODE_CLEAR_SEGOVR(m);
 }
@@ -4220,8 +4220,8 @@ static void i86op_in_word_AX_IMM(PC_ENV *m)
 /*opcode=0xe6*/
 static void i86op_out_byte_IMM_AL(PC_ENV *m)
 {
-   uint8 port;
-   port = (uint8)fetch_byte_imm(m);
+   uint8_t port;
+   port = (uint8_t)fetch_byte_imm(m);
    out(port, m->R_AL);
    DECODE_CLEAR_SEGOVR(m);
 }
@@ -4229,8 +4229,8 @@ static void i86op_out_byte_IMM_AL(PC_ENV *m)
 /*opcode=0xe7*/
 static void i86op_out_word_IMM_AX(PC_ENV *m)
 {
-   uint8 port;
-   port = (uint8)fetch_byte_imm(m);
+   uint8_t port;
+   port = (uint8_t)fetch_byte_imm(m);
    out(port, m->R_AX);
    DECODE_CLEAR_SEGOVR(m);
 }
@@ -4261,7 +4261,7 @@ static void i86op_jump_near_IMM(PC_ENV *m)
 /*opcode=0xea*/
 static void i86op_jump_far_IMM(PC_ENV *m)
 {
-   uint16 cs,ip;
+   uint16_t cs,ip;
    ip = fetch_word_imm(m);
    cs = fetch_word_imm(m);
    m->R_IP = ip;
@@ -4273,7 +4273,7 @@ static void i86op_jump_far_IMM(PC_ENV *m)
 static void i86op_jump_byte_IMM(PC_ENV *m)
 {
    int8 offset;
-   uint16 target;
+   uint16_t target;
    offset = (int8) fetch_byte_imm(m);             /* CHECK */
 /*   sim_printf("jump byte imm offset=%d\n",offset);*/
    target = (int16) m->R_IP + offset;
@@ -4347,10 +4347,10 @@ static void i86op_cmc(PC_ENV *m)
 /*opcode=0xf6*/
 static void i86op_opcF6_byte_RM(PC_ENV *m)
 {
-   uint16      mod,rl,rh;
-   uint8       *destreg;
-   uint16      destoffset;
-   uint8       destval,srcval;
+   uint16_t      mod,rl,rh;
+   uint8_t       *destreg;
+   uint16_t      destoffset;
+   uint8_t       destval,srcval;
    /* long, drawn out code follows.  Double switch for a total
       of 32 cases.  */
       FETCH_DECODE_MODRM(m,mod,rh,rl);
@@ -4538,10 +4538,10 @@ static void i86op_opcF6_byte_RM(PC_ENV *m)
 /*opcode=0xf7*/
 static void i86op_opcF7_word_RM(PC_ENV *m)
 {
-   uint16   mod,rl,rh;
-   uint16   *destreg;
-   uint16   destoffset;
-   uint16   destval,srcval;
+   uint16_t   mod,rl,rh;
+   uint16_t   *destreg;
+   uint16_t   destoffset;
+   uint16_t   destval,srcval;
    /* long, drawn out code follows.  Double switch for a total
       of 32 cases.  */
       FETCH_DECODE_MODRM(m,mod,rh,rl);
@@ -4778,10 +4778,10 @@ static void i86op_std(PC_ENV *m)
 static void i86op_opcFE_byte_RM(PC_ENV *m)
 {
    /* Yet another damned special case instruction. */
-   uint16      mod,rh,rl;
-   uint8       destval;
-   uint16      destoffset;
-   uint8       *destreg;
+   uint16_t      mod,rh,rl;
+   uint8_t       destval;
+   uint16_t      destoffset;
+   uint8_t       *destreg;
    /* ARRGH, ANOTHER GODDAMN SPECIAL CASE INSTRUCTION!!! */
       FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
@@ -4853,10 +4853,10 @@ static void i86op_opcFE_byte_RM(PC_ENV *m)
 /*opcode=0xff*/
 static void i86op_opcFF_word_RM(PC_ENV *m)
 {
-   uint16      mod,rh,rl;
-   uint16      destval,destval2;
-   uint16      destoffset;
-   uint16     *destreg;
+   uint16_t      mod,rh,rl;
+   uint16_t      destval,destval2;
+   uint16_t      destoffset;
+   uint16_t     *destreg;
    /* ANOTHER DAMN SPECIAL CASE INSTRUCTION!!! */
       FETCH_DECODE_MODRM(m,mod,rh,rl);
    switch (mod)
@@ -5008,7 +5008,7 @@ static void i86op_opcFF_word_RM(PC_ENV *m)
          halt_sys(m);
          break;
            case 4:  /* jmp  ... */
-         m->R_IP = (uint16)(*destreg);
+         m->R_IP = (uint16_t)(*destreg);
          break;
            case 5:  /* jmp far ptr ... */
          halt_sys(m);
@@ -5031,7 +5031,7 @@ static void i86op_esc_coprocess_d8(PC_ENV *m)
 /* opcode=0xd9*/
 static void i86op_esc_coprocess_d9(PC_ENV *m)
 {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {
@@ -5053,7 +5053,7 @@ static void i86op_esc_coprocess_d9(PC_ENV *m)
 /* opcode=0xda*/
 static void i86op_esc_coprocess_da(PC_ENV *m)
 {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {
@@ -5075,7 +5075,7 @@ static void i86op_esc_coprocess_da(PC_ENV *m)
 /* opcode=0xdb*/
 static void i86op_esc_coprocess_db(PC_ENV *m)
 {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {
@@ -5097,7 +5097,7 @@ static void i86op_esc_coprocess_db(PC_ENV *m)
 /* opcode=0xdc*/
 static void i86op_esc_coprocess_dc(PC_ENV *m)
 {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {
@@ -5119,7 +5119,7 @@ static void i86op_esc_coprocess_dc(PC_ENV *m)
 /* opcode=0xdd*/
 static void i86op_esc_coprocess_dd(PC_ENV *m)
 {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {
@@ -5141,7 +5141,7 @@ static void i86op_esc_coprocess_dd(PC_ENV *m)
 /* opcode=0xde*/
 static void i86op_esc_coprocess_de(PC_ENV *m)
   {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {
@@ -5163,7 +5163,7 @@ static void i86op_esc_coprocess_de(PC_ENV *m)
 /* opcode=0xdf*/
 static void i86op_esc_coprocess_df(PC_ENV *m)
   {
-    uint16 mod,rl,rh;
+    uint16_t mod,rl,rh;
     FETCH_DECODE_MODRM(m,mod,rh,rl);
     switch (mod)
       {

@@ -196,11 +196,11 @@ struct InstHistory
     t_int64             mq;
     t_int64             op;
     t_int64             sr;
-    uint32              ic;
-    uint16              ea;
-    uint16              xr1;
-    uint16              xr2;
-    uint16              xr4;
+    uint32_t              ic;
+    uint16_t              ea;
+    uint16_t              xr1;
+    uint16_t              xr2;
+    uint16_t              xr4;
 };
 
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
@@ -214,7 +214,7 @@ t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32 val,
                                   CONST void *desc);
 t_stat              cpu_set_hist(UNIT * uptr, int32 val, CONST char *cptr,
                                  void *desc);
-uint32              cpu_cmd(UNIT * uptr, uint16 cmd, uint16 dev);
+uint32_t              cpu_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev);
 t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                         const char *cptr);
 const char          *cpu_description (DEVICE *dptr);
@@ -226,60 +226,60 @@ int32               rtc_tps = 60;
 
 t_uint64            M[MAXMEMSIZE] = { 0 };      /* memory */
 t_uint64            AC, MQ;                     /* registers */
-uint16              XR[8];                      /* Index registers */
-uint16              IC;                         /* program counter */
-uint16              IR;                         /* Instruction register */
-uint16              MA;                         /* Memory Address resister */
+uint16_t              XR[8];                      /* Index registers */
+uint16_t              IC;                         /* program counter */
+uint16_t              IR;                         /* Instruction register */
+uint16_t              MA;                         /* Memory Address resister */
 t_uint64            ID;                         /* Indicator registers */
 t_uint64            SR;                         /* Internal temp register */
 t_uint64            KEYS;                       /* Console Keys */
-uint8               SL;                         /* Sense lights */
-uint16              SW = 0;                     /* Sense switch */
-uint8               MTM;                        /* Multi Index mode */
-uint8               TM;                         /* Trap mode */
-uint8               STM;                        /* Special trap mode */
-uint8               CTM;                        /* Copy trap mode */
-uint8               FTM;                        /* Floating trap mode */
-uint8               nmode;                      /* Storage null mode */
-uint8               smode;                      /* Signifigance mode */
-uint8               itrap;                      /* Can take io traps */
-uint8               dcheck;                     /* Divide check */
-uint8               acoflag;                    /* AC Overflow */
-uint8               mqoflag;                    /* MQ Overflow */
-uint8               ihold = 0;                  /* Hold interrupts */
-uint8               interval_irq = 0;           /* Interval timer IRQ */
-uint16              iotraps;                    /* IO trap flags */
+uint8_t               SL;                         /* Sense lights */
+uint16_t              SW = 0;                     /* Sense switch */
+uint8_t               MTM;                        /* Multi Index mode */
+uint8_t               TM;                         /* Trap mode */
+uint8_t               STM;                        /* Special trap mode */
+uint8_t               CTM;                        /* Copy trap mode */
+uint8_t               FTM;                        /* Floating trap mode */
+uint8_t               nmode;                      /* Storage null mode */
+uint8_t               smode;                      /* Signifigance mode */
+uint8_t               itrap;                      /* Can take io traps */
+uint8_t               dcheck;                     /* Divide check */
+uint8_t               acoflag;                    /* AC Overflow */
+uint8_t               mqoflag;                    /* MQ Overflow */
+uint8_t               ihold = 0;                  /* Hold interrupts */
+uint8_t               interval_irq = 0;           /* Interval timer IRQ */
+uint16_t              iotraps;                    /* IO trap flags */
 t_uint64            ioflags = 0;                /* Trap enable flags */
-uint8               iocheck;
-uint8               prot_pend;                  /* Protection mode pending */
-uint8               relo_mode;                  /* Relocation mode */
-uint8               relo_pend;                  /* Relocation mode pending */
-uint8               hltinst;                    /* Executed halt instruction */
-uint8               iowait;                     /* Waiting on io */
-uint16              relocaddr = 0;              /* Relocation. */
-uint16              baseaddr = 0;               /* Base Address. */
-uint16              limitaddr = 077777;         /* High limit */
-uint16              memmask = 077777;           /* Mask for memory access */
-uint8               bcore;                      /* Access to B core memory */
+uint8_t               iocheck;
+uint8_t               prot_pend;                  /* Protection mode pending */
+uint8_t               relo_mode;                  /* Relocation mode */
+uint8_t               relo_pend;                  /* Relocation mode pending */
+uint8_t               hltinst;                    /* Executed halt instruction */
+uint8_t               iowait;                     /* Waiting on io */
+uint16_t              relocaddr = 0;              /* Relocation. */
+uint16_t              baseaddr = 0;               /* Base Address. */
+uint16_t              limitaddr = 077777;         /* High limit */
+uint16_t              memmask = 077777;           /* Mask for memory access */
+uint8_t               bcore;                      /* Access to B core memory */
                                                 /* 00 - Execute A Core, Eff A */
                                                 /* 01 - Execute A core, Eff B */
                                                 /* 10 - Execute B core, Eff A */
                                                 /* 11 - Execute B core, Eff B */
                                                 /* 1xx - Protection mode */
                                                 /* 1xxx - Relocation mode */
-uint8               dualcore;                   /* Set to true if dual core in
+uint8_t               dualcore;                   /* Set to true if dual core in
                                                          use */
 
-uint16              dev_pulse[NUM_CHAN];        /* SPRA device pulses */
+uint16_t              dev_pulse[NUM_CHAN];        /* SPRA device pulses */
 int                 cycle_time = 12;            /* Cycle time in 100ns */
-uint8               exe_KEYS = 0;               /* Execute one instruction
+uint8_t               exe_KEYS = 0;               /* Execute one instruction
                                                    from KEYS, used by CPANEL */
 
 /* History information */
 int32               hst_p = 0;                  /* History pointer */
 int32               hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
-extern uint32       drum_addr;
+extern uint32_t       drum_addr;
 
 #define DP_FLOAT        1
 #define CHANNEL         2
@@ -425,7 +425,7 @@ DEVICE              cpu_dev = {
 */
 
 /* Positive opcodes */
-uint16  pos_opcode_flags[01000] = {
+uint16_t  pos_opcode_flags[01000] = {
         /* 0    1       2       3       4       5       6       7 */
         /*HTR*/
 /* 0000 */ T_T, N,      N,      N,      N,      N,      N,      N,
@@ -534,7 +534,7 @@ uint16  pos_opcode_flags[01000] = {
 };
 
 /* Negative opcodes */
-uint16  neg_opcode_flags[01000] = {
+uint16_t  neg_opcode_flags[01000] = {
 /* 4000 */ N,   N,      N,      N,      N,      N,      N,      N,
 /* 4010 */ N,   N,      N,      N,      N,      N,      N,      N,
         /*      ESNT    TRCB            TRCD            TRCF    TRCH */
@@ -649,11 +649,11 @@ uint16  neg_opcode_flags[01000] = {
 #define update_xr(t, v) \
          if ((t)) { \
              if (MTM) { \
-                 if ((t)&04) XR[4] = (uint16)(v); \
-                 if ((t)&02) XR[2] = (uint16)(v); \
-                 if ((t)&01) XR[1] = (uint16)(v); \
+                 if ((t)&04) XR[4] = (uint16_t)(v); \
+                 if ((t)&02) XR[2] = (uint16_t)(v); \
+                 if ((t)&01) XR[1] = (uint16_t)(v); \
              } else { \
-                 XR[(t)] = (uint16)(v); \
+                 XR[(t)] = (uint16_t)(v); \
              } \
          }
 
@@ -717,14 +717,14 @@ sim_instr(void)
 #ifdef I7090
     t_uint64            ibr;
 #endif
-    uint16              opcode;
-    uint8               tag;
-    uint16              decr;
-    uint16              xr;
-    uint16              opinfo;
+    uint16_t              opcode;
+    uint8_t               tag;
+    uint16_t              decr;
+    uint16_t              xr;
+    uint16_t              opinfo;
     int                 fptemp = 0, fptemp2;
-    uint8               f;
-    uint16              tbase;
+    uint8_t               f;
+    uint16_t              tbase;
     int                 xeccnt = 15;
     int                 shiftcnt;
     int                 stopnext = 0;
@@ -1002,14 +1002,14 @@ sim_instr(void)
 
 
       next_xec:
-        opcode = (uint16)(SR >> 24);
+        opcode = (uint16_t)(SR >> 24);
         IR = opcode;
         if (hst_lnt) {  /* history enabled? */
             hst[hst_p].op = SR;
         }
-        MA = (uint16)(SR & AMASK);
-        tag = (uint8)(SR >> 15) & 07;
-        decr = (uint16)((SR >> 18) & AMASK);
+        MA = (uint16_t)(SR & AMASK);
+        tag = (uint8_t)(SR >> 15) & 07;
+        decr = (uint16_t)((SR >> 18) & AMASK);
                                         /* Set flags to D to start with */
         xr = get_xr(tag);
         iowait = 0;                     /* Kill iowait */
@@ -1155,9 +1155,9 @@ prottrap:
             if ((CPU_MODEL != CPU_704) && ((decr & 060) == 060) &&
                 (opinfo & (T_B | T_T | S_B))) {
                 ReadMem(1, SR);
-                tag = (uint8)((SR >> 15) & 07);
+                tag = (uint8_t)((SR >> 15) & 07);
                 xr = get_xr(tag);
-                MA = (uint16)(memmask & (SR - xr));
+                MA = (uint16_t)(memmask & (SR - xr));
             }
             MA &= memmask;
             if (opinfo & (T_B | T_F | S_F)) {
@@ -1493,7 +1493,7 @@ prottrap:
                      fptemp = IC;
                 break;
             case OP_XEC:
-                opcode = (uint16)(SR >> 24);
+                opcode = (uint16_t)(SR >> 24);
                 if (opcode != OP_XEC) {
                     xeccnt = 15;
                     goto next_xec;
@@ -3063,16 +3063,16 @@ prottrap:
                 } else
                     f = 0;
                 while (shiftcnt != 0) {
-                    MA += (uint16)(AC & 077);
+                    MA += (uint16_t)(AC & 077);
                     ReadMem(0, SR);
-                    MA = (uint16)(AMASK & SR);
+                    MA = (uint16_t)(AMASK & SR);
                     AC >>= 6;
                     AC |= SR & (077LL << 30);
                     shiftcnt--;
                 }
                 /* Save XR if tag set */
                 if (tag & 1)
-                    XR[1] = (uint16)(MA & AMASK);
+                    XR[1] = (uint16_t)(MA & AMASK);
                 /* restore sign */
                 if (f)
                     AC |= AMSIGN;
@@ -3084,9 +3084,9 @@ prottrap:
             case OP_CAQ:
                 shiftcnt = (int)(SR >> 18L) & 0377;
                 while (shiftcnt != 0) {
-                    MA += (uint16)(MQ >> 30) & 077;
+                    MA += (uint16_t)(MQ >> 30) & 077;
                     ReadMem(0, SR);
-                    MA = (uint16)(AMASK & SR);
+                    MA = (uint16_t)(AMASK & SR);
                     MQ <<= 6;
                     MQ |= (MQ >> 36) & 077;
                     MQ &= WMASK;
@@ -3095,7 +3095,7 @@ prottrap:
                     shiftcnt--;
                 }
                 if (tag & 1)
-                    XR[1] = (uint16)(MA & AMASK);
+                    XR[1] = (uint16_t)(MA & AMASK);
                 break;
 
             case OP_CRQ + 3:
@@ -3104,16 +3104,16 @@ prottrap:
             case OP_CRQ:
                 shiftcnt = (int)(SR >> 18L) & 0377;
                 while (shiftcnt != 0) {
-                    MA += (uint16)(MQ >> 30) & 077;
+                    MA += (uint16_t)(MQ >> 30) & 077;
                     ReadMem(0, SR);
-                    MA = (uint16)(AMASK & SR);
+                    MA = (uint16_t)(AMASK & SR);
                     MQ <<= 6;
                     MQ &= (WMASK ^ 077);
                     MQ |= (SR >> 30) & 077;
                     shiftcnt--;
                 }
                 if (tag & 1)
-                    XR[1] = (uint16)(MA & AMASK);
+                    XR[1] = (uint16_t)(MA & AMASK);
                 break;
 #endif
 
@@ -3264,7 +3264,7 @@ prottrap:
             case OP_LDA:
                 if (chan_select(0)) {
                     extern DEVICE drm_dev;
-                    drum_addr = (uint32)(SR);
+                    drum_addr = (uint32_t)(SR);
                     sim_debug(DEBUG_DETAIL, &drm_dev,
                                  "set address %06o\n", drum_addr);
                     chan_clear(0, DEV_FULL);    /* In case we read something
@@ -3289,7 +3289,7 @@ prottrap:
                 /* Instruct is NOP first time */
                 /* Incomplete last word leaves result in MQ */
                 if (chan_select(0)) {
-                    extern uint8 bcnt[NUM_CHAN];
+                    extern uint8_t bcnt[NUM_CHAN];
                     chan_set(0, STA_ACTIVE);
                     switch (chan_flags[0] & (DEV_WRITE | DEV_FULL)) {
                     case DEV_WRITE | DEV_FULL:
@@ -3405,7 +3405,7 @@ prottrap:
                     ihold = 1;  /* Hold interupts for one cycle */
                     break;
                 case SCPE_OK:
-                    {   uint16 temp16;
+                    {   uint16_t temp16;
                         temp16 = (MA >> 9) & 017;
                         if (temp16 == 0) {
                             if (opcode==IO_RDS)
@@ -4057,15 +4057,15 @@ prottrap:
                 break;
             case OP_LRI:
                 /* In B core trap, else load relocation */
-                relocaddr = (uint16)(SR & 077400);
+                relocaddr = (uint16_t)(SR & 077400);
                 relo_pend = (SR & MSIGN) ? 0: 1;
                 ihold = 1;
                 sim_debug(DEBUG_PROT, &cpu_dev, "LRI %07o %012llo\n", IC, SR);
                 break;
             case OP_LPI:
                 /* In B core trap, else load protection */
-                baseaddr = (uint16)(SR & 077400);
-                limitaddr = (uint16)((SR >> 18) & 077400);
+                baseaddr = (uint16_t)(SR & 077400);
+                limitaddr = (uint16_t)((SR >> 18) & 077400);
                 ihold = 1;
                 prot_pend = (SR & MSIGN)?0:1;
                 sim_debug(DEBUG_PROT, &cpu_dev, "LPI %07o %012llo\n", IC, SR);
@@ -4166,7 +4166,7 @@ prottrap:
 }
 
 /* Nothing special to do, just return true if cmd is write and we got here */
-uint32 cpu_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cpu_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     if (cmd == OP_WRS)
         return 1;
@@ -4249,7 +4249,7 @@ t_stat
 cpu_set_size(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 {
     t_uint64            mc = 0;
-    uint32              i;
+    uint32_t              i;
     int32               v;
 
     v = val >> UNIT_V_MSIZE;

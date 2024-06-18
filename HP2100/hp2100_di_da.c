@@ -463,9 +463,9 @@ static const char * const if_command_name [] = {
 
 /* Amigo disc state variables */
 
-static uint16 buffer [DL_BUFSIZE];              /* command/status/sector buffer */
+static uint16_t buffer [DL_BUFSIZE];              /* command/status/sector buffer */
 
-static uint8      if_dsj     [DA_UNITS];        /* ICD controller DSJ values */
+static uint8_t      if_dsj     [DA_UNITS];        /* ICD controller DSJ values */
 static IF_STATE   if_state   [DA_UNITS];        /* ICD controller state */
 static IF_COMMAND if_command [DA_UNITS];        /* ICD controller command */
 
@@ -491,13 +491,13 @@ static t_stat da_load_unload (UNIT *uptr, int32 value, CONST char *cptr, void *d
 
 /* Amigo disc local utility routines */
 
-static t_bool start_command     (uint32 unit);
-static void   abort_command     (uint32 unit, CNTLR_STATUS status, IF_STATE state);
-static void   complete_read     (uint32 unit);
-static void   complete_write    (uint32 unit);
-static void   complete_abort    (uint32 unit);
-static uint8  get_buffer_byte   (CVPTR  cvptr);
-static void   put_buffer_byte   (CVPTR  cvptr, uint8 data);
+static t_bool start_command     (uint32_t unit);
+static void   abort_command     (uint32_t unit, CNTLR_STATUS status, IF_STATE state);
+static void   complete_read     (uint32_t unit);
+static void   complete_write    (uint32_t unit);
+static void   complete_abort    (uint32_t unit);
+static uint8_t  get_buffer_byte   (CVPTR  cvptr);
+static void   put_buffer_byte   (CVPTR  cvptr, uint8_t data);
 static t_stat activate_unit     (UNIT   *uptr);
 
 
@@ -761,7 +761,7 @@ DEVICE da_dev = {
 
 static t_stat da_service (UNIT *uptr)
 {
-uint8 data;
+uint8_t data;
 CNTLR_CLASS command_class;
 const int32 unit = uptr - da_unit;                          /* get the disc unit number */
 const CVPTR cvptr = &icd_cntlr [unit];                      /* get a pointer to the controller */
@@ -1034,7 +1034,7 @@ return result;                                              /* return the result
 
 static t_stat da_reset (DEVICE *dptr)
 {
-uint32 unit;
+uint32_t unit;
 t_stat status;
 
 status = di_reset (dptr);                               /* reset the card */
@@ -1114,7 +1114,7 @@ static t_stat da_attach (UNIT *uptr, CONST char *cptr)
 {
 t_stat      result;
 t_addr      offset;
-const uint8 zero = 0;
+const uint8_t zero = 0;
 const int32 unit = uptr - da_unit;                      /* calculate the unit number */
 
 result = dl_attach (&icd_cntlr [unit], uptr, cptr);     /* attach the drive */
@@ -1297,7 +1297,7 @@ static t_stat da_boot (int32 unitno, DEVICE *dptr)
 {
 static const HP_WORD da_preserved   = 0000073u;             /* S-register bits 5-3 and 1-0 are preserved */
 static const HP_WORD da_manual_boot = 0010000u;             /* S-register bit 12 set for a manual boot */
-uint32 status;
+uint32_t status;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     status = cpu_copy_loader (da_loaders, unitno,           /*   then copy the boot loader to memory */
@@ -1522,16 +1522,16 @@ return result;
        commands, as only listeners are called by the bus source.
 */
 
-t_bool da_bus_accept (uint32 unit, uint8 data)
+t_bool da_bus_accept (uint32_t unit, uint8_t data)
 {
-const uint8 message_address = data & BUS_ADDRESS;
+const uint8_t message_address = data & BUS_ADDRESS;
 t_bool accepted = TRUE;
 t_bool initiated = FALSE;
 t_bool addressed = FALSE;
 t_bool stopped_listening = FALSE;
 t_bool stopped_talking = FALSE;
 char action [40] = "";
-uint32 my_address;
+uint32_t my_address;
 
 if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus command (ATN asserted)? */
     switch (data & BUS_GROUP) {                             /* dispatch the bus group */
@@ -1908,7 +1908,7 @@ return accepted;                                        /* indicate the acceptan
        reschedule the service routine to send the next byte.
 */
 
-void da_bus_respond (CARD_ID card, uint32 unit, uint8 new_cntl)
+void da_bus_respond (CARD_ID card, uint32_t unit, uint8_t new_cntl)
 {
 if (new_cntl & BUS_IFC) {                               /* is interface clear asserted? */
     di [da].listeners = 0;                              /* perform an Unlisten */
@@ -1978,7 +1978,7 @@ if (!(new_cntl & (BUS_ATN | BUS_NRFD))                  /* is the card in data m
        is not used other than as an indication of success or failure.
 */
 
-static t_bool start_command (uint32 unit)
+static t_bool start_command (uint32_t unit)
 {
 if (if_command [unit] == disc_command) {                        /* are we starting a disc command? */
     if (dl_start_command (&icd_cntlr [unit], da_unit, unit)) {  /* start the command; was it successful? */
@@ -2016,7 +2016,7 @@ else {                                                          /* all other com
    state, and the DSJ value is set to 1 to indicate an error.
 */
 
-static void abort_command (uint32 unit, CNTLR_STATUS status, IF_STATE state)
+static void abort_command (uint32_t unit, CNTLR_STATUS status, IF_STATE state)
 {
 if_command [unit] = invalid;                            /* indicate an invalid command */
 if_state [unit] = state;                                /* set the interface state as directed */
@@ -2062,7 +2062,7 @@ return;
        needed, so it is cancelled before rescheduling the service routine.
 */
 
-static void complete_read (uint32 unit)
+static void complete_read (uint32_t unit)
 {
 if ((if_state [unit] == command_exec                        /* is a command executing */
   || if_state [unit] == read_xfer)                          /*   or is data transferring */
@@ -2113,7 +2113,7 @@ return;
        controller would not be busy otherwise.
 */
 
-static void complete_write (uint32 unit)
+static void complete_write (uint32_t unit)
 {
 if ((if_state [unit] == command_exec                    /* is a command executing */
   || if_state [unit] == write_xfer)                     /*   or is data transferring */
@@ -2148,7 +2148,7 @@ return;
        is being unaddressed after normal command completion.
 */
 
-static void complete_abort (uint32 unit)
+static void complete_abort (uint32_t unit)
 {
 if (if_state [unit] != idle) {                          /* is the interface busy? */
     icd_cntlr [unit].eod = SET;                         /* set the end of data flag */
@@ -2170,7 +2170,7 @@ return;
    The buffer index is incremented only after the lower byte is returned.
 */
 
-static uint8 get_buffer_byte (CVPTR cvptr)
+static uint8_t get_buffer_byte (CVPTR cvptr)
 {
 cvptr->length = cvptr->length - 1;                      /* count the byte */
 
@@ -2192,7 +2192,7 @@ else                                                    /* the lower byte is nex
    incremented only after the lower byte is stored.
 */
 
-static void put_buffer_byte (CVPTR cvptr, uint8 data)
+static void put_buffer_byte (CVPTR cvptr, uint8_t data)
 {
 cvptr->length = cvptr->length - 1;                      /* count the byte */
 

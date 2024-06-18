@@ -49,7 +49,7 @@
    cdr_mod      Card Reader modifiers list
 */
 
-uint32              cdr_cmd(UNIT *, uint16, uint16);
+uint32_t              cdr_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              cdr_boot(int32, DEVICE *);
 t_stat              cdr_srv(UNIT *);
 t_stat              cdr_reset(DEVICE *);
@@ -99,7 +99,7 @@ DEVICE              cdr_dev = {
 /*
  * Device entry points for card reader.
  */
-uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdr_unit);
@@ -155,7 +155,7 @@ uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 
     /* If at eof, just return EOF */
     if (sim_card_eof(uptr)) {
-        uint16             *image = (uint16 *)(uptr->up7);
+        uint16_t             *image = (uint16_t *)(uptr->up7);
         sim_debug(DEBUG_DETAIL, &cdr_dev, "%d: EOF\n", u);
         chan_set_eof(chan);
         chan_set_attn(chan);
@@ -180,7 +180,7 @@ t_stat
 cdr_srv(UNIT *uptr) {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdr_unit);
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t             *image = (uint16_t *)(uptr->up7);
 
     /* Waiting for disconnect */
     if (uptr->u5 & URCSTA_WDISCO) {
@@ -254,7 +254,7 @@ cdr_srv(UNIT *uptr) {
 
     /* Copy next column over */
     if (uptr->u5 & URCSTA_READ && uptr->u4 < 80) {
-        uint8                ch = 0;
+        uint8_t                ch = 0;
 
 #ifdef I7080
         /* Detect RSU */
@@ -335,7 +335,7 @@ cdr_attach(UNIT * uptr, CONST char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = malloc(sizeof(uint16)*80);
+        uptr->up7 = malloc(sizeof(uint16_t)*80);
         uptr->u5 &= URCSTA_BUSY|URCSTA_WDISCO;
         uptr->u4 = 0;
         uptr->u6 = 0;

@@ -45,7 +45,7 @@ static t_stat ptp_detach (UNIT *uptr);
 
 static int16 ptr_dsw   = 0;                             /* device status word */
 static int32 ptr_wait  = 1000;                          /* character read wait */
-static uint8 ptr_char  = 0;                             /* last character read */
+static uint8_t ptr_char  = 0;                             /* last character read */
 static int32 ptp_wait  = 1000;                          /* character punch wait */
 
 UNIT ptr_unit[1] = {
@@ -87,7 +87,7 @@ void xio_1134_papertape (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
 
     switch (iocc_func) {
         case XIO_READ:                                          /* read: return last character read */
-            M[iocc_addr & mem_mask] = (uint16) (ptr_char << 8);
+            M[iocc_addr & mem_mask] = (uint16_t) (ptr_char << 8);
             break;
 
         case XIO_WRITE:                                         /* write: initiate punch operation */
@@ -257,7 +257,7 @@ static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
         val = (val << 4) | (ch & 0x0F);         /* get next nybble */
 
         if (++nch == 4) {                       /* if we now have four nybbles, store the word */
-            M[addr & mem_mask] = (uint16) val;
+            M[addr & mem_mask] = (uint16_t) val;
 
             addr++;                             /* prepare for next word */
             nch = 0;

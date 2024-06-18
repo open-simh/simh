@@ -114,7 +114,7 @@
 #define GAP_LEN        ((uptr->flags & MTUF_LDN) ?LT_GAP_LEN:HT_GAP_LEN)
 
 /* Definitions */
-uint32              mt_cmd(UNIT *, uint16, uint16);
+uint32_t              mt_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              mt_srv(UNIT *);
 t_stat              mt_boot(int32, DEVICE *);
 void                mt_ini(UNIT *, t_bool);
@@ -130,7 +130,7 @@ t_stat              mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
 const char          *mt_description (DEVICE *dptr);
 extern t_stat       chan_boot(int32, DEVICE *);
 #ifdef I7010
-extern uint8        chan_io_status[NUM_CHAN];   /* Channel status */
+extern uint8_t        chan_io_status[NUM_CHAN];   /* Channel status */
 #endif
 
 #ifdef MT_CHANNEL_ZERO
@@ -140,10 +140,10 @@ extern uint8        chan_io_status[NUM_CHAN];   /* Channel status */
 #endif
 
 /* Channel level activity */
-uint8               mt_chan[NUM_CHAN];
+uint8_t               mt_chan[NUM_CHAN];
 
 /* One buffer per channel */
-uint8               mt_buffer[NUM_DEVS][BUFFSIZE];
+uint8_t               mt_buffer[NUM_DEVS][BUFFSIZE];
 
 UNIT                mta_unit[] = {
 /* Controller 1 */
@@ -341,7 +341,7 @@ DEVICE              mtf_dev = {
 #endif
 
 
-uint8               parity_table[64] = {
+uint8_t               parity_table[64] = {
     /* 0    1    2    3    4    5    6    7 */
     0000, 0100, 0100, 0000, 0100, 0000, 0000, 0100,
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000,
@@ -367,7 +367,7 @@ mt_rew(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 }
 
 /* Start off a mag tape command */
-uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t mt_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     DEVICE             *dptr = find_dev_from_unit(uptr);
@@ -638,7 +638,7 @@ mt_read_buff(UNIT * uptr, int cmd, DEVICE * dptr, t_uint64 *word)
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 bufnum = GET_DEV_BUF(dptr->flags);
     int                 i;
-    uint8               ch;
+    uint8_t               ch;
     int                 mode = 0;
     int                 mark = 1;
     int                 parity = 0;
@@ -732,10 +732,10 @@ t_stat mt_srv(UNIT * uptr)
     int                 bufnum = GET_DEV_BUF(dptr->flags);
     t_mtrlnt            reclen;
     t_stat              r = SCPE_ARG;   /* Force error if not set */
-    uint8               ch;
+    uint8_t               ch;
     int                 mode = 0;
 #ifdef I7010
-    extern uint8        astmode;
+    extern uint8_t        astmode;
 #endif
 
     /* Call channel proccess to make sure data is ready */
@@ -1310,7 +1310,7 @@ t_stat
 mt_boot(int32 unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint16              dev = unit_num + 020 + mt_dib.addr;
+    uint16_t              dev = unit_num + 020 + mt_dib.addr;
 #if I7090 | I704 | I701
     t_mtrlnt            reclen;
     t_stat              r;

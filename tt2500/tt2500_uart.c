@@ -36,7 +36,7 @@
 #define UART_TYPE     (3 << TTUF_V_UF)  /* File or port. */
 #define UART_REVERSE  (4 << TTUF_V_UF)  /* Transmit bits in reverse order. */
 
-static uint16 RBUF, TBUF;
+static uint16_t RBUF, TBUF;
 
 /* Function declaration. */
 static t_stat uart_r_svc (UNIT *uptr);
@@ -44,8 +44,8 @@ static t_stat uart_t_svc (UNIT *uptr);
 static t_stat uart_reset (DEVICE *dptr);
 static t_stat uart_attach (UNIT *uptr, CONST char *cptr);
 static t_stat uart_detach (UNIT *uptr);
-static uint16 uart_read (uint16);
-static void uart_write (uint16, uint16);
+static uint16_t uart_read (uint16_t);
+static void uart_write (uint16_t, uint16_t);
 
 static TMLN uart_ldsc = { 0 };
 static TMXR uart_desc = { 1, 0, 0, &uart_ldsc };
@@ -203,7 +203,7 @@ uart_detach (UNIT *uptr)
   return detach_unit (uptr);
 }
 
-static uint16 uart_read (uint16 reg)
+static uint16_t uart_read (uint16_t reg)
 {
   sim_debug (DBG_RX, &uart_dev, "Read character %03o\n", RBUF);
   flag_off (INT_RRD);
@@ -211,9 +211,9 @@ static uint16 uart_read (uint16 reg)
   return RBUF;
 }
 
-static uint16 reverse (uint16 data)
+static uint16_t reverse (uint16_t data)
 {
-  uint16 i, x = 0;
+  uint16_t i, x = 0;
   for (i = 1; i <= 0200; i <<= 1) {
     x <<= 1;
     if (data & i)
@@ -222,7 +222,7 @@ static uint16 reverse (uint16 data)
   return x;
 }
 
-static void uart_write (uint16 reg, uint16 data)
+static void uart_write (uint16_t reg, uint16_t data)
 {
   data &= 0377;
   if (uart_unit[0].flags & UART_REVERSE)

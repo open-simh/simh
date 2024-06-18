@@ -76,22 +76,22 @@
 #define OTA_CW2         2                               /* expecting CW2 */
 
 extern int32 dev_int, dev_enb;
-extern uint32 chan_req;
+extern uint32_t chan_req;
 extern int32 stop_inst;
-extern uint32 dma_ad[DMA_MAX];
+extern uint32_t dma_ad[DMA_MAX];
 
-uint32 fhd_cw1 = 0;                                     /* cmd word 1 */
-uint32 fhd_cw2 = 0;                                     /* cmd word 2 */
-uint32 fhd_buf = 0;                                     /* buffer */
-uint32 fhd_otas = 0;                                    /* state */
-uint32 fhd_busy = 0;                                    /* busy */
-uint32 fhd_rdy = 0;                                     /* word ready */
-uint32 fhd_dte = 0;                                     /* data err */
-uint32 fhd_ace = 0;                                     /* access error */
-uint32 fhd_dma = 0;                                     /* DMA/DMC */
-uint32 fhd_eor = 0;                                     /* end of range */
-uint32 fhd_csum = 0;                                    /* parity checksum */
-uint32 fhd_stopioe = 1;                                 /* stop on error */
+uint32_t fhd_cw1 = 0;                                     /* cmd word 1 */
+uint32_t fhd_cw2 = 0;                                     /* cmd word 2 */
+uint32_t fhd_buf = 0;                                     /* buffer */
+uint32_t fhd_otas = 0;                                    /* state */
+uint32_t fhd_busy = 0;                                    /* busy */
+uint32_t fhd_rdy = 0;                                     /* word ready */
+uint32_t fhd_dte = 0;                                     /* data err */
+uint32_t fhd_ace = 0;                                     /* access error */
+uint32_t fhd_dma = 0;                                     /* DMA/DMC */
+uint32_t fhd_eor = 0;                                     /* end of range */
+uint32_t fhd_csum = 0;                                    /* parity checksum */
+uint32_t fhd_stopioe = 1;                                 /* stop on error */
 int32 fhd_time = 10;                                    /* time per word */
 
 int32 fhdio (int32 inst, int32 fnc, int32 dat, int32 dev);
@@ -99,13 +99,13 @@ t_stat fhd_svc (UNIT *uptr);
 t_stat fhd_reset (DEVICE *dptr);
 t_stat fhd_attach (UNIT *uptr, CONST char *cptr);
 t_stat fhd_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-void fhd_go (uint32 dma);
-void fhd_go1 (uint32 dat);
-void fhd_go2 (uint32 dat);
-t_bool fhd_getc (UNIT *uptr, uint32 *ch);
-t_bool fhd_putc (UNIT *uptr, uint32 ch);
-t_bool fhd_bad_wa (uint32 wa);
-uint32 fhd_csword (uint32 cs, uint32 ch);
+void fhd_go (uint32_t dma);
+void fhd_go1 (uint32_t dat);
+void fhd_go2 (uint32_t dat);
+t_bool fhd_getc (UNIT *uptr, uint32_t *ch);
+t_bool fhd_putc (UNIT *uptr, uint32_t ch);
+t_bool fhd_bad_wa (uint32_t wa);
+uint32_t fhd_csword (uint32_t cs, uint32_t ch);
 
 /* FHD data structures
 
@@ -239,7 +239,7 @@ return dat;
 
 /* Start new operation */
 
-void fhd_go (uint32 dma)
+void fhd_go (uint32_t dma)
 {
 int32 ch = fhd_dib.chan - 1;                            /* DMA/DMC chan */
 
@@ -264,7 +264,7 @@ return;
 
 /* Process command word 1 */
 
-void fhd_go1 (uint32 dat)
+void fhd_go1 (uint32_t dat)
 {
 int32 ch = fhd_dib.chan - 1;                            /* DMA/DMC chan */
 
@@ -278,10 +278,10 @@ return;
 
 /* Process command word 2 - initiate seek */
 
-void fhd_go2 (uint32 dat)
+void fhd_go2 (uint32_t dat)
 {
 int32 ch = fhd_dib.chan - 1;                            /* DMA/DMC chan */
-uint32 sf = CW1_GETSF (fhd_cw1);                        /* surface */
+uint32_t sf = CW1_GETSF (fhd_cw1);                        /* surface */
 int32 t, wa;
 
 fhd_cw2 = dat;                                          /* store CW2 */
@@ -317,7 +317,7 @@ return;
 t_stat fhd_svc (UNIT *uptr)
 {
 int32 ch = fhd_dib.chan - 1;                            /* DMA/DMC chan (-1 if IO bus) */
-uint32 c1, c2;
+uint32_t c1, c2;
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* unattached? */
     fhd_ace = 1;                                        /* access error */
@@ -368,15 +368,15 @@ return SCPE_OK;
 
 /* Read character from disk */
 
-t_bool fhd_getc (UNIT *uptr, uint32 *ch)
+t_bool fhd_getc (UNIT *uptr, uint32_t *ch)
 {
-uint32 sf = CW1_GETSF (fhd_cw1);                        /* surface */
-uint32 tk = CW1_GETTK (fhd_cw1);                        /* track */
-uint32 ca = CW2_GETCA (fhd_cw2);                        /* char addr */
-uint32 wa = ca >> 1;                                    /* word addr */
-uint32 ba = (((sf * FH_NUMTK) + tk) * FH_NUMWD) + wa;   /* buffer offset */
-uint16 *fbuf = (uint16 *) uptr->filebuf;                /* buffer base */
-uint32 wd;
+uint32_t sf = CW1_GETSF (fhd_cw1);                        /* surface */
+uint32_t tk = CW1_GETTK (fhd_cw1);                        /* track */
+uint32_t ca = CW2_GETCA (fhd_cw2);                        /* char addr */
+uint32_t wa = ca >> 1;                                    /* word addr */
+uint32_t ba = (((sf * FH_NUMTK) + tk) * FH_NUMWD) + wa;   /* buffer offset */
+uint16_t *fbuf = (uint16_t *) uptr->filebuf;                /* buffer base */
+uint32_t wd;
 
 if (fhd_bad_wa (wa))                                    /* addr bad? */
     return TRUE;
@@ -391,14 +391,14 @@ return FALSE;
 
 /* Write character to disk */
 
-t_bool fhd_putc (UNIT *uptr, uint32 ch)
+t_bool fhd_putc (UNIT *uptr, uint32_t ch)
 {
-uint32 sf = CW1_GETSF (fhd_cw1);                        /* surface */
-uint32 tk = CW1_GETTK (fhd_cw1);                        /* track */
-uint32 ca = CW2_GETCA (fhd_cw2);                        /* char addr */
-uint32 wa = ca >> 1;                                    /* word addr */
-uint32 ba = (((sf * FH_NUMTK) + tk) * FH_NUMWD) + wa;   /* buffer offset */
-uint16 *fbuf = (uint16 *)uptr->filebuf;                 /* buffer base */
+uint32_t sf = CW1_GETSF (fhd_cw1);                        /* surface */
+uint32_t tk = CW1_GETTK (fhd_cw1);                        /* track */
+uint32_t ca = CW2_GETCA (fhd_cw2);                        /* char addr */
+uint32_t wa = ca >> 1;                                    /* word addr */
+uint32_t ba = (((sf * FH_NUMTK) + tk) * FH_NUMWD) + wa;   /* buffer offset */
+uint16_t *fbuf = (uint16_t *)uptr->filebuf;                 /* buffer base */
 
 ch = ch & 0377;                                         /* mask char */
 if (fhd_bad_wa (wa))                                    /* addr bad? */
@@ -415,7 +415,7 @@ return FALSE;
 
 /* Check word address */
 
-t_bool fhd_bad_wa (uint32 wa)
+t_bool fhd_bad_wa (uint32_t wa)
 {
 if (wa >= FH_NUMWD) {                                   /* bad address? */
     fhd_ace = 1;                                        /* access error */
@@ -428,7 +428,7 @@ return FALSE;
 
 /* Add character to checksum (parity) */
 
-uint32 fhd_csword (uint32 cs, uint32 ch)
+uint32_t fhd_csword (uint32_t cs, uint32_t ch)
 {
 while (ch) {                                            /* count bits */
     ch = ch & ~(ch & (-(int32) ch));
@@ -458,8 +458,8 @@ return SCPE_OK;
 
 t_stat fhd_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 sz, sf;
-uint32 ds_bytes = FH_WDPSF * sizeof (int16);
+uint32_t sz, sf;
+uint32_t ds_bytes = FH_WDPSF * sizeof (int16);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     sf = (sz + ds_bytes - 1) / ds_bytes;

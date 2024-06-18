@@ -51,7 +51,7 @@
 #define JOY_MAX_AXES      4
 #define JOY_NO_CHAN       (IMX_CHANNEL + 1)
 
-t_stat      imx_devio(uint32 dev, uint64 *data);
+t_stat      imx_devio(uint32_t dev, uint64 *data);
 t_stat      imx_svc (UNIT *uptr);
 t_stat      imx_reset (DEVICE *dptr);
 const char *imx_description (DEVICE *dptr);
@@ -168,7 +168,7 @@ t_stat imx_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-t_stat imx_devio(uint32 dev, uint64 *data)
+t_stat imx_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONO|4:

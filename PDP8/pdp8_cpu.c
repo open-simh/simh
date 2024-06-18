@@ -218,7 +218,7 @@ typedef struct {
     int16               mq;
     } InstHistory;
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* main memory */
+uint16_t M[MAXMEMSIZE] = { 0 };                           /* main memory */
 int32 saved_LAC = 0;                                    /* saved L'AC */
 int32 saved_MQ = 0;                                     /* saved MQ */
 int32 saved_PC = 0;                                     /* saved IF'PC */
@@ -325,7 +325,7 @@ DEVICE cpu_dev = {
 t_stat sim_instr (void)
 {
 int32 IR, MB, IF, DF, LAC, MQ;
-uint32 PC, MA;
+uint32_t PC, MA;
 int32 device, pulse, temp, iot_data;
 t_stat reason;
 
@@ -1442,7 +1442,7 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1462,7 +1462,7 @@ t_stat set_dev (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newdev;
+uint32_t newdev;
 t_stat r;
 
 if (cptr == NULL)
@@ -1516,14 +1516,14 @@ t_bool build_dev_tab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j;
-static const uint8 std_dev[] = {
+uint32_t i, j;
+static const uint8_t std_dev[] = {
     000, 010, 020, 021, 022, 023, 024, 025, 026, 027
     };
 
 for (i = 0; i < DEV_MAX; i++)                           /* clr table */
     dev_tab[i] = NULL;
-for (i = 0; i < ((uint32) sizeof (std_dev)); i++)       /* std entries */
+for (i = 0; i < ((uint32_t) sizeof (std_dev)); i++)       /* std entries */
     dev_tab[std_dev[i]] = &bad_dev;
 for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* add devices */
     dibp = (DIB *) dptr->ctxt;                          /* get DIB */

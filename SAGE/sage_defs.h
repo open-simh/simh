@@ -63,7 +63,7 @@ extern t_stat       sage_raiseint(int level); /* sage specific interrupt handler
 
 /* 8255 for dip switches and floppy control */
 #define U22_ADDR    0xffc021
-extern uint32       *u22_portc; /* exposed for use by FD device */
+extern uint32_t       *u22_portc; /* exposed for use by FD device */
 #define U22C_FRES   0x80
 #define U22C_PCRMP  0x40
 #define U22C_MOT    0x20

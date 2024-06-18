@@ -41,7 +41,7 @@
 #define SET_EOR         2                               /* print, set eor */
 #define SET_SPC         4                               /* space */
 
-extern uint32 xfr_req;
+extern uint32_t xfr_req;
 extern int32 stop_invins, stop_invdev, stop_inviop;
 int32 lpt_spc = 0;                                      /* space instr */
 int32 lpt_sta = 0;                                      /* timeout state */
@@ -53,7 +53,7 @@ int32 lpt_ptime = 1000;                                 /* print time */
 int32 lpt_stime = 10000;                                /* space time */
 int32 lpt_stopioe = 1;                                  /* stop on err */
 char lpt_buf[LPT_WIDTH + 1] = { 0 };                    /* line buffer */
-uint8 lpt_cct[CCT_LNT] = { 0377 };                      /* car ctl tape */
+uint8_t lpt_cct[CCT_LNT] = { 0377 };                      /* car ctl tape */
 DSPT lpt_tplt[] = {                                     /* template */
     { 1, 0 },
     { 0, 0 }
@@ -67,7 +67,7 @@ int32 lpt_space (UNIT *uptr, int32 cnt);
 t_stat lpt_status (UNIT *uptr, int32 cnt);
 t_stat lpt_bufout (UNIT *uptr);
 void lpt_end_op (int32 fl);
-t_stat lpt (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat lpt (uint32_t fnc, uint32_t inst, uint32_t *dat);
 int8 sds_to_ascii (int8 c);
 
 /* LPT data structures
@@ -129,7 +129,7 @@ DEVICE lpt_dev = {
    can never set the channel rate error flag.
 */
 
-t_stat lpt (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat lpt (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 i, t, new_ch;
 char asc;

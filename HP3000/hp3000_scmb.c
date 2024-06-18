@@ -28,7 +28,7 @@
    12-Sep-16    JDB     Changed DIB register macro usage from SRDATA to DIB_REG
    11-Jun-16    JDB     Bit mask constants are now unsigned
    13-May-16    JDB     Modified for revised SCP API function parameter types
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    21-Sep-15    JDB     First release version
    27-Jan-15    JDB     Passes the selector channel diagnostic (D429A)
    12-Jan-15    JDB     Passes the SCMB diagnostic (D429A)
@@ -366,7 +366,7 @@ typedef struct {
     HP_WORD status_word;                        /* status word register */
     HP_WORD counter;                            /* counter/buffer register */
     HP_WORD flags;                              /* status flags */
-    uint32  saved_srn;                          /* saved SR number */
+    uint32_t  saved_srn;                          /* saved SR number */
 
     FLIP_FLOP sio_busy;                         /* SIO busy flip-flop */
     FLIP_FLOP channel_sr;                       /* channel service request flip-flop */

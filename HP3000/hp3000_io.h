@@ -171,7 +171,7 @@ typedef enum {                                  /* --- destination of signal ---
 typedef OUTBOUND_SIGNAL     OUTBOUND_SET;       /* a set of OUTBOUND_SIGNALs */
 
 
-typedef uint32              SIGNALS_DATA;       /* a combined outbound signal set and data value */
+typedef uint32_t              SIGNALS_DATA;       /* a combined outbound signal set and data value */
 
 
 /* I/O macros.
@@ -311,11 +311,11 @@ typedef SIGNALS_DATA CNTLR_INTRF                /* the I/O device controller int
 
 struct dib {                                    /* the Device Information Block */
     CNTLR_INTRF *io_interface;                  /*   the controller I/O interface function pointer */
-    uint32      device_number;                  /*   the device number 0-255 */
-    uint32      service_request_number;         /*   the service request number 0-15 */
-    uint32      interrupt_priority;             /*   the interrupt priority 0-31 */
-    uint32      interrupt_mask;                 /*   the interrupt mask (16 bits) */
-    uint32      card_index;                     /*   the card index if multiple interfaces are supported */
+    uint32_t      device_number;                  /*   the device number 0-255 */
+    uint32_t      service_request_number;         /*   the service request number 0-15 */
+    uint32_t      interrupt_priority;             /*   the interrupt priority 0-31 */
+    uint32_t      interrupt_mask;                 /*   the interrupt mask (16 bits) */
+    uint32_t      card_index;                     /*   the card index if multiple interfaces are supported */
     FLIP_FLOP   interrupt_request;              /*   an interrupt has been requested */
     FLIP_FLOP   interrupt_active;               /*   an interrupt is active */
     t_bool      service_request;                /*   channel service has been requested */

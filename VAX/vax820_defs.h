@@ -165,7 +165,7 @@
 #define MAXMEMSIZE_X    (1 << MAXMEMWIDTH_X)
 #define INITMEMSIZE     (1 << MAXMEMWIDTH)              /* initial memory size */
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < MEMSIZE)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < MEMSIZE)
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 22), NULL,  "4M", &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" },                   \
                         { UNIT_MSIZE, (1u << 23), NULL,  "8M", &cpu_set_size, NULL, NULL, "Set Memory to 8M bytes" },                   \
                         { UNIT_MSIZE, (1u << 24), NULL, "16M", &cpu_set_size, NULL, NULL, "Set Memory to 16M bytes" },                  \
@@ -195,9 +195,9 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define IOPAGEMASK      (IOPAGESIZE - 1)                /* IO addr mask */
 #define UBADDRBASE      WINADDR(TR_UBA)                 /* Unibus addr base */
 #define IOPAGEBASE      (UBADDRBASE + 0x3E000)          /* IO page base */
-#define ADDR_IS_IO(x)   ((((uint32) (x)) >= UBADDRBASE) && \
-                        (((uint32) (x)) < (UBADDRBASE + UBADDRSIZE)))
-#define ADDR_IS_IOP(x)  (((uint32) (x)) >= IOPAGEBASE)
+#define ADDR_IS_IO(x)   ((((uint32_t) (x)) >= UBADDRBASE) && \
+                        (((uint32_t) (x)) < (UBADDRBASE + UBADDRSIZE)))
+#define ADDR_IS_IOP(x)  (((uint32_t) (x)) >= IOPAGEBASE)
 
 /* Nexus register space */
 
@@ -208,8 +208,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define REG_M_OFS       0x7FF   
 #define REGSIZE         (1u << REGAWIDTH)               /* REG length */
 #define REGBASE         0x20000000                      /* REG addr base */
-#define ADDR_IS_REG(x)  ((((uint32) (x)) >= REGBASE) && \
-                        (((uint32) (x)) < (REGBASE + REGSIZE)))
+#define ADDR_IS_REG(x)  ((((uint32_t) (x)) >= REGBASE) && \
+                        (((uint32_t) (x)) < (REGBASE + REGSIZE)))
 #define NEXUS_GETNEX(x) (((x) >> REG_V_NEXUS) & REG_M_NEXUS)
 #define NEXUS_GETOFS(x) (((x) >> REG_V_OFS) & REG_M_OFS)
 
@@ -285,15 +285,15 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
+    uint32_t              ba;                             /* base addr */
+    uint32_t              lnt;                            /* length */
     t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
     t_stat              (*wr)(int32 dat, int32 ad, int32 md);
     int32               vnum;                           /* vectors: number */
     int32               vloc;                           /* locator */
     int32               vec;                            /* value */
     int32               (*ack[VEC_DEVMAX])(void);       /* ack routine */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t              ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
     int32               numc;                           /* Number of controllers */
@@ -421,18 +421,18 @@ typedef struct {
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf);
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf);
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf);
 
-int32 mba_rdbufW (uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_wrbufW (uint32 mbus, int32 bc, const uint16 *buf);
-int32 mba_chbufW (uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_get_bc (uint32 mbus);
-void mba_upd_ata (uint32 mbus, uint32 val);
-void mba_set_exc (uint32 mbus);
-void mba_set_don (uint32 mbus);
+int32 mba_rdbufW (uint32_t mbus, int32 bc, uint16_t *buf);
+int32 mba_wrbufW (uint32_t mbus, int32 bc, const uint16_t *buf);
+int32 mba_chbufW (uint32_t mbus, int32 bc, uint16_t *buf);
+int32 mba_get_bc (uint32_t mbus);
+void mba_upd_ata (uint32_t mbus, uint32_t val);
+void mba_set_exc (uint32_t mbus);
+void mba_set_don (uint32_t mbus);
 void mba_set_enbdis (DEVICE *dptr);
 t_stat mba_show_num (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 

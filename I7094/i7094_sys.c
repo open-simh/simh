@@ -45,8 +45,8 @@ extern DEVICE clk_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
 
-uint32 cvt_code_to_ascii (uint32 c, int32 sw);
-uint32 cvt_ascii_to_code (uint32 c, int32 sw);
+uint32_t cvt_code_to_ascii (uint32_t c, int32 sw);
+uint32_t cvt_ascii_to_code (uint32_t c, int32 sw);
 
 /* SCP data structures and interface routines
 
@@ -120,7 +120,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* Modify channel breakpoint message */
 
-t_stat ch_bkpt (uint32 ch, uint32 clc)
+t_stat ch_bkpt (uint32_t ch, uint32_t clc)
 {
 ch_bkpt_msg[8] = 'A' + ch;
 sprintf (&ch_bkpt_msg[27], "%06o", clc);
@@ -192,7 +192,7 @@ static const t_uint64 masks[15] = {
  INT64_C(03760000200000), INT64_C(03740000200000),
  INT64_C(03777700077760) }; 
 
-static const uint32 fld_max[15][3] = {                  /* addr,tag,decr limit */
+static const uint32_t fld_max[15][3] = {                  /* addr,tag,decr limit */
  { INST_M_ADDR, INST_M_TAG, 0 },
  { INST_M_ADDR, INST_M_TAG, 0 },
  { INST_M_ADDR, INST_M_TAG, 0 },
@@ -210,7 +210,7 @@ static const uint32 fld_max[15][3] = {                  /* addr,tag,decr limit *
  { INST_M_4B,   INST_M_TAG, 0 }
  };
 
-static const uint32 fld_fmt[15][3] = {                  /* addr,tag,decr print */
+static const uint32_t fld_fmt[15][3] = {                  /* addr,tag,decr print */
  { INST_P_PNT, INST_P_PNT, INST_P_XIT },                /* nop: all optional */
  { INST_P_PRA, INST_P_PNT, INST_P_XIT },                /* mxr: tag optional */
  { INST_P_PRA, INST_P_PNT, INST_P_XIT },                /* mxn: tag optional */
@@ -593,7 +593,7 @@ static const t_uint64 opc_v[] = {
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
-uint32 i, j, k, l, fmt, c, fld[3];
+uint32_t i, j, k, l, fmt, c, fld[3];
 DEVICE *dptr;
 t_uint64 inst;
 
@@ -605,13 +605,13 @@ if (dptr == NULL)
     return SCPE_IERR;
 
 if (sw & SWMASK ('C')) {                                /* character? */
-    c = (uint32) (inst & 077);
+    c = (uint32_t) (inst & 077);
     fprintf (of, "%c", cvt_code_to_ascii (c, sw));
     return SCPE_OK;
     }
 if (sw & SWMASK ('S')) {                                /* string? */
     for (i = 36; i > 0; i = i - 6) {
-        c = (uint32) ((inst >> (i - 6)) & 077);
+        c = (uint32_t) ((inst >> (i - 6)) & 077);
         fprintf (of, "%c", cvt_code_to_ascii (c, sw));
         }       
     return SCPE_OK;
@@ -622,7 +622,7 @@ if (!(sw & (SWMASK ('M')|SWMASK ('I')|SWMASK ('N'))) || /* M, N or I? */
 
 /* Instruction decode */
 
-fld[0] = ((uint32) inst & 0777777);
+fld[0] = ((uint32_t) inst & 0777777);
 fld[1] = GET_TAG (inst);                                /* get 3 fields */
 fld[2] = GET_DEC (inst);
 if (sw & SWMASK ('I'))                                  /* decode as 7607? */
@@ -673,7 +673,7 @@ return SCPE_ARG;
    -b       BCD
    -a       business-chain */
 
-uint32 cvt_code_to_ascii (uint32 c, int32 sw)
+uint32_t cvt_code_to_ascii (uint32_t c, int32 sw)
 {
 if (sw & SWMASK ('B')) {
     if (sw & SWMASK ('A'))
@@ -699,7 +699,7 @@ else return nine_to_ascii_h[c];
 
 t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
 {
-uint32 i, j, c;
+uint32_t i, j, c;
 t_uint64 fld[3];
 t_bool ind;
 t_stat r;
@@ -737,7 +737,7 @@ else ind = FALSE;
 for (i = 0; (opcode[i] != NULL) && (strcmp (opcode[i], gbuf) != 0) ; i++) ;
 if (opcode[i] == NULL)
     return SCPE_ARG;
-j = (uint32) ((opc_v[i] >> I_V_FL) & I_M_FL);           /* get class */
+j = (uint32_t) ((opc_v[i] >> I_V_FL) & I_M_FL);           /* get class */
 val[0] = opc_v[i] & DMASK;
 if (ind) {
     if (ind_test[j])
@@ -768,7 +768,7 @@ return SCPE_OK;
 
    -b       BCD */
 
-uint32 cvt_ascii_to_code (uint32 c, int32 sw)
+uint32_t cvt_ascii_to_code (uint32_t c, int32 sw)
 {
 if (sw & SWMASK ('B'))
     return ascii_to_bcd[c];

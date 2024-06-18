@@ -40,7 +40,7 @@
 #define TT_TB           072
 #define TT_BS           032
 
-extern uint32 xfr_req;
+extern uint32_t xfr_req;
 extern int32 stop_invins, stop_invdev, stop_inviop;
 int32 ptr_sor = 0;                                      /* start of rec */
 int32 ptr_stopioe = 0;                                  /* no stop on err */
@@ -50,20 +50,20 @@ int32 tto_ldr = 0;                                      /* no leader */
 int32 tto_retry = 0;                                    /* retry due to stall */
 DSPT std_tplt[] = { { 1, 0 }, { 0, 0 }  };              /* template */
 
-t_stat ptr (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat ptr (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptr_boot (int32 unitno, DEVICE *dptr);
 void ptr_set_err (void);
-t_stat ptp (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat ptp (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
 t_stat ptp_out (int32 dat);
 void ptp_set_err (void);
-t_stat tti (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat tti (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat tti_svc (UNIT *uptr);
 t_stat tti_reset (DEVICE *dptr);
-t_stat tto (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat tto (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat tto_svc (UNIT *uptr);
 t_stat tto_reset (DEVICE *dptr);
 t_stat tto_out (int32 dat);
@@ -228,7 +228,7 @@ DEVICE tto_dev = {
    is ignored; leader after the current record sets channel EndOfRecord.
 */
 
-t_stat ptr (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat ptr (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 new_ch;
 
@@ -327,7 +327,7 @@ return SCPE_OK;
 
 t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 {
-extern uint32 P, M[];
+extern uint32_t P, M[];
 
 M[0] = 077777771;                                       /* -7B */
 M[1] = 007100000;                                       /* LDX 0 */
@@ -352,7 +352,7 @@ return SCPE_OK;
    it can never cause a channel rate error; if no data is available, it waits.
 */
 
-t_stat ptp (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat ptp (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 new_ch;
 
@@ -463,7 +463,7 @@ return SCPE_OK;
    never cause a channel rate error; if no data is available, it waits.
 */
 
-t_stat tti (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat tti (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 new_ch;
 
@@ -547,7 +547,7 @@ return SCPE_OK;
    connection, so the output routine must be able to try output repeatedly.
 */
 
-t_stat tto (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat tto (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 new_ch;
 

@@ -74,32 +74,32 @@
 extern int32 tmxr_poll;
 extern int32 ka_cfgtst;
 
-uint32 vc_cmd = 0;                                      /* cursor command reg */
-uint32 vc_xpos = 0;                                     /* cursor x position */
-uint32 vc_ypos = 0;                                     /* cursor y position */
-uint32 vc_xmin1 = 0;                                    /* region 1 left edge */
-uint32 vc_xmax1 = 0;                                    /* region 1 right edge */
-uint32 vc_ymin1 = 0;                                    /* region 1 top edge */
-uint32 vc_ymax1 = 0;                                    /* region 1 bottom edge */
-uint32 vc_xmin2 = 0;                                    /* region 2 left edge */
-uint32 vc_xmax2 = 0;                                    /* region 2 right edge */
-uint32 vc_ymin2 = 0;                                    /* region 2 top edge */
-uint32 vc_ymax2 = 0;                                    /* region 2 bottom edge */
-uint16 vc_cur[32];                                      /* cursor image data */
-uint32 vc_cur_p = 0;                                    /* cursor image pointer */
+uint32_t vc_cmd = 0;                                      /* cursor command reg */
+uint32_t vc_xpos = 0;                                     /* cursor x position */
+uint32_t vc_ypos = 0;                                     /* cursor y position */
+uint32_t vc_xmin1 = 0;                                    /* region 1 left edge */
+uint32_t vc_xmax1 = 0;                                    /* region 1 right edge */
+uint32_t vc_ymin1 = 0;                                    /* region 1 top edge */
+uint32_t vc_ymax1 = 0;                                    /* region 1 bottom edge */
+uint32_t vc_xmin2 = 0;                                    /* region 2 left edge */
+uint32_t vc_xmax2 = 0;                                    /* region 2 right edge */
+uint32_t vc_ymin2 = 0;                                    /* region 2 top edge */
+uint32_t vc_ymax2 = 0;                                    /* region 2 bottom edge */
+uint16_t vc_cur[32];                                      /* cursor image data */
+uint32_t vc_cur_p = 0;                                    /* cursor image pointer */
 t_bool vc_updated[VC_YSIZE];
 t_bool vc_cur_new_data = FALSE;                         /* New Cursor image data */
 t_bool vc_input_captured = FALSE;                       /* Mouse and Keyboard input captured in video window */
-uint32 vc_cur_x = 0;                                    /* Last cursor X-position */
-uint32 vc_cur_y = 0;                                    /* Last cursor Y-position */
-uint32 vc_cur_f = 0;                                    /* Last cursor function */
+uint32_t vc_cur_x = 0;                                    /* Last cursor X-position */
+uint32_t vc_cur_y = 0;                                    /* Last cursor Y-position */
+uint32_t vc_cur_f = 0;                                    /* Last cursor function */
 t_bool vc_cur_v = FALSE;                                /* Last cursor visible */
-uint32 vc_org = 0;                                      /* display origin */
-uint32 vc_last_org = 0;                                 /* display last origin */
-uint32 vc_sel = 0;                                      /* interrupt select */
-uint32 *vc_buf = NULL;                                  /* Video memory */
-uint32 *vc_lines = NULL;                                /* Video Display Lines */
-uint32 vc_palette[2];                                   /* Monochrome palette */
+uint32_t vc_org = 0;                                      /* display origin */
+uint32_t vc_last_org = 0;                                 /* display last origin */
+uint32_t vc_sel = 0;                                      /* interrupt select */
+uint32_t *vc_buf = NULL;                                  /* Video memory */
+uint32_t *vc_lines = NULL;                                /* Video Display Lines */
+uint32_t vc_palette[2];                                   /* Monochrome palette */
 t_bool vc_active = FALSE;
 
 t_stat vc_svc (UNIT *uptr);
@@ -269,7 +269,7 @@ void vc_mem_wr (int32 pa, int32 val, int32 lnt)
 {
 int32 nval;
 int32 rg = ((pa - 0x30000000) >> 2);
-uint32 scrln;
+uint32_t scrln;
 
 if (!vc_buf)                                            /* MONO disabled? */
     return;                                             /* Invalid memory reference */
@@ -290,11 +290,11 @@ return;
 
 static void vc_set_vid_cursor (t_bool visible)
 {
-uint8 data[2*16];
-uint8 mask[2*16];
-uint32 ln, col;
-uint16 *plna, *plnb;
-uint16 bita, bitb;
+uint8_t data[2*16];
+uint8_t mask[2*16];
+uint32_t ln, col;
+uint16_t *plna, *plnb;
+uint16_t bita, bitb;
 int i, d, m;
 
 sim_debug (DBG_CURSOR, &vc_dev, "vc_set_vid_cursor(%s)\n", visible ? "Visible" : "Invisible");
@@ -352,9 +352,9 @@ if ((vc_dev.dctrl & DBG_CURSOR) && (vc_dev.dctrl & DBG_TCURSOR)) {
 vid_set_cursor (visible, 16, 16, data, mask, 0, 0);
 }
 
-static SIM_INLINE void vc_invalidate (uint32 y1, uint32 y2)
+static SIM_INLINE void vc_invalidate (uint32_t y1, uint32_t y2)
 {
-uint32 ln;
+uint32_t ln;
 
 for (ln = y1; ln < y2; ln++)
     vc_updated[ln] = TRUE;                              /* flag as updated */
@@ -365,11 +365,11 @@ t_stat vc_svc (UNIT *uptr)
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
 t_bool updated = FALSE;                                 /* flag for refresh */
-uint32 lines;
-uint32 ln, col, off;
-uint16 *plna, *plnb;
-uint16 bita, bitb;
-uint32 c;
+uint32_t lines;
+uint32_t ln, col, off;
+uint16_t *plna, *plnb;
+uint16_t bita, bitb;
+uint32_t c;
 
 if (vc_cur_v != CUR_V) {                                /* visibility changed? */
     if (CUR_V)                                          /* visible? */
@@ -463,7 +463,7 @@ return SCPE_OK;
 t_stat vc_reset (DEVICE *dptr)
 {
 t_stat r;
-uint32 i;
+uint32_t i;
 
 CLR_INT (VC1);
 sim_cancel (&vc_unit);                                  /* deactivate unit */
@@ -501,12 +501,12 @@ if (!vid_active && !vc_active)  {
     r = vid_open (dptr, NULL, VC_XSIZE, VC_YSIZE, vc_input_captured ? SIM_VID_INPUTCAPTURED : 0); /* display size */
     if (r != SCPE_OK)
         return r;
-    vc_buf = (uint32 *) calloc (VC_BUFSIZE, sizeof (uint32));
+    vc_buf = (uint32_t *) calloc (VC_BUFSIZE, sizeof (uint32_t));
     if (vc_buf == NULL) {
         vid_close ();
         return SCPE_MEM;
         }
-    vc_lines = (uint32 *) calloc (VC_XSIZE * VC_YSIZE, sizeof (uint32));
+    vc_lines = (uint32_t *) calloc (VC_XSIZE * VC_YSIZE, sizeof (uint32_t));
     if (vc_lines == NULL) {
         free (vc_buf);
         vc_buf = NULL;

@@ -33,13 +33,13 @@
 
 #include "3b2_defs.h"
 
-typedef uint32 CSR_DATA;
+typedef uint32_t CSR_DATA;
 
 t_stat csr_svc(UNIT *uptr);
 t_stat csr_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat csr_dep(t_value val, t_addr exta, UNIT *uptr, int32 sw);
 t_stat csr_reset(DEVICE *dptr);
-uint32 csr_read(uint32 pa, size_t size);
-void csr_write(uint32 pa, uint32 val, size_t size);
+uint32_t csr_read(uint32_t pa, size_t size);
+void csr_write(uint32_t pa, uint32_t val, size_t size);
 
 #endif

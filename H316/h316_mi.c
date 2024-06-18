@@ -172,20 +172,20 @@
 #include "h316_imp.h"           // ARPAnet IMP/TIP definitions
 
 // Externals from other parts of simh ...
-extern uint16 dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
+extern uint16_t dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
 extern int32 PC;                        // current PC (for debug messages)
 extern int32 stop_inst;                 // needed by IOBADFNC()
-extern uint16 M[];                      // main memory (for DMC access)
+extern uint16_t M[];                      // main memory (for DMC access)
 
 // Forward declarations ...
-int32  mi_io (uint16 line, int32 inst, int32 fnc, int32 dat, int32 dev);
+int32  mi_io (uint16_t line, int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 mi1_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 mi2_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 mi3_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 mi4_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 mi5_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 t_stat mi_rx_service (UNIT *uptr);
-void mi_rx_local (uint16 line, uint16 txnext, uint16 txcount);
+void mi_rx_local (uint16_t line, uint16_t txnext, uint16_t txcount);
 t_stat mi_reset (DEVICE *dptr);
 t_stat mi_attach (UNIT *uptr, CONST char *cptr);
 t_stat mi_detach (UNIT *uptr);
@@ -321,7 +321,7 @@ MIDB   *const mi_midbs  [MI_NUM] = {&mi1_db,   &mi2_db,   &mi3_db,   &mi4_db,   
 #define ISLDBG(l,f)    ((PDEVICE(l)->dctrl & (f)) != 0)
 
 // Reset receiver (clear flags AND initialize all data) ...
-void mi_reset_rx (uint16 line)
+void mi_reset_rx (uint16_t line)
 {
   PMIDB(line)->iloop = PMIDB(line)->lloop = FALSE;
   udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, FALSE);
@@ -331,7 +331,7 @@ void mi_reset_rx (uint16 line)
 }
 
 // Reset transmitter (clear flags AND initialize all data) ...
-void mi_reset_tx (uint16 line)
+void mi_reset_tx (uint16_t line)
 {
   PMIDB(line)->iloop = PMIDB(line)->lloop = FALSE;
   udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, FALSE);
@@ -340,9 +340,9 @@ void mi_reset_tx (uint16 line)
 }
 
 // Get the DMC control words (starting address, end and length) for the channel.
-void mi_get_dmc (uint16 dmc, uint16 *pnext, uint16 *plast, uint16 *pcount)
+void mi_get_dmc (uint16_t dmc, uint16_t *pnext, uint16_t *plast, uint16_t *pcount)
 {
-  uint16 dmcad;
+  uint16_t dmcad;
   if ((dmc<DMC1) || (dmc>(DMC1+DMC_MAX-1))) {
     *pnext = *plast = *pcount = 0;  return;
   }
@@ -352,9 +352,9 @@ void mi_get_dmc (uint16 dmc, uint16 *pnext, uint16 *plast, uint16 *pcount)
 }
 
 // Update the DMC words to show "count" words transferred.
-void mi_update_dmc (uint32 dmc, uint32 count)
+void mi_update_dmc (uint32_t dmc, uint32_t count)
 {
-  uint16 dmcad, next;
+  uint16_t dmcad, next;
   if ((dmc<DMC1) || (dmc>(DMC1+DMC_MAX-1))) return;
   dmcad = DMC_BASE + (dmc-DMC1)*2;
   next = M[dmcad];
@@ -362,7 +362,7 @@ void mi_update_dmc (uint32 dmc, uint32 count)
 }
 
 // Link error recovery ...
-void mi_link_error (uint16 line)
+void mi_link_error (uint16_t line)
 {
   //   Any physical I/O error, either for the UDP link or a COM port, prints a
   // message and detaches the modem.  It's up to the user to decide what to do
@@ -380,9 +380,9 @@ void mi_link_error (uint16 line)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Log a modem input or output including DMC words ...
-void mi_debug_mio (uint16 line, uint32 dmc, const char *ptext)
+void mi_debug_mio (uint16_t line, uint32_t dmc, const char *ptext)
 {
-  uint16 next, last, count;
+  uint16_t next, last, count;
   if (!ISLDBG(line, IMP_DBG_IOT)) return;
   mi_get_dmc(dmc, &next, &last, &count);
   sim_debug(IMP_DBG_IOT, PDEVICE(line),
@@ -391,9 +391,9 @@ void mi_debug_mio (uint16 line, uint32 dmc, const char *ptext)
 }
 
 // Log the contents of a message sent or received ...
-void mi_debug_msg (uint16 line, uint16 next, uint16 count, const char *ptext)
+void mi_debug_msg (uint16_t line, uint16_t next, uint16_t count, const char *ptext)
 {
-  uint16 i;  char buf[CBUFSIZE];  int len = 0;
+  uint16_t i;  char buf[CBUFSIZE];  int len = 0;
   if (!ISLDBG(line, MI_DBG_MSG)) return;
   sim_debug(MI_DBG_MSG, PDEVICE(line), "message %s (length=%d)\n", ptext, count);
   for (i = 1, len = 0;  i <= count;  ++i) {
@@ -411,13 +411,13 @@ void mi_debug_msg (uint16 line, uint16 next, uint16 count, const char *ptext)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Start the transmitter ...
-void mi_start_tx (uint16 line)
+void mi_start_tx (uint16_t line)
 {
   //   This handles all the work of the "start modem output" OCP, including
   // extracting the packet from H316 memory, EXCEPT for actually setting the
   // transmit done interrupt.  That's handled by the RTC polling routine after
   // a delay that we calculate..
-  uint16 next, last, count;  uint32 nbits;  t_stat ret;
+  uint16_t next, last, count;  uint32_t nbits;  t_stat ret;
 
   //   Get the DMC words for this channel and update the next pointer as if the
   // transfer actually occurred.
@@ -439,7 +439,7 @@ void mi_start_tx (uint16 line)
   // take to transmit a packet of this length with a real modem and phone line.
   // Note that the "+12" is an approximation for the modem overhead, including
   // DLE, STX, ETX and checksum bytes, that would be added to the packet.
-  nbits = (((uint32) count)*2UL + 12UL) * 8UL;
+  nbits = (((uint32_t) count)*2UL + 12UL) * 8UL;
   PMIDB(line)->txdelay = (nbits * 1000000UL) / (PMIDB(line)->bps * rtc_interval);
   //fprintf(stderr,"MI%d - transmit packet, length=%d, bits=%ld, interval=%ld, delay=%ld\n", line, count, nbits, rtc_interval, PMIDB(line)->txdelay);
 
@@ -448,7 +448,7 @@ void mi_start_tx (uint16 line)
 }
 
 // Poll for transmitter done interrupts ...
-void mi_poll_tx (uint16 line, uint32 quantum)
+void mi_poll_tx (uint16_t line, uint32_t quantum)
 {
   //   This routine is called, via the RTC service, to count down the interval
   // until the transmitter finishes.  When it hits zero, an interrupt occurs.
@@ -461,7 +461,7 @@ void mi_poll_tx (uint16 line, uint32 quantum)
 }
 
 // Start the receiver ...
-void mi_start_rx (uint16 line)
+void mi_start_rx (uint16_t line)
 {
   //   "Starting" the receiver simply sets the RX pending flag.  Nothing else
   // needs to be done (nothing else _can_ be done!) until we actually receive
@@ -477,14 +477,14 @@ void mi_start_rx (uint16 line)
 }
 
 // Poll for receiver data ...
-void mi_poll_rx (uint16 line)
+void mi_poll_rx (uint16_t line)
 {
   //   This routine is called by mi_service to poll for any packets received.
   // This is done regardless of whether a receive is pending on the line.  If
   // a packet is waiting AND a receive is pending then we'll store it and finish
   // the receive operation.  If a packet is waiting but no receive is pending
   // then the packet is discarded...
-  uint16 next, last, maxbuf;  uint16 *pdata;  int16 count;
+  uint16_t next, last, maxbuf;  uint16_t *pdata;  int16 count;
 
   // If the modem isn't attached, then the read never completes!
   if (PMIDB(line)->link == NOLINK) return;
@@ -523,7 +523,7 @@ void mi_poll_rx (uint16 line)
 }
 
 // Receive cross patched data ...
-void mi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
+void mi_rx_local (uint16_t line, uint16_t txnext, uint16_t txcount)
 {
   //   This routine is invoked by the mi_start_tx() function when this modem has
   // the "interface cross patch" bit set.  This flag causes the modem to talk to
@@ -532,7 +532,7 @@ void mi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
   // This is essentially a special case of the mi_poll_rx() routine and it's a
   // shame they don't share more code, but that's the way it is.
   // Get the DMC words for this channel, or zeros if no read is pending ...
-  uint16 rxnext, rxlast, maxbuf;
+  uint16_t rxnext, rxlast, maxbuf;
 
   // If no read is pending, then just throw away the data ...
   if (!PMIDB(line)->rxpending) return;
@@ -540,7 +540,7 @@ void mi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
   // Get the DMC words for the receiver and copy data from one buffer to the other.
   mi_get_dmc(PDIB(line)->rxdmc, &rxnext, &rxlast, &maxbuf);
   if (txcount > maxbuf) {txcount = maxbuf;  PMIDB(line)->rxerror = TRUE;}
-  memmove(&M[rxnext], &M[txnext], txcount * sizeof(uint16));
+  memmove(&M[rxnext], &M[txnext], txcount * sizeof(uint16_t));
 
   // Update the receiver DMC pointers, assert IRQ and we're done!
   mi_update_dmc(PDIB(line)->rxdmc, txcount);
@@ -569,7 +569,7 @@ int32 mi4_io(int32 inst, int32 fnc, int32 dat, int32 dev)  {return mi_io(4, inst
 int32 mi5_io(int32 inst, int32 fnc, int32 dat, int32 dev)  {return mi_io(5, inst, fnc, dat, dev);}
 
 // Common I/O simulation routine ...
-int32 mi_io (uint16 line, int32 inst, int32 fnc, int32 dat, int32 dev)
+int32 mi_io (uint16_t line, int32 inst, int32 fnc, int32 dat, int32 dev)
 {
   //   This routine is invoked by the CPU module whenever the code executes any
   // I/O instruction (OCP, SKS, INA or OTA) with one of our modem's device
@@ -643,20 +643,20 @@ t_stat mi_rx_service (UNIT *uptr)
   //   This is the standard simh "service" routine that's called when an event
   // queue entry expires.  It just polls the receiver and reschedules itself.
   // That's it!
-  uint16 line = uptr->mline;
+  uint16_t line = uptr->mline;
   mi_poll_rx(line);
   sim_activate(uptr, uptr->wait);
   return SCPE_OK;
 }
 
 // Transmitter service ...
-t_stat mi_tx_service (uint32 quantum)
+t_stat mi_tx_service (uint32_t quantum)
 {
   //   This is the special transmitter service routine that's called by the RTC
   // service every time the RTC is updated.  This routine polls ALL the modem
   // transmitters (or at least any which are active) and figures out whether it
   // is time for an interrupt.
-  uint32 i;
+  uint32_t i;
   for (i = 1;  i <= MI_NUM;  ++i) mi_poll_tx(i, quantum);
   return SCPE_OK;
 }
@@ -672,7 +672,7 @@ t_stat mi_reset (DEVICE *dptr)
 {
   // simh calls this routine for the RESET command ...
   UNIT *uptr = dptr->units;
-  uint16 line = uptr->mline;
+  uint16_t line = uptr->mline;
 
   // Reset the devices AND clear the interrupt enable bits ...
   mi_reset_rx(line);  mi_reset_tx(line);
@@ -693,7 +693,7 @@ t_stat mi_attach (UNIT *uptr, CONST char *cptr)
   //    ATTACH -p MIn COMnn          - attach MIn to a physical COM port
   //    ATTACH MIn llll:w.x.y.z:rrrr - connect via UDP to a remote simh host
   //
-  t_stat ret;  char *pfn;  uint16 line = uptr->mline;
+  t_stat ret;  char *pfn;  uint16_t line = uptr->mline;
   t_bool fport = sim_switches & SWMASK('P');
 
   // If we're already attached, then detach ...
@@ -726,7 +726,7 @@ t_stat mi_detach (UNIT *uptr)
   // disconnects the modem from any UDP connection or COM port and effectively
   // makes the modem "off line".  A disconnected modem acts like a real modem
   // with its phone line unplugged.
-  t_stat ret;  uint16 line = uptr->mline;
+  t_stat ret;  uint16_t line = uptr->mline;
   if ((uptr->flags & UNIT_ATT) == 0) return SCPE_OK;
   ret = udp_release(PDEVICE(line), PMIDB(line)->link);
   if (ret != SCPE_OK) return ret;
@@ -737,7 +737,7 @@ t_stat mi_detach (UNIT *uptr)
 
 t_stat mi_set_loopback (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-  t_stat ret = SCPE_OK; uint16 line = uptr->mline;
+  t_stat ret = SCPE_OK; uint16_t line = uptr->mline;
 
   switch (val) {
     case 0:     // LOOPINTERFACE
@@ -759,7 +759,7 @@ t_stat mi_set_loopback (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat mi_show_loopback (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-  uint16 line = uptr->mline;
+  uint16_t line = uptr->mline;
 
   if (PMIDB(line)->iloop)
     fprintf (st, "Interface (local) Loopback");

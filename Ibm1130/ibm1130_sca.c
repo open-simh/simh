@@ -154,13 +154,13 @@ typedef enum {SCA_TIMER_INACTIVE = 0, SCA_TIMER_RUNNING = 1, SCA_TIMER_INHIBITED
 #define TIMER_125S      1       /* 1.25 second timer */
 #define TIMER_035S      2       /* 0.35 second timer */
 
-static uint16 sca_dsw    = 0;                               /* device status word */
-static uint32 sca_cwait  = 275;                             /* inter-character wait */
-static uint32 sca_iwait  = 2750;                            /* idle wait */
-static uint32 sca_state  = SCA_STATE_IDLE;
-static uint8  sichar     = 0;                               /* sync/idle character */
-static uint8  rcvd_char  = 0;                               /* most recently received character */
-static uint8  sca_frame  = 8;
+static uint16_t sca_dsw    = 0;                               /* device status word */
+static uint32_t sca_cwait  = 275;                             /* inter-character wait */
+static uint32_t sca_iwait  = 2750;                            /* idle wait */
+static uint32_t sca_state  = SCA_STATE_IDLE;
+static uint8_t  sichar     = 0;                               /* sync/idle character */
+static uint8_t  rcvd_char  = 0;                               /* most recently received character */
+static uint8_t  sca_frame  = 8;
 static char sca_port[3*CBUFSIZE];                             /* listening port */
 static int32  sca_keepalive = 0;                            /* keepalive SYN packet period in msec, default = 0 (disabled) */
 static SCA_TIMER_STATE sca_timer_state[3];                  /* current timer state */
@@ -179,8 +179,8 @@ static SOCKET sca_sock = INVALID_SOCKET;
 #define SCA_SEND_THRESHHOLD 140                             /* number of bytes to buffer before initiating packet send */
 #define SCA_IDLE_THRESHHOLD   3                             /* maximum number of unintentional idles to buffer before initiating send */
 
-static uint8  sca_sendbuf[SCA_SENDBUF_SIZE];                /* bytes pending to write to socket */
-static uint8  sca_rcvbuf[SCA_RCVBUF_SIZE];                  /* bytes received from socket, to be given to SCA */
+static uint8_t  sca_sendbuf[SCA_SENDBUF_SIZE];                /* bytes pending to write to socket */
+static uint8_t  sca_rcvbuf[SCA_RCVBUF_SIZE];                  /* bytes received from socket, to be given to SCA */
 static int    sca_n2send = 0;                               /* number of bytes queued for transmission */
 static int    sca_nrcvd = 0;                                /* number of received bytes in buffer */
 static int    sca_rcvptr = 0;                               /* index of next byte to take from rcvbuf */
@@ -245,7 +245,7 @@ DEVICE sca_dev = {
 
 t_stat sca_set_baud (UNIT *uptr, int32 value, CONST char *cptr, void *desc)
 {
-    uint32 newbits;
+    uint32_t newbits;
 
     switch (value) {
         case 600:       newbits = UNIT_BAUD600;     break;
@@ -359,10 +359,10 @@ static void sca_flush (void)
  * sca_transmit_byte - buffer a byte to be send to the socket
  *********************************************************************************************/
 
-static void sca_transmit_byte (uint8 b)
+static void sca_transmit_byte (uint8_t b)
 {
-    uint32 curtime;
-    static uint32 last_syn_time, next_syn_time;
+    uint32_t curtime;
+    static uint32_t last_syn_time, next_syn_time;
 
 #if (DEBUG_SCA & DEBUG_SCA_TRANSMIT)
     printf("* SCA_TRANSMIT: %02x\n", b);
@@ -924,7 +924,7 @@ void xio_sca (int32 iocc_addr, int32 func, int32 modify)
                 printf("(set SYN)\n");
 #endif
                 /* set sync/idle character */
-                sichar = (uint8) (ReadW(iocc_addr) >> 8);
+                sichar = (uint8_t) (ReadW(iocc_addr) >> 8);
                 sca_nsyns = 0;                      /* reset SYN suppression */
             }
             /* else? does presence of mod bit preclude sending a character? */
@@ -943,7 +943,7 @@ void xio_sca (int32 iocc_addr, int32 func, int32 modify)
                 switch (sca_state) {
                     case SCA_STATE_SEND_SYNC:
                     case SCA_STATE_SEND1:
-                        sca_transmit_byte((uint8) (M[iocc_addr & mem_mask] >> 8));
+                        sca_transmit_byte((uint8_t) (M[iocc_addr & mem_mask] >> 8));
                         sca_state = SCA_STATE_SEND2;
                         sim_cancel(&sca_unit);
                         sim_activate(&sca_unit, sca_cwait);     /* schedule service after character write time */

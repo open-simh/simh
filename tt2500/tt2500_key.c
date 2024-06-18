@@ -40,15 +40,15 @@
 
 #define NOKEY 0177777
 
-static uint16 KBUF;
-static uint16 suffix = NOKEY;
-static uint16 modifiers;
+static uint16_t KBUF;
+static uint16_t suffix = NOKEY;
+static uint16_t modifiers;
 
 /* Function declaration. */
 static t_stat key_svc (UNIT *uptr);
 static t_stat key_reset (DEVICE *dptr);
-static uint16 key_read (uint16 reg);
-static void key_write (uint16 reg, uint16 data);
+static uint16_t key_read (uint16_t reg);
+static void key_write (uint16_t reg, uint16_t data);
 
 #if defined(USE_DISPLAY) || (defined(USE_SIM_VIDEO) && defined(HAVE_LIBSDL))
 #define KBD_FLAGS KEY_DISPLAY
@@ -141,9 +141,9 @@ key_modifiers (SIM_KEY_EVENT *ev)
 }
 
 static int
-key_both (uint32 key)
+key_both (uint32_t key)
 {
-  uint16 code = NOKEY;
+  uint16_t code = NOKEY;
   switch (key) {
   case SIM_KEY_TAB:
     code = 0011;
@@ -172,9 +172,9 @@ key_both (uint32 key)
 }
 
 static int
-key_shift (uint32 key)
+key_shift (uint32_t key)
 {
-  uint16 code = key_both (key);
+  uint16_t code = key_both (key);
   if (code != NOKEY)
     return code;
 
@@ -320,9 +320,9 @@ key_shift (uint32 key)
 }
 
 static int
-key_noshift (uint32 key)
+key_noshift (uint32_t key)
 {
-  uint16 code = key_both (key);
+  uint16_t code = key_both (key);
   if (code != NOKEY)
     return code;
 
@@ -484,7 +484,7 @@ key_event (SIM_KEY_EVENT *ev)
     return 0;
     
   if (ev->state == SIM_KEYPRESS_DOWN) {
-    uint16 code;
+    uint16_t code;
     if (modifiers & SHFT)
       code = key_shift (ev->key);
     else
@@ -529,9 +529,9 @@ key_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-static uint16 key_read (uint16 reg)
+static uint16_t key_read (uint16_t reg)
 {
-  uint16 code = KBUF;
+  uint16_t code = KBUF;
   sim_debug (DBG, &key_dev, "Read key %o\n", code);
   if (suffix == NOKEY) {
     flag_off (FLAG_KB);
@@ -544,6 +544,6 @@ static uint16 key_read (uint16 reg)
   return code;
 }
 
-static void key_write (uint16 reg, uint16 data)
+static void key_write (uint16_t reg, uint16_t data)
 {
 }

@@ -31,10 +31,10 @@
 static t_stat sagecpu_reset(DEVICE* dptr);
 static t_stat sagecpu_boot(int unit,DEVICE* dptr);
 static t_stat sage_translateaddr(t_addr in,t_addr* out, IOHANDLER** ioh,int rw,int fc,int dma);
-static t_stat sage_mem(t_addr addr,uint8** mem);
+static t_stat sage_mem(t_addr addr,uint8_t** mem);
 static t_stat sagecpu_set_bios(UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat sagecpu_show_bios(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-static uint8* ROM = 0;
+static uint8_t* ROM = 0;
 static int rom_enable = TRUE; /* LS74 U51 in CPU schematic */
 
 extern int32 DR[];
@@ -150,7 +150,7 @@ static t_stat sagecpu_reset(DEVICE* dptr)
         sagecpu_set_bios(NULL, 0, "sage-ii.hex", NULL);
 #endif
 
-    if (!ROM) ROM = (uint8*)calloc(MAX_ROMSIZE,1);
+    if (!ROM) ROM = (uint8_t*)calloc(MAX_ROMSIZE,1);
     rom_enable = TRUE;
 
     if ((rc=m68kcpu_reset(dptr)) != SCPE_OK) return rc;
@@ -161,10 +161,10 @@ static t_stat sagecpu_reset(DEVICE* dptr)
     return SCPE_OK;
 }
 
-uint8 ioemul[4] = { 0,0,0,0 };
+uint8_t ioemul[4] = { 0,0,0,0 };
 
 /* sage memory */
-static t_stat sage_mem(t_addr addr,uint8** mem)
+static t_stat sage_mem(t_addr addr,uint8_t** mem)
 {
     t_addr a;
 //  printf("Try to access %x\n",addr); fflush(stdout);
@@ -195,7 +195,7 @@ static t_stat sage_mem(t_addr addr,uint8** mem)
 
 t_stat sage_translateaddr(t_addr in,t_addr* out, IOHANDLER** ioh,int rw,int fc,int dma)
 {
-    static uint32 bptype[] = { R_BKPT_SPC|SWMASK('R'), W_BKPT_SPC|SWMASK('W') };
+    static uint32_t bptype[] = { R_BKPT_SPC|SWMASK('R'), W_BKPT_SPC|SWMASK('W') };
     t_addr ma = in & addrmask;
     if (sim_brk_summ && sim_brk_test(ma, bptype[rw])) return STOP_IBKPT;
     return m68k_translateaddr(in,out,ioh,rw,fc,dma);

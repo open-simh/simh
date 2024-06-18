@@ -242,12 +242,12 @@ See TX-0 memo M-5001-19 for a simple formula for cry, used in the code below.
                                          printf args;             \
                                     }
 typedef struct {
-    uint32              pc;
-    uint32              ir;
-    uint32              ovac;
-    uint32              pfio;
-    uint32              ea;
-    uint32              opnd;
+    uint32_t              pc;
+    uint32_t              ir;
+    uint32_t              ovac;
+    uint32_t              pfio;
+    uint32_t              ea;
+    uint32_t              opnd;
 } InstHistory;
 
 int32 M[MAXMEMSIZE] = { 0 };                            /* memory */
@@ -269,7 +269,7 @@ int32 LPEN = 0;                                         /* Light Pen / Light Gun
 int32 mode_tst = 1;                                     /* Test Mode Flip-flop */
 int32 mode_rdin = 1;                                    /* Read-In Mode Flip-flop */
 
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 int32 hst_p = 0;                                        /* history pointer */
@@ -654,7 +654,7 @@ t_stat sim_instr (void)
                     break;
                 case 3:     /* aux  (Augment Index) */
                     {
-                        uint32 newY = (y & 0017777) | ((y & SIGN) >> 4);
+                        uint32_t newY = (y & 0017777) | ((y & SIGN) >> 4);
                         TRACE_PRINT(ADD_MSG, ("[%06o] AUX: y=%05o, XR=%05o = ", PC-1, newY, XR));
                         XR = XR + newY;
                         TRACE_PRINT(ADD_MSG, ("%05o\n", XR));
@@ -847,7 +847,7 @@ t_stat sim_instr (void)
                     break;
                 case IOS_PRT:
                     {
-                        uint32 tmpAC = 0;
+                        uint32_t tmpAC = 0;
                         tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                         tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                         tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -860,7 +860,7 @@ t_stat sim_instr (void)
                 case IOS_P6H:
                 case IOS_P7H:
                     {
-                        uint32 tmpAC = 0;
+                        uint32_t tmpAC = 0;
                         tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                         tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                         tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -1075,7 +1075,7 @@ static t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 static t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
     int32 mc = 0;
-    uint32 i;
+    uint32_t i;
 
     if ((val <= 0) || (val > (int32)MAXMEMSIZE) || ((val & 07777) != 0))
         return SCPE_ARG;
@@ -1215,7 +1215,7 @@ cpu_get_switches(unsigned long *p1, unsigned long *p2)
 #endif
 
 t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag) {
-    uint32 word;
+    uint32_t word;
     t_addr j, lo, hi, sz, sz_words;
     CONST char *result;
 
@@ -1342,7 +1342,7 @@ t_stat sim_opr_orig(int32 op)
         case OOPR_P7H:
         case OOPR_P6H:
             {
-                uint32 tmpAC = 0;
+                uint32_t tmpAC = 0;
                 tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                 tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                 tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -1361,7 +1361,7 @@ t_stat sim_opr_orig(int32 op)
             break;
         case OOPR_PNT:
             {
-                uint32 tmpAC = 0;
+                uint32_t tmpAC = 0;
                 tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                 tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                 tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */

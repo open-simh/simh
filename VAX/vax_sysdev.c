@@ -230,8 +230,8 @@ extern int32 MSER;
 extern int32 tmr_poll;
 extern DEVICE vc_dev, lk_dev, vs_dev;
 
-uint32 *rom = NULL;                                     /* boot ROM */
-uint32 *nvr = NULL;                                     /* non-volatile mem */
+uint32_t *rom = NULL;                                     /* boot ROM */
+uint32_t *nvr = NULL;                                     /* non-volatile mem */
 int32 CADR = 0;                                         /* cache disable reg */
 int32 MSER = 0;                                         /* mem sys error reg */
 int32 conpc, conpsl;                                    /* console reg */
@@ -246,8 +246,8 @@ int32 ssc_cnf = 0;                                      /* SSC conf */
 int32 ssc_bto = 0;                                      /* SSC timeout */
 int32 ssc_otp = 0;                                      /* SSC output port */
 int32 tmr_csr[2] = { 0 };                               /* SSC timers */
-uint32 tmr_tir[2] = { 0 };                              /* curr interval */
-uint32 tmr_tnir[2] = { 0 };                             /* next interval */
+uint32_t tmr_tir[2] = { 0 };                              /* curr interval */
+uint32_t tmr_tnir[2] = { 0 };                             /* next interval */
 int32 tmr_tivr[2] = { 0 };                              /* vector */
 t_bool tmr_inst[2] = { 0 };                             /* wait instructions vs usecs */
 int32 ssc_adsm[2] = { 0 };                              /* addr strobes */
@@ -297,7 +297,7 @@ int32 tmr_tir_rd (int32 tmr);
 void tmr_csr_wr (int32 tmr, int32 val);
 int32 tmr_csr_rd (int32 tmr);
 void tmr_sched (int32 tmr);
-void tmr_incr (int32 tmr, uint32 inc);
+void tmr_incr (int32 tmr, uint32_t inc);
 int32 tmr0_inta (void);
 int32 tmr1_inta (void);
 int32 parity (int32 val, int32 odd);
@@ -566,7 +566,7 @@ rom[rg] = ((val & 0xFF) << sc) | (rom[rg] & ~(0xFF << sc));
 
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -580,13 +580,13 @@ return SCPE_OK;
 
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= ROMSIZE)
     return SCPE_NXM;
-rom[addr >> 2] = (uint32) val;
+rom[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -595,7 +595,7 @@ return SCPE_OK;
 t_stat rom_reset (DEVICE *dptr)
 {
 if (rom == NULL)
-    rom = (uint32 *) calloc (ROMSIZE >> 2, sizeof (uint32));
+    rom = (uint32_t *) calloc (ROMSIZE >> 2, sizeof (uint32_t));
 
 if (rom == NULL)
     return SCPE_MEM;
@@ -650,7 +650,7 @@ else
 
 t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -664,13 +664,13 @@ return SCPE_OK;
 
 t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NVRSIZE)
     return SCPE_NXM;
-nvr[addr >> 2] = (uint32) val;
+nvr[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -679,7 +679,7 @@ return SCPE_OK;
 t_stat nvr_reset (DEVICE *dptr)
 {
 if (nvr == NULL) {
-    nvr = (uint32 *) calloc (NVRSIZE >> 2, sizeof (uint32));
+    nvr = (uint32_t *) calloc (NVRSIZE >> 2, sizeof (uint32_t));
     nvr_unit.filebuf = nvr;
     ssc_cnf = ssc_cnf | SSCCNF_BLO;
     }
@@ -699,7 +699,7 @@ r = attach_unit (uptr, cptr);
 if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     ssc_cnf = ssc_cnf & ~SSCCNF_BLO;
     }
 return r;
@@ -992,8 +992,8 @@ switch (rg) {
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa);                      /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
     };
@@ -1020,7 +1020,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 
@@ -1042,7 +1042,7 @@ return 0;
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32 ReadRegU (uint32_t pa, int32 lnt)
 {
 return ReadReg (pa & ~03, L_LONG);
 }
@@ -1057,7 +1057,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -1081,7 +1081,7 @@ MACH_CHECK (MCHK_WRITE);
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32 val, int32 lnt)
 {
 int32 sc = (pa & 03) << 3;
 int32 dat = ReadReg (pa & ~03, L_LONG);
@@ -1164,10 +1164,10 @@ switch (rg) {
 
 t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-uint32 memsize = (uint32)(MEMSIZE>>20);
-uint32 baseaddr = 0;
+uint32_t memsize = (uint32_t)(MEMSIZE>>20);
+uint32_t baseaddr = 0;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 16, "MS650-BA"},
@@ -1483,7 +1483,7 @@ switch (rg) {
 int32 tmr_tir_rd (int32 tmr)
 {
 if (tmr_csr[tmr] & TMR_CSR_RUN) {           /* running? then interpolate */
-    uint32 usecs_remaining, cur_tir;
+    uint32_t usecs_remaining, cur_tir;
     const char *tmr_units = NULL;
 
     if ((ADDR_IS_ROM(fault_PC)) &&                  /* running from ROM and */
@@ -1492,7 +1492,7 @@ if (tmr_csr[tmr] & TMR_CSR_RUN) {           /* running? then interpolate */
         tmr_units = "Instructions";
         }
     else {
-        usecs_remaining = (uint32)(0xFFFFFFFFLL & (t_uint64)sim_activate_time_usecs (&sysd_dev.units[tmr]));
+        usecs_remaining = (uint32_t)(0xFFFFFFFFLL & (t_uint64)sim_activate_time_usecs (&sysd_dev.units[tmr]));
         tmr_units = "Microseconds";
         }
     cur_tir = ~usecs_remaining + 1;
@@ -1564,7 +1564,7 @@ if ((before_tmr_csr & (TMR_CSR_DON | TMR_CSR_IE)) &&
 t_stat tmr_svc (UNIT *uptr)
 {
 int32 tmr = uptr - sysd_dev.units;                      /* get timer # */
-uint32 delta_usecs = ~tmr_tir[tmr] + 1;
+uint32_t delta_usecs = ~tmr_tir[tmr] + 1;
 
 tmr_incr (tmr, delta_usecs);                            /* incr timer */
 return SCPE_OK;
@@ -1572,9 +1572,9 @@ return SCPE_OK;
 
 /* Timer increment */
 
-void tmr_incr (int32 tmr, uint32 inc)
+void tmr_incr (int32 tmr, uint32_t inc)
 {
-uint32 new_tir = tmr_tir[tmr] + inc;                    /* add incr */
+uint32_t new_tir = tmr_tir[tmr] + inc;                    /* add incr */
 
 if (new_tir < tmr_tir[tmr]) {                           /* ovflo? */
     tmr_tir[tmr] = 0;                                   /* now 0 */
@@ -1607,7 +1607,7 @@ else {
 
 void tmr_sched (int32 tmr)
 {
-uint32 usecs_sched = tmr_tir[tmr] ? (~tmr_tir[tmr] + 1) : 0xFFFFFFFF;
+uint32_t usecs_sched = tmr_tir[tmr] ? (~tmr_tir[tmr] + 1) : 0xFFFFFFFF;
 double usecs_sched_d = tmr_tir[tmr] ? (double)(~tmr_tir[tmr] + 1) : (1.0 + (double)0xFFFFFFFFu);
 
 sim_cancel (&sysd_unit[tmr]);                       /* Make sure not active */
@@ -1651,7 +1651,7 @@ for (i = hsir = 0; i < 16; i++) {                       /* find hsir */
     if ((SISR >> i) & 1)
         hsir = i;
     }
-st1 = ((((uint32) opc) & 0xFF) << 24) |
+st1 = ((((uint32_t) opc) & 0xFF) << 24) |
     (hsir << 16) |
     ((CADR & 0xFF) << 8) |
     (MSER & 0xFF);

@@ -40,15 +40,15 @@ t_stat SBC_reset (DEVICE *dptr);
 /* external function prototypes */
 
 extern t_stat i8080_reset (DEVICE *dptr);   /* reset the 8080 emulator */
-extern uint8 multibus_get_mbyte(uint16 addr);
-extern void  multibus_put_mbyte(uint16 addr, uint8 val);
-extern uint8 EPROM_get_mbyte(uint16 addr, uint8 devnum);
-extern uint8 RAM_get_mbyte(uint16 addr);
-extern void RAM_put_mbyte(uint16 addr, uint8 val);
-extern  t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern  t_stat i8253_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern  t_stat i8255_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern  t_stat i8259_cfg(uint16 base, uint16 devnum, uint8 dummy);
+extern uint8_t multibus_get_mbyte(uint16_t addr);
+extern void  multibus_put_mbyte(uint16_t addr, uint8_t val);
+extern uint8_t EPROM_get_mbyte(uint16_t addr, uint8_t devnum);
+extern uint8_t RAM_get_mbyte(uint16_t addr);
+extern void RAM_put_mbyte(uint16_t addr, uint8_t val);
+extern  t_stat i8251_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern  t_stat i8253_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern  t_stat i8255_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern  t_stat i8259_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 extern t_stat i8251_reset(DEVICE *dptr);
 extern t_stat i8253_reset(DEVICE *dptr);
 extern t_stat i8255_reset(DEVICE *dptr);
@@ -56,17 +56,17 @@ extern t_stat i8259_reset(DEVICE *dptr);
 extern t_stat EPROM_reset(DEVICE *dptr);
 extern t_stat RAM_reset(DEVICE *dptr);
 extern t_stat ipc_cont_reset(DEVICE *dptr);
-extern  t_stat ioc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern  t_stat ipc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
+extern  t_stat ioc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern  t_stat ipc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 extern t_stat ioc_cont_reset(DEVICE *dptr);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint8, uint8);
-extern t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum);
-extern  t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint8_t, uint8_t);
+extern t_stat EPROM_cfg(uint16_t base, uint16_t size, uint8_t devnum);
+extern  t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 
 /* external globals */
 
-extern uint8 xack;
-extern uint32 PCX;                    /* program counter */
+extern uint8_t xack;
+extern uint32_t PCX;                    /* program counter */
 extern UNIT i8255_unit;
 extern UNIT EPROM_unit;
 extern UNIT RAM_unit;

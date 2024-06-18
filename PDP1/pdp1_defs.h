@@ -79,7 +79,7 @@
 #define MAXMEMSIZE      (1u << ASIZE)                   /* max mem size */
 #define AMASK           (MAXMEMSIZE - 1)                /* address mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 

@@ -40,13 +40,13 @@
 #define DRMSIZE          2048   /* Number words per drum */
 #define DRMMASK      (DRMSIZE-1)/* Mask of drum address */
 
-uint32              drm_cmd(UNIT *, uint16, uint16);
+uint32_t              drm_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              drm_srv(UNIT *);
 t_stat              drm_boot(int32, DEVICE *);
 void                drm_ini(UNIT *, t_bool);
 t_stat              drm_reset(DEVICE *);
 extern t_stat       chan_boot(int32, DEVICE *);
-uint32              drum_addr;  /* Read/write drum address */
+uint32_t              drum_addr;  /* Read/write drum address */
 t_stat              set_units(UNIT * uptr, int32 val, CONST char *cptr,
                               void *desc);
 t_stat              drm_attach(UNIT * uptr, CONST char *file);
@@ -81,7 +81,7 @@ DEVICE              drm_dev = {
     NULL, NULL, &drm_help, NULL, NULL, &drm_description
 };
 
-uint32 drm_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t drm_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = dev;
@@ -135,8 +135,8 @@ t_stat drm_srv(UNIT * uptr)
     /* Check if we have a address match */
     if ((chan_flags[chan] & (STA_ACTIVE | DEV_SEL)) == (STA_ACTIVE | DEV_SEL)
          && (uptr->u5 & (DRMSTA_READ | DRMSTA_WRITE))
-         && (uint32)uptr->u6 == (drum_addr & DRMMASK)) {
-        uint32            addr =
+         && (uint32_t)uptr->u6 == (drum_addr & DRMMASK)) {
+        uint32_t            addr =
             (((uptr->u5 & DRMSTA_UNIT) >> DRMSTA_UNITSHIFT) << 11)
             + (drum_addr & DRMMASK);
 
@@ -145,7 +145,7 @@ t_stat drm_srv(UNIT * uptr)
             r = chan_write(chan, &buf[addr], DEV_DISCO);
         } else {
             if (addr >= uptr->hwmark)
-                uptr->hwmark = (uint32)addr + 1;
+                uptr->hwmark = (uint32_t)addr + 1;
             r = chan_read(chan, &buf[addr], DEV_DISCO);
         }
         switch (r) {

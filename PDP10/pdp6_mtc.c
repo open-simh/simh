@@ -149,7 +149,7 @@
 #define CPOS            u5        /* Character position */
 #define BPOS            u6        /* Position in buffer */
 
-t_stat         mtc_devio(uint32 dev, uint64 *data);
+t_stat         mtc_devio(uint32_t dev, uint64 *data);
 void           mtc_checkirq(UNIT * uptr);
 t_stat         mtc_srv(UNIT *);
 t_stat         mtc_boot(int32, DEVICE *);
@@ -162,13 +162,13 @@ t_stat         mtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                   const char *cptr);
 const char     *mtc_description (DEVICE *dptr);
 
-uint16          mtc_pia;
-uint8           mtc_sel_unit;
-uint32          mtc_hold_cmd;
-uint32          mtc_status;
+uint16_t          mtc_pia;
+uint8_t           mtc_sel_unit;
+uint32_t          mtc_hold_cmd;
+uint32_t          mtc_status;
 int             mtc_dct;  /* DCT Channel and unit */
 
-static uint8    parity_table[64] = {
+static uint8_t    parity_table[64] = {
     /* 0    1    2    3    4    5    6    7 */
     0000, 0100, 0100, 0000, 0100, 0000, 0000, 0100,
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000,
@@ -182,7 +182,7 @@ static uint8    parity_table[64] = {
 
 
 /* One buffer per channel */
-uint8               mtc_buffer[BUFFSIZE];
+uint8_t               mtc_buffer[BUFFSIZE];
 
 #if !PDP6
 #define D DEV_DIS
@@ -232,7 +232,7 @@ DEVICE              mtc_dev = {
 };
 
 t_stat
-mtc_devio(uint32 dev, uint64 *data) {
+mtc_devio(uint32_t dev, uint64 *data) {
       uint64     res;
       DEVICE    *dptr = &mtc_dev;
       UNIT      *uptr;
@@ -250,7 +250,7 @@ mtc_devio(uint32 dev, uint64 *data) {
 
            case CONO:
               clr_interrupt(MTC_DEVCTL);
-              mtc_pia = (uint16)(*data) & (FLAG_PIA);
+              mtc_pia = (uint16_t)(*data) & (FLAG_PIA);
               mtc_hold_cmd = (*data & CMD_MASK);
               sim_debug(DEBUG_CONO, dptr, "MTC CONO %03o start %o %o%012llo PC=%06o\n",
                             dev, mtc_sel_unit, mtc_pia, *data, PC);
@@ -394,7 +394,7 @@ mtc_srv(UNIT * uptr)
     int                 cmd = (uptr->CNTRL & FUNCTION) >> 8;
     t_mtrlnt            reclen;
     t_stat              r = SCPE_ARG;   /* Force error if not set */
-    uint8               ch;
+    uint8_t               ch;
     int                 cc;
     uint64              hold_reg;
     int                 cc_max;
@@ -545,7 +545,7 @@ mtc_srv(UNIT * uptr)
                  else
                      hold_reg |= (uint64)(ch & 0xff) << cc;
              }
-             if ((uint32)uptr->BPOS == 0)
+             if ((uint32_t)uptr->BPOS == 0)
                  break;
              uptr->BPOS--;
          }
@@ -578,7 +578,7 @@ mtc_srv(UNIT * uptr)
          }
          hold_reg = 0;
          for (i = 0; i < cc_max; i++) {
-             if ((uint32)uptr->BPOS >= uptr->hwmark)
+             if ((uint32_t)uptr->BPOS >= uptr->hwmark)
                  break;
              ch = mtc_buffer[uptr->BPOS];
              if (uptr->flags & MTUF_7TRK) {
@@ -598,7 +598,7 @@ mtc_srv(UNIT * uptr)
              uptr->BPOS++;
          }
          sim_debug(DEBUG_DETAIL, dptr, "MTC%o read data %012llo\n", unit, hold_reg);
-         if (dct_write(mtc_dct, &hold_reg, i) == 0 ||(uint32)uptr->BPOS >= uptr->hwmark) {
+         if (dct_write(mtc_dct, &hold_reg, i) == 0 ||(uint32_t)uptr->BPOS >= uptr->hwmark) {
              uptr->CNTRL &= ~(MTC_BUSY);
              mtc_status |= EOR_FLAG;
              mtc_checkirq(uptr);
@@ -841,7 +841,7 @@ mtc_boot(int32 unit_num, DEVICE * dptr)
     while (wc != 0) {
         wc = (wc + 1) & RMASK;
         addr = (addr + 1) & RMASK;
-        if ((uint32)uptr->BPOS >= uptr->hwmark) {
+        if ((uint32_t)uptr->BPOS >= uptr->hwmark) {
             r = sim_tape_rdrecf(uptr, &mtc_buffer[0], &reclen, BUFFSIZE);
             if (r != SCPE_OK)
                 return r;

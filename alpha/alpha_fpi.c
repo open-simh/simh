@@ -89,33 +89,33 @@
 #define UF_TINF         0x00000000000007FF              /* T infinity round */
 
 extern t_uint64 FR[32];
-extern uint32 fpcr;
+extern uint32_t fpcr;
 extern jmp_buf save_env;
 
-t_bool ieee_unpack (t_uint64 op, UFP *r, uint32 ir);
+t_bool ieee_unpack (t_uint64 op, UFP *r, uint32_t ir);
 void ieee_norm (UFP *r);
-t_uint64 ieee_rpack (UFP *r, uint32 ir, uint32 dp);
-void ieee_trap (uint32 trap, uint32 instenb, uint32 fpcrdsb, uint32 ir);
-int32 ieee_fcmp (t_uint64 a, t_uint64 b, uint32 ir, uint32 signal_nan);
-t_uint64 ieee_cvtst (t_uint64 op, uint32 ir);
-t_uint64 ieee_cvtts (t_uint64 op, uint32 ir);
-t_uint64 ieee_cvtif (t_uint64 val, uint32 ir, uint32 dp);
-t_uint64 ieee_cvtfi (t_uint64 op, uint32 ir);
-t_uint64 ieee_fadd (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp, t_bool sub);
-t_uint64 ieee_fmul (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
-t_uint64 ieee_fdiv (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
-uint32 estimateSqrt32 (uint32 exp, uint32 a);
+t_uint64 ieee_rpack (UFP *r, uint32_t ir, uint32_t dp);
+void ieee_trap (uint32_t trap, uint32_t instenb, uint32_t fpcrdsb, uint32_t ir);
+int32 ieee_fcmp (t_uint64 a, t_uint64 b, uint32_t ir, uint32_t signal_nan);
+t_uint64 ieee_cvtst (t_uint64 op, uint32_t ir);
+t_uint64 ieee_cvtts (t_uint64 op, uint32_t ir);
+t_uint64 ieee_cvtif (t_uint64 val, uint32_t ir, uint32_t dp);
+t_uint64 ieee_cvtfi (t_uint64 op, uint32_t ir);
+t_uint64 ieee_fadd (t_uint64 a, t_uint64 b, uint32_t ir, uint32_t dp, t_bool sub);
+t_uint64 ieee_fmul (t_uint64 a, t_uint64 b, uint32_t ir, uint32_t dp);
+t_uint64 ieee_fdiv (t_uint64 a, t_uint64 b, uint32_t ir, uint32_t dp);
+uint32_t estimateSqrt32 (uint32_t exp, uint32_t a);
 t_uint64 estimateDiv128 (t_uint64 hi, t_uint64 lo, t_uint64 dvr);
 
 extern t_uint64 uemul64 (t_uint64 a, t_uint64 b, t_uint64 *hi);
-extern t_uint64 ufdiv64 (t_uint64 dvd, t_uint64 dvr, uint32 prec, uint32 *sticky);
+extern t_uint64 ufdiv64 (t_uint64 dvd, t_uint64 dvr, uint32_t prec, uint32_t *sticky);
 t_uint64 fsqrt64 (t_uint64 frac, int32 exp);
 
 /* IEEE S load */
 
 t_uint64 op_lds (t_uint64 op)
 {
-uint32 exp = S_GETEXP (op);                             /* get exponent */
+uint32_t exp = S_GETEXP (op);                             /* get exponent */
 
 if (exp == S_NAN) exp = FPR_NAN;                        /* inf or NaN? */
 else if (exp != 0) exp = exp + T_BIAS - S_BIAS;         /* zero or denorm? */
@@ -128,9 +128,9 @@ return (((t_uint64) (op & S_SIGN))? FPR_SIGN: 0) |      /* reg format */
 
 t_uint64 op_sts (t_uint64 op)
 {
-uint32 sign = FPR_GETSIGN (op)? S_SIGN: 0;
-uint32 frac = ((uint32) (op >> S_V_FRAC)) & M32;
-uint32 exp = FPR_GETEXP (op);
+uint32_t sign = FPR_GETSIGN (op)? S_SIGN: 0;
+uint32_t frac = ((uint32_t) (op >> S_V_FRAC)) & M32;
+uint32_t exp = FPR_GETEXP (op);
 
 if (exp == FPR_NAN) exp = S_NAN;                        /* inf or NaN? */
 else if (exp != 0) exp = exp + S_BIAS - T_BIAS;         /* non-zero? */
@@ -140,10 +140,10 @@ return (t_uint64) (sign | exp | (frac & ~(S_SIGN|S_EXP)));
 
 /* IEEE floating operate */
 
-void ieee_fop (uint32 ir)
+void ieee_fop (uint32_t ir)
 {
 UFP a, b;
-uint32 ftpa, ftpb, fnc, ra, rb, rc;
+uint32_t ftpa, ftpb, fnc, ra, rb, rc;
 t_uint64 res;
 
 fnc = I_GETFFNC (ir);                                   /* get function */
@@ -236,10 +236,10 @@ return;
 
 /* IEEE S to T convert - LDS doesn't handle denorms correctly */
 
-t_uint64 ieee_cvtst (t_uint64 op, uint32 ir)
+t_uint64 ieee_cvtst (t_uint64 op, uint32_t ir)
 {
 UFP b;
-uint32 ftpb;
+uint32_t ftpb;
 
 ftpb = ieee_unpack (op, &b, ir);                        /* unpack; norm dnorm */
 if (ftpb == UFT_DENORM) {                               /* denormal? */
@@ -251,10 +251,10 @@ else return op;                                         /* identity */
 
 /* IEEE T to S convert */
 
-t_uint64 ieee_cvtts (t_uint64 op, uint32 ir)
+t_uint64 ieee_cvtts (t_uint64 op, uint32_t ir)
 {
 UFP b;
-uint32 ftpb;
+uint32_t ftpb;
 
 ftpb = ieee_unpack (op, &b, ir);                        /* unpack */
 if (Q_FINITE (ftpb)) return ieee_rpack (&b, ir, DT_S);  /* finite? round, pack */
@@ -269,10 +269,10 @@ return 0;                                               /* denorm? 0 */
    - Force -0 to +0
    - Then normal compare will work (even on inf and denorms) */
 
-int32 ieee_fcmp (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 trap_nan)
+int32 ieee_fcmp (t_uint64 s1, t_uint64 s2, uint32_t ir, uint32_t trap_nan)
 {
 UFP a, b;
-uint32 ftpa, ftpb;
+uint32_t ftpa, ftpb;
 
 ftpa = ieee_unpack (s1, &a, ir);
 ftpb = ieee_unpack (s2, &b, ir);
@@ -290,7 +290,7 @@ return 0;
 
 /* IEEE integer to floating convert */
 
-t_uint64 ieee_cvtif (t_uint64 val, uint32 ir, uint32 dp)
+t_uint64 ieee_cvtif (t_uint64 val, uint32_t ir, uint32_t dp)
 {
 UFP a;
 
@@ -311,11 +311,11 @@ return ieee_rpack (&a, ir, dp);                         /* round and pack */
    the true result, whereas the IEEE standard specifies the return
    of the maximum plus or minus value */
 
-t_uint64 ieee_cvtfi (t_uint64 op, uint32 ir)
+t_uint64 ieee_cvtfi (t_uint64 op, uint32_t ir)
 {
 UFP a;
 t_uint64 sticky;
-uint32 rndm, ftpa, ovf;
+uint32_t rndm, ftpa, ovf;
 int32 ubexp;
 
 ftpa = ieee_unpack (op, &a, ir);                        /* unpack */
@@ -373,11 +373,11 @@ return (a.sign? NEG_Q (a.frac): a.frac);
           but normalization is at most 1 place, sticky bit is retained
           for rounding purposes (but not in low order bit) */
 
-t_uint64 ieee_fadd (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp, t_bool sub)
+t_uint64 ieee_fadd (t_uint64 s1, t_uint64 s2, uint32_t ir, uint32_t dp, t_bool sub)
 {
 UFP a, b, t;
-uint32 ftpa, ftpb;
-uint32 sticky, rndm;
+uint32_t ftpa, ftpb;
+uint32_t sticky, rndm;
 int32 ediff;
 
 ftpa = ieee_unpack (s1, &a, ir);                        /* unpack operands */
@@ -447,10 +447,10 @@ return ieee_rpack (&a, ir, dp);                         /* round and pack */
    to be in correct, when in fact they are 2X larger.  This problem is taken
    care of in the result exponent calculation. */
 
-t_uint64 ieee_fmul (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp)
+t_uint64 ieee_fmul (t_uint64 s1, t_uint64 s2, uint32_t ir, uint32_t dp)
 {
 UFP a, b;
-uint32 ftpa, ftpb;
+uint32_t ftpa, ftpb;
 t_uint64 resl;
 
 ftpa = ieee_unpack (s1, &a, ir);                        /* unpack operands */
@@ -485,10 +485,10 @@ return ieee_rpack (&a, ir, dp);                         /* round and pack */
    of (.5,2).  Results in the range of [1,2) are correct.  Results in the
    range of (.5,1) need to be normalized by one place. */
 
-t_uint64 ieee_fdiv (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp)
+t_uint64 ieee_fdiv (t_uint64 s1, t_uint64 s2, uint32_t ir, uint32_t dp)
 {
 UFP a, b;
-uint32 ftpa, ftpb, sticky;
+uint32_t ftpa, ftpb, sticky;
 
 ftpa = ieee_unpack (s1, &a, ir);
 ftpb = ieee_unpack (s2, &b, ir);
@@ -529,10 +529,10 @@ return ieee_rpack (&a, ir, dp);                         /* round and pack */
    - Compute result exponent
    - Compute sqrt of fraction */
 
-t_uint64 ieee_sqrt (uint32 ir, uint32 dp)
+t_uint64 ieee_sqrt (uint32_t ir, uint32_t dp)
 {
 t_uint64 op;
-uint32 ftpb;
+uint32_t ftpb;
 UFP b;
 
 op = FR[I_GETRB (ir)];                                  /* get F[rb] */
@@ -551,7 +551,7 @@ return ieee_rpack (&b, ir, dp);                         /* round and pack */
 
 /* Support routines */
 
-t_bool ieee_unpack (t_uint64 op, UFP *r, uint32 ir)
+t_bool ieee_unpack (t_uint64 op, UFP *r, uint32_t ir)
 {
 r->sign = FPR_GETSIGN (op);                             /* get sign */
 r->exp = FPR_GETEXP (op);                               /* get exponent */
@@ -622,14 +622,14 @@ return;
      o If /S is set, UNFD is set, and UNFZ is set, do not trap
    - If /SUI is set, and INED is clear, trap */
 
-t_uint64 ieee_rpack (UFP *r, uint32 ir, uint32 dp)
+t_uint64 ieee_rpack (UFP *r, uint32_t ir, uint32_t dp)
 {
 static const t_uint64 stdrnd[2] = { UF_SRND, UF_TRND };
 static const t_uint64 infrnd[2] = { UF_SINF, UF_TINF };
 static const int32 expmax[2] = { T_BIAS - S_BIAS + S_M_EXP - 1, T_M_EXP - 1 };
 static const int32 expmin[2] = { T_BIAS - S_BIAS, 0 };
 t_uint64 rndadd, rndbits, res;
-uint32 rndm;
+uint32_t rndm;
 
 if (r->frac == 0)                                       /* result 0? */
     return ((t_uint64) r->sign << FPR_V_SIGN);
@@ -671,7 +671,7 @@ return res;
 
 /* IEEE arithmetic trap - only one can be set at a time! */
 
-void ieee_trap (uint32 trap, uint32 instenb, uint32 fpcrdsb, uint32 ir)
+void ieee_trap (uint32_t trap, uint32_t instenb, uint32_t fpcrdsb, uint32_t ir)
 {
 fpcr = fpcr | (trap << 19);                             /* FPCR to trap summ offset */
 if ((instenb == 0) ||                                   /* not enabled in inst? ignore */
@@ -685,9 +685,9 @@ return;
 t_uint64 fsqrt64 (t_uint64 asig, int32 exp)
 {
 t_uint64 zsig, remh, reml, t;
-uint32 sticky = 0;
+uint32_t sticky = 0;
 
-zsig = estimateSqrt32 (exp, (uint32) (asig >> 32));
+zsig = estimateSqrt32 (exp, (uint32_t) (asig >> 32));
 
 /* Calculate the final answer in two steps.  First, do one iteration of
    Newton's approximation.  The divide-by-2 is accomplished by clever
@@ -723,14 +723,14 @@ return zsig;
    case, the approximation returned lies strictly within +/-2 of the exact
    value. */
 
-uint32 estimateSqrt32 (uint32 exp, uint32 a)
+uint32_t estimateSqrt32 (uint32_t exp, uint32_t a)
 {
-uint32 index, z;
-static const uint32 sqrtOdd[] = {
+uint32_t index, z;
+static const uint32_t sqrtOdd[] = {
     0x0004, 0x0022, 0x005D, 0x00B1, 0x011D, 0x019F, 0x0236, 0x02E0,
     0x039C, 0x0468, 0x0545, 0x0631, 0x072B, 0x0832, 0x0946, 0x0A67
     };
-static const uint32 sqrtEven[] = {
+static const uint32_t sqrtEven[] = {
     0x0A2D, 0x08AF, 0x075A, 0x0629, 0x051A, 0x0429, 0x0356, 0x029E,
     0x0200, 0x0179, 0x0109, 0x00AF, 0x0068, 0x0034, 0x0012, 0x0002
     };
@@ -747,7 +747,7 @@ else {
     z = (z >= 0x20000) ? 0xFFFF8000: (z << 15);
     if (z <= a) z = (a >> 1) | 0x80000000;
     }
-return (uint32) ((((((t_uint64) a) << 31) / ((t_uint64) z)) + (z >> 1)) & M32);
+return (uint32_t) ((((((t_uint64) a) << 31) / ((t_uint64) z)) + (z >> 1)) & M32);
 }
 
 /* Estimate 128b unsigned divide */

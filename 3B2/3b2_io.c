@@ -45,7 +45,7 @@
 #endif
 
 CIO_STATE cio[CIO_SLOTS] = {{0}};
-uint16 cio_int_req = 0; /* Bitset of card slots requesting interrupts */
+uint16_t cio_int_req = 0; /* Bitset of card slots requesting interrupts */
 
 #if defined(REV3)
 iolink iotable[] = {
@@ -92,16 +92,16 @@ iolink iotable[] = {
  *
  * If no room is availalbe, return SCPE_NXM.
  */
-t_stat cio_install(uint16 id,
+t_stat cio_install(uint16_t id,
                    CONST char *name,
-                   uint8 ipl,
-                   void (*exp_handler)(uint8 slot),
-                   void (*full_handler)(uint8 slot),
-                   void (*sysgen)(uint8 slot),
-                   void (*reset_handler)(uint8 slot),
-                   uint8 *slot)
+                   uint8_t ipl,
+                   void (*exp_handler)(uint8_t slot),
+                   void (*full_handler)(uint8_t slot),
+                   void (*sysgen)(uint8_t slot),
+                   void (*reset_handler)(uint8_t slot),
+                   uint8_t *slot)
 {
-    uint8 s;
+    uint8_t s;
 
     for (s = 0; s < CIO_SLOTS; s++) {
         sim_debug(EXECUTE_MSG, &cpu_dev,
@@ -132,7 +132,7 @@ t_stat cio_install(uint16 id,
 /*
  * Remove a CIO card from the specified backplane slot.
  */
-void cio_remove(uint8 slot)
+void cio_remove(uint8_t slot)
 {
     memset(&cio[slot], 0, sizeof(CIO_STATE));
     /*    cio[slot].populated = FALSE; */
@@ -142,7 +142,7 @@ void cio_remove(uint8 slot)
 /*
  * Remove all CIO cards of the matching type.
  */
-void cio_remove_all(uint16 id)
+void cio_remove_all(uint16_t id)
 {
     int i;
 
@@ -161,9 +161,9 @@ void cio_remove_all(uint16 id)
  * differentiate between desired functions without actually having to
  * disassemble and understand 80186 code!)
  */
-uint32 cio_crc32_shift(uint32 crc, uint8 data)
+uint32_t cio_crc32_shift(uint32_t crc, uint8_t data)
 {
-    uint8 i;
+    uint8_t i;
 
     crc = ~crc;
     crc ^= data;
@@ -178,9 +178,9 @@ uint32 cio_crc32_shift(uint32 crc, uint8 data)
     return ~crc;
 }
 
-void cio_sysgen(uint8 slot)
+void cio_sysgen(uint8_t slot)
 {
-    uint32 sysgen_p;
+    uint32_t sysgen_p;
 
     sysgen_p = pread_w(SYSGEN_PTR, BUS_PER);
 
@@ -226,9 +226,9 @@ void cio_sysgen(uint8 slot)
     }
 }
 
-void cio_cexpress(uint8 slot, uint32 esize, cio_entry *cqe, uint8 *app_data)
+void cio_cexpress(uint8_t slot, uint32_t esize, cio_entry *cqe, uint8_t *app_data)
 {
-    uint32 i, cqp;
+    uint32_t i, cqp;
 
     cqp = cio[slot].cqp;
 
@@ -251,11 +251,11 @@ void cio_cexpress(uint8 slot, uint32 esize, cio_entry *cqe, uint8 *app_data)
     }
 }
 
-void cio_cqueue(uint8 slot, uint8 cmd_stat, uint32 esize,
-                cio_entry *cqe, uint8 *app_data)
+void cio_cqueue(uint8_t slot, uint8_t cmd_stat, uint32_t esize,
+                cio_entry *cqe, uint8_t *app_data)
 {
-    uint32 i, cqp, top;
-    uint16 lp;
+    uint32_t i, cqp, top;
+    uint16_t lp;
 
     /* Apply the CMD/STAT bit */
     cqe->subdevice |= (cmd_stat << 7);
@@ -296,10 +296,10 @@ void cio_cqueue(uint8 slot, uint8 cmd_stat, uint32 esize,
 /*
  * Retrieve the Express Entry from the Request Queue
  */
-void cio_rexpress(uint8 slot, uint32 esize, cio_entry *rqe, uint8 *app_data)
+void cio_rexpress(uint8_t slot, uint32_t esize, cio_entry *rqe, uint8_t *app_data)
 {
-    uint32 i;
-    uint32 rqp;
+    uint32_t i;
+    uint32_t rqp;
 
     rqp = cio[slot].rqp;
 
@@ -323,11 +323,11 @@ void cio_rexpress(uint8 slot, uint32 esize, cio_entry *rqe, uint8 *app_data)
  * Returns SCPE_OK on success, or SCPE_NXM if no entry was found.
  *
  */
-t_stat cio_rqueue(uint8 slot, uint32 qnum, uint32 esize,
-                  cio_entry *rqe, uint8 *app_data)
+t_stat cio_rqueue(uint8_t slot, uint32_t qnum, uint32_t esize,
+                  cio_entry *rqe, uint8_t *app_data)
 {
-    uint32 i, rqp, top;
-    uint16 lp, ulp;
+    uint32_t i, rqp, top;
+    uint16_t lp, ulp;
 
     /* Get the physical address of the request queue in main memory */
     rqp = cio[slot].rqp +
@@ -370,9 +370,9 @@ t_stat cio_rqueue(uint8 slot, uint32 qnum, uint32 esize,
 /*
  * Return the Load Pointer for the given request queue
  */
-uint16 cio_r_lp(uint8 slot, uint32 qnum, uint32 esize)
+uint16_t cio_r_lp(uint8_t slot, uint32_t qnum, uint32_t esize)
 {
-    uint32 rqp;
+    uint32_t rqp;
 
     rqp = cio[slot].rqp +
         esize +
@@ -384,9 +384,9 @@ uint16 cio_r_lp(uint8 slot, uint32 qnum, uint32 esize)
 /*
  * Return the Unload Pointer for the given request queue
  */
-uint16 cio_r_ulp(uint8 slot, uint32 qnum, uint32 esize)
+uint16_t cio_r_ulp(uint8_t slot, uint32_t qnum, uint32_t esize)
 {
-    uint32 rqp;
+    uint32_t rqp;
 
     rqp = cio[slot].rqp +
         esize +
@@ -395,16 +395,16 @@ uint16 cio_r_ulp(uint8 slot, uint32 qnum, uint32 esize)
     return pread_h(rqp + 2, BUS_PER);
 }
 
-uint16 cio_c_lp(uint8 slot, uint32 esize)
+uint16_t cio_c_lp(uint8_t slot, uint32_t esize)
 {
-    uint32 cqp;
+    uint32_t cqp;
     cqp = cio[slot].cqp + esize;
     return pread_h(cqp, BUS_PER);
 }
 
-uint16 cio_c_ulp(uint8 slot, uint32 esize)
+uint16_t cio_c_ulp(uint8_t slot, uint32_t esize)
 {
-    uint32 cqp;
+    uint32_t cqp;
     cqp = cio[slot].cqp + esize;
     return pread_h(cqp + 2, BUS_PER);
 }
@@ -413,9 +413,9 @@ uint16 cio_c_ulp(uint8 slot, uint32 esize)
  * Returns true if there is room in the completion queue
  * for a new entry.
  */
-t_bool cio_cqueue_avail(uint8 slot, uint32 esize)
+t_bool cio_cqueue_avail(uint8_t slot, uint32_t esize)
 {
-    uint32 lp, ulp;
+    uint32_t lp, ulp;
 
     lp = pread_h(cio[slot].cqp + esize, BUS_PER);
     ulp = pread_h(cio[slot].cqp + esize + 2, BUS_PER);
@@ -423,9 +423,9 @@ t_bool cio_cqueue_avail(uint8 slot, uint32 esize)
     return(((lp + esize) % (cio[slot].cqs * esize)) != ulp);
 }
 
-t_bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize)
+t_bool cio_rqueue_avail(uint8_t slot, uint32_t qnum, uint32_t esize)
 {
-    uint32 rqp, lp, ulp;
+    uint32_t rqp, lp, ulp;
 
     /* Get the physical address of the request queue in main memory */
     rqp = cio[slot].rqp +
@@ -438,10 +438,10 @@ t_bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize)
     return(lp != ulp);
 }
 
-uint32 io_read(uint32 pa, size_t size)
+uint32_t io_read(uint32_t pa, size_t size)
 {
     iolink *p;
-    uint8 slot, reg, data;
+    uint8_t slot, reg, data;
 
 #if defined (REV3)
     if (pa >= VCACHE_BOTTOM && pa < VCACHE_TOP) {
@@ -619,10 +619,10 @@ uint32 io_read(uint32 pa, size_t size)
     return 0;
 }
 
-void io_write(uint32 pa, uint32 val, size_t size)
+void io_write(uint32_t pa, uint32_t val, size_t size)
 {
     iolink *p;
-    uint8 slot, reg;
+    uint8_t slot, reg;
 
 #if defined(REV3)
     if (pa >= VCACHE_BOTTOM && pa < VCACHE_TOP) {

@@ -39,7 +39,7 @@ static t_stat u39_reset(I8255* chip);
 static t_stat u39_calla(I8255* chip,int rw);
 static t_stat u39_callb(I8255* chip,int rw);
 static t_stat u39_callc(I8255* chip,int rw);
-static t_stat u39_ckmode(I8255* chip,uint32 data);
+static t_stat u39_ckmode(I8255* chip,uint32_t data);
 extern DEVICE sagelp_dev;
 
 /* The LP Centronics device in sage is implemented by a 8255 with the following settings:
@@ -172,7 +172,7 @@ static t_stat u39_callc(I8255* chip,int rw)
     return SCPE_OK;
 }
 
-static t_stat u39_ckmode(I8255* chip,uint32 data)
+static t_stat u39_ckmode(I8255* chip,uint32_t data)
 {
     TRACE_PRINT1(DBG_PP_MODE,"WR Mode: 0x%x",data);
     

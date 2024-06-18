@@ -73,19 +73,19 @@ dmac_dma_handler device_dma_handlers[] = {
     {0,            0,                   NULL,            NULL,             NULL }
 };
 
-uint32 dma_address(uint8 channel, uint32 offset) {
-    uint32 addr, page;
+uint32_t dma_address(uint8_t channel, uint32_t offset) {
+    uint32_t addr, page;
     if (DMA_DECR(channel)) {
-        addr = (PHYS_MEM_BASE + (uint32)(dma_state.channels[channel].addr) - offset);
+        addr = (PHYS_MEM_BASE + (uint32_t)(dma_state.channels[channel].addr) - offset);
     } else {
-        addr = (PHYS_MEM_BASE + (uint32)(dma_state.channels[channel].addr) + offset);
+        addr = (PHYS_MEM_BASE + (uint32_t)(dma_state.channels[channel].addr) + offset);
     }
 #if defined (REV3)
-    page = (uint32)dma_state.channels[channel].page;
+    page = (uint32_t)dma_state.channels[channel].page;
 #else
     /* In Rev 2, the top bit of the page address is a R/W bit, so
        we mask it here */
-    page = (uint32)dma_state.channels[channel].page & 0x7f;
+    page = (uint32_t)dma_state.channels[channel].page & 0x7f;
 #endif
     addr |= page << 16;
     return addr;
@@ -110,11 +110,11 @@ t_stat dmac_reset(DEVICE *dptr)
     return SCPE_OK;
 }
 
-uint32 dmac_read(uint32 pa, size_t size)
+uint32_t dmac_read(uint32_t pa, size_t size)
 {
-    uint8 reg, base, data;
+    uint8_t reg, base, data;
 
-    base = (uint8) (pa >> 12);
+    base = (uint8_t) (pa >> 12);
     reg = pa & 0xff;
 
     switch (base) {
@@ -202,9 +202,9 @@ uint32 dmac_read(uint32 pa, size_t size)
 /*
  * Program the DMAC
  */
-void dmac_program(uint8 reg, uint8 val)
+void dmac_program(uint8_t reg, uint8_t val)
 {
-    uint8 channel_id, i, chan_num;
+    uint8_t channel_id, i, chan_num;
     dma_channel *channel;
 
 #if defined(REV3)
@@ -339,9 +339,9 @@ void dmac_program(uint8 reg, uint8 val)
     }
 }
 
-void dmac_page_update(uint8 base, uint8 reg, uint8 val)
+void dmac_page_update(uint8_t base, uint8_t reg, uint8_t val)
 {
-    uint8 shift = 0;
+    uint8_t shift = 0;
 
     /* Sanity check */
     if (reg > 3) {
@@ -360,37 +360,37 @@ void dmac_page_update(uint8 base, uint8 reg, uint8 val)
     case DMA_ID:
         sim_debug(WRITE_MSG, &dmac_dev, "Set page channel 0 = %x\n", val);
         dma_state.channels[DMA_ID_CHAN].page &= ~(0xff << shift);
-        dma_state.channels[DMA_ID_CHAN].page |= ((uint16)val << shift);
+        dma_state.channels[DMA_ID_CHAN].page |= ((uint16_t)val << shift);
         break;
 #endif
     case DMA_IF:
         sim_debug(WRITE_MSG, &dmac_dev, "Set page channel 1 = %x\n", val);
         dma_state.channels[DMA_IF_CHAN].page &= ~(0xff << shift);
-        dma_state.channels[DMA_IF_CHAN].page |= ((uint16)val << shift);
+        dma_state.channels[DMA_IF_CHAN].page |= ((uint16_t)val << shift);
         break;
     case DMA_IUA:
         sim_debug(WRITE_MSG, &dmac_dev, "Set page channel 2 = %x\n", val);
         dma_state.channels[DMA_IUA_CHAN].page &= ~(0xff << shift);
-        dma_state.channels[DMA_IUA_CHAN].page |= ((uint16)val << shift);
+        dma_state.channels[DMA_IUA_CHAN].page |= ((uint16_t)val << shift);
         break;
     case DMA_IUB:
         sim_debug(WRITE_MSG, &dmac_dev, "Set page channel 3 = %x\n", val);
         dma_state.channels[DMA_IUB_CHAN].page &= ~(0xff << shift);
-        dma_state.channels[DMA_IUB_CHAN].page |= ((uint16)val << shift);
+        dma_state.channels[DMA_IUB_CHAN].page |= ((uint16_t)val << shift);
         break;
     }
 }
 
-void dmac_write(uint32 pa, uint32 val, size_t size)
+void dmac_write(uint32_t pa, uint32_t val, size_t size)
 {
-    uint8 reg, base;
+    uint8_t reg, base;
 
-    base = (uint8) (pa >> 12);
+    base = (uint8_t) (pa >> 12);
     reg = pa & 0xff;
 
     switch (base) {
     case DMA_C:
-        dmac_program(reg, (uint8) val);
+        dmac_program(reg, (uint8_t) val);
         break;
 #if defined (REV2)
     case DMA_ID:
@@ -398,16 +398,16 @@ void dmac_write(uint32 pa, uint32 val, size_t size)
     case DMA_IUA:
     case DMA_IUB:
     case DMA_IF:
-        dmac_page_update(base, reg, (uint8) val);
+        dmac_page_update(base, reg, (uint8_t) val);
         break;
     }
 }
 
-void dmac_generic_dma(uint8 channel, uint32 service_address)
+void dmac_generic_dma(uint8_t channel, uint32_t service_address)
 {
-    uint8 data;
+    uint8_t data;
     int32 i;
-    uint32 addr;
+    uint32_t addr;
     dma_channel *chan = &dma_state.channels[channel];
 
     i = chan->wcount_c;

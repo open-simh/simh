@@ -77,7 +77,7 @@
     }
 
 #define POP(x)  {                               \
-    register uint32 y = RAM_PP(SP);             \
+    register uint32_t y = RAM_PP(SP);             \
     x = y + (RAM_PP(SP) << 8);                  \
 }
 
@@ -91,7 +91,7 @@
 
 #define CALLC(cond) {                           \
     if (cond) {                                 \
-        register uint32 adrr = GET_WORD(PC);    \
+        register uint32_t adrr = GET_WORD(PC);    \
         PUSH(PC + 2);                           \
         PC = adrr;                              \
     } else {                                    \
@@ -105,10 +105,10 @@
 /* function prototypes */
 t_stat sim_instr_nommu(void);
 
-extern void out(const uint32 Port, const uint32 Value);
-extern uint32 in(const uint32 Port);
+extern void out(const uint32_t Port, const uint32_t Value);
+extern uint32_t in(const uint32_t Port);
 extern UNIT cpu_unit;
-extern uint32 PCX;  /* external view of PC                          */
+extern uint32_t PCX;  /* external view of PC                          */
 extern int32 AF_S;  /* AF register                                  */
 extern int32 BC_S;  /* BC register                                  */
 extern int32 DE_S;  /* DE register                                  */
@@ -156,7 +156,7 @@ extern int32 IR_S;  /* Interrupt (upper) / Refresh (lower) register */
 */
 
 /* parityTable[i] = (number of 1's in i is odd) ? 0 : 4, i = 0..255 */
-static const uint8 parityTable[256] = {
+static const uint8_t parityTable[256] = {
     4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,
     0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
     0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
@@ -176,7 +176,7 @@ static const uint8 parityTable[256] = {
 };
 
 /* incTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0) << 4), i = 0..256 */
-static const uint8 incTable[257] = {
+static const uint8_t incTable[257] = {
      80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -196,7 +196,7 @@ static const uint8 incTable[257] = {
 };
 
 /* decTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0xf) << 4) | 2, i = 0..255 */
-static const uint8 decTable[256] = {
+static const uint8_t decTable[256] = {
      66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -216,7 +216,7 @@ static const uint8 decTable[256] = {
 };
 
 /* cbitsTable[i] = (i & 0x10) | ((i >> 8) & 1), i = 0..511 */
-static const uint8 cbitsTable[512] = {
+static const uint8_t cbitsTable[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -253,7 +253,7 @@ static const uint8 cbitsTable[512] = {
 
 /* cbitsDup8Table[i] = (i & 0x10) | ((i >> 8) & 1) | ((i & 0xff) << 8) | (i & 0xa8) |
                                                 (((i & 0xff) == 0) << 6), i = 0..511 */
-static const uint16 cbitsDup8Table[512] = {
+static const uint16_t cbitsDup8Table[512] = {
     0x0040,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
     0x0808,0x0908,0x0a08,0x0b08,0x0c08,0x0d08,0x0e08,0x0f08,
     0x1010,0x1110,0x1210,0x1310,0x1410,0x1510,0x1610,0x1710,
@@ -321,7 +321,7 @@ static const uint16 cbitsDup8Table[512] = {
 };
 
 /* cbitsDup16Table[i] = (i & 0x10) | ((i >> 8) & 1) | (i & 0x28), i = 0..511 */
-static const uint8 cbitsDup16Table[512] = {
+static const uint8_t cbitsDup16Table[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8,
     16,16,16,16,16,16,16,16,24,24,24,24,24,24,24,24,
     32,32,32,32,32,32,32,32,40,40,40,40,40,40,40,40,
@@ -357,7 +357,7 @@ static const uint8 cbitsDup16Table[512] = {
 };
 
 /* cbits2Table[i] = (i & 0x10) | ((i >> 8) & 1) | 2, i = 0..511 */
-static const uint8 cbits2Table[512] = {
+static const uint8_t cbits2Table[512] = {
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -393,7 +393,7 @@ static const uint8 cbits2Table[512] = {
 };
 
 /* rrcaTable[i] = ((i & 1) << 15) | ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1), i = 0..255 */
-static const uint16 rrcaTable[256] = {
+static const uint16_t rrcaTable[256] = {
     0x0000,0x8001,0x0100,0x8101,0x0200,0x8201,0x0300,0x8301,
     0x0400,0x8401,0x0500,0x8501,0x0600,0x8601,0x0700,0x8701,
     0x0808,0x8809,0x0908,0x8909,0x0a08,0x8a09,0x0b08,0x8b09,
@@ -429,7 +429,7 @@ static const uint16 rrcaTable[256] = {
 };
 
 /* rraTable[i] = ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1), i = 0..255 */
-static const uint16 rraTable[256] = {
+static const uint16_t rraTable[256] = {
     0x0000,0x0001,0x0100,0x0101,0x0200,0x0201,0x0300,0x0301,
     0x0400,0x0401,0x0500,0x0501,0x0600,0x0601,0x0700,0x0701,
     0x0808,0x0809,0x0908,0x0909,0x0a08,0x0a09,0x0b08,0x0b09,
@@ -465,7 +465,7 @@ static const uint16 rraTable[256] = {
 };
 
 /* addTable[i] = ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6), i = 0..511 */
-static const uint16 addTable[512] = {
+static const uint16_t addTable[512] = {
     0x0040,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
     0x0808,0x0908,0x0a08,0x0b08,0x0c08,0x0d08,0x0e08,0x0f08,
     0x1000,0x1100,0x1200,0x1300,0x1400,0x1500,0x1600,0x1700,
@@ -533,7 +533,7 @@ static const uint16 addTable[512] = {
 };
 
 /* subTable[i] = ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | 2, i = 0..255 */
-static const uint16 subTable[256] = {
+static const uint16_t subTable[256] = {
     0x0042,0x0102,0x0202,0x0302,0x0402,0x0502,0x0602,0x0702,
     0x080a,0x090a,0x0a0a,0x0b0a,0x0c0a,0x0d0a,0x0e0a,0x0f0a,
     0x1002,0x1102,0x1202,0x1302,0x1402,0x1502,0x1602,0x1702,
@@ -569,7 +569,7 @@ static const uint16 subTable[256] = {
 };
 
 /* andTable[i] = (i << 8) | (i & 0xa8) | ((i == 0) << 6) | 0x10 | parityTable[i], i = 0..255 */
-static const uint16 andTable[256] = {
+static const uint16_t andTable[256] = {
     0x0054,0x0110,0x0210,0x0314,0x0410,0x0514,0x0614,0x0710,
     0x0818,0x091c,0x0a1c,0x0b18,0x0c1c,0x0d18,0x0e18,0x0f1c,
     0x1010,0x1114,0x1214,0x1310,0x1414,0x1510,0x1610,0x1714,
@@ -605,7 +605,7 @@ static const uint16 andTable[256] = {
 };
 
 /* xororTable[i] = (i << 8) | (i & 0xa8) | ((i == 0) << 6) | parityTable[i], i = 0..255 */
-static const uint16 xororTable[256] = {
+static const uint16_t xororTable[256] = {
     0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,
     0x0808,0x090c,0x0a0c,0x0b08,0x0c0c,0x0d08,0x0e08,0x0f0c,
     0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,
@@ -641,7 +641,7 @@ static const uint16 xororTable[256] = {
 };
 
 /* rotateShiftTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i & 0xff], i = 0..255 */
-static const uint8 rotateShiftTable[256] = {
+static const uint8_t rotateShiftTable[256] = {
      68,  0,  0,  4,  0,  4,  4,  0,  8, 12, 12,  8, 12,  8,  8, 12,
       0,  4,  4,  0,  4,  0,  0,  4, 12,  8,  8, 12,  8, 12, 12,  8,
      32, 36, 36, 32, 36, 32, 32, 36, 44, 40, 40, 44, 40, 44, 44, 40,
@@ -662,7 +662,7 @@ static const uint8 rotateShiftTable[256] = {
 
 /* incZ80Table[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) |
                                             (((i & 0xf) == 0) << 4) | ((i == 0x80) << 2), i = 0..256 */
-static const uint8 incZ80Table[257] = {
+static const uint8_t incZ80Table[257] = {
      80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -683,7 +683,7 @@ static const uint8 incZ80Table[257] = {
 
 /* decZ80Table[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) |
                                             (((i & 0xf) == 0xf) << 4) | ((i == 0x7f) << 2) | 2, i = 0..255 */
-static const uint8 decZ80Table[256] = {
+static const uint8_t decZ80Table[256] = {
      66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -703,7 +703,7 @@ static const uint8 decZ80Table[256] = {
 };
 
 /* cbitsZ80Table[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1), i = 0..511 */
-static const uint8 cbitsZ80Table[512] = {
+static const uint8_t cbitsZ80Table[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -740,7 +740,7 @@ static const uint8 cbitsZ80Table[512] = {
 
 /* cbitsZ80DupTable[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) |
                                                         ((i >> 8) & 1) | (i & 0xa8), i = 0..511 */
-static const uint8 cbitsZ80DupTable[512] = {
+static const uint8_t cbitsZ80DupTable[512] = {
       0,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24,
      32, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -776,7 +776,7 @@ static const uint8 cbitsZ80DupTable[512] = {
 };
 
 /* cbits2Z80Table[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2, i = 0..511 */
-static const uint8 cbits2Z80Table[512] = {
+static const uint8_t cbits2Z80Table[512] = {
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -813,7 +813,7 @@ static const uint8 cbits2Z80Table[512] = {
 
 /* cbits2Z80DupTable[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2 |
                                                         (i & 0xa8), i = 0..511 */
-static const uint8 cbits2Z80DupTable[512] = {
+static const uint8_t cbits2Z80DupTable[512] = {
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 10,
      18, 18, 18, 18, 18, 18, 18, 18, 26, 26, 26, 26, 26, 26, 26, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 42,
@@ -849,7 +849,7 @@ static const uint8 cbits2Z80DupTable[512] = {
 };
 
 /* negTable[i] = (((i & 0x0f) != 0) << 4) | ((i == 0x80) << 2) | 2 | (i != 0), i = 0..255 */
-static const uint8 negTable[256] = {
+static const uint8_t negTable[256] = {
      2,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
      3,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
      3,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
@@ -869,7 +869,7 @@ static const uint8 negTable[256] = {
 };
 
 /* rrdrldTable[i] = (i << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i], i = 0..255 */
-static const uint16 rrdrldTable[256] = {
+static const uint16_t rrdrldTable[256] = {
     0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,
     0x0808,0x090c,0x0a0c,0x0b08,0x0c0c,0x0d08,0x0e08,0x0f0c,
     0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,
@@ -905,7 +905,7 @@ static const uint16 rrdrldTable[256] = {
 };
 
 /* cpTable[i] = (i & 0x80) | (((i & 0xff) == 0) << 6), i = 0..255 */
-static const uint8 cpTable[256] = {
+static const uint8_t cpTable[256] = {
      64,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -926,22 +926,22 @@ static const uint8 cpTable[256] = {
 
 /* Memory management    */
 
-uint8 MOPT[MAXBANKSIZE]; /* RAM which is present */
+uint8_t MOPT[MAXBANKSIZE]; /* RAM which is present */
 
-static uint8 GET_BYTE(register uint32 Addr) {
+static uint8_t GET_BYTE(register uint32_t Addr) {
     return MOPT[Addr & ADDRMASK];
 }
 
-static void PUT_BYTE(register uint32 Addr, register uint32 Value) {
+static void PUT_BYTE(register uint32_t Addr, register uint32_t Value) {
     MOPT[Addr & ADDRMASK] = Value;
 }
 
-static void PUT_WORD(register uint32 Addr, register uint32 Value) {
+static void PUT_WORD(register uint32_t Addr, register uint32_t Value) {
     MOPT[Addr & ADDRMASK] = Value;
     MOPT[(Addr + 1) & ADDRMASK] = Value >> 8;
 }
 
-static uint16 GET_WORD(register uint32 a) {
+static uint16_t GET_WORD(register uint32_t a) {
     return GET_BYTE(a) | (GET_BYTE(a + 1) << 8);
 }
 
@@ -986,20 +986,20 @@ static uint16 GET_WORD(register uint32 a) {
 
 t_stat sim_instr_nommu(void) {
     int32 reason = SCPE_OK;
-    register uint32 AF;
-    register uint32 BC;
-    register uint32 DE;
-    register uint32 HL;
-    register uint32 PC;
-    register uint32 SP;
-    register uint32 IX;
-    register uint32 IY;
-    register uint32 temp = 0;
-    register uint32 acu = 0;
-    register uint32 sum;
-    register uint32 cbits;
-    register uint32 op;
-    register uint32 adr;
+    register uint32_t AF;
+    register uint32_t BC;
+    register uint32_t DE;
+    register uint32_t HL;
+    register uint32_t PC;
+    register uint32_t SP;
+    register uint32_t IX;
+    register uint32_t IY;
+    register uint32_t temp = 0;
+    register uint32_t acu = 0;
+    register uint32_t sum;
+    register uint32_t cbits;
+    register uint32_t op;
+    register uint32_t adr;
     register int32 l_sim_brk_summ;
 
     AF = AF_S;

@@ -16,10 +16,10 @@
 
 /*----------------------------------------------------------------------------
 | Each of the following `typedef's defines the most convenient type that holds
-| integers of at least as many bits as specified.  For example, `uint8' should
+| integers of at least as many bits as specified.  For example, `uint8_t' should
 | be the most convenient type that can hold unsigned integers of as many as
 | 8 bits.  The `flag' type must be able to hold either a 0 or 1.  For most
-| implementations of C, `flag', `uint8', and `int8' should all be `typedef'ed
+| implementations of C, `flag', `uint8_t', and `int8' should all be `typedef'ed
 | to the same as `int'.
 *----------------------------------------------------------------------------*/
 
@@ -32,11 +32,11 @@ typedef sint64 int64;
 | implementation of C, `bits16' and `sbits16' should be `typedef'ed to
 | `unsigned short int' and `signed short int' (or `short int'), respectively.
 *----------------------------------------------------------------------------*/
-typedef uint8 bits8;
+typedef uint8_t bits8;
 typedef sint8 sbits8;
-typedef uint16 bits16;
+typedef uint16_t bits16;
 typedef sint16 sbits16;
-typedef uint32 bits32;
+typedef uint32_t bits32;
 typedef sint32 sbits32;
 typedef uint64 bits64;
 typedef sint64 sbits64;

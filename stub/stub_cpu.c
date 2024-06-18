@@ -31,7 +31,7 @@
 #define DBG_CPU         0001
 
 /* CPU state. */
-static uint16 PC;
+static uint16_t PC;
 
 /* Function declaration. */
 static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32 sw);

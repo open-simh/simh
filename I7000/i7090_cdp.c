@@ -88,11 +88,11 @@ DEVICE              cdp_dev = {
 */
 
 
-uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
-    extern uint16   IC;
+    extern uint16_t   IC;
 
     if ((uptr->flags & UNIT_ATT) != 0 && cmd == IO_WRS) {
         /* Start device */
@@ -121,7 +121,7 @@ t_stat cdp_srv(UNIT * uptr)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t             *image = (uint16_t *)(uptr->up7);
     int                 pos;
     t_uint64            wd;
     int                 bit;
@@ -259,7 +259,7 @@ cdp_attach(UNIT * uptr, CONST char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = calloc(80, sizeof(uint16));
+        uptr->up7 = calloc(80, sizeof(uint16_t));
         uptr->u5 = CDPSTA_POSMASK;
     }
     return SCPE_OK;

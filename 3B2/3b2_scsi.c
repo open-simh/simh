@@ -43,19 +43,19 @@
 #define HA_SCSI_ID      0
 #define HA_MAXFR        (1u << 16)
 
-static void ha_cmd(uint8 op, uint8 subdev, uint32 addr,
+static void ha_cmd(uint8_t op, uint8_t subdev, uint32_t addr,
                    int32 len, t_bool express);
-static void ha_build_req(uint8 tc, uint8 subdev, t_bool express);
-static void ha_ctrl(uint8 tc);
+static void ha_build_req(uint8_t tc, uint8_t subdev, t_bool express);
+static void ha_ctrl(uint8_t tc);
 
 
 HA_STATE ha_state;
 SCSI_BUS ha_bus;
-uint8    *ha_buf;
+uint8_t    *ha_buf;
 int8     ha_subdev_tab[8];    /* Map of subdevice to SCSI target */
-uint8    ha_subdev_cnt;
-uint32   ha_crc = 0;
-uint32   cq_offset = 0;
+uint8_t    ha_subdev_cnt;
+uint32_t   ha_crc = 0;
+uint32_t   cq_offset = 0;
 t_bool   ha_conf = FALSE;
 
 static struct scsi_dev_t ha_tab[] = {
@@ -147,7 +147,7 @@ DEVICE ha_dev = {
     NULL,
 };
 
-void ha_cio_reset(uint8 slot)
+void ha_cio_reset(uint8_t slot)
 {
     sim_debug(HA_TRACE, &ha_dev,
               "Handling CIO reset\n");
@@ -157,15 +157,15 @@ void ha_cio_reset(uint8 slot)
 
 t_stat ha_reset(DEVICE *dptr)
 {
-    uint8 slot;
-    uint32 t, dtyp;
+    uint8_t slot;
+    uint32_t t, dtyp;
     UNIT *uptr;
     t_stat r;
 
     ha_state.pump_state = PUMP_NONE;
 
     if (ha_buf == NULL) {
-        ha_buf = (uint8 *)calloc(HA_MAXFR, sizeof(uint8));
+        ha_buf = (uint8_t *)calloc(HA_MAXFR, sizeof(uint8_t));
     }
 
     r = scsi_init(&ha_bus, HA_MAXFR);
@@ -211,7 +211,7 @@ t_stat ha_reset(DEVICE *dptr)
 
 static void ha_calc_subdevs()
 {
-    uint32 tc;
+    uint32_t tc;
     UNIT *uptr;
 
     ha_subdev_cnt = 0;
@@ -245,9 +245,9 @@ t_stat ha_detach(UNIT *uptr)
 t_stat ha_svc(UNIT *uptr)
 {
     cio_entry cqe;
-    uint8 capp_data[CAPP_LEN] = {0};
+    uint8_t capp_data[CAPP_LEN] = {0};
     int8 i, tc = -1;
-    uint8 svc_req = 0;
+    uint8_t svc_req = 0;
     ha_req *req = NULL;
     ha_resp *rep = NULL;
 
@@ -327,10 +327,10 @@ t_stat ha_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-void ha_sysgen(uint8 slot)
+void ha_sysgen(uint8_t slot)
 {
-    uint32 sysgen_p;
-    uint32 alert_buf_p;
+    uint32_t sysgen_p;
+    uint32_t alert_buf_p;
 
     cq_offset = 0;
 
@@ -370,8 +370,8 @@ void ha_sysgen(uint8 slot)
 
 void ha_fast_queue_check()
 {
-    uint8 busy, op, subdev;
-    uint32 addr, len, rqp;
+    uint8_t busy, op, subdev;
+    uint32_t addr, len, rqp;
 
     rqp = cio[ha_state.slot].rqp;
 
@@ -391,10 +391,10 @@ void ha_fast_queue_check()
     }
 }
 
-void ha_express(uint8 slot)
+void ha_express(uint8_t slot)
 {
     cio_entry rqe;
-    uint8 rapp_data[RAPP_LEN] = {0};
+    uint8_t rapp_data[RAPP_LEN] = {0};
 
     if (ha_state.frq) {
         ha_fast_queue_check();
@@ -409,7 +409,7 @@ void ha_express(uint8 slot)
     }
 }
 
-void ha_full(uint8 slot)
+void ha_full(uint8_t slot)
 {
     sim_debug(HA_TRACE, &ha_dev,
               "[ha_full] Handling Full Request (INT3)\n");
@@ -429,12 +429,12 @@ void ha_full(uint8 slot)
     }
 }
 
-static void ha_boot_disk(UNIT *uptr, uint8 tc)
+static void ha_boot_disk(UNIT *uptr, uint8_t tc)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i, boot_loc;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i, boot_loc;
 
     /* Read in the Physical Descriptor (PD) block (block 0) */
     r = sim_disk_rdsect(uptr, 0, buf, &sectsread, 1);
@@ -483,12 +483,12 @@ static void ha_boot_disk(UNIT *uptr, uint8 tc)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_boot_tape(UNIT *uptr, uint8 tc)
+static void ha_boot_tape(UNIT *uptr, uint8_t tc)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     if (!(uptr->flags & UNIT_ATT)) {
         sim_debug(HA_TRACE, &ha_dev,
@@ -538,12 +538,12 @@ static void ha_boot_tape(UNIT *uptr, uint8 tc)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_read_block_tape(UNIT *uptr, uint32 addr, uint8 tc)
+static void ha_read_block_tape(UNIT *uptr, uint32_t addr, uint8_t tc)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     if (!(uptr->flags & UNIT_ATT)) {
         sim_debug(HA_TRACE, &ha_dev,
@@ -575,12 +575,12 @@ static void ha_read_block_tape(UNIT *uptr, uint32 addr, uint8 tc)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_read_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
+static void ha_read_block_disk(UNIT *uptr, uint32_t addr, uint8_t tc, uint32_t lba)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     r = sim_disk_rdsect(uptr, lba, buf, &sectsread, 1);
 
@@ -606,12 +606,12 @@ static void ha_read_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_write_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
+static void ha_write_block_disk(UNIT *uptr, uint32_t addr, uint8_t tc, uint32_t lba)
 {
     t_seccnt sectswritten;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     for (i = 0 ; i < HA_BLKSZ; i++) {
         buf[i] = pread_b(addr + i, BUS_PER);
@@ -633,12 +633,12 @@ static void ha_write_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_build_req(uint8 tc, uint8 subdev, t_bool express)
+static void ha_build_req(uint8_t tc, uint8_t subdev, t_bool express)
 {
-    uint32 i, rqp, ptr, dma_lst, daddr_ptr;
-    uint32 len, addr;
+    uint32_t i, rqp, ptr, dma_lst, daddr_ptr;
+    uint32_t len, addr;
     cio_entry rqe;
-    uint8 rapp_data[RAPP_LEN] = {0};
+    uint8_t rapp_data[RAPP_LEN] = {0};
 
     /*
      * There are two possible ways to get the SCSI command we've
@@ -756,7 +756,7 @@ static void ha_build_req(uint8 tc, uint8 subdev, t_bool express)
     }
 }
 
-static SIM_INLINE void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, t_bool express)
+static SIM_INLINE void ha_cmd_prep(uint8_t tc, uint8_t op, uint8_t subdev, t_bool express)
 {
     ha_state.ts[tc].pending = TRUE;
     ha_state.ts[tc].rep.op = op;
@@ -779,12 +779,12 @@ static SIM_INLINE void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, t_bool expr
     }
 }
 
-static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool express)
+static void ha_cmd(uint8_t op, uint8_t subdev, uint32_t addr, int32 len, t_bool express)
 {
     int32 i, block;
     UNIT *uptr;
     SCSI_DEV *dev;
-    uint8 dsd_tc, tc;
+    uint8_t dsd_tc, tc;
 
     sim_debug(HA_TRACE, &ha_dev,
               "[ha_cmd] --------------------------[START]---------------------------------\n");
@@ -1187,16 +1187,16 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool expres
 /*
  * Handle a raw SCSI control message.
  */
-void ha_ctrl(uint8 tc)
+void ha_ctrl(uint8_t tc)
 {
     volatile t_bool txn_done;
-    uint32 i, j;
-    uint32 plen, ha_ptr;
-    uint32 in_len, out_len;
-    uint8 lu, status;
-    uint8 msgi_buf[64];
-    uint32 msgi_len;
-    uint32 to_read;
+    uint32_t i, j;
+    uint32_t plen, ha_ptr;
+    uint32_t in_len, out_len;
+    uint8_t lu, status;
+    uint8_t msgi_buf[64];
+    uint32_t msgi_len;
+    uint32_t to_read;
 
     sim_debug(HA_TRACE, &ha_dev,
               "[ha_ctrl] [HA_REQ] TC=%d LU=%d TIMEOUT=%d DLEN=%d\n",
@@ -1404,9 +1404,9 @@ void ha_ctrl(uint8 tc)
     scsi_release(&ha_bus);
 }
 
-void ha_fcm_express(uint8 tc)
+void ha_fcm_express(uint8_t tc)
 {
-    uint32 cqp, cqs;
+    uint32_t cqp, cqs;
 
     cqp = cio[ha_state.slot].cqp;
     cqs = cio[ha_state.slot].cqs;

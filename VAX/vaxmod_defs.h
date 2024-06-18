@@ -124,7 +124,7 @@
 #define MAXMEMSIZE_X    (1 << MAXMEMWIDTH_X)
 #define INITMEMSIZE     (1 << 24)                       /* initial memory size */
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < MEMSIZE)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < MEMSIZE)
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 24), NULL, "16M", &cpu_set_size, NULL, NULL, "Set Memory to 16M bytes" },              \
                         { UNIT_MSIZE, (1u << 25), NULL, "32M", &cpu_set_size, NULL, NULL, "Set Memory to 32M bytes" },              \
                         { UNIT_MSIZE, (1u << 25) + (1u << 24), NULL, "48M", &cpu_set_size, NULL, NULL, "Set Memory to 48M bytes" }, \
@@ -156,8 +156,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define CDG_GETTAG(x)   (((x) >> CDAAWIDTH) & CTGMASK)
 #define CTG_V           (1u << (CTGAWIDTH + 0))         /* tag valid */
 #define CTG_WP          (1u << (CTGAWIDTH + 1))         /* wrong parity */
-#define ADDR_IS_CDG(x)  ((((uint32) (x)) >= CDGBASE) && \
-                        (((uint32) (x)) < (CDGBASE + CDGSIZE)))
+#define ADDR_IS_CDG(x)  ((((uint32_t) (x)) >= CDGBASE) && \
+                        (((uint32_t) (x)) < (CDGBASE + CDGSIZE)))
 
 /* Qbus I/O registers */
 
@@ -165,8 +165,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define IOPAGESIZE      (1u << IOPAGEAWIDTH)            /* IO page length */
 #define IOPAGEMASK      (IOPAGESIZE - 1)                /* IO addr mask */
 #define IOPAGEBASE      0x20000000                      /* IO page base */
-#define ADDR_IS_IOP(x)  ((((uint32) (x)) >= IOPAGEBASE) && \
-                        (((uint32) (x)) < (IOPAGEBASE + IOPAGESIZE)))
+#define ADDR_IS_IOP(x)  ((((uint32_t) (x)) >= IOPAGEBASE) && \
+                        (((uint32_t) (x)) < (IOPAGEBASE + IOPAGESIZE)))
 
 /* Read only memory - appears twice */
 
@@ -174,8 +174,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define ROMSIZE         (1u << ROMAWIDTH)               /* ROM length */
 #define ROMAMASK        (ROMSIZE - 1)                   /* ROM addr mask */
 #define ROMBASE         0x20040000                      /* ROM base */
-#define ADDR_IS_ROM(x)  ((((uint32) (x)) >= ROMBASE) && \
-                        (((uint32) (x)) < (ROMBASE + ROMSIZE + ROMSIZE)))
+#define ADDR_IS_ROM(x)  ((((uint32_t) (x)) >= ROMBASE) && \
+                        (((uint32_t) (x)) < (ROMBASE + ROMSIZE + ROMSIZE)))
 
 /* Local register space */
 
@@ -217,8 +217,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define NVRSIZE         (1u << NVRAWIDTH)               /* NVR length */
 #define NVRAMASK        (NVRSIZE - 1)                   /* NVR addr mask */
 #define NVRBASE         0x20140400                      /* NVR base */
-#define ADDR_IS_NVR(x)  ((((uint32) (x)) >= NVRBASE) && \
-                        (((uint32) (x)) < (NVRBASE + NVRSIZE)))
+#define ADDR_IS_NVR(x)  ((((uint32_t) (x)) >= NVRBASE) && \
+                        (((uint32_t) (x)) < (NVRBASE + NVRSIZE)))
 
 /* CQBIC Qbus memory space (seen from CVAX) */
 
@@ -226,8 +226,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define CQMSIZE         (1u << CQMAWIDTH)               /* Qmem length */
 #define CQMAMASK        (CQMSIZE - 1)                   /* Qmem addr mask */
 #define CQMBASE         0x30000000                      /* Qmem base */
-#define ADDR_IS_CQM(x)  ((((uint32) (x)) >= CQMBASE) && \
-                        (((uint32) (x)) < (CQMBASE + CQMSIZE)))
+#define ADDR_IS_CQM(x)  ((((uint32_t) (x)) >= CQMBASE) && \
+                        (((uint32_t) (x)) < (CQMBASE + CQMSIZE)))
 
 /* Reflect to IO on either IO space or Qbus memory */
 
@@ -240,9 +240,9 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define QVMAMASK        (QVMSIZE - 1)                   /* QVSS mem addr mask */
 #define QVMBASE         (CQMBASE + CQMSIZE - QVMSIZE)   /* QVSS mem base - end of Qbus memory space */
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
-                         (((uint32) (x)) >= QVMBASE) && \
-                         (((uint32) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32 *vc_buf;
+                         (((uint32_t) (x)) >= QVMBASE) && \
+                         (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
+extern uint32_t *vc_buf;
 
 /* Machine specific reserved operand tests (mostly NOPs) */
 
@@ -302,15 +302,15 @@ extern uint32 *vc_buf;
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
+    uint32_t              ba;                             /* base addr */
+    uint32_t              lnt;                            /* length */
     t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
     t_stat              (*wr)(int32 dat, int32 ad, int32 md);
     int32               vnum;                           /* vectors: number */
     int32               vloc;                           /* locator */
     int32               vec;                            /* value */
     int32               (*ack[VEC_DEVMAX])(void);       /* ack routine */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t              ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
     int32               numc;                           /* Number of controllers */
@@ -456,10 +456,10 @@ typedef struct {
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf);
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf);
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf);
 
 #include "pdp11_io_lib.h"
 
@@ -468,10 +468,10 @@ extern t_stat sysd_show_halt (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 
 /* Function prototypes for system-specific unaligned support */
 
-int32 ReadIOU (uint32 pa, int32 lnt);
-int32 ReadRegU (uint32 pa, int32 lnt);
-void WriteIOU (uint32 pa, int32 val, int32 lnt);
-void WriteRegU (uint32 pa, int32 val, int32 lnt);
+int32 ReadIOU (uint32_t pa, int32 lnt);
+int32 ReadRegU (uint32_t pa, int32 lnt);
+void WriteIOU (uint32_t pa, int32 val, int32 lnt);
+void WriteRegU (uint32_t pa, int32 val, int32 lnt);
 
 /* Function prototypes for virtual and physical memory interface (inlined) */
 

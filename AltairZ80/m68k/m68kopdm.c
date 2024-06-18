@@ -388,7 +388,7 @@ void m68k_op_divs_16_d(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -426,7 +426,7 @@ void m68k_op_divs_16_ai(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -464,7 +464,7 @@ void m68k_op_divs_16_pi(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -502,7 +502,7 @@ void m68k_op_divs_16_pd(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -540,7 +540,7 @@ void m68k_op_divs_16_di(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -578,7 +578,7 @@ void m68k_op_divs_16_ix(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -616,7 +616,7 @@ void m68k_op_divs_16_aw(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -654,7 +654,7 @@ void m68k_op_divs_16_al(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -692,7 +692,7 @@ void m68k_op_divs_16_pcdi(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -730,7 +730,7 @@ void m68k_op_divs_16_pcix(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;
@@ -768,7 +768,7 @@ void m68k_op_divs_16_i(void)
 
     if(src != 0)
     {
-        if((uint32)*r_dst == 0x80000000 && src == -1)
+        if((uint32_t)*r_dst == 0x80000000 && src == -1)
         {
             FLAG_Z = 0;
             FLAG_N = NFLAG_CLEAR;

@@ -44,24 +44,24 @@
 /* I/O device definition block */
 
 typedef struct {
-    uint32      dva;                                    /* dev addr (chan+dev) */
-    uint32      (*disp)(uint32 op, uint32 dva, uint32 *dvst);
-    uint32      dio;                                    /* dev addr (direct IO) */
-    uint32      (*dio_disp)(uint32 op, uint32 rn, uint32 dva);
+    uint32_t      dva;                                    /* dev addr (chan+dev) */
+    uint32_t      (*disp)(uint32_t op, uint32_t dva, uint32_t *dvst);
+    uint32_t      dio;                                    /* dev addr (direct IO) */
+    uint32_t      (*dio_disp)(uint32_t op, uint32_t rn, uint32_t dva);
     } dib_t;
 
 /* Channel data structure */
 
 typedef struct {
-    uint32      clc[CHAN_N_DEV];                        /* location counter */
-    uint32      ba[CHAN_N_DEV];                         /* mem addr */
-    uint16      bc[CHAN_N_DEV];                         /* byte count */
-    uint8       cmd[CHAN_N_DEV];                        /* command */
-    uint8       cmf[CHAN_N_DEV];                        /* command flags */
-    uint16      chf[CHAN_N_DEV];                        /* channel flags */
-    uint8       chi[CHAN_N_DEV];                        /* interrupts */
-    uint8       chsf[CHAN_N_DEV];                       /* simulator flags */
-    uint32      (*disp[CHAN_N_DEV])(uint32 op, uint32 dva, uint32 *dvst);
+    uint32_t      clc[CHAN_N_DEV];                        /* location counter */
+    uint32_t      ba[CHAN_N_DEV];                         /* mem addr */
+    uint16_t      bc[CHAN_N_DEV];                         /* byte count */
+    uint8_t       cmd[CHAN_N_DEV];                        /* command */
+    uint8_t       cmf[CHAN_N_DEV];                        /* command flags */
+    uint16_t      chf[CHAN_N_DEV];                        /* channel flags */
+    uint8_t       chi[CHAN_N_DEV];                        /* interrupts */
+    uint8_t       chsf[CHAN_N_DEV];                       /* simulator flags */
+    uint32_t      (*disp[CHAN_N_DEV])(uint32_t op, uint32_t dva, uint32_t *dvst);
     } chan_t;
 
 /* Channel command words */
@@ -246,25 +246,25 @@ typedef struct {
 
 /* Function prototypes */
 
-uint32 chan_get_cmd (uint32 dva, uint32 *cmd);
-uint32 chan_set_chf (uint32 dva, uint32 fl);
-t_bool chan_tst_cmf (uint32 dva, uint32 fl);
-void chan_set_chi (uint32 dva, uint32 fl);
-void chan_set_dvi (uint32 dva);
-int32 chan_clr_chi (uint32 dva);
-int32 chan_chk_chi (uint32 dva);
-t_bool chan_chk_dvi (uint32 dva);
-uint32 chan_set_cm (uint32 dva);
-uint32 chan_end (uint32 dva);
-uint32 chan_uen (uint32 dva);
-uint32 chan_RdMemB (uint32 dva, uint32 *dat);
-uint32 chan_WrMemB (uint32 dva, uint32 dat);
-uint32 chan_WrMemBR (uint32 dva, uint32 dat);
-uint32 chan_RdMemW (uint32 dva, uint32 *dat);
-uint32 chan_WrMemW (uint32 dva, uint32 dat);
-t_stat chan_reset_dev (uint32 dva);
-void io_sclr_req (uint32 inum, uint32 val);
-void io_sclr_arm (uint32 inum, uint32 val);
+uint32_t chan_get_cmd (uint32_t dva, uint32_t *cmd);
+uint32_t chan_set_chf (uint32_t dva, uint32_t fl);
+t_bool chan_tst_cmf (uint32_t dva, uint32_t fl);
+void chan_set_chi (uint32_t dva, uint32_t fl);
+void chan_set_dvi (uint32_t dva);
+int32 chan_clr_chi (uint32_t dva);
+int32 chan_chk_chi (uint32_t dva);
+t_bool chan_chk_dvi (uint32_t dva);
+uint32_t chan_set_cm (uint32_t dva);
+uint32_t chan_end (uint32_t dva);
+uint32_t chan_uen (uint32_t dva);
+uint32_t chan_RdMemB (uint32_t dva, uint32_t *dat);
+uint32_t chan_WrMemB (uint32_t dva, uint32_t dat);
+uint32_t chan_WrMemBR (uint32_t dva, uint32_t dat);
+uint32_t chan_RdMemW (uint32_t dva, uint32_t *dat);
+uint32_t chan_WrMemW (uint32_t dva, uint32_t dat);
+t_stat chan_reset_dev (uint32_t dva);
+void io_sclr_req (uint32_t inum, uint32_t val);
+void io_sclr_arm (uint32_t inum, uint32_t val);
 t_stat io_set_dvc (UNIT* uptr, int32 val, CONST char *cptr, void *desc);
 t_stat io_show_dvc (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat io_set_dva (UNIT* uptr, int32 val, CONST char *cptr, void *desc);
@@ -276,6 +276,6 @@ t_stat io_boot (int32 u, DEVICE *dptr);
 
 t_stat rtc_set_tps (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat rtc_show_tps (FILE *of, UNIT *uptr, int32 val, CONST void *desc);
-t_stat rtc_register (uint32 tm, uint32 idx, UNIT *uptr);
+t_stat rtc_register (uint32_t tm, uint32_t idx, UNIT *uptr);
 
 #endif

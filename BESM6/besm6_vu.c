@@ -251,7 +251,7 @@ t_stat vu_detach (UNIT *u)
 /*
  * Controlling the card reader.
  */
-void vu_control (int num, uint32 cmd)
+void vu_control (int num, uint32_t cmd)
 {
     UNIT *u = &vu_unit[num];
     if (vu_dev.dctrl)

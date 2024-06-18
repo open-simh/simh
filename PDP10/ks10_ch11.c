@@ -74,10 +74,10 @@
 #define DBG_INT  0x0010
 #define DBG_ERR  0x0020
 
-int    ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int    ch11_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
-uint16 ch11_checksum (const uint8 *p, int count);
-void   ch11_validate (const uint8 *p, int count);
+int    ch11_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access);
+int    ch11_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access);
+uint16_t ch11_checksum (const uint8_t *p, int count);
+void   ch11_validate (const uint8_t *p, int count);
 t_stat ch11_transmit (struct pdp_dib *dibp);
 int    ch11_receive (struct pdp_dib *dibp);
 void   ch11_clear (struct pdp_dib *dibp);
@@ -95,12 +95,12 @@ const char *ch11_description (DEVICE *);
 
 static char peer[256];
 static int address;
-static uint16 ch11_csr;
+static uint16_t ch11_csr;
 static int rx_count;
 static int rx_pos;
 static int tx_count;
-static uint8 rx_buffer[514+100];
-static uint8 tx_buffer[514+100];
+static uint8_t rx_buffer[514+100];
+static uint8_t tx_buffer[514+100];
 
 TMLN ch11_lines[1] = { {0} };
 TMXR ch11_tmxr = { 1, NULL, 0, ch11_lines};
@@ -160,7 +160,7 @@ DEVICE ch11_dev = {
   };
 
 int
-ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+ch11_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     int               i;
@@ -219,7 +219,7 @@ ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 }
 
 int
-ch11_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+ch11_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
 
@@ -268,8 +268,8 @@ ch11_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
     return 0;
 }
 
-uint16
-ch11_checksum (const uint8 *p, int count)
+uint16_t
+ch11_checksum (const uint8_t *p, int count)
 {
   int32 sum = 0;
 
@@ -289,9 +289,9 @@ ch11_checksum (const uint8 *p, int count)
 }
 
 void
-ch11_validate (const uint8 *p, int count)
+ch11_validate (const uint8_t *p, int count)
 {
-  uint16 chksum;
+  uint16_t chksum;
   int size;
 
   sim_debug (DBG_TRC, &ch11_dev, "Packet opcode: %02x\n", p[0]);
@@ -323,7 +323,7 @@ ch11_transmit (struct pdp_dib *dibp)
   size_t len;
   t_stat r;
   int i = CHUDP_HEADER + tx_count;
-  uint16 chk;
+  uint16_t chk;
 
   if (tx_count > (512 - CHUDP_HEADER)) {
     sim_debug (DBG_PKT, &ch11_dev, "Pack size failed, %d bytes.\n", (int)tx_count);
@@ -340,7 +340,7 @@ ch11_transmit (struct pdp_dib *dibp)
 
   tmxr_poll_tx (&ch11_tmxr);
   len = CHUDP_HEADER + (size_t)tx_count;
-  r = tmxr_put_packet_ln (&ch11_lines[0], (const uint8 *)&tx_buffer, len);
+  r = tmxr_put_packet_ln (&ch11_lines[0], (const uint8_t *)&tx_buffer, len);
   if (r == SCPE_OK) {
     sim_debug (DBG_PKT, &ch11_dev, "Sent UDP packet, %d bytes. %04x checksum.\n", (int)len, chk);
     tmxr_poll_tx (&ch11_tmxr);
@@ -357,8 +357,8 @@ int
 ch11_receive (struct pdp_dib *dibp)
 {
   size_t count;
-  const uint8 *p;
-  uint16 dest;
+  const uint8_t *p;
+  uint16_t dest;
 
   tmxr_poll_rx (&ch11_tmxr);
   if (tmxr_get_packet_ln (&ch11_lines[0], &p, &count) != SCPE_OK) {

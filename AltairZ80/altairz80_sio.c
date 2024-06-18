@@ -52,11 +52,11 @@
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
-uint8 *URLContents(const char *URL, uint32 *length);
+uint8_t *URLContents(const char *URL, uint32_t *length);
 #ifndef URL_READER_SUPPORT
-uint8 *URLContents(const char *URL, uint32 *length) {
+uint8_t *URLContents(const char *URL, uint32_t *length) {
     *length = 0;
-    return (uint8*)NULL;
+    return (uint8_t*)NULL;
 }
 #endif
 
@@ -145,20 +145,20 @@ static void voidSleep(void);
 
 extern int32 getBankSelect(void);
 extern void setBankSelect(const int32 b);
-extern uint32 getCommon(void);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 getClockFrequency(void);
-extern void setClockFrequency(const uint32 Value);
+extern uint32_t getCommon(void);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern uint32_t getClockFrequency(void);
+extern void setClockFrequency(const uint32_t Value);
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern int32 SR;
 extern int32 DS_S;
 extern UNIT cpu_unit;
 extern const char* handlerNameForPort(const int32 port);
-extern uint32 vectorInterrupt;            /* Interrupt Request */
-extern uint8 dataBus[MAX_INT_VECTORS];    /* Data Bus Value    */
+extern uint32_t vectorInterrupt;            /* Interrupt Request */
+extern uint8_t dataBus[MAX_INT_VECTORS];    /* Data Bus Value    */
 
 /* Debug Flags */
 static DEBTAB generic_dt[] = {
@@ -185,7 +185,7 @@ static int32 getClockCPM3Pos        = 0;        /* determines state for sending 
 static int32 daysCPM3SinceOrg       = 0;        /* days since 1 Jan 1978                                        */
 
 /* timer interrupt related                                                                                      */
-static uint32 timeOfNextInterrupt;              /* time when next interrupt is scheduled                        */
+static uint32_t timeOfNextInterrupt;              /* time when next interrupt is scheduled                        */
        int32 timerInterrupt         = FALSE;    /* timer interrupt pending                                      */
        int32 timerInterruptHandler  = 0x0fc00;  /* default address of interrupt handling routine                */
 static int32 setTimerInterruptAdrPos= 0;        /* determines state for receiving timerInterruptHandler         */
@@ -193,13 +193,13 @@ static int32 timerDelta             = DEFAULT_TIMER_DELTA;  /* interrupt every 1
 static int32 setTimerDeltaPos       = 0;        /* determines state for receiving timerDelta                    */
 
 /* stop watch and timer related                                                                                 */
-static uint32 stopWatchDelta        = 0;        /* stores elapsed time of stop watch                            */
+static uint32_t stopWatchDelta        = 0;        /* stores elapsed time of stop watch                            */
 static int32 getStopWatchDeltaPos   = 0;        /* determines the state for receiving stopWatchDelta            */
-static uint32 stopWatchNow          = 0;        /* stores starting time of stop watch                           */
+static uint32_t stopWatchNow          = 0;        /* stores starting time of stop watch                           */
 static int32 markTimeSP             = 0;        /* stack pointer for timer stack                                */
-       uint32 SIMHSleep             = 1;        /* default time in milliseconds to sleep for SIMHSleepCmd is 1  */
-static uint32 sleepAllowedCounter   = 0;        /* only sleep on no character available when == 0               */
-static uint32 sleepAllowedStart     = SLEEP_ALLOWED_START_DEFAULT;  /* default start for above counter          */
+       uint32_t SIMHSleep             = 1;        /* default time in milliseconds to sleep for SIMHSleepCmd is 1  */
+static uint32_t sleepAllowedCounter   = 0;        /* only sleep on no character available when == 0               */
+static uint32_t sleepAllowedStart     = SLEEP_ALLOWED_START_DEFAULT;  /* default start for above counter          */
 
 /* miscellaneous                                                                                                */
 static int32 versionPos             = 0;        /* determines state for sending device identifier               */
@@ -210,7 +210,7 @@ static int32 genInterruptPos        = 0;        /* determines state for receivin
 static int32 genInterruptVec        = 0;        /* stores interrupt vector                                      */
 
 /* CPU Clock Frequency related                                                                                  */
-static uint32 newClockFrequency;
+static uint32_t newClockFrequency;
 static int32 setClockFrequencyPos   = 0;        /* determines state for sending the clock frequency             */
 static int32 getClockFrequencyPos   = 0;        /* determines state for receiving the clock frequency           */
 
@@ -279,7 +279,7 @@ static int32 warnUnassignedPort     = 0;        /* display a warning message if 
                                                 VERBOSE and attempt to perform IN or OUT on an unassigned PORT  */
 
        int32 keyboardInterrupt = FALSE;         /* keyboard interrupt pending                                   */
-       uint32 keyboardInterruptHandler = 0x0038;/* address of keyboard interrupt handler                        */
+       uint32_t keyboardInterruptHandler = 0x0038;/* address of keyboard interrupt handler                        */
 
 /* PTR/PTP port assignments (read only)                                                                         */
 static int32 ptpptrStatusPort       = 0x12;     /* default status port for PTP/PTR device                       */
@@ -1005,7 +1005,7 @@ static void show_sio_port_info(FILE *st, SIO_PORT_INFO sip) {
                 handlerNameForPort(sip.port));
 }
 
-static uint32 equalSIP(SIO_PORT_INFO x, SIO_PORT_INFO y) {
+static uint32_t equalSIP(SIO_PORT_INFO x, SIO_PORT_INFO y) {
     /* isBuiltin is not relevant for equality, only for display */
     return (x.port == y.port) && (x.terminalLine == y.terminalLine) &&
     (x.sio_can_read == y.sio_can_read) && (x.sio_cannot_read == y.sio_cannot_read) &&
@@ -1312,17 +1312,17 @@ static const char *cmdNames[kSimhPseudoDeviceCommands] = {
 };
 
 #define TIMER_STACK_LIMIT          10       /* stack depth of timer stack   */
-static uint32 markTime[TIMER_STACK_LIMIT];  /* timer stack                  */
+static uint32_t markTime[TIMER_STACK_LIMIT];  /* timer stack                  */
 static struct tm currentTime;
 static int32 currentTimeValid = FALSE;
 static char version[] = "SIMH005";
 
 #define URL_MAX_LENGTH              1024
-static uint32 urlPointer;
+static uint32_t urlPointer;
 static char urlStore[URL_MAX_LENGTH];
-static uint8 *urlResult = NULL;
-static uint32 resultLength;
-static uint32 resultPointer;
+static uint8_t *urlResult = NULL;
+static uint32_t resultLength;
+static uint32_t resultPointer;
 static int32 showAvailability;
 static int32 isInReadPhase;
 
@@ -1374,13 +1374,13 @@ static t_stat simh_dev_set_timeroff(UNIT *uptr, int32 value, CONST char *cptr, v
 
 static t_stat simh_svc(UNIT *uptr) {
     if (simh_unit.flags & UNIT_SIMH_TIMERON) {
-        uint32 now = sim_os_msec();
+        uint32_t now = sim_os_msec();
         if (now >= timeOfNextInterrupt) {
             timerInterrupt = TRUE;
             if (timerDelta == 0)
                 timeOfNextInterrupt = now + DEFAULT_TIMER_DELTA;
             else {
-                uint32 newTimeOfNextInterrupt = now + timerDelta - (now - timeOfNextInterrupt) % timerDelta;
+                uint32_t newTimeOfNextInterrupt = now + timerDelta - (now - timeOfNextInterrupt) % timerDelta;
                 if (newTimeOfNextInterrupt != timeOfNextInterrupt + timerDelta) {
                     sim_debug(VERBOSE_MSG, &simh_device, "SIMH: " ADDRESS_FORMAT
                               " Timer interrupts skipped %i. Delta %i. Expect %i. Got %i.\n",
@@ -1875,7 +1875,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                 case stopTimerCmd:  /* stop timer on top of stack and show time difference */
                     if (rtc_avail)
                         if (markTimeSP > 0) {
-                            uint32 delta = sim_os_msec() - markTime[--markTimeSP];
+                            uint32_t delta = sim_os_msec() - markTime[--markTimeSP];
                             sim_printf("SIMH: " ADDRESS_FORMAT " Timer stopped. Elapsed time in milliseconds = %d.\n", PCX, delta);
                         } else
                             sim_printf("SIMH: " ADDRESS_FORMAT " No timer active.\n", PCX);
@@ -1953,7 +1953,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                 case showTimerCmd:  /* show time difference to timer on top of stack */
                     if (rtc_avail)
                         if (markTimeSP > 0) {
-                            uint32 delta = sim_os_msec() - markTime[markTimeSP - 1];
+                            uint32_t delta = sim_os_msec() - markTime[markTimeSP - 1];
                             sim_printf("SIMH: " ADDRESS_FORMAT " Timer running. Elapsed in milliseconds = %d.\n", PCX, delta);
                         } else
                             sim_printf("SIMH: " ADDRESS_FORMAT " No timer active.\n", PCX);

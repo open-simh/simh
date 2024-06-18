@@ -40,7 +40,7 @@
 #include "s3_defs.h"
 #include <ctype.h>
 
-extern uint8 M[];
+extern uint8_t M[];
 extern unsigned char ebcdic_to_ascii[];
 extern unsigned char ascii_to_ebcdic[];
 int32 s1sel, s2sel;

@@ -45,7 +45,7 @@ extern "C" {
 
 /* SIMH/E11 tape format */
 
-typedef uint32          t_mtrlnt;                       /* magtape rec lnt */
+typedef uint32_t          t_mtrlnt;                       /* magtape rec lnt */
 
 #define MTR_TMK         0x00000000                      /* tape mark */
 #define MTR_EOM         0xFFFFFFFF                      /* end of medium */
@@ -61,7 +61,7 @@ typedef uint32          t_mtrlnt;                       /* magtape rec lnt */
 
 /* TPC tape format */
 
-typedef uint16          t_tpclnt;                       /* magtape rec lnt */
+typedef uint16_t          t_tpclnt;                       /* magtape rec lnt */
 
 #define TPC_TMK         0x0000                          /* tape mark */
 #define TPC_EOM         0xFFFF                          /* end of medium */
@@ -77,7 +77,7 @@ typedef uint16          t_tpclnt;                       /* magtape rec lnt */
 
 /* AWS tape format */
 
-typedef uint16          t_awslnt;                       /* magtape rec lnt */
+typedef uint16_t          t_awslnt;                       /* magtape rec lnt */
 typedef struct {
     t_awslnt    nxtlen;
     t_awslnt    prelen;
@@ -180,46 +180,46 @@ typedef void (*TAPE_PCALLBACK)(UNIT *unit, t_stat status);
 /* Prototypes */
 
 t_stat sim_tape_init (void);
-t_stat sim_tape_attach_ex (UNIT *uptr, const char *cptr, uint32 dbit, int completion_delay);
+t_stat sim_tape_attach_ex (UNIT *uptr, const char *cptr, uint32_t dbit, int completion_delay);
 t_stat sim_tape_attach (UNIT *uptr, CONST char *cptr);
 t_stat sim_tape_detach (UNIT *uptr);
 t_stat sim_tape_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_tape_rdrecf (UNIT *uptr, uint8 *buf, t_mtrlnt *bc, t_mtrlnt max);
-t_stat sim_tape_rdrecf_a (UNIT *uptr, uint8 *buf, t_mtrlnt *bc, t_mtrlnt max, TAPE_PCALLBACK callback);
-t_stat sim_tape_rdrecr (UNIT *uptr, uint8 *buf, t_mtrlnt *bc, t_mtrlnt max);
-t_stat sim_tape_rdrecr_a (UNIT *uptr, uint8 *buf, t_mtrlnt *bc, t_mtrlnt max, TAPE_PCALLBACK callback);
-t_stat sim_tape_wrrecf (UNIT *uptr, uint8 *buf, t_mtrlnt bc);
-t_stat sim_tape_wrrecf_a (UNIT *uptr, uint8 *buf, t_mtrlnt bc, TAPE_PCALLBACK callback);
+t_stat sim_tape_rdrecf (UNIT *uptr, uint8_t *buf, t_mtrlnt *bc, t_mtrlnt max);
+t_stat sim_tape_rdrecf_a (UNIT *uptr, uint8_t *buf, t_mtrlnt *bc, t_mtrlnt max, TAPE_PCALLBACK callback);
+t_stat sim_tape_rdrecr (UNIT *uptr, uint8_t *buf, t_mtrlnt *bc, t_mtrlnt max);
+t_stat sim_tape_rdrecr_a (UNIT *uptr, uint8_t *buf, t_mtrlnt *bc, t_mtrlnt max, TAPE_PCALLBACK callback);
+t_stat sim_tape_wrrecf (UNIT *uptr, uint8_t *buf, t_mtrlnt bc);
+t_stat sim_tape_wrrecf_a (UNIT *uptr, uint8_t *buf, t_mtrlnt bc, TAPE_PCALLBACK callback);
 t_stat sim_tape_wrtmk (UNIT *uptr);
 t_stat sim_tape_wrtmk_a (UNIT *uptr, TAPE_PCALLBACK callback);
 t_stat sim_tape_wreom (UNIT *uptr);
 t_stat sim_tape_wreom_a (UNIT *uptr, TAPE_PCALLBACK callback);
 t_stat sim_tape_wreomrw (UNIT *uptr);
 t_stat sim_tape_wreomrw_a (UNIT *uptr, TAPE_PCALLBACK callback);
-t_stat sim_tape_wrgap (UNIT *uptr, uint32 gaplen);
-t_stat sim_tape_wrgap_a (UNIT *uptr, uint32 gaplen, TAPE_PCALLBACK callback);
+t_stat sim_tape_wrgap (UNIT *uptr, uint32_t gaplen);
+t_stat sim_tape_wrgap_a (UNIT *uptr, uint32_t gaplen, TAPE_PCALLBACK callback);
 t_stat sim_tape_errecf (UNIT *uptr, t_mtrlnt bc);
 t_stat sim_tape_errecr (UNIT *uptr, t_mtrlnt bc);
 t_stat sim_tape_sprecf (UNIT *uptr, t_mtrlnt *bc);
 t_stat sim_tape_sprecf_a (UNIT *uptr, t_mtrlnt *bc, TAPE_PCALLBACK callback);
-t_stat sim_tape_sprecsf (UNIT *uptr, uint32 count, uint32 *skipped);
-t_stat sim_tape_sprecsf_a (UNIT *uptr, uint32 count, uint32 *skipped, TAPE_PCALLBACK callback);
-t_stat sim_tape_spfilef (UNIT *uptr, uint32 count, uint32 *skipped);
-t_stat sim_tape_spfilef_a (UNIT *uptr, uint32 count, uint32 *skipped, TAPE_PCALLBACK callback);
-t_stat sim_tape_spfilebyrecf (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, t_bool check_leot);
-t_stat sim_tape_spfilebyrecf_a (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, t_bool check_leot, TAPE_PCALLBACK callback);
+t_stat sim_tape_sprecsf (UNIT *uptr, uint32_t count, uint32_t *skipped);
+t_stat sim_tape_sprecsf_a (UNIT *uptr, uint32_t count, uint32_t *skipped, TAPE_PCALLBACK callback);
+t_stat sim_tape_spfilef (UNIT *uptr, uint32_t count, uint32_t *skipped);
+t_stat sim_tape_spfilef_a (UNIT *uptr, uint32_t count, uint32_t *skipped, TAPE_PCALLBACK callback);
+t_stat sim_tape_spfilebyrecf (UNIT *uptr, uint32_t count, uint32_t *skipped, uint32_t *recsskipped, t_bool check_leot);
+t_stat sim_tape_spfilebyrecf_a (UNIT *uptr, uint32_t count, uint32_t *skipped, uint32_t *recsskipped, t_bool check_leot, TAPE_PCALLBACK callback);
 t_stat sim_tape_sprecr (UNIT *uptr, t_mtrlnt *bc);
 t_stat sim_tape_sprecr_a (UNIT *uptr, t_mtrlnt *bc, TAPE_PCALLBACK callback);
-t_stat sim_tape_sprecsr (UNIT *uptr, uint32 count, uint32 *skipped);
-t_stat sim_tape_sprecsr_a (UNIT *uptr, uint32 count, uint32 *skipped, TAPE_PCALLBACK callback);
-t_stat sim_tape_spfiler (UNIT *uptr, uint32 count, uint32 *skipped);
-t_stat sim_tape_spfiler_a (UNIT *uptr, uint32 count, uint32 *skipped, TAPE_PCALLBACK callback);
-t_stat sim_tape_spfilebyrecr (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped);
-t_stat sim_tape_spfilebyrecr_a (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, TAPE_PCALLBACK callback);
+t_stat sim_tape_sprecsr (UNIT *uptr, uint32_t count, uint32_t *skipped);
+t_stat sim_tape_sprecsr_a (UNIT *uptr, uint32_t count, uint32_t *skipped, TAPE_PCALLBACK callback);
+t_stat sim_tape_spfiler (UNIT *uptr, uint32_t count, uint32_t *skipped);
+t_stat sim_tape_spfiler_a (UNIT *uptr, uint32_t count, uint32_t *skipped, TAPE_PCALLBACK callback);
+t_stat sim_tape_spfilebyrecr (UNIT *uptr, uint32_t count, uint32_t *skipped, uint32_t *recsskipped);
+t_stat sim_tape_spfilebyrecr_a (UNIT *uptr, uint32_t count, uint32_t *skipped, uint32_t *recsskipped, TAPE_PCALLBACK callback);
 t_stat sim_tape_rewind (UNIT *uptr);
 t_stat sim_tape_rewind_a (UNIT *uptr, TAPE_PCALLBACK callback);
-t_stat sim_tape_position (UNIT *uptr, uint32 flags, uint32 recs, uint32 *recskipped, uint32 files, uint32 *fileskipped, uint32 *objectsskipped);
-t_stat sim_tape_position_a (UNIT *uptr, uint32 flags, uint32 recs, uint32 *recsskipped, uint32 files, uint32 *filesskipped, uint32 *objectsskipped, TAPE_PCALLBACK callback);
+t_stat sim_tape_position (UNIT *uptr, uint32_t flags, uint32_t recs, uint32_t *recskipped, uint32_t files, uint32_t *fileskipped, uint32_t *objectsskipped);
+t_stat sim_tape_position_a (UNIT *uptr, uint32_t flags, uint32_t recs, uint32_t *recsskipped, uint32_t files, uint32_t *filesskipped, uint32_t *objectsskipped, TAPE_PCALLBACK callback);
 t_stat sim_tape_reset (UNIT *uptr);
 t_bool sim_tape_bot (UNIT *uptr);
 t_bool sim_tape_wrp (UNIT *uptr);

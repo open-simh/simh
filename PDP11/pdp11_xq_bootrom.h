@@ -55,7 +55,7 @@
   to display it.
 */
 
-uint16 xq_bootrom_deqna[2048] = {
+uint16_t xq_bootrom_deqna[2048] = {
     0x00A0,0x0114,0x016B,0x0DFE,0x0155,0x0000,0x8000,0x8000,  /* 0000 (0000000) */
     0x0400,0xFC00,0x0000,0x0000,0x8000,0x8000,0x0C00,0xFC00,  /* 0010 (0000020) */
     0x0000,0x0000,0x8000,0x2000,0xC000,0x8000,0x15C6,0x03FE,  /* 0020 (0000040) */
@@ -317,7 +317,7 @@ uint16 xq_bootrom_deqna[2048] = {
 /* This ROM image was produced by assembling the INIQNA.MAC file.  
    It was used to debug the DEQNA citizenship test. Since the INIQNA.MAC source
    does not contain a MOP boot, this isn't a useful boot ROM image.  */
-uint16 xq_bootrom_deqna_iniqna[2048] = {
+uint16_t xq_bootrom_deqna_iniqna[2048] = {
     0x00A0,0x0114,0x016B,0x0FFE,0x0155,0x0000,0x8000,0x8000,  /* 0000 (0000000) */
     0x0400,0xFC00,0x0000,0x0000,0x8000,0x8000,0x0C00,0xFC00,  /* 0010 (0000020) */
     0x0000,0x0000,0x8000,0x2000,0xC000,0x8000,0x15C6,0x03FE,  /* 0020 (0000040) */
@@ -582,7 +582,7 @@ uint16 xq_bootrom_deqna_iniqna[2048] = {
          and 23-335e5.bin, 
          offset (0x5000 - 050000), for 4096. bytes.
 */
-uint16 xq_bootrom_delqa[2048] = {
+uint16_t xq_bootrom_delqa[2048] = {
     0x00A0,0x0113,0x0166,0x0FFE,0x0150,0x0000,0x8000,0x8000,  /* 0000 (0000000) */
     0x0400,0xFC00,0x0000,0x0000,0x8000,0x8000,0x0C00,0xFC00,  /* 0010 (0000020) */
     0x0000,0x0000,0x8000,0x2000,0xC000,0x15C6,0x03FE,0x1026,  /* 0020 (0000040) */
@@ -848,7 +848,7 @@ uint16 xq_bootrom_delqa[2048] = {
          and 23-366e5.bin, 
          offset (0x5000 - 050000), for 4096. bytes.
 */
-uint16 xq_bootrom_delqat[2048] = {
+uint16_t xq_bootrom_delqat[2048] = {
     0x00A0,0x0113,0x0166,0x0FFE,0x0150,0x0000,0x8000,0x8000,  /* 0000 (0000000) */
     0x0400,0xFC00,0x0000,0x0000,0x8000,0x8000,0x0C00,0xFC00,  /* 0010 (0000020) */
     0x0000,0x0000,0x8000,0x2000,0xC000,0x15C6,0x03FE,0x1026,  /* 0020 (0000040) */
@@ -1236,11 +1236,11 @@ PDP-11 code for booting the DEQNA EPB might be as follows:
 */
 #endif
 
-#define BOOT_LEN (sizeof(boot_rom)/sizeof(uint16))/* Code size */
+#define BOOT_LEN (sizeof(boot_rom)/sizeof(uint16_t))/* Code size */
 #define BOOT_START 020000               /* Initial load Address of the Boot code */
 #define BOOT_ENTRY (BOOT_START+0)       /* Start address of Boot code */
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
                                //       DESC = 4000                    ; Descriptor List Address
                                //       DECnet = 0                     ; MOP boot request
     0012701, 0174440,          // 0000         mov     #174440,r1      ; assume device is DEQNA #1

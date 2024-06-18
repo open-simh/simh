@@ -93,8 +93,8 @@ in place.  All routines which perform I/O have a variant routine available
 with a "_a" appended to the the routine name with the addition of a single
 parameter which indicates the asynch completion callback routine.  For 
 example there now exists the routines:
-  t_stat sim_tape_rdrecf (UNIT *uptr, uint8 *buf, t_mtrlnt *bc, t_mtrlnt max);
-  t_stat sim_tape_rdrecf_a (UNIT *uptr, uint8 *buf, t_mtrlnt *bc, t_mtrlnt max, TAPE_PCALLBACK callback);
+  t_stat sim_tape_rdrecf (UNIT *uptr, uint8_t *buf, t_mtrlnt *bc, t_mtrlnt max);
+  t_stat sim_tape_rdrecf_a (UNIT *uptr, uint8_t *buf, t_mtrlnt *bc, t_mtrlnt max, TAPE_PCALLBACK callback);
 
 The Purpose of the callback function is to record the I/O completion status
 and then to schedule the activation of the unit.  

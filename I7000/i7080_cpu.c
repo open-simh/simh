@@ -94,13 +94,13 @@
 
 struct InstHistory
 {
-    uint32              ic;
-    uint32              ea;
-    uint32              inst;
-    uint8               reg;
-    uint8               op;
-    uint16              flags;
-    uint8               store[256];
+    uint32_t              ic;
+    uint32_t              ea;
+    uint32_t              inst;
+    uint8_t               reg;
+    uint8_t               op;
+    uint16_t              flags;
+    uint8_t               store[256];
 };
 
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
@@ -118,61 +118,61 @@ t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                         const char *cptr);
 const char          *cpu_description (DEVICE *dptr);
 
-uint32 read_addr(uint8 *reg, uint8 *zone);
-void write_addr(uint32 addr, uint8 reg, uint8 zone);
-uint32 load_addr(uint32 *loc);
-void store_addr(uint32 addr, uint32 *loc);
-void store_cpu(uint32 addr, int full);
-void load_cpu(uint32 addr, int full);
-uint16 get_acstart(uint8 reg);
-t_stat do_addsub(int mode, int reg, int smt, uint16 fmsk);
-t_stat do_mult(int reg, uint16 fmsk);
-t_stat do_divide(int reg, uint16 fmsk);
+uint32_t read_addr(uint8_t *reg, uint8_t *zone);
+void write_addr(uint32_t addr, uint8_t reg, uint8_t zone);
+uint32_t load_addr(uint32_t *loc);
+void store_addr(uint32_t addr, uint32_t *loc);
+void store_cpu(uint32_t addr, int full);
+void load_cpu(uint32_t addr, int full);
+uint16_t get_acstart(uint8_t reg);
+t_stat do_addsub(int mode, int reg, int smt, uint16_t fmsk);
+t_stat do_mult(int reg, uint16_t fmsk);
+t_stat do_divide(int reg, uint16_t fmsk);
 t_stat do_compare(int reg, int tluop);
 void mem_init(void);
 
 
-uint16              bstarts[16] = {
+uint16_t              bstarts[16] = {
             /*  1    2    3    4    5    6    7 */
            0, 512, 528, 544, 560, 576, 592, 608,
          624, 640, 656, 672, 688, 704, 720, 736,
 };
 
-uint8   bcd_bin[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0,
+uint8_t   bcd_bin[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0,
                                  1, 2, 3, 4, 5};
-uint8   bin_bcd[21] = { 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+uint8_t   bin_bcd[21] = { 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                                  1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-uint32  dig2[11] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90,0 };
-uint32  dig3[11] = { 0, 100, 200, 300, 400, 500, 600, 700, 800, 900,0 };
-uint32  dig4[11] = { 0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000,0};
-uint32  dig_zone[16] = {0, 10000, 20000, 30000,
+uint32_t  dig2[11] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90,0 };
+uint32_t  dig3[11] = { 0, 100, 200, 300, 400, 500, 600, 700, 800, 900,0 };
+uint32_t  dig4[11] = { 0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000,0};
+uint32_t  dig_zone[16] = {0, 10000, 20000, 30000,
                         80000, 90000, 100000, 110000,
                         40000, 50000, 60000, 70000,
                         120000, 130000, 140000, 150000
         };
-uint8   zone_dig[16] = {0x0, 0x4, 0x8, 0xc,
+uint8_t   zone_dig[16] = {0x0, 0x4, 0x8, 0xc,
                         0x2, 0x6, 0xa, 0xe,
                         0x1, 0x5, 0x9, 0xd,
                         0x3, 0x7, 0xb, 0xf
         };
 
 /* Flip BA bits of low order zone for LDA */
-uint8   lda_flip[16] = {0x0, 0x1, 0x2, 0x3,
+uint8_t   lda_flip[16] = {0x0, 0x1, 0x2, 0x3,
                         0x8, 0x9, 0xa, 0xb,
                         0x4, 0x5, 0x6, 0x7,
                         0xc, 0xd, 0xe, 0xf
         };
 
                       /* 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 */
-uint8   comp_bcd[16] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, 6, 5, 4, 3, 2 };
+uint8_t   comp_bcd[16] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, 6, 5, 4, 3, 2 };
 
 #define I       0x80
 
-uint8   digit_addone[16] = {
+uint8_t   digit_addone[16] = {
     0,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x10,0x01,0x0b,0x0c,0x0d,0x0e,
     0x0f};
 
-uint8  cmp_order[0100] = {
+uint8_t  cmp_order[0100] = {
         077, 42, 43, 44, 45, 46, 47, 48, 49, 50, 41, 10, 11, 077, 077, 077,
           0,  7, 33, 34, 35, 36, 37, 38, 39, 40, 32,  8,  9, 077, 077, 077,
           4, 23, 24, 25, 26, 27, 28, 29, 30, 31, 22,  5,  6, 077, 077, 077,
@@ -203,37 +203,37 @@ uint8  cmp_order[0100] = {
 #define ZERO            (AZERO|BZERO)
 #define IRQFLAGS        (ANYFLAG)
 
-uint8               M[MAXMEMSIZE] = { 0 };      /* memory */
-uint32              EMEMSIZE;                   /* Physical memory size */
-uint8               AC[6*512];                  /* store registers */
-uint16              flags;                      /* Flags */
-uint16              spc;                        /* Reg start point */
-uint16              spcb;                       /* Reg start point b */
-uint32              IC;                         /* program counter */
-uint8               SL;                         /* Sense lights */
-uint32              MA;                         /* Memory address */
-uint32              MAC;                        /* Memory address */
-uint32              MAC2;                       /* Second memory address */
-uint8               SW = 0;                     /* Sense switch */
-uint8               indflag;                    /* Indirect flag */
-uint8               intmode;                    /* Interupt mode */
-uint8               intprog;                    /* Interupt program */
-uint16              stop_flags = 0;             /* Stop on error */
-uint16              selreg;                     /* Last select address */
-uint16              selreg2;                    /* RWW select address */
+uint8_t               M[MAXMEMSIZE] = { 0 };      /* memory */
+uint32_t              EMEMSIZE;                   /* Physical memory size */
+uint8_t               AC[6*512];                  /* store registers */
+uint16_t              flags;                      /* Flags */
+uint16_t              spc;                        /* Reg start point */
+uint16_t              spcb;                       /* Reg start point b */
+uint32_t              IC;                         /* program counter */
+uint8_t               SL;                         /* Sense lights */
+uint32_t              MA;                         /* Memory address */
+uint32_t              MAC;                        /* Memory address */
+uint32_t              MAC2;                       /* Second memory address */
+uint8_t               SW = 0;                     /* Sense switch */
+uint8_t               indflag;                    /* Indirect flag */
+uint8_t               intmode;                    /* Interupt mode */
+uint8_t               intprog;                    /* Interupt program */
+uint16_t              stop_flags = 0;             /* Stop on error */
+uint16_t              selreg;                     /* Last select address */
+uint16_t              selreg2;                    /* RWW select address */
 int                 chwait;                     /* Channel wait register */
-uint8               ioflags[6200/8] = {0};      /* IO Error flags */
-uint16              irqflags;                   /* IRQ Flags */
-uint8               lpr_chan9[NUM_CHAN];        /* Line printer Channel 9 flag */
-uint8               bkcmp = 0;                  /* Backwords compare */
-uint8               cpu_type;                   /* Current CPU type */
+uint8_t               ioflags[6200/8] = {0};      /* IO Error flags */
+uint16_t              irqflags;                   /* IRQ Flags */
+uint8_t               lpr_chan9[NUM_CHAN];        /* Line printer Channel 9 flag */
+uint8_t               bkcmp = 0;                  /* Backwords compare */
+uint8_t               cpu_type;                   /* Current CPU type */
 int                 cycle_time = 45;            /* Cycle time is 4.5us */
 
 /* History information */
 int32               hst_p = 0;                  /* History pointer */
 int32               hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
-extern uint32       drum_addr;
+extern uint32_t       drum_addr;
 extern UNIT         chan_unit[];
 
 
@@ -321,9 +321,9 @@ DEVICE              cpu_dev = {
 
 
 /* Quick ways to wrap addresses */
-uint16          next_addr[6 * 256];     /* Next storage location */
-uint16          prev_addr[6 * 256];     /* Previous storage location */
-uint16          next_half[6 * 256];     /* Forward half loop locations */
+uint16_t          next_addr[6 * 256];     /* Next storage location */
+uint16_t          prev_addr[6 * 256];     /* Previous storage location */
+uint16_t          next_half[6 * 256];     /* Forward half loop locations */
 
 /*#define ReadP(addr)   M[(addr) % EMEMSIZE] */
 /*#define WriteP(addr, data) M[(addr) % EMEMSIZE] = data */
@@ -334,8 +334,8 @@ uint16          next_half[6 * 256];     /* Forward half loop locations */
 #define Prev(reg)       reg++; if (reg == EMEMSIZE) reg = 0
 
 /* Read 1 character from memory, checking for reducancy error. */
-uint8   ReadP(uint32 addr, uint16 flag) {
-    uint8       value;
+uint8_t   ReadP(uint32_t addr, uint16_t flag) {
+    uint8_t       value;
     addr %= EMEMSIZE;
     if ((flags & EMU40K) != 0) {
        addr %= 40000;
@@ -352,8 +352,8 @@ uint8   ReadP(uint32 addr, uint16 flag) {
 }
 
 /* Read 5 characters from memory starting at addr */
-uint32  Read5(uint32 addr, uint16 flag) {
-    uint32      value;
+uint32_t  Read5(uint32_t addr, uint16_t flag) {
+    uint32_t      value;
 
     value =  ReadP(addr-4, flag) << (4 * 6);
     value |= ReadP(addr-3, flag) << (3 * 6);
@@ -364,7 +364,7 @@ uint32  Read5(uint32 addr, uint16 flag) {
 }
 
 /* Write 1 character to memory. */
-void  WriteP(uint32 addr, uint8 value) {
+void  WriteP(uint32_t addr, uint8_t value) {
     addr %= EMEMSIZE;
     if ((flags & EMU40K) != 0) {
        addr %= 40000;
@@ -373,7 +373,7 @@ void  WriteP(uint32 addr, uint8 value) {
 }
 
 /* Write 5 characters from memory starting at addr */
-void  Write5(uint32 addr, uint32 value) {
+void  Write5(uint32_t addr, uint32_t value) {
     WriteP(addr-4, 077 & (value >> (4 * 6)));
     WriteP(addr-3, 077 & (value >> (3 * 6)));
     WriteP(addr-2, 077 & (value >> (2 * 6)));
@@ -387,18 +387,18 @@ sim_instr(void)
 {
     t_stat              reason;
     int                 opcode;
-    uint8               reg;
-    uint16              fmsk;
-    uint8               zone;
-    uint8               sign;
-    uint8               zero;
-    uint8               at;
-    uint8               carry;
-    uint8               t;
-    uint8               cr1, cr2;
+    uint8_t               reg;
+    uint16_t              fmsk;
+    uint8_t               zone;
+    uint8_t               sign;
+    uint8_t               zero;
+    uint8_t               at;
+    uint8_t               carry;
+    uint8_t               t;
+    uint8_t               cr1, cr2;
     int                 temp;
-    uint32              addr;
-    uint8               iowait = 0;
+    uint32_t              addr;
+    uint8_t               iowait = 0;
     int                 instr_count = 0; /* Number of instructions to execute */
 
     if (sim_step != 0) {
@@ -572,7 +572,7 @@ stop_cpu:
                      temp = 10000;
                      break;
                  }
-                 while (IC >= (uint32)temp)
+                 while (IC >= (uint32_t)temp)
                      IC -= temp;
                  /* Resolve full address and register based on cpu mode */
                  switch (cpu_type) {
@@ -1151,7 +1151,7 @@ stop_cpu:
                          /* Process while valid digit in memory */
                          t = 5;
                          do {
-                             uint8   cr1;
+                             uint8_t   cr1;
                              if (AC[addr] == 0) {
                                  smt = 1;
                                  cr1 = t;
@@ -2180,7 +2180,7 @@ stop_cpu:
                      }
                      addr = get_acstart(reg);
                      while(AC[addr] != 0) {
-                         uint32      v;
+                         uint32_t      v;
                          v = Read5(MAC, MCHCHK);
                          Write5(MAC2, v);
                          Prev5(MAC2);
@@ -2298,9 +2298,9 @@ stop_cpu:
 
 
 /* Read and convert address of instruction */
-uint32 read_addr(uint8 *reg, uint8 *zone) {
-    uint8       t;
-    uint32      addr;
+uint32_t read_addr(uint8_t *reg, uint8_t *zone) {
+    uint8_t       t;
+    uint32_t      addr;
 
     t = ReadP(MA, INSTFLAG);   /* Read low order digit */
     *zone = (t & 060) >> 2;
@@ -2352,8 +2352,8 @@ uint32 read_addr(uint8 *reg, uint8 *zone) {
 }
 
 /* Write converted address of instruction */
-void write_addr(uint32 addr, uint8 reg, uint8 zone) {
-    uint8       value[4];
+void write_addr(uint32_t addr, uint8_t reg, uint8_t zone) {
+    uint8_t       value[4];
     int         i;
 
     if ((MA % 5) != 0) {
@@ -2411,8 +2411,8 @@ void write_addr(uint32 addr, uint8 reg, uint8 zone) {
 }
 
 /* Store converted address in storage */
-void store_addr(uint32 addr, uint32 *loc) {
-    uint8       value[4];
+void store_addr(uint32_t addr, uint32_t *loc) {
+    uint8_t       value[4];
     int         i;
 
    /* Convert address into BCD first */
@@ -2460,11 +2460,11 @@ void store_addr(uint32 addr, uint32 *loc) {
 
 
 /* Read address from storage */
-uint32 load_addr(uint32 *loc) {
-    uint8       t;
-    uint8       f;
-    uint8       zone;
-    uint32      addr;
+uint32_t load_addr(uint32_t *loc) {
+    uint8_t       t;
+    uint8_t       f;
+    uint8_t       zone;
+    uint32_t      addr;
 
     t = AC[*loc];               /* First digit */
     f = t;
@@ -2513,7 +2513,7 @@ uint32 load_addr(uint32 *loc) {
 }
 
 /* Store converted hex address in storage */
-void store_hex(uint32 addr, uint32 *loc) {
+void store_hex(uint32_t addr, uint32_t *loc) {
    /* Convert address into BCD first */
     AC[*loc] = bin_bcd[addr & 0xf];
     *loc = next_addr[*loc];
@@ -2526,10 +2526,10 @@ void store_hex(uint32 addr, uint32 *loc) {
 }
 
 /* Read hex address from storage */
-uint32 load_hex(uint32 *loc) {
-    uint8       t;
-    uint8       f;
-    uint32      addr;
+uint32_t load_hex(uint32_t *loc) {
+    uint8_t       t;
+    uint8_t       f;
+    uint32_t      addr;
 
     t = AC[*loc];               /* First digit */
     f = t;
@@ -2556,13 +2556,13 @@ uint32 load_hex(uint32 *loc) {
 
 
 /* Compute starting point in Storage for accumulator */
-uint16 get_acstart(uint8 reg) {
+uint16_t get_acstart(uint8_t reg) {
     if (reg == 0)
         return spc;
     if (cpu_type == CPU_702) {
         return spcb;
     } else {
-        uint16 addr;
+        uint16_t addr;
         addr = (spc & 0x700) | 0x100 | ((reg - 1) << 4);
         if (addr > 0x4ff)
            addr &= 0x4ff;
@@ -2571,8 +2571,8 @@ uint16 get_acstart(uint8 reg) {
 }
 
 /* Store CPU state in CASU 15 */
-void store_cpu(uint32 addr, int full) {
-    uint8      t;
+void store_cpu(uint32_t addr, int full) {
+    uint8_t      t;
 
     store_addr(IC, &addr);
     /* Save status characters */
@@ -2626,9 +2626,9 @@ void store_cpu(uint32 addr, int full) {
 }
 
 /* Load CPU State from storage */
-void load_cpu(uint32 addr, int full) {
-    uint8       t;
-    uint8       f;
+void load_cpu(uint32_t addr, int full) {
+    uint8_t       t;
+    uint8_t       f;
 
     flags = 0;
     IC = load_addr(&addr);
@@ -2713,12 +2713,12 @@ void load_cpu(uint32 addr, int full) {
    smt == 0 if ADD/SUB
    smt == 1 if RSU/RAD
    fmsk is the flags mask to set or clear */
-t_stat do_addsub(int mode, int reg, int smt, uint16 fmsk) {
-    uint8               cr1, cr2;
+t_stat do_addsub(int mode, int reg, int smt, uint16_t fmsk) {
+    uint8_t               cr1, cr2;
     int                 sign;
     int                 msign;
     int                 carry;
-    uint32              addr;
+    uint32_t              addr;
     int                 met = 1;
     int                 addsub;
 
@@ -2842,13 +2842,13 @@ t_stat do_addsub(int mode, int reg, int smt, uint16 fmsk) {
 
 /* Multiply memory to AC */
 t_stat
-do_mult(int reg, uint16 fmsk)
+do_mult(int reg, uint16_t fmsk)
 {
-    uint8               t;
-    uint8               at;
-    uint8               cr1, cr2;
-    uint16              addr;
-    uint16              prod;
+    uint8_t               t;
+    uint8_t               at;
+    uint8_t               cr1, cr2;
+    uint16_t              addr;
+    uint16_t              prod;
     int                 mult;
     int                 msign = 0;
 
@@ -2936,7 +2936,7 @@ do_mult(int reg, uint16 fmsk)
 }
 
 t_stat
-do_divide(int reg, uint16 fmsk)
+do_divide(int reg, uint16_t fmsk)
 {
     int                 cr1;
     int                 cr2;
@@ -3203,8 +3203,8 @@ done:
 t_stat
 do_compare(int reg, int tluop) {
     int         addr;
-    uint8       cr1;
-    uint8       cr2;
+    uint8_t       cr1;
+    uint8_t       cr2;
 
 
     addr = get_acstart(reg);
@@ -3423,8 +3423,8 @@ t_stat
 cpu_set_size(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 {
     t_uint64            mc = 0;
-    uint32              size;
-    uint32              i;
+    uint32_t              size;
+    uint32_t              i;
 
     size = val >> UNIT_V_MSIZE;
     size++;

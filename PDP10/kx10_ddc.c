@@ -106,7 +106,7 @@ uint64          ddc_cmd[16];
 int             ddc_cmdptr;
 int             ddc_putptr;
 
-t_stat          ddc_devio(uint32 dev, uint64 *data);
+t_stat          ddc_devio(uint32_t dev, uint64 *data);
 t_stat          ddc_svc(UNIT *);
 void            ddc_ini(UNIT *, t_bool);
 t_stat          ddc_reset(DEVICE *);
@@ -153,7 +153,7 @@ DEVICE              ddc_dev = {
 };
 
 
-t_stat ddc_devio(uint32 dev, uint64 *data) {
+t_stat ddc_devio(uint32_t dev, uint64 *data) {
      UNIT        *uptr;
      DEVICE      *dptr;
 
@@ -162,7 +162,7 @@ t_stat ddc_devio(uint32 dev, uint64 *data) {
      switch(dev & 3) {
      case CONI:
         sim_debug(DEBUG_CONI, dptr, "DDC %03o CONI %06o PC=%o\n", dev,
-                          (uint32)*data, PC);
+                          (uint32_t)*data, PC);
         *data = uptr->STATUS;
         if (ddc_cmdptr != ((ddc_putptr + 2) & 0xf)) {
             *data |= DDC_RDY;
@@ -191,7 +191,7 @@ t_stat ddc_devio(uint32 dev, uint64 *data) {
         }
 
          sim_debug(DEBUG_CONO, dptr, "DDC %03o CONO %06o PC=%o\n", dev,
-                   (uint32)*data, PC);
+                   (uint32_t)*data, PC);
          break;
      case DATAI:
          *data = (t_uint64)(uptr->SEC++);

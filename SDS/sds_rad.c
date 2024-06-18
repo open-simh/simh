@@ -51,8 +51,8 @@
 #define GET_SECTOR(x)   ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) RAD_NUMSC)))
 
-extern uint32 xfr_req;
-extern uint32 alert;
+extern uint32_t xfr_req;
+extern uint32_t alert;
 extern int32 stop_invins, stop_invdev, stop_inviop;
 int32 rad_err = 0;                                      /* error */
 int32 rad_nobi = 0;                                     /* !incr x track */
@@ -73,7 +73,7 @@ t_stat rad_boot (int32 unitno, DEVICE *dptr);
 t_stat rad_fill (int32 sba);
 void rad_end_op (int32 fl);
 int32 rad_adjda (int32 sba, int32 inc);
-t_stat rad (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat rad (uint32_t fnc, uint32_t inst, uint32_t *dat);
 
 /* RAD data structures
 
@@ -128,11 +128,11 @@ DEVICE rad_dev = {
    write -      inst = device number, dat = ptr to result
 */
 
-t_stat rad (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat rad (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 t, lun, new_ch;
-uint32 p;
-uint32 *fbuf = (uint32 *)rad_unit.filebuf;
+uint32_t p;
+uint32_t *fbuf = (uint32_t *)rad_unit.filebuf;
 
 switch (fnc) {                                          /* case function */
 
@@ -238,7 +238,7 @@ return SCPE_OK;
 
 /* PIN routine */
 
-t_stat pin_rads (uint32 num, uint32 *dat)
+t_stat pin_rads (uint32_t num, uint32_t *dat)
 {
 *dat = GET_SECTOR (rad_time * RAD_NUMWD);               /* ret curr sec */
 return SCPE_OK;
@@ -246,7 +246,7 @@ return SCPE_OK;
 
 /* POT routine */
 
-t_stat pot_rada (uint32 num, uint32 *dat)
+t_stat pot_rada (uint32_t num, uint32_t *dat)
 {
 rad_da = (*dat) & RAD_AMASK;                            /* save dsk addr */
 return SCPE_OK;
@@ -265,8 +265,8 @@ return SCPE_OK;
 
 t_stat rad_fill (int32 sba)
 {
-uint32 p = rad_da * RAD_NUMWD;
-uint32 *fbuf = (uint32 *)rad_unit.filebuf;
+uint32_t p = rad_da * RAD_NUMWD;
+uint32_t *fbuf = (uint32_t *)rad_unit.filebuf;
 int32 wa = (sba + 1) >> 1;                              /* whole words */
 
 if (sba && (p < rad_unit.capac)) {                      /* fill needed? */
@@ -326,7 +326,7 @@ return SCPE_OK;
 
 t_stat rad_boot (int32 unitno, DEVICE *dptr)
 {
-extern uint32 P, M[];
+extern uint32_t P, M[];
 
 if (unitno)                                             /* only unit 0 */
     return SCPE_ARG;

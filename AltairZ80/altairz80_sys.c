@@ -109,7 +109,7 @@ extern long disasm (unsigned char *data, char *output, int segsize, long offset)
 extern t_stat parse_sym_m68k(char* c, t_addr a, UNIT* u, t_value* val, int32 sw);
 
 void prepareMemoryAccessMessage(const t_addr loc);
-void prepareInstructionMessage(const t_addr loc, const uint32 op);
+void prepareInstructionMessage(const t_addr loc, const uint32_t op);
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
 t_stat parse_sym(CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw);
 
@@ -428,17 +428,17 @@ void prepareMemoryAccessMessage(const t_addr loc) {
     sprintf(memoryAccessMessage, "Memory access breakpoint [%05xh]", loc);
 }
 
-void prepareInstructionMessage(const t_addr loc, const uint32 op) {
+void prepareInstructionMessage(const t_addr loc, const uint32_t op) {
     sprintf(instructionMessage, "Instruction \"%s\" breakpoint [%05xh]", chiptype == CHIP_TYPE_8080 ?  Mnemonics8080[op & 0xff] :
             (chiptype == CHIP_TYPE_Z80 ? MnemonicsZ80[op & 0xff] : "???"), loc);
 }
 
 /* Ensure that hex number starts with a digit when printed */
-static void printHex2(char* string, const uint32 value) {
+static void printHex2(char* string, const uint32_t value) {
     sprintf(string, (value <= 0x9f ? "%02X" : "%03X"), value);
 }
 
-static void printHex4(char* string, const uint32 value) {
+static void printHex4(char* string, const uint32_t value) {
     sprintf(string, (value <= 0x9fff ? "%04X" : "%05X"), value);
 }
 
@@ -458,11 +458,11 @@ static void printHex4(char* string, const uint32 value) {
 
 */
 
-static int32 DAsm(char *S, const uint32 *val, const int32 useZ80Mnemonics, const int32 addr) {
+static int32 DAsm(char *S, const uint32_t *val, const int32 useZ80Mnemonics, const int32 addr) {
     char R[128], H[10], C = '\0', *P;
     const char *T, *T1;
-    uint8 J = 0, Offset = 0;
-    uint16 B = 0;
+    uint8_t J = 0, Offset = 0;
+    uint16_t B = 0;
 
     if (useZ80Mnemonics)
         switch(val[B]) {
@@ -724,7 +724,7 @@ static int32 checkXY(const char xy) {
     return xy == 'X' ? 0xdd : 0xfd; /* else is 'Y' */
 }
 
-static int32 parse_X80(const char *cptr, const int32 addr, uint32 *val, const char *const Mnemonics[]) {
+static int32 parse_X80(const char *cptr, const int32 addr, uint32_t *val, const char *const Mnemonics[]) {
     char xyFirst = 0, xy;
     int32 op, number, star, at, hat, dollar;
     for (op = 0; op < 256; op++) {
@@ -853,7 +853,7 @@ t_stat parse_sym(CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
     if ((sw & (SWMASK('A') | SWMASK('C'))) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
         if (cptr[0] == 0)
             return SCPE_ARG;    /* must have one char       */
-        val[0] = (uint32) cptr[0];
+        val[0] = (uint32_t) cptr[0];
         return SCPE_OK;
     }
     return (chiptype == CHIP_TYPE_M68K ? parse_sym_m68k((char *)cptr, addr, uptr, val, sw) :
@@ -865,7 +865,7 @@ t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
     DEVICE *dptr;
     PNP_INFO *pnp;
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)
@@ -924,7 +924,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
     DEVICE *dptr;
     PNP_INFO *pnp;
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)

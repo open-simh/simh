@@ -204,9 +204,9 @@ t_bool sim_signaled_int_char                            /* WRU character detecte
 #else
                              = TRUE;
 #endif
-uint32 sim_last_poll_kbd_time;                          /* time when sim_poll_kbd was called */
+uint32_t sim_last_poll_kbd_time;                          /* time when sim_poll_kbd was called */
 extern TMLN *sim_oline;                                 /* global output socket */
-static uint32 sim_con_pos;                              /* console character output count */
+static uint32_t sim_con_pos;                              /* console character output count */
 
 static t_stat sim_con_poll_svc (UNIT *uptr);                /* console connection poll routine */
 static t_stat sim_con_reset (DEVICE *dptr);                 /* console reset routine */
@@ -521,11 +521,11 @@ struct BITSAMPLE {
 typedef struct BITSAMPLE_REG BITSAMPLE_REG;
 struct BITSAMPLE_REG {
     REG             *reg;           /* Register to be sampled */
-    uint32           idx;           /* Register index */
+    uint32_t           idx;           /* Register index */
     t_bool          indirect;       /* Register value points at memory */
     DEVICE          *dptr;          /* Device register is part of */
     UNIT            *uptr;          /* Unit Register is related to */
-    uint32          width;          /* number of bits to sample */
+    uint32_t          width;          /* number of bits to sample */
     BITSAMPLE       *bits;
     };
 typedef struct REMOTE REMOTE;
@@ -537,22 +537,22 @@ struct REMOTE {
     size_t          act_buf_size;
     char            *act;
     t_bool          single_mode;
-    uint32          read_timeout;
+    uint32_t          read_timeout;
     int             line;                   /* remote console line number */
     TMLN            *lp;                    /* mux line/socket for remote session */
     UNIT            *uptr;                  /* remote console unit */
-    uint32          repeat_interval;        /* usecs between repeat execution */
+    uint32_t          repeat_interval;        /* usecs between repeat execution */
     t_bool          repeat_pending;         /* repeat delivery pending */
     char            *repeat_action;         /* command(s) to repeatedly execute */
     int             smp_sample_interval;    /* cycles between samples */
     int             smp_sample_dither_pct;  /* dithering of cycles interval */
-    uint32          smp_reg_count;          /* sample register count */
+    uint32_t          smp_reg_count;          /* sample register count */
     BITSAMPLE_REG   *smp_regs;              /* registers being sampled */
     };
 REMOTE *sim_rem_consoles = NULL;
 
 static TMXR sim_rem_con_tmxr = { 0, 0, 0, NULL, NULL, &sim_remote_console };/* remote console line mux */
-static uint32 sim_rem_read_timeout = 30;    /* seconds before automatic continue */
+static uint32_t sim_rem_read_timeout = 30;    /* seconds before automatic continue */
 static int32 sim_rem_active_number = -1;    /* -1 - not active, >= 0 is index of active console */
 int32 sim_rem_cmd_active_line = -1;         /* step in progress on line # */
 static CTAB *sim_rem_active_command = NULL; /* active command */
@@ -567,14 +567,14 @@ static t_offset sim_rem_cmd_log_start = 0;  /* Log File saved position */
 static t_stat sim_rem_sample_output (FILE *st, int32 line)
 {
 REMOTE *rem = &sim_rem_consoles[line];
-uint32 reg;
+uint32_t reg;
 
 if (rem->smp_reg_count == 0) {
     fprintf (st, "Samples are not being collected\n");
     return SCPE_OK;
     }
 for (reg = 0; reg < rem->smp_reg_count; reg++) {
-    uint32 bit;
+    uint32_t bit;
 
     if (rem->smp_regs[reg].reg->depth > 1)
         fprintf (st, "}%s %s[%d] %s %d:", rem->smp_regs[reg].dptr->name, rem->smp_regs[reg].reg->name, rem->smp_regs[reg].idx, rem->smp_regs[reg].indirect ? " -I" : "", rem->smp_regs[reg].bits[0].depth);
@@ -657,7 +657,7 @@ for (i=connections=0; i<sim_rem_con_tmxr.lines; i++) {
         fprintf (st, "    is repeated every %s\n", sim_fmt_secs (rem->repeat_interval / 1000000.0));
         }
     if (rem->smp_reg_count) {
-        uint32 reg;
+        uint32_t reg;
         DEVICE *dptr = NULL;
 
         if (rem->smp_sample_dither_pct)
@@ -1132,7 +1132,7 @@ if ((stat != SCPE_OK) || (samples <= 0)) {      /* error? */
             }
         if (stat == SCPE_OK) {
             for (line = all_stop ? 0 : rem->line; line < (all_stop ? sim_rem_con_tmxr.lines : (rem->line + 1)); line++) {
-                uint32 i, j;
+                uint32_t i, j;
 
                 rem = &sim_rem_consoles[line];
                 for (i = 0; i< rem->smp_reg_count; i++) {
@@ -1200,9 +1200,9 @@ else {
     while (cptr && *cptr) {
         const char *comma = strchr (cptr, ',');
         char tbuf[2*CBUFSIZE];
-        uint32 bit, width;
+        uint32_t bit, width;
         REG *reg;
-        uint32 idx;
+        uint32_t idx;
         int32 saved_switches = sim_switches;
         t_bool indirect = FALSE;
         BITSAMPLE_REG *smp_regs;
@@ -1238,7 +1238,7 @@ else {
                 stat = sim_messagef (SCPE_SUB, "Not Array Register: %s\n", reg->name);
                 break;
                 }
-            idx = (uint32) strtotv (tgptr, &tptr, 10);  /* convert index */
+            idx = (uint32_t) strtotv (tgptr, &tptr, 10);  /* convert index */
             if ((tgptr == tptr) || (*tptr++ != ']')) {
                 stat = sim_messagef (SCPE_SUB, "Missing or Invalid Register Subscript: %s[%s\n", reg->name, tgptr);
                 break;
@@ -1329,7 +1329,7 @@ for (i = 0; i < bit->depth; i++)    /* set all value bits */
 
 static void sim_rem_collect_reg_bits (BITSAMPLE_REG *reg)
 {
-uint32 i;
+uint32_t i;
 t_value val = get_rval (reg->reg, reg->idx);
 
 if (reg->indirect)
@@ -1346,7 +1346,7 @@ for (i = 0; i < reg->width; i++) {
 
 static void sim_rem_collect_registers (REMOTE *rem)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < rem->smp_reg_count; i++)
     sim_rem_collect_reg_bits (&rem->smp_regs[i]);
@@ -1393,7 +1393,7 @@ char cbuf[4*CBUFSIZE], gbuf[CBUFSIZE], *argv[1] = {NULL};
 CONST char *cptr;
 CTAB *cmdp = NULL;
 CTAB *basecmdp = NULL;
-uint32 read_start_time = 0;
+uint32_t read_start_time = 0;
 
 tmxr_poll_rx (&sim_rem_con_tmxr);                      /* poll input */
 for (i=(was_active_command ? sim_rem_cmd_active_line : 0); 
@@ -2179,14 +2179,14 @@ return SCPE_OK;
 t_stat sim_set_pchar (int32 flag, CONST char *cptr)
 {
 DEVICE *dptr = sim_devices[0];
-uint32 val, rdx;
+uint32_t val, rdx;
 t_stat r;
 
 if ((cptr == NULL) || (*cptr == 0))
     return SCPE_2FARG;
 if (dptr->dradix == 16) rdx = 16;
 else rdx = 8;
-val = (uint32) get_uint (cptr, rdx, 0xFFFFFFFF, &r);
+val = (uint32_t) get_uint (cptr, rdx, 0xFFFFFFFF, &r);
 if ((r != SCPE_OK) ||
     ((val & 0x00002400) == 0))
     return SCPE_ARG;
@@ -2446,7 +2446,7 @@ if (sim_deb) {
         fprintf (st, "   Debug messages containing blob data in EBCDIC will display in readable form\n");
     for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {
         t_bool unit_debug = FALSE;
-        uint32 unit;
+        uint32_t unit;
 
         for (unit = 0; unit < dptr->numunits; unit++)
             if (dptr->units[unit].dctrl) {
@@ -2462,7 +2462,7 @@ if (sim_deb) {
         }
     for (i = 0; sim_internal_device_count && (dptr = sim_internal_devices[i]); ++i) {
         t_bool unit_debug = FALSE;
-        uint32 unit;
+        uint32_t unit;
 
         for (unit = 0; unit < dptr->numunits; unit++)
             if (dptr->units[unit].dctrl) {
@@ -2991,12 +2991,12 @@ return r;                                               /* return status */
 
 /* Input character processing */
 
-int32 sim_tt_inpcvt (int32 c, uint32 mode)
+int32 sim_tt_inpcvt (int32 c, uint32_t mode)
 {
-uint32 md = mode & TTUF_M_MODE;
+uint32_t md = mode & TTUF_M_MODE;
 
 if (md != TTUF_MODE_8B) {
-    uint32 par_mode = (mode >> TTUF_W_MODE) & TTUF_M_PAR;
+    uint32_t par_mode = (mode >> TTUF_W_MODE) & TTUF_M_PAR;
     static int32 nibble_even_parity = 0x699600;     /* bit array indicating the even parity for each index (offset by 8) */
 
     c = c & 0177;
@@ -3025,9 +3025,9 @@ return c;
 
 /* Output character processing */
 
-int32 sim_tt_outcvt (int32 c, uint32 mode)
+int32 sim_tt_outcvt (int32 c, uint32_t mode)
 {
-uint32 md = mode & TTUF_M_MODE;
+uint32_t md = mode & TTUF_M_MODE;
 
 if (md != TTUF_MODE_8B) {
     c = c & 0177;
@@ -3048,13 +3048,13 @@ return c;
 
 /* Tab stop array handling
 
-   *desc points to a uint8 array of length val
+   *desc points to a uint8_t array of length val
 
    Columns with tabs set are non-zero; columns without tabs are 0 */
 
 t_stat sim_tt_settabs (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint8 *temptabs, *tabs = (uint8 *) desc;
+uint8_t *temptabs, *tabs = (uint8_t *) desc;
 int32 i, d;
 t_stat r;
 char gbuf[CBUFSIZE];
@@ -3063,7 +3063,7 @@ if ((cptr == NULL) || (tabs == NULL) || (val <= 1))
     return SCPE_IERR;
 if (*cptr == 0)
     return SCPE_2FARG;
-if ((temptabs = (uint8 *)malloc (val)) == NULL)
+if ((temptabs = (uint8_t *)malloc (val)) == NULL)
     return SCPE_MEM;
 for (i = 0; i < val; i++)
     temptabs[i] = 0;
@@ -3084,7 +3084,7 @@ return SCPE_OK;
 
 t_stat sim_tt_showtabs (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-const uint8 *tabs = (const uint8 *) desc;
+const uint8_t *tabs = (const uint8_t *) desc;
 int32 i, any;
 
 if ((st == NULL) || (val == 0) || (desc == NULL))
@@ -3101,7 +3101,7 @@ return SCPE_OK;
 
 t_stat sim_tt_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 par_mode = (TT_GET_MODE (uptr->flags) >> TTUF_W_MODE) & TTUF_M_PAR;
+uint32_t par_mode = (TT_GET_MODE (uptr->flags) >> TTUF_W_MODE) & TTUF_M_PAR;
 
 uptr->flags = uptr->flags & ~((TTUF_M_MODE << TTUF_V_MODE) | (TTUF_M_PAR << TTUF_V_PAR) | TTUF_KSR);
 uptr->flags |= val;
@@ -3119,9 +3119,9 @@ return SCPE_OK;
 
 t_stat sim_tt_show_modepar (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 md = (TT_GET_MODE (uptr->flags) & TTUF_M_MODE);
+uint32_t md = (TT_GET_MODE (uptr->flags) & TTUF_M_MODE);
 static const char *modes[] = {"7b", "8b", "UC", "7p"};
-uint32 par_mode = (TT_GET_MODE (uptr->flags) >> TTUF_W_MODE) & TTUF_M_PAR;
+uint32_t par_mode = (TT_GET_MODE (uptr->flags) >> TTUF_W_MODE) & TTUF_M_PAR;
 static const char *parity[] = {"SPACE", "MARK", "EVEN", "ODD"};
 
 if ((md == TTUF_MODE_UC) && (par_mode == TTUF_PAR_MARK))
@@ -3321,7 +3321,7 @@ return sim_os_fd_isatty (fd);
 #include <unistd.h>
 
 #define EFN 0
-uint32 tty_chan = 0;
+uint32_t tty_chan = 0;
 int buffered_character = 0;
 
 typedef struct {
@@ -3687,10 +3687,10 @@ return (WAIT_OBJECT_0 == WaitForSingleObject (std_input, ms_timeout));
 #define ESC_HOLD_USEC_DELAY 8000    /* Escape hold interval */
 #define ESC_HOLD_MAX        32      /* Maximum Escape hold buffer */
 
-static uint8 out_buf[ESC_HOLD_MAX]; /* Buffered characters pending output */
+static uint8_t out_buf[ESC_HOLD_MAX]; /* Buffered characters pending output */
 static int32 out_ptr = 0;
 
-static void sim_console_write(uint8 *outbuf, int32 outsz)
+static void sim_console_write(uint8_t *outbuf, int32 outsz)
 {
     DWORD unused;
     DWORD mode;
@@ -3713,9 +3713,9 @@ return SCPE_OK;
 
 static t_stat sim_os_putchar (int32 c)
 {
-uint32 now;
-static uint32 last_bell_time;
-uint8  ch = (c & 0xff);
+uint32_t now;
+static uint32_t last_bell_time;
+uint8_t  ch = (c & 0xff);
 
 if (ch != 0177) {
     switch (ch) {
@@ -4133,7 +4133,7 @@ else {
                               mbuf, 
                               (sim_switches & SWMASK ('I')) ? "" : "\n");
     free (mbuf);
-    mbuf = sim_encode_quoted_string ((uint8 *)mbuf2, strlen (mbuf2));
+    mbuf = sim_encode_quoted_string ((uint8_t *)mbuf2, strlen (mbuf2));
     sim_switches = EXP_TYP_PERSIST;
     sim_set_expect (&sim_con_expect, mbuf);
     free (mbuf);
@@ -4151,12 +4151,12 @@ static t_stat sim_set_response (int32 flag, CONST char *cptr)
 if (flag == 0)                                          /* no response? */
     sim_send_clear (&sim_con_send);
 else {
-    uint8 *rbuf;
+    uint8_t *rbuf;
 
     if (cptr == NULL || *cptr == 0)
         return SCPE_2FARG;                              /* need arg */
 
-    rbuf = (uint8 *)malloc (1 + strlen(cptr));
+    rbuf = (uint8_t *)malloc (1 + strlen(cptr));
 
     decode ((char *)rbuf, cptr);                        /* decode string */
     sim_send_input (&sim_con_send, rbuf, strlen((char *)rbuf), 0, 0); /* queue it for output */

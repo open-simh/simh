@@ -87,41 +87,41 @@
 
 typedef struct {
     UNIT *uptr;
-    uint8  readonly;    /* Drive is read-only? */
-    uint16 sectsize;    /* sector size */
-    uint16 nsectors;    /* number of sectors/track */
-    uint16 nheads;      /* number of heads */
-    uint16 ncyls;       /* number of cylinders */
-    uint16 cur_cyl;     /* Current cylinder */
-    uint8  cur_head;    /* Current Head */
-    uint8  cur_sect;    /* current starting sector of transfer */
-    uint16 cur_sectsize;/* Current sector size in SA6 register */
-    uint16 xfr_nsects;  /* Number of sectors to transfer */
-    uint8 ready;        /* Is drive ready? */
+    uint8_t  readonly;    /* Drive is read-only? */
+    uint16_t sectsize;    /* sector size */
+    uint16_t nsectors;    /* number of sectors/track */
+    uint16_t nheads;      /* number of heads */
+    uint16_t ncyls;       /* number of cylinders */
+    uint16_t cur_cyl;     /* Current cylinder */
+    uint8_t  cur_head;    /* Current Head */
+    uint8_t  cur_sect;    /* current starting sector of transfer */
+    uint16_t cur_sectsize;/* Current sector size in SA6 register */
+    uint16_t xfr_nsects;  /* Number of sectors to transfer */
+    uint8_t ready;        /* Is drive ready? */
 } IBC_HDC_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8   sel_drive;  /* Currently selected drive */
-    uint8   reg_temp_holding[4];
-    uint8   taskfile[9]; /* ATA Task File Registers */
-    uint8   status_reg; /* IBC Disk Slave Status Register */
-    uint8   error_reg;  /* IBC Disk Slave Error Register */
-    uint8   ndrives;    /* Number of drives attached to the controller */
-    uint8   sectbuf[IBC_HDC_MAX_SECLEN*10];
-    uint16  secbuf_index;
+    uint8_t   sel_drive;  /* Currently selected drive */
+    uint8_t   reg_temp_holding[4];
+    uint8_t   taskfile[9]; /* ATA Task File Registers */
+    uint8_t   status_reg; /* IBC Disk Slave Status Register */
+    uint8_t   error_reg;  /* IBC Disk Slave Error Register */
+    uint8_t   ndrives;    /* Number of drives attached to the controller */
+    uint8_t   sectbuf[IBC_HDC_MAX_SECLEN*10];
+    uint16_t  secbuf_index;
     IBC_HDC_DRIVE_INFO drive[IBC_HDC_MAX_DRIVES];
 } IBC_HDC_INFO;
 
 static IBC_HDC_INFO ibc_hdc_info_data = { { 0x0, 0, 0x40, 9 } };
 static IBC_HDC_INFO *ibc_hdc_info = &ibc_hdc_info_data;
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern int32 HL_S;                                 /* HL register                                  */
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index(UNIT *uptr);
 
 #define UNIT_V_IBC_HDC_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
@@ -135,8 +135,8 @@ static t_stat ibc_hdc_unit_set_geometry(UNIT* uptr, int32 value, CONST char* cpt
 static t_stat ibc_hdc_unit_show_geometry(FILE* st, UNIT* uptr, int32 value, CONST void* desc);
 static int32 ibchdcdev(const int32 port, const int32 io, const int32 data);
 
-static uint8 IBC_HDC_Read(const uint32 Addr);
-static uint8 IBC_HDC_Write(const uint32 Addr, uint8 cData);
+static uint8_t IBC_HDC_Read(const uint32_t Addr);
+static uint8_t IBC_HDC_Write(const uint32_t Addr, uint8_t cData);
 static t_stat IBC_HDC_doCommand(void);
 static const char* ibc_hdc_description(DEVICE *dptr);
 
@@ -314,7 +314,7 @@ static t_stat ibc_hdc_unit_set_geometry(UNIT* uptr, int32 value, CONST char* cpt
     IBC_HDC_DRIVE_INFO* pDrive;
     int32 i;
     int32 result;
-    uint16 newCyls, newHeads, newSPT, newSecLen;
+    uint16_t newCyls, newHeads, newSPT, newSecLen;
 
     i = find_unit_index(uptr);
 
@@ -386,7 +386,7 @@ static t_stat ibc_hdc_unit_show_geometry(FILE* st, UNIT* uptr, int32 value, CONS
 static int32 ibchdcdev(const int32 port, const int32 io, const int32 data)
 {
     if(io) {
-        IBC_HDC_Write(port, (uint8)data);
+        IBC_HDC_Write(port, (uint8_t)data);
         return 0;
     } else {
         return(IBC_HDC_Read(port));
@@ -394,7 +394,7 @@ static int32 ibchdcdev(const int32 port, const int32 io, const int32 data)
 }
 
 /* I/O Write to IBC Disk Slave Task File */
-static uint8 IBC_HDC_Write(const uint32 Addr, uint8 cData)
+static uint8_t IBC_HDC_Write(const uint32_t Addr, uint8_t cData)
 {
     switch(Addr) {
     case 0x40:
@@ -447,9 +447,9 @@ static uint8 IBC_HDC_Write(const uint32 Addr, uint8 cData)
 
 
 /* I/O Read from IBC Disk Slave Task File */
-static uint8 IBC_HDC_Read(const uint32 Addr)
+static uint8_t IBC_HDC_Read(const uint32_t Addr)
 {
-    uint8 cData = 0xFF;
+    uint8_t cData = 0xFF;
 
     switch (Addr) {
     case IBC_HDC_REG_STATUS:
@@ -536,9 +536,9 @@ static t_stat IBC_HDC_doCommand(void)
 {
     t_stat r = SCPE_OK;
     IBC_HDC_DRIVE_INFO* pDrive = &ibc_hdc_info->drive[ibc_hdc_info->sel_drive];
-    uint8 cmd = ibc_hdc_info->taskfile[TF_CMD] & IBC_HDC_CMD_MASK;
+    uint8_t cmd = ibc_hdc_info->taskfile[TF_CMD] & IBC_HDC_CMD_MASK;
 
-    pDrive->cur_cyl    = (uint16)ibc_hdc_info->taskfile[TF_TRKH] << 8;
+    pDrive->cur_cyl    = (uint16_t)ibc_hdc_info->taskfile[TF_TRKH] << 8;
     pDrive->cur_cyl   |= ibc_hdc_info->taskfile[TF_TRKL];
     pDrive->xfr_nsects = ibc_hdc_info->taskfile[TF_NSEC];
     pDrive->cur_head   = ibc_hdc_info->taskfile[TF_HEAD];
@@ -559,8 +559,8 @@ static t_stat IBC_HDC_doCommand(void)
     case IBC_HDC_CMD_READ_SECT:
     case IBC_HDC_CMD_WRITE_SECT:
     {
-        uint32 xfr_len;
-        uint32 file_offset;
+        uint32_t xfr_len;
+        uint32_t file_offset;
 
         sim_debug(CMD_MSG, &ibc_hdc_dev, DEV_NAME "%d: " ADDRESS_FORMAT
             " CMD: %02x: Params 0x%02x,%02x,%02x - 0x%02x,%02x,%02x,%02x.\n", ibc_hdc_info->sel_drive, PCX,
@@ -609,9 +609,9 @@ static t_stat IBC_HDC_doCommand(void)
     }
     case IBC_HDC_CMD_FORMAT_TRK:
     {
-        uint32 data_len;
-        uint32 file_offset;
-        uint8* fmtBuffer;
+        uint32_t data_len;
+        uint32_t file_offset;
+        uint8_t* fmtBuffer;
 
         sim_debug(WR_DATA_MSG, &ibc_hdc_dev, DEV_NAME "%d: " ADDRESS_FORMAT
             " FORMAT TRACK  C:%04d/H:%d\n",
@@ -633,7 +633,7 @@ static t_stat IBC_HDC_doCommand(void)
         file_offset += (pDrive->cur_head * pDrive->nsectors);   /* Add full heads */
         file_offset *= pDrive->sectsize;    /* Convert #sectors to byte offset */
 
-        fmtBuffer = calloc(data_len, sizeof(uint8));
+        fmtBuffer = calloc(data_len, sizeof(uint8_t));
 
         if (fmtBuffer == 0) {
             return sim_messagef(SCPE_MEM, "Cannot allocate %d bytes for format buffer.\n", data_len);

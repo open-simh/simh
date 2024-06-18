@@ -31,7 +31,7 @@
 // -------------------------------------------------------------------------------------------
 
 typedef int            BOOL;                        // boolean
-typedef unsigned short uint16;                      // unsigned 16-bit integer
+typedef unsigned short uint16_t;                      // unsigned 16-bit integer
 typedef short          int16;                       // signed   16-bit integer
 
 #define TRUE  1                                     // BOOL values
@@ -53,9 +53,9 @@ typedef short          int16;                       // signed   16-bit integer
 typedef struct tag_letentry {                       // linked list node for directory entry
     struct tag_letentry *next;
     char name[6];                                   // file name (1-5 chars)
-    uint16 filetype;                                // file image type
-    uint16 dbcount;                                 // length in DMS "disk blocks" (20 words per block)
-    uint16 dbaddr;                                  // disk block address
+    uint16_t filetype;                                // file image type
+    uint16_t dbcount;                                 // length in DMS "disk blocks" (20 words per block)
+    uint16_t dbaddr;                                  // disk block address
     struct tag_letentry *master;                    // master entry, if this is an alternate name entry
     BOOL dummy;                                     // TRUE if this is a 1DUMY entry
 } LETENTRY;
@@ -93,55 +93,55 @@ struct {                                            // DMS2 program subtypes for
 #pragma pack(1)
 
 typedef struct tag_dsf_program_header {             // header block of a DSF format file, disk layout
-    uint16      zero1;
-    uint16      checksum;
-    uint16      type;
-    uint16      proglen;                // effective length, terminal address
-    uint16      commonlen;              // length of common
-    uint16      hdr_len9;               // length of this header - 9
-    uint16      zero2;
-    uint16      dblen;                  // length of program including header in disk blocks (20 wds)
-    uint16      fortran_info;
+    uint16_t      zero1;
+    uint16_t      checksum;
+    uint16_t      type;
+    uint16_t      proglen;                // effective length, terminal address
+    uint16_t      commonlen;              // length of common
+    uint16_t      hdr_len9;               // length of this header - 9
+    uint16_t      zero2;
+    uint16_t      dblen;                  // length of program including header in disk blocks (20 wds)
+    uint16_t      fortran_info;
     union {
         struct {                        // normal programs: entry point information. 1-15. Actual number is hdr_len9/3
-            uint16  name[2];
-            uint16  addr;
+            uint16_t  name[2];
+            uint16_t  addr;
         } entry[15];
         struct {                        // ISS (types 5 and 6)
-            uint16  name[2];
-            uint16  addr;
-            uint16  iss_50;             // ISS number + 50
-            uint16  issnumber;          // ISS number
-            uint16  nlevels;            // # of levels required (1 or 2)
-            uint16  level[2];           // interrupt level associated with interrupt (nlevels entries used)
+            uint16_t  name[2];
+            uint16_t  addr;
+            uint16_t  iss_50;             // ISS number + 50
+            uint16_t  issnumber;          // ISS number
+            uint16_t  nlevels;            // # of levels required (1 or 2)
+            uint16_t  level[2];           // interrupt level associated with interrupt (nlevels entries used)
         } iss;
         struct {                        // ILS (type 7)
-            uint16  name[2];
-            uint16  addr;
-            uint16  level;              // interrupt level
+            uint16_t  name[2];
+            uint16_t  addr;
+            uint16_t  level;              // interrupt level
         } ils;
     } x;
 } DSF_PROGRAM_HEADER;
 
 typedef struct tag_dci_program_header {         // header of a DCI (core image) format file, disk layout
-    uint16  xeqa;                       // execute address
-    uint16  cmon;                       // length of COMMON
-    uint16  dreq;                       // disk IO indicator, /FFFF for DISKZ, 0000 for DISK1, 0001 for DISKN
-    uint16  file;                       // number of files defined
-    uint16  hwct;                       // length of core image header in words
-    uint16  lsct;                       // sector count of files in system WS
-    uint16  ldad;                       // loading address of core load
-    uint16  xctl;                       // exit control address for DISK1/N
-    uint16  tvwc;                       // length of transfer vector in words
-    uint16  wcnt;                       // length, in words of the core load, core image header and transfer vector
-    uint16  xr3x;                       // setting for index register 3 during execution of core load
-    uint16  itv[6];                     // ITV (values of words 8-13 during execution)
-    uint16  reserved1;
-    uint16  ibt[8];                     // IBT for ILS04. interrupt entry for ISS of 1231 (3 words), 1403, 2501, 1442, keyboard/prt, 1134/1055 respectively
-    uint16  ovsw;                       // sector count of LOCALs/SOCALs
-    uint16  core;                       // core size of system on which core load was built
-    uint16  reserved2[2];
-    uint16  hend;                       // last word of header
+    uint16_t  xeqa;                       // execute address
+    uint16_t  cmon;                       // length of COMMON
+    uint16_t  dreq;                       // disk IO indicator, /FFFF for DISKZ, 0000 for DISK1, 0001 for DISKN
+    uint16_t  file;                       // number of files defined
+    uint16_t  hwct;                       // length of core image header in words
+    uint16_t  lsct;                       // sector count of files in system WS
+    uint16_t  ldad;                       // loading address of core load
+    uint16_t  xctl;                       // exit control address for DISK1/N
+    uint16_t  tvwc;                       // length of transfer vector in words
+    uint16_t  wcnt;                       // length, in words of the core load, core image header and transfer vector
+    uint16_t  xr3x;                       // setting for index register 3 during execution of core load
+    uint16_t  itv[6];                     // ITV (values of words 8-13 during execution)
+    uint16_t  reserved1;
+    uint16_t  ibt[8];                     // IBT for ILS04. interrupt entry for ISS of 1231 (3 words), 1403, 2501, 1442, keyboard/prt, 1134/1055 respectively
+    uint16_t  ovsw;                       // sector count of LOCALs/SOCALs
+    uint16_t  core;                       // core size of system on which core load was built
+    uint16_t  reserved2[2];
+    uint16_t  hend;                       // last word of header
 } DCI_PROGRAM_HEADER;
 
 #pragma pack()
@@ -155,7 +155,7 @@ typedef struct tag_dci_program_header {         // header of a DCI (core image) 
 #define FILETYPE_DCI        2
 #define FILETYPE_DDF        3
 
-uint16 defective[3] = {0xFFFF, 0xFFFF, 0xFFFF};     // defective cylinder table, number is 1st sector number of bad cylinder
+uint16_t defective[3] = {0xFFFF, 0xFFFF, 0xFFFF};     // defective cylinder table, number is 1st sector number of bad cylinder
 FILE *fd;                                           // stream for open disk image file
 BOOL verbose = FALSE;                               // verbose switch
 BOOL show_all = FALSE;                              // switch to display alternate file entries
@@ -168,64 +168,64 @@ LETENTRY *flet = NULL, *let = NULL;                 // pointers to contents of F
 #pragma pack(1)                                     // (don't pad struct elements)
 
 struct {                                            // buffer for one sector
-    uint16 secno;
-    uint16 data[SEC_WORDS];
+    uint16_t secno;
+    uint16_t data[SEC_WORDS];
 } sector;
 
 struct {                                            // structure of the SLET on disk
-    uint16  id;
-    uint16  addr;
-    uint16  size;
-    uint16  secno;
+    uint16_t  id;
+    uint16_t  addr;
+    uint16_t  size;
+    uint16_t  secno;
 } slet[SLET_LENGTH];
 
 struct {                                            // DCOM sector
-    uint16  _dummy0;
-    uint16  _dummy1;
-    uint16  _dummy2;
-    uint16  _dummy3;
-    uint16  name[2];                                //   4  name of program
-    uint16  dbct;                                   //   6  disk block count of program
-    uint16  fcnt;                                   //   7  files indicator
-    uint16  sysc;                                   //   8  system cartridge indicator switch
-    uint16  jbsw;                                   //   9  temporary job switch (nonzero = JOB T)
-    uint16  cbsw;                                   //  10  clb switch (nonzero = storeci)
-    uint16  lcnt;                                   //  11  local indicator (# of locals)
-    uint16  mpsw;                                   //  12  core map desired switch
-    uint16  mdf1;                                   //  13  no. of dup ctrl rcds (modif)
-    uint16  mdf2;                                   //  14  addr of modif buffer
-    uint16  ncnt;                                   //  15  nocal indicator
-    uint16  enty;                                   //  16  rel entry addr of program
-    uint16  rp67;                                   //  17  1442-5 switch (nonzero = mod 6 or 7)
-    uint16  todr;                                   //  18  -to- wk stg drive code
-    uint16  frdr;                                   //  19  -from- wk stg drive code
-    uint16  fhol;                                   //  20  addr of largest hole in fxa
-    uint16  fsze;                                   //  21  blk cnt largest hole in fxa
-    uint16  uhol;                                   //  22  addr of largest hole in ua
-    uint16  usze;                                   //  23  blk cnt largest hole in ua
-    uint16  dcsw;                                   //  24  dup call switch
-    uint16  piod;                                   //  25  principal IO device indicator
-    uint16  pptr;                                   //  26  print print device indicator
-    uint16  ciad;                                   //  27  sctr 0 loc of cil sctr addr
-    uint16  cain;                                   //  28  avail cartridge indicator
-    uint16  grph;                                   //  29  2250 indicator
-    uint16  gcnt;                                   //  30  g2260 count
-    uint16  locw;                                   //  31  local call locals sw
-    uint16  x3sw;                                   //  32  special ils sw
-    uint16  ecnt;                                   //  33  equat count
-    uint16  _dummy34;                               //  34
-    uint16  andu[5];                                //  35  end of UA address (adj)
-    uint16  bndu[5];                                //  40  end of UA address (base)
-    uint16  fpad[5];                                //  45  file protected address
-    uint16  pcid[5];                                //  50  available cartridge IDs (physical drvs 0..4)
-    uint16  cidn[5];                                //  55  cartridge ID            (logical drvs 0..4)
-    uint16  ciba[5];                                //  60  sector address of CIB
-    uint16  scra[5];                                //  65  sector address of SCRA
-    uint16  fmat[5];                                //  70  format of program in WS
-    uint16  flet[5];                                //  75  FLET sector address
-    uint16  ulet[5];                                //  80  LET sector address
-    uint16  wsct[5];                                //  85  BLK count of program in WS
-    uint16  cshn[5];                                //  90  1+sctr addr of end of cusn.
+    uint16_t  _dummy0;
+    uint16_t  _dummy1;
+    uint16_t  _dummy2;
+    uint16_t  _dummy3;
+    uint16_t  name[2];                                //   4  name of program
+    uint16_t  dbct;                                   //   6  disk block count of program
+    uint16_t  fcnt;                                   //   7  files indicator
+    uint16_t  sysc;                                   //   8  system cartridge indicator switch
+    uint16_t  jbsw;                                   //   9  temporary job switch (nonzero = JOB T)
+    uint16_t  cbsw;                                   //  10  clb switch (nonzero = storeci)
+    uint16_t  lcnt;                                   //  11  local indicator (# of locals)
+    uint16_t  mpsw;                                   //  12  core map desired switch
+    uint16_t  mdf1;                                   //  13  no. of dup ctrl rcds (modif)
+    uint16_t  mdf2;                                   //  14  addr of modif buffer
+    uint16_t  ncnt;                                   //  15  nocal indicator
+    uint16_t  enty;                                   //  16  rel entry addr of program
+    uint16_t  rp67;                                   //  17  1442-5 switch (nonzero = mod 6 or 7)
+    uint16_t  todr;                                   //  18  -to- wk stg drive code
+    uint16_t  frdr;                                   //  19  -from- wk stg drive code
+    uint16_t  fhol;                                   //  20  addr of largest hole in fxa
+    uint16_t  fsze;                                   //  21  blk cnt largest hole in fxa
+    uint16_t  uhol;                                   //  22  addr of largest hole in ua
+    uint16_t  usze;                                   //  23  blk cnt largest hole in ua
+    uint16_t  dcsw;                                   //  24  dup call switch
+    uint16_t  piod;                                   //  25  principal IO device indicator
+    uint16_t  pptr;                                   //  26  print print device indicator
+    uint16_t  ciad;                                   //  27  sctr 0 loc of cil sctr addr
+    uint16_t  cain;                                   //  28  avail cartridge indicator
+    uint16_t  grph;                                   //  29  2250 indicator
+    uint16_t  gcnt;                                   //  30  g2260 count
+    uint16_t  locw;                                   //  31  local call locals sw
+    uint16_t  x3sw;                                   //  32  special ils sw
+    uint16_t  ecnt;                                   //  33  equat count
+    uint16_t  _dummy34;                               //  34
+    uint16_t  andu[5];                                //  35  end of UA address (adj)
+    uint16_t  bndu[5];                                //  40  end of UA address (base)
+    uint16_t  fpad[5];                                //  45  file protected address
+    uint16_t  pcid[5];                                //  50  available cartridge IDs (physical drvs 0..4)
+    uint16_t  cidn[5];                                //  55  cartridge ID            (logical drvs 0..4)
+    uint16_t  ciba[5];                                //  60  sector address of CIB
+    uint16_t  scra[5];                                //  65  sector address of SCRA
+    uint16_t  fmat[5];                                //  70  format of program in WS
+    uint16_t  flet[5];                                //  75  FLET sector address
+    uint16_t  ulet[5];                                //  80  LET sector address
+    uint16_t  wsct[5];                                //  85  BLK count of program in WS
+    uint16_t  cshn[5];                                //  90  1+sctr addr of end of cusn.
 } dcom;
 
 #pragma pack()
@@ -240,16 +240,16 @@ BOOL is_system = FALSE;                                 // TRUE if this is a sys
 // PROTOTYPES
 // -------------------------------------------------------------------------------------------
 
-void getsec (uint16 secno);                             // read sector by number
-void getdata (void *buf, uint16 dbaddr, uint16 offset, uint16 nwords);  // read data from file relative to its disk block address
+void getsec (uint16_t secno);                             // read sector by number
+void getdata (void *buf, uint16_t dbaddr, uint16_t offset, uint16_t nwords);  // read data from file relative to its disk block address
 void bail (char *msg);                                  // print error message and exit
 void print_slet (void);                                 // print contents of SLET
-void get_let (LETENTRY **listhead, uint16 secno);       // read FLET or LET, building linked list
+void get_let (LETENTRY **listhead, uint16_t secno);       // read FLET or LET, building linked list
 void print_let (char *title, LETENTRY *listhead);       // print contents of FLET or LET
 void list_named_files (char *name, char *image) ;       // print info for specified file(s)
 void print_onefile (LETENTRY *entry, BOOL in_flet);     // print detailed info about one particular file
 int  ebcdic_to_ascii (int ch);                          // convert EBCDIC character to ASCII
-void convert_namecode (uint16 *namecode, char *name);   // convert DMS name code words into ASCII filename
+void convert_namecode (uint16_t *namecode, char *name);   // convert DMS name code words into ASCII filename
 char *upcase (char *str);                               // convert string to upper case
 void commas (int n, int width);                         // print number n with commas
 char *astring (char *str);                              // allocate memory for and return copy of string
@@ -448,10 +448,10 @@ void bail (char *msg)
 // getsec - read desired sector
 // -------------------------------------------------------------------------------------------
 
-void getsec (uint16 secno)
+void getsec (uint16_t secno)
 {
     int i, phys_sec;
-    static uint16 cur_sec = 0xFFFF;
+    static uint16_t cur_sec = 0xFFFF;
 
     if (secno == cur_sec)                                   // see if we already have the sector. Presumes
         return;                                             // we haven't modified its contents!
@@ -482,9 +482,9 @@ void getsec (uint16 secno)
 // getdata -- read data from file relative to its disk block address
 // -------------------------------------------------------------------------------------------
 
-void getdata (void *buf, uint16 dbaddr, uint16 offset, uint16 nwords)
+void getdata (void *buf, uint16_t dbaddr, uint16_t offset, uint16_t nwords)
 {
-    uint16 secno, nsec, nw;
+    uint16_t secno, nsec, nw;
 
     if (nwords == 0)
         return;
@@ -507,7 +507,7 @@ void getdata (void *buf, uint16 dbaddr, uint16 offset, uint16 nwords)
 
         secno++;                                        // bump sector
         offset = 0;                                     // no offset in subsequent sector(s)
-        ((uint16 *) buf) += nw;                         // bump buffer pointer
+        ((uint16_t *) buf) += nw;                         // bump buffer pointer
     }
 }
 
@@ -795,7 +795,7 @@ int ebcdic_to_ascii (int ch)
 // convert_namecode - convert two-word name code into 5 character ASCII name
 // -------------------------------------------------------------------------------------------
 
-void convert_namecode (uint16 *namecode, char *name)
+void convert_namecode (uint16_t *namecode, char *name)
 {
     unsigned long val;
     int i, ch;
@@ -824,9 +824,9 @@ void convert_namecode (uint16 *namecode, char *name)
 // get_let - get FLET or LET, build into linked list
 // -------------------------------------------------------------------------------------------
 
-void get_let (LETENTRY **listhead, uint16 secno)
+void get_let (LETENTRY **listhead, uint16_t secno)
 {
-    uint16 seq, sec_addr, avail, chain, namecode[2], dbcount, addr;
+    uint16_t seq, sec_addr, avail, chain, namecode[2], dbcount, addr;
     int i, nwords, filetype;
     char name[6];
     LETENTRY *head = NULL, *tail, *entry, *master = NULL;
@@ -1113,14 +1113,14 @@ void free_list (NAMELIST list)
 // -------------------------------------------------------------------------------------------
 
 typedef struct {
-    uint16      dbaddr;                 // dbaddr of current file
-    uint16      offset;                 // current offset in file
-    uint16      nwords;                 // number of words left in current data module
-    uint16      addr;                   // load address of next word
-    uint16      nw;                     // number of words in current data block (2-9)
-    uint16      ind;                    // index of next word to extract from current data block (1-8)
-    uint16      relflag;                // relocation flags; next word's flags are left adjusted
-    uint16      datablock[9];           // current data block; datablock[ind] is next word
+    uint16_t      dbaddr;                 // dbaddr of current file
+    uint16_t      offset;                 // current offset in file
+    uint16_t      nwords;                 // number of words left in current data module
+    uint16_t      addr;                   // load address of next word
+    uint16_t      nw;                     // number of words in current data block (2-9)
+    uint16_t      ind;                    // index of next word to extract from current data block (1-8)
+    uint16_t      relflag;                // relocation flags; next word's flags are left adjusted
+    uint16_t      datablock[9];           // current data block; datablock[ind] is next word
 } DSFSTREAM;
 
 void init_dsf_stream (DSFSTREAM *dsf_stream, LETENTRY *entry, DSF_PROGRAM_HEADER *hdr)
@@ -1137,9 +1137,9 @@ void init_dsf_stream (DSFSTREAM *dsf_stream, LETENTRY *entry, DSF_PROGRAM_HEADER
 // get_dsf_word - read next data word and associated relocation flag bits from DSF data stream
 // -------------------------------------------------------------------------------------------
 
-BOOL get_dsf_word (DSFSTREAM *dsf_stream, uint16 *word, uint16 *addr, uint16 *relflag)
+BOOL get_dsf_word (DSFSTREAM *dsf_stream, uint16_t *word, uint16_t *addr, uint16_t *relflag)
 {
-    uint16 dataheader[2];
+    uint16_t dataheader[2];
     int i;
 
     if (dsf_stream->ind >= dsf_stream->nw) {            // we've exhausted the current data block, get next one
@@ -1200,7 +1200,7 @@ void print_dsf_info (LETENTRY *entry)
     char name[6], *nm, label[4];
     int i, nentries;
     unsigned subtype, progtype, int_precis, real_precis, n_defined_files, fortran_indicator;
-    uint16 namewords[2], word, addr, relflag;
+    uint16_t namewords[2], word, addr, relflag;
     NAMELIST call_list, dsn_list;
     DSFSTREAM dsf_stream;
 
@@ -1394,7 +1394,7 @@ void print_ddf_info (LETENTRY *entry)
 
 void dumpfile (LETENTRY *entry)
 {
-    uint16 offset = 0, nw, nwords, buf[8], i;
+    uint16_t offset = 0, nw, nwords, buf[8], i;
 
     nwords = entry->dbcount*BLK_WORDS;                  // number of words to dump
 

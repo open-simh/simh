@@ -48,7 +48,7 @@
 
 int pd_tps =            60;
 
-t_stat         pd_devio(uint32 dev, uint64 *data);
+t_stat         pd_devio(uint32_t dev, uint64 *data);
 const char     *pd_description (DEVICE *dptr);
 t_stat         pd_srv(UNIT *uptr);
 t_stat         pd_set_on(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -87,7 +87,7 @@ static uint64 pd_ticks (void)
     return 60ULL * seconds;
 }
 
-t_stat pd_devio(uint32 dev, uint64 *data)
+t_stat pd_devio(uint32_t dev, uint64 *data)
 {
     DEVICE *dptr = &pd_dev;
 

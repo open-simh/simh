@@ -81,11 +81,11 @@
 
 t_stat mm_reset(DEVICE *dptr);
 
-uint16 PM[MAXMEMSIZE];
-uint16 PCR[16];         /* Paging control register */
-uint16 ptmap[4][64];    /* protection */
-uint16 pmmap[4][64];    /* memory mapping */
-uint16 pea, pes, pgs;
+uint16_t PM[MAXMEMSIZE];
+uint16_t PCR[16];         /* Paging control register */
+uint16_t ptmap[4][64];    /* protection */
+uint16_t pmmap[4][64];    /* memory mapping */
+uint16_t pea, pes, pgs;
 int pea_locked, pgs_locked;     /* flag to lock register after error */
 int userring;           /* current user ring */
 
@@ -149,10 +149,10 @@ mm_tra(int reg)
 /*
  * Read a byte. 0 in lr is left byte, 1 is right byte.
  */
-uint8
+uint8_t
 rdbyte(int vaddr, int lr, int how)
 {
-        uint16 val = rdmem(vaddr, how);
+        uint16_t val = rdmem(vaddr, how);
 
         return lr ? val & 0377 : val >> 8;
 }
@@ -163,7 +163,7 @@ rdbyte(int vaddr, int lr, int how)
 void
 wrbyte(int vaddr, int val, int lr, int how)
 {
-        uint16 ov = rdmem(vaddr, how);
+        uint16_t ov = rdmem(vaddr, how);
 
         val &= 0377; /* sanity */
         ov = lr ? (ov & 0177400) | val : (ov & 0377) | (val << 8);
@@ -239,8 +239,8 @@ void
 morerr(int addr, int why, int pesval)
 {
         if (pea_locked == 0) {
-                pea = (uint16)addr;
-                pes = (uint16)(addr >> 16) | pesval;
+                pea = (uint16_t)addr;
+                pes = (uint16_t)(addr >> 16) | pesval;
                 pea_locked = 1;
         }
         intrpt14(IIE_MOR, why);
@@ -276,7 +276,7 @@ dma_wrmem(int addr, int val)
 /*
  * Read direct from physical (24-bit-addr) memory.
  */
-uint16
+uint16_t
 prdmem(int vaddr, int how)
 {
         if ((vaddr & 0xffffff) < MAXMEMSIZE)
@@ -294,10 +294,10 @@ pgsupd(int pgnr, int pnr, int flg)
         pgs_locked = 1;
 }
 
-uint16
+uint16_t
 rdmem(int vaddr, int how)
 {
-        uint16 *ptmapp;
+        uint16_t *ptmapp;
         int sh, pagetablenr, pagering, pagenr, permit, p;
 
         vaddr &= 0177777; /* Sanity */
@@ -352,7 +352,7 @@ pwrmem(int vaddr, int val, int how)
 void
 wrmem(int vaddr, int val, int how)
 {
-        uint16 *ptmapp;
+        uint16_t *ptmapp;
         int sh, pagetablenr, pagering, permit, pagenr;
 
         vaddr &= 0177777;

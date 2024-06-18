@@ -81,20 +81,20 @@
 
 /* internal function prototypes */
 
-t_stat i8255_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat i8255_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat i8255_clr(void);
 t_stat i8255_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat i8255_reset (DEVICE *dptr);
 t_stat i8255_reset_dev ();
-uint8 i8255a(t_bool io, uint8 data, uint8 devnum);
-uint8 i8255b(t_bool io, uint8 data, uint8 devnum);
-uint8 i8255c(t_bool io, uint8 data, uint8 devnum);
-uint8 i8255s(t_bool io, uint8 data, uint8 devnum);
+uint8_t i8255a(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8255b(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8255c(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8255s(t_bool io, uint8_t data, uint8_t devnum);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
@@ -103,14 +103,14 @@ static const char* i8255_desc(DEVICE *dptr) {
 }
 int     i8255_num = 0;
 int     i8255_baseport[] = { -1, -1, -1, -1 }; //base port
-uint8   i8255_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
-uint8   i8255_verb[4] = { 0, 0, 0, 0 }; //verbose flag
+uint8_t   i8255_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
+uint8_t   i8255_verb[4] = { 0, 0, 0, 0 }; //verbose flag
 
 /* these bytes represent the input and output to/from a port instance */
 
-uint8 i8255_A[4];               //port A byte I/O
-uint8 i8255_B[4];               //port B byte I/O
-uint8 i8255_C[4];               //port C byte I/O
+uint8_t i8255_A[4];               //port A byte I/O
+uint8_t i8255_B[4];               //port B byte I/O
+uint8_t i8255_C[4];               //port C byte I/O
 
 /* external globals */
 
@@ -198,7 +198,7 @@ DEVICE i8255_dev = {
 
 // i8255 configuration
 
-t_stat i8255_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat i8255_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     DEVICE *dptr;
     
@@ -262,7 +262,7 @@ t_stat i8255_reset (DEVICE *dptr)
 
 t_stat i8255_reset_dev ()
 {
-    uint8 devnum;
+    uint8_t devnum;
     
     for (devnum = 0; devnum < i8255_num+1; devnum++) {
         i8255_unit[devnum].u3 = 0x9B; /* control */
@@ -279,9 +279,9 @@ t_stat i8255_reset_dev ()
 
 /* i8255 functions */
 
-uint8 i8255s(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8255s(t_bool io, uint8_t data, uint8_t devnum)
 {
-    uint8 bit;
+    uint8_t bit;
     
     if (io == 0) {                      /* read status port */
         return 0xFF;                    //undefined
@@ -302,7 +302,7 @@ uint8 i8255s(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8255a(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8255a(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         return (i8255_A[devnum]);
@@ -312,7 +312,7 @@ uint8 i8255a(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8255b(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8255b(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         return (i8255_B[devnum]);
@@ -322,7 +322,7 @@ uint8 i8255b(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8255c(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8255c(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         return (i8255_C[devnum]);

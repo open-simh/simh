@@ -39,7 +39,7 @@ DEBTAB i8253_dt[] = {
 
 static const char* rltype[] = { "latch","8bitL","8bitH", "16bit" };
 
-t_stat i8253_write(I8253* chip, int addr, uint32 value)
+t_stat i8253_write(I8253* chip, int addr, uint32_t value)
 {
     I8253CNTR* cntr;
     t_stat rc; 
@@ -94,12 +94,12 @@ t_stat i8253_write(I8253* chip, int addr, uint32 value)
     return SCPE_OK;
 }
 
-t_stat i8253_read(I8253* chip,int addr,uint32* value)
+t_stat i8253_read(I8253* chip,int addr,uint32_t* value)
 {
     t_stat rc;
     I8253CNTR* cntr = &chip->cntr[addr];
     int32 src = cntr->state & I8253_ST_LATCH ? cntr->latch : cntr->count;
-    if (cntr->call && (rc=(*cntr->call)(chip,0,(uint32*)&src)) != SCPE_OK) return rc;
+    if (cntr->call && (rc=(*cntr->call)(chip,0,(uint32_t*)&src)) != SCPE_OK) return rc;
 
     switch (cntr->mode & I8253_RLMASK) {
     case I8253_MSB:
@@ -134,7 +134,7 @@ t_stat i8253_reset(I8253* chip)
     return SCPE_OK;
 }
 
-t_stat i8253_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
+t_stat i8253_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask)
 {
     int port = ioh->offset;
     I8253* chip = (I8253*)ioh->ctxt;

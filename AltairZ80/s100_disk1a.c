@@ -59,8 +59,8 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
+    uint32_t dma_addr;    /* DMA Transfer Address */
+    uint8_t rom_disabled; /* TRUE if ROM has been disabled */
 } DISK1A_INFO;
 
 static DISK1A_INFO disk1a_info_data = { { 0x0, 512, 0xC0, 4 } };
@@ -70,12 +70,12 @@ extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
-extern void raise_ss1_interrupt(uint8 intnum);
+extern void raise_ss1_interrupt(uint8_t intnum);
 
-extern uint32 PCX;      /* external view of PC  */
+extern uint32_t PCX;      /* external view of PC  */
 
 #define UNIT_V_DISK1A_ROM       (UNIT_V_UF + 2) /* boot ROM enabled                         */
 #define UNIT_DISK1A_ROM         (1 << UNIT_V_DISK1A_ROM)
@@ -90,8 +90,8 @@ static const char* disk1a_description(DEVICE *dptr);
 static int32 disk1adev(const int32 port, const int32 io, const int32 data);
 static int32 disk1arom(const int32 port, const int32 io, const int32 data);
 
-static uint8 DISK1A_Read(const uint32 Addr);
-static uint8 DISK1A_Write(const uint32 Addr, uint8 cData);
+static uint8_t DISK1A_Read(const uint32_t Addr);
+static uint8_t DISK1A_Write(const uint32_t Addr, uint8_t cData);
 void raise_disk1a_interrupt(void);
 
 static int32 bootstrap      = 0;
@@ -100,7 +100,7 @@ static int32 bootstrap      = 0;
  * SIMH/AltairZ80 Resource Mapping Scheme, rather than Map and Unmap the ROM, simply implement our
  * own RAM that can be swapped in when the DISK1A Boot ROM is disabled.
  */
-static uint8 disk1aram[512];
+static uint8_t disk1aram[512];
 
 static UNIT disk1a_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, DISK1A_CAPACITY) },
@@ -167,7 +167,7 @@ DEVICE disk1a_dev = {
  * 2,6,10,14: Attempt to boot 8" drive 0, if not ready, attempt to boot 5.25" drive 2.
  * 3,7,11,15: Attempt to boot 5.25" drive 0, if not ready, attempt to boot DISK3.
  */
-static uint8 disk1a_rom[16][512] = {
+static uint8_t disk1a_rom[16][512] = {
 {   0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x80, 0x3E, 0xFF, 0xD3, 0xC3, 0x01, 0x00, 0x40, 0xE3, 0xE3, /* 0 */
     0x0B, 0x78, 0xB1, 0xC2, 0x0E, 0x00, 0x21, 0x00, 0x02, 0x11, 0x00, 0x82, 0x7E, 0x12, 0x1B, 0x2B,
     0x7D, 0xB4, 0xC2, 0x1C, 0x00, 0x11, 0x5D, 0x00, 0x3E, 0x85, 0x12, 0x13, 0x3E, 0x81, 0x12, 0x13,
@@ -699,7 +699,7 @@ static uint8 disk1a_rom[16][512] = {
 
 
 /* returns TRUE iff there exists a disk with VERBOSE */
-static int32 disk1a_hasProperty(uint32 property) {
+static int32 disk1a_hasProperty(uint32_t property) {
     int32 i;
     for (i = 0; i < DISK1A_MAX_DRIVES; i++)
         if (disk1a_dev.units[i].flags & property)
@@ -800,10 +800,10 @@ static int32 disk1adev(const int32 port, const int32 io, const int32 data)
 #define DISK1A_MOTOR        3   /* R=Unused / W=Motor Control Register */
 #define BOOT_PROM_DISABLE   0x01
 #define FLOPPY_MOTORS       0xF0
-extern uint8 i8272_irq;
-static uint8 DISK1A_Read(const uint32 Addr)
+extern uint8_t i8272_irq;
+static uint8_t DISK1A_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
 
     cData = 0x00;
 
@@ -825,9 +825,9 @@ static uint8 DISK1A_Read(const uint32 Addr)
     return (cData);
 }
 
-static uint8 DISK1A_Write(const uint32 Addr, uint8 cData)
+static uint8_t DISK1A_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint8 result = 0;
+    uint8_t result = 0;
 
     switch(Addr & 0x3) {
         case I8272_FDC_MSR:

@@ -72,21 +72,21 @@ typedef enum ibc_model {
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
+    uint8_t rom_disabled; /* TRUE if ROM has been disabled */
     ibc_model_t model;
-    uint8 dipsw_E;      /* 8-position DIP switch at location E. */
-    uint8* cache;       /* IBC CACHE storage */
-    uint8 param;
-    uint8 head_sel;
-    uint8 autowait;
-    uint8 rtc;
-    uint8 imask;        /* Interrupt Mask Register */
-    uint8 ipend;        /* Interrupt Pending Register */
-    uint32 cache_wbase;
-    uint32 cache_rbase;
-    uint8 cache_index;
-    uint8 fdc_fifo[FDC_FIFO_LEN];
-    uint16 fdc_fifo_rd_index;
+    uint8_t dipsw_E;      /* 8-position DIP switch at location E. */
+    uint8_t* cache;       /* IBC CACHE storage */
+    uint8_t param;
+    uint8_t head_sel;
+    uint8_t autowait;
+    uint8_t rtc;
+    uint8_t imask;        /* Interrupt Mask Register */
+    uint8_t ipend;        /* Interrupt Pending Register */
+    uint32_t cache_wbase;
+    uint32_t cache_rbase;
+    uint8_t cache_index;
+    uint8_t fdc_fifo[FDC_FIFO_LEN];
+    uint16_t fdc_fifo_rd_index;
 } IBC_INFO;
 
 extern WD179X_INFO_PUB *wd179x_infop;
@@ -95,21 +95,21 @@ extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern void setBankSelect(const int32 b);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
 
 extern int32 sio0d(const int32 port, const int32 io, const int32 data);
 extern int32 sio0s(const int32 port, const int32 io, const int32 data);
 
-void wd179x_connect_external_fifo(uint16 fifo_len, uint8* storage);
+void wd179x_connect_external_fifo(uint16_t fifo_len, uint8_t* storage);
 void wd179x_reset_external_fifo(void);
 
-extern uint32 PCX;                              /* external view of PC  */
+extern uint32_t PCX;                              /* external view of PC  */
 extern int32  IR_S;                             /* Z80 Interrupt/Refresh register */
-extern uint32 vectorInterrupt;                  /* Interrupt pending */
-extern uint8 dataBus[MAX_INT_VECTORS];          /* IBC interrupt data bus values  */
+extern uint32_t vectorInterrupt;                  /* Interrupt pending */
+extern uint8_t dataBus[MAX_INT_VECTORS];          /* IBC interrupt data bus values  */
 
 #define IBC_CAPACITY            (77*1*26*128)   /* Default SSSD Disk Capacity         */
 
@@ -179,14 +179,14 @@ static const char* ibc_description(DEVICE *dptr);
 static IBC_INFO ibc_info_data = { { 0x0000, IBC_ROM_SIZE, 0x3, 2 }, 0, ibc_mcc, IBC_SW_E_DEFAULT_VALUE, NULL };
 static IBC_INFO* ibc_info = &ibc_info_data;
 
-static uint8 current_baud[IBC_NUM_SIO] = { 0 };
-static uint8 baud_unlock[IBC_NUM_SIO] = { 0 };
+static uint8_t current_baud[IBC_NUM_SIO] = { 0 };
+static uint8_t baud_unlock[IBC_NUM_SIO] = { 0 };
 
 /* The IBC does not really have RAM associated with it, but for ease of integration with the
  * SIMH/AltairZ80 Resource Mapping Scheme, rather than Map and Unmap the ROM, simply implement our
  * own RAM that can be swapped in when the IBC Boot ROM is disabled.
  */
-static uint8 ibc_ram[IBC_ROM_SIZE];
+static uint8_t ibc_ram[IBC_ROM_SIZE];
 
 #define IBC_WAIT  16
 #define IBC_UDATA(act,fl,wait,u4,name) NULL,act,NULL,NULL,NULL,0,0,(fl),0,(0),0,NULL,0,0,wait,0,u4,0,0,NULL,NULL,0,0,0,NULL,0,0,NULL,0,name
@@ -466,7 +466,7 @@ static t_stat ibcrtctimer_svc(UNIT* uptr)
 
 t_stat ibc_show_vectable(FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-    uint8 i;
+    uint8_t i;
     int32 vectable = (IR_S & 0xFF00);
     int32 vector;
 
@@ -485,7 +485,7 @@ t_stat ibc_show_vectable(FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 
 
 /* IBC MultiStar Boot ROM DMP011 REV L. SEEQ 2764 */
-static uint8 ibc_rom_data[2][IBC_ROM_SIZE] = {
+static uint8_t ibc_rom_data[2][IBC_ROM_SIZE] = {
   {
     0xF3, 0xDB, 0x14, 0xDB, 0x24, 0xDB, 0x80, 0xAF, 0xD3, 0x62, 0xD3, 0x40, 0xD3, 0x44, 0xD3, 0x47,
     0x01, 0x00, 0x00, 0x21, 0x00, 0x00, 0x77, 0x23, 0x0D, 0x20, 0xFB, 0x10, 0xF9, 0x3E, 0x03, 0x01,
@@ -1519,9 +1519,9 @@ static uint8 ibc_rom_data[2][IBC_ROM_SIZE] = {
 
 typedef struct io_resource_list {
     int32(*routine)(const int32, const int32, const int32);
-    uint32 baseaddr;
-    uint32 size;
-    uint32 resource_type;
+    uint32_t baseaddr;
+    uint32_t size;
+    uint32_t resource_type;
     char* name;
 } IO_RESOURCE_LIST;
 
@@ -1607,7 +1607,7 @@ static t_stat ibc_reset(DEVICE* dptr)
 {
     PNP_INFO* pnp = (PNP_INFO*)dptr->ctxt;
     int i;
-    uint8 unmap = dptr->flags & DEV_DIS;
+    uint8_t unmap = dptr->flags & DEV_DIS;
     IO_RESOURCE_LIST* resources = (ibc_info->model == ibc_mcc) ? IBC_MCC_RESOURCES : IBC_SCC_RESOURCES;
 
     /* Connect IBC ROM at base address */
@@ -1692,7 +1692,7 @@ static t_stat ibc_detach(UNIT *uptr)
 static int32 ibc_rom(const int32 Addr, const int32 write, const int32 data)
 {
     if(write) {
-        ibc_ram[Addr & IBC_ROM_ADDR_MASK] = (uint8)data;
+        ibc_ram[Addr & IBC_ROM_ADDR_MASK] = (uint8_t)data;
         return 0;
     } else {
         if(ibc_info->rom_disabled == FALSE) {
@@ -1742,7 +1742,7 @@ static int32 ibc_param_reg(const int32 port, const int32 io, const int32 data)
     int32 result = 0;
     if(io) { /* I/O Write */
 
-        ibc_info->param = (uint8)data;
+        ibc_info->param = (uint8_t)data;
         /* Disk drive select bits 1:0 */
         wd179x_infop->sel_drive = data & 0x03;
 
@@ -1848,10 +1848,10 @@ static int32 ibc_banksel(const int32 port, const int32 io, const int32 data)
 /* IBC FDC Data Port (0x28) */
 static int32 ibc_fdc_data(const int32 port, const int32 io, const int32 data)
 {
-    uint8 fifodata = 0xFF;
+    uint8_t fifodata = 0xFF;
 
     if (io) { /* Write */
-        ibc_info->fdc_fifo[ibc_info->fdc_fifo_rd_index] = (uint8)data;
+        ibc_info->fdc_fifo[ibc_info->fdc_fifo_rd_index] = (uint8_t)data;
         ibc_info->fdc_fifo_rd_index++;
         ibc_info->fdc_fifo_rd_index &= FDC_FIFO_MASK;
     } else { /* Read */
@@ -2144,7 +2144,7 @@ static int32 ibc_sc_cache(const int32 port, const int32 io, const int32 data)
         case IBC_CACHE_DATA:
             sim_debug(CACHE_MSG, &ibc_dev, ADDRESS_FORMAT
                 " WR CACHE Data: 0x%02x=0x%02x, wbase=0x%06x\n", PCX, port, data, ibc_info->cache_rbase);
-            ibc_info->cache[ibc_info->cache_wbase + ibc_info->cache_index] = (uint8)data;
+            ibc_info->cache[ibc_info->cache_wbase + ibc_info->cache_index] = (uint8_t)data;
             ibc_info->cache_index++;
             break;
         }
@@ -2169,9 +2169,9 @@ static int32 ibc_sc_cache(const int32 port, const int32 io, const int32 data)
 /* IBC Super Cadet Baud Rate Control port */
 static int32 ibc_sc_baud(const int32 port, const int32 io, const int32 data)
 {
-    uint8 sioport = ((data & 0x60) >> 5) | ((data & 0x06) << 1);
-    uint8 baudrate = ((data & 0x18) >> 3) | ((data & 0x1) << 2);
-    uint8 baudset = ((data & 0x80) >> 7);
+    uint8_t sioport = ((data & 0x60) >> 5) | ((data & 0x06) << 1);
+    uint8_t baudrate = ((data & 0x18) >> 3) | ((data & 0x1) << 2);
+    uint8_t baudset = ((data & 0x80) >> 7);
     static int32 result = 0xFF;
 
     if (io) { /* Write */
@@ -2204,8 +2204,8 @@ static int32 ibc_sc_baud(const int32 port, const int32 io, const int32 data)
 /* IBC Super Cadet DTR Control ports */
 static int32 ibc_sc_dtr(const int32 port, const int32 io, const int32 data)
 {
-    uint8 sioport = (data & 0x07) | ((port & 1) << 3);
-    uint8 deasserted = (port & 0x02) >> 1;
+    uint8_t sioport = (data & 0x07) | ((port & 1) << 3);
+    uint8_t deasserted = (port & 0x02) >> 1;
     static int32 result = 0xFF;
 
     if (io) { /* Write */

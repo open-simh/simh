@@ -184,7 +184,7 @@
 #define BLKMASK         (AMASK & (~IAMASK))             /* block mask */
 #define MAXMEMSIZE      (1 << ADDRSIZE)                 /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Instructions */
 
@@ -275,8 +275,8 @@
 #define DEV_MAX         64                              /* total devices */
 
 typedef struct {
-    uint32              dev;                            /* base dev number */
-    uint32              num;                            /* number of slots */
+    uint32_t              dev;                            /* base dev number */
+    uint32_t              num;                            /* number of slots */
     int32               (*iors)(void);                  /* IORS responder */
     int32               (*dsp[DEV_MAXBLK])(int32 dev, int32 pulse, int32 dat);
     } DIB;

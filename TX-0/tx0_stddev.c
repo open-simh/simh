@@ -329,7 +329,7 @@ int32 petr (int32 inst, int32 dev, int32 dat)
         tmpAC |= ((petr_unit.buf & 040) >> 5) << 2;     /* bit 15 */
 
         if (i < (inst-1)) {
-            uint32 bit0 = (tmpAC & 1) << 17;
+            uint32_t bit0 = (tmpAC & 1) << 17;
             TRACE_PRINT(petr_dev, TRACE_MSG, ("PETR read [%04x=0x%02x] %03o\n", petr_unit.pos-1, petr_unit.buf, petr_unit.buf));
             tmpAC >>= 1;
             tmpAC |= bit0;

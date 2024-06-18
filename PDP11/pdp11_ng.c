@@ -291,16 +291,16 @@ ng_nxm_intr(void)
 }
 
 int
-ng_store(uint32 addr, uint16 x)
+ng_store(uint32_t addr, uint16_t x)
 {
-  uint16 word = x;
+  uint16_t word = x;
   if (Map_WriteW(addr, 2, &word) == 0)
     return 0;
   return 1;
 }
 
 int
-ng_fetch(uint32 addr, uint16 *wp)
+ng_fetch(uint32_t addr, uint16_t *wp)
 {
   if (Map_ReadW(addr, 2, wp) == 0)
     return 0;

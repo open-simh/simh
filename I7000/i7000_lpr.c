@@ -60,11 +60,11 @@
 
 struct _lpr_data
 {
-    uint8               lbuff[145];     /* Output line buffer */
+    uint8_t               lbuff[145];     /* Output line buffer */
 }
 lpr_data[NUM_DEVS_LPR];
 
-uint32              lpr_cmd(UNIT *, uint16, uint16);
+uint32_t              lpr_cmd(UNIT *, uint16_t, uint16_t);
 void                lpr_ini(UNIT *, t_bool);
 t_stat              lpr_srv(UNIT *);
 t_stat              lpr_reset(DEVICE *);
@@ -281,7 +281,7 @@ print_line(UNIT * uptr, int chan, int unit)
 }
 
 
-uint32 lpr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t lpr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - lpr_unit);

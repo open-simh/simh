@@ -82,9 +82,9 @@
 #define HIST_CH(x)      (((x) >> HIST_V_CH) & HIST_M_CH)
 
 typedef struct {
-    uint32              pc;
-    uint32              ea;
-    uint32              rpt;
+    uint32_t              pc;
+    uint32_t              ea;
+    uint32_t              rpt;
     t_uint64    ir;
     t_uint64    ac;
     t_uint64    mq;
@@ -184,14 +184,14 @@ typedef struct {
 #define INST_V_4B       0
 #define INST_M_4B       017
 
-#define GET_OPD(x)      ((uint32) (((x) >> INST_V_OPD) & INST_M_OPD))
-#define GET_DEC(x)      ((uint32) (((x) >> INST_V_DEC) & INST_M_DEC))
-#define GET_OPC(x)      (((uint32) (((x) >> INST_V_OPC) & INST_M_OPC)) | \
+#define GET_OPD(x)      ((uint32_t) (((x) >> INST_V_OPD) & INST_M_OPD))
+#define GET_DEC(x)      ((uint32_t) (((x) >> INST_V_DEC) & INST_M_DEC))
+#define GET_OPC(x)      (((uint32_t) (((x) >> INST_V_OPC) & INST_M_OPC)) | \
                      (((x) & SIGN)? 01000: 0))
 #define TST_IND(x)      (((x) & INST_IND) == INST_IND)
-#define GET_CCNT(x)     ((uint32) (((x) >> INST_V_CCNT) & INST_M_CCNT))
-#define GET_VCNT(x)     ((uint32) (((x) >> INST_V_VCNT) & INST_M_VCNT))
-#define GET_TAG(x)      ((uint32) (((x) >> INST_V_TAG) & INST_M_TAG))
+#define GET_CCNT(x)     ((uint32_t) (((x) >> INST_V_CCNT) & INST_M_CCNT))
+#define GET_VCNT(x)     ((uint32_t) (((x) >> INST_V_VCNT) & INST_M_VCNT))
+#define GET_TAG(x)      ((uint32_t) (((x) >> INST_V_TAG) & INST_M_TAG))
 
 /* Instruction decode flags */
 
@@ -228,8 +228,8 @@ typedef struct {
 /* Device information block */
 
 typedef struct {
-    t_stat              (*chsel)(uint32 ch, uint32 sel, uint32 u);
-    t_stat              (*write)(uint32 ch, t_uint64 val, uint32 flags);
+    t_stat              (*chsel)(uint32_t ch, uint32_t sel, uint32_t u);
+    t_stat              (*write)(uint32_t ch, t_uint64 val, uint32_t flags);
     } DIB;
 
 /* BCD digits */
@@ -440,8 +440,8 @@ typedef struct {
 #define U_M_CH          077
 #define U_V_UNIT        0
 #define U_M_UNIT        0777
-#define GET_U_CH(x)     (((((uint32) (x)) >> U_V_CH) & U_M_CH) - 1)
-#define GET_U_UNIT(x)   ((((uint32) (x)) >> U_V_UNIT) & U_M_UNIT)
+#define GET_U_CH(x)     (((((uint32_t) (x)) >> U_V_CH) & U_M_CH) - 1)
+#define GET_U_UNIT(x)   ((((uint32_t) (x)) >> U_V_UNIT) & U_M_UNIT)
 
 #define U_MTBCD         0201                            /* BCD tape */
 #define U_MTBIN         0221                            /* binary tape */
@@ -470,23 +470,23 @@ typedef struct {
 #define ReadP(p)        M[p]
 #define WriteP(p,d)     M[p] = d
 
-void cpu_ent_hist (uint32 pc, uint32 ea, t_uint64 ir, t_uint64 opnd);
+void cpu_ent_hist (uint32_t pc, uint32_t ea, t_uint64 ir, t_uint64 opnd);
 t_stat ch_show_chan (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-t_stat ch6_end_nds (uint32 ch);
-uint32 ch6_set_flags (uint32 ch, uint32 unit, uint32 flags);
-t_stat ch6_err_disc (uint32 ch, uint32 unit, uint32 flags);
-t_stat ch6_req_rd (uint32 ch, uint32 unit, t_uint64 val, uint32 flags);
-t_stat ch6_req_wr (uint32 ch, uint32 unit);
-t_bool ch6_qconn (uint32 ch, uint32 unit);
-t_stat ch9_req_rd (uint32 ch, t_uint64 val);
-void ch9_set_atn (uint32 ch);
-void ch9_set_ioc (uint32 ch);
-void ch9_set_end (uint32 ch, uint32 ireq);
-t_bool ch9_qconn (uint32 ch);
+t_stat ch6_end_nds (uint32_t ch);
+uint32_t ch6_set_flags (uint32_t ch, uint32_t unit, uint32_t flags);
+t_stat ch6_err_disc (uint32_t ch, uint32_t unit, uint32_t flags);
+t_stat ch6_req_rd (uint32_t ch, uint32_t unit, t_uint64 val, uint32_t flags);
+t_stat ch6_req_wr (uint32_t ch, uint32_t unit);
+t_bool ch6_qconn (uint32_t ch, uint32_t unit);
+t_stat ch9_req_rd (uint32_t ch, t_uint64 val);
+void ch9_set_atn (uint32_t ch);
+void ch9_set_ioc (uint32_t ch);
+void ch9_set_end (uint32_t ch, uint32_t ireq);
+t_bool ch9_qconn (uint32_t ch);
 void ch_set_map (void);
 t_bool ch_qidle (void);
 
-extern const uint32 col_masks[12];
+extern const uint32_t col_masks[12];
 extern const t_uint64 bit_masks[36];
 extern const char nine_to_ascii_a[64];
 extern const char nine_to_ascii_h[64];
@@ -496,9 +496,9 @@ extern const char bcd_to_ascii_a[64];
 extern const char bcd_to_ascii_h[64];
 extern const char bcd_to_pca[64];
 extern const char bcd_to_pch[64];
-extern const uint32 bcd_to_colbin[64];
+extern const uint32_t bcd_to_colbin[64];
 
-extern uint32 PC;
-extern uint32 ind_ioc;
+extern uint32_t PC;
+extern uint32_t ind_ioc;
 
 #endif

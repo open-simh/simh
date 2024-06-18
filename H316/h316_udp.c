@@ -141,8 +141,8 @@ struct _UDP_LINK {
   t_bool  used;                 // TRUE if this UDP_LINK is in use
   char    rhostport[90];        // Remote host:port
   char    lport[64];            // Local port 
-  uint32  rxsequence;           // next message sequence number for receive
-  uint32  txsequence;           // next message sequence number for transmit
+  uint32_t  rxsequence;           // next message sequence number for receive
+  uint32_t  txsequence;           // next message sequence number for transmit
   DEVICE  *dptr;                // Device associated with link
 };
 typedef struct _UDP_LINK UDP_LINK;
@@ -151,7 +151,7 @@ typedef struct _UDP_LINK UDP_LINK;
 // checked on receive.  It's hardly foolproof, but its a simple attempt to
 // guard against other applications dumping unsolicited UDP messages into our
 // receiver socket...
-#define MAGIC   ((uint32) (((((('H' << 8) | '3') << 8) | '1') << 8) | '6'))
+#define MAGIC   ((uint32_t) (((((('H' << 8) | '3') << 8) | '1') << 8) | '6'))
 
 // UDP wrapper data structure ...
 //   This is the UDP packet which is actually transmitted or received.  It
@@ -159,13 +159,13 @@ typedef struct _UDP_LINK UDP_LINK;
 // need to keep track of things.  NOTE THAT ALL DATA IN THIS PACKET, INCLUDING
 // THE H316 MEMORY WORDS, ARE SENT AND RECEIVED WITH NETWORK BYTE ORDER!
 struct _UDP_PACKET {
-  uint32  magic;                // UDP "magic number" (see above)
-  uint32  sequence;             // UDP packet sequence number
-  uint16  count;                // number of H316 words to follow
-  uint16  data[MAXDATA];        // and the actual H316 data words/IMP packet
+  uint32_t  magic;                // UDP "magic number" (see above)
+  uint32_t  sequence;             // UDP packet sequence number
+  uint16_t  count;                // number of H316 words to follow
+  uint16_t  data[MAXDATA];        // and the actual H316 data words/IMP packet
 };
 typedef struct _UDP_PACKET UDP_PACKET;
-#define UDP_HEADER_LEN  (2*sizeof(uint32) + sizeof(uint16))
+#define UDP_HEADER_LEN  (2*sizeof(uint32_t) + sizeof(uint16_t))
 
 // Locals ...
 UDP_LINK udp_links[MAXLINKS] = { {0} };         // data for every active connection
@@ -292,7 +292,7 @@ t_stat udp_release (DEVICE *dptr, int32 link)
   return SCPE_OK;
 }
 
-t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
+t_stat udp_send (DEVICE *dptr, int32 link, uint16_t *pdata, uint16_t count)
 {
   //   This routine does all the work of sending an IMP data packet.  pdata
   // is a pointer (usually into H316 simulated memory) to the IMP packet data,
@@ -302,7 +302,7 @@ t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
   // doesn't necessarily need to have the same endian-ness as this machine.
   // Second, notice that transmitting sockets are NOT set to non blocking so
   // this routine might wait, but we assume the wait will never be too long.
-  UDP_PACKET pkt;  int pktlen;  uint16 i;  t_stat iret;
+  UDP_PACKET pkt;  int pktlen;  uint16_t i;  t_stat iret;
   if ((link < 0) || (link >= MAXLINKS)) return SCPE_IERR;
   if (!udp_links[link].used) return SCPE_IERR;
   if ((pdata == NULL) || (count == 0) || (count > MAXDATA)) return SCPE_IERR;
@@ -314,10 +314,10 @@ t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
   pkt.sequence = htonl(udp_links[link].txsequence++);
   pkt.count = htons(count);
   for (i = 0;  i < count;  ++i)  pkt.data[i] = htons(*pdata++);
-  pktlen = UDP_HEADER_LEN + count*sizeof(uint16);
+  pktlen = UDP_HEADER_LEN + count*sizeof(uint16_t);
 
   // Send it and we're outta here ...
-  iret = tmxr_put_packet_ln (&udp_lines[link], (const uint8 *)&pkt, (size_t)pktlen);
+  iret = tmxr_put_packet_ln (&udp_lines[link], (const uint8_t *)&pkt, (size_t)pktlen);
   if (iret != SCPE_OK) return sim_messagef(iret, "UDP%d - tmxr_put_packet_ln() failed with error %s\n", link, sim_error_text(iret));
   sim_debug(IMP_DBG_UDP, dptr, "link %d - packet sent (sequence=%d, length=%d)\n", link, ntohl(pkt.sequence), ntohs(pkt.count));
   return SCPE_OK;
@@ -344,7 +344,7 @@ int32 udp_receive_packet (int32 link, UDP_PACKET *ppkt)
   // of the checking for valid packets, unexpected packets, duplicate or out of
   // sequence packets.  That's strictly the caller's problem!
   size_t pktsiz;
-  const uint8 *pbuf;
+  const uint8_t *pbuf;
   t_stat ret;
 
   udp_lines[link].rcve = TRUE;          // Enable receiver
@@ -361,7 +361,7 @@ int32 udp_receive_packet (int32 link, UDP_PACKET *ppkt)
   return pktsiz;
 }
 
-int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbuf)
+int32 udp_receive (DEVICE *dptr, int32 link, uint16_t *pdata, uint16_t maxbuf)
 {
   //   Receive an IMP packet from the virtual modem. pdata is a pointer usually
   // directly into H316 simulated memory) to where the IMP packet data should
@@ -378,7 +378,7 @@ int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbuf)
   //   One final note - it's explicitly allowed for pdata to be null and/or
   // maxbuf to be zero.  In either case the received package is discarded, but
   // the actual length of the discarded package is still returned.
-  UDP_PACKET pkt;  int32 pktlen, explen, implen, i;  uint32 magic, pktseq;
+  UDP_PACKET pkt;  int32 pktlen, explen, implen, i;  uint32_t magic, pktseq;
   if ((link < 0) || (link >= MAXLINKS)) return SCPE_IERR;
   if (!udp_links[link].used) return SCPE_IERR;
   if (dptr != udp_links[link].dptr) return SCPE_IERR;
@@ -395,7 +395,7 @@ int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbuf)
       continue;
     }
     implen = ntohs(pkt.count);
-    explen = UDP_HEADER_LEN + implen*sizeof(uint16);
+    explen = UDP_HEADER_LEN + implen*sizeof(uint16_t);
     if (explen != pktlen) {
       sim_debug(IMP_DBG_UDP, dptr, "link %d - received packet length wrong (expected=%d received=%d)\n", link, explen, pktlen);
       continue;

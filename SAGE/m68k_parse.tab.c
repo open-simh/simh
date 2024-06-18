@@ -3727,13 +3727,13 @@ t_stat parse_sym(CONST char* c, t_addr a, UNIT* u, t_value* val, int32 sw)
       if (sw & SWMASK('Y')) yydebug = 1 - yydebug;
       if ((sw & SWMASK('A')) || ch=='\'') {
         if ((ch = yystream[1])) {
-            val[0] = (uint32)ch;
+            val[0] = (uint32_t)ch;
             return SCPE_OK;
         } else return SCPE_ARG;
       }
       if ((sw & SWMASK('C')) || ch=='"') {
         if ((ch = yystream[1])) {
-            val[0] = ((uint32)ch << 8) | (uint32)yystream[1];
+            val[0] = ((uint32_t)ch << 8) | (uint32_t)yystream[1];
             return SCPE_OK;
         } else return SCPE_ARG;
       }

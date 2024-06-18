@@ -123,7 +123,7 @@ t_addr  AR[8];
 t_addr  USP;
 t_addr  *cur_sp;
 
-uint16  SR;
+uint16_t  SR;
 #define CCR_C   (SR & FLAG_C)
 #define CCR_V   (SR & FLAG_V)
 #define CCR_Z   (SR & FLAG_Z)
@@ -157,9 +157,9 @@ uint16  SR;
 
 #define AREG(r) (r==7 ? cur_sp : &AR[r])
 
-uint16  SFC;
-uint16  DFC;
-uint32  VBR;
+uint16_t  SFC;
+uint16_t  DFC;
+uint32_t  VBR;
 t_addr  saved_PC;
 static t_bool intpending;
 static int m68k_sublevel;
@@ -253,13 +253,13 @@ t_stat m68kcpu_peripheral_reset()
 #define CACHE_MASK 0x0f
 
 static t_addr cache_pc;
-static uint8 cache_line[CACHE_SIZE];
+static uint8_t cache_line[CACHE_SIZE];
 
 static t_stat ReadICache(t_addr tpc)
 {
     int i;
     t_stat rc;
-    uint8* mem;
+    uint8_t* mem;
 
     ASSERT_OKRET(Mem((tpc+CACHE_SIZE-1)&addrmask,&mem));
     
@@ -273,7 +273,7 @@ static t_stat ReadICache(t_addr tpc)
     return SCPE_OK;
 }
 
-static t_stat ReadInstr(t_addr pc,uint32* inst)
+static t_stat ReadInstr(t_addr pc,uint32_t* inst)
 {
     t_stat rc;
     t_addr tpc;
@@ -289,7 +289,7 @@ static t_stat ReadInstr(t_addr pc,uint32* inst)
     return SCPE_OK;
 }
 
-static t_stat ReadInstrInc(t_addr* pc,uint32* inst)
+static t_stat ReadInstrInc(t_addr* pc,uint32_t* inst)
 {
     t_stat rc;
     ASSERT_OKRET(ReadInstr(*pc,inst));
@@ -297,10 +297,10 @@ static t_stat ReadInstrInc(t_addr* pc,uint32* inst)
     return SCPE_OK;
 }
 
-static t_stat ReadInstrLongInc(t_addr* pc,uint32* inst)
+static t_stat ReadInstrLongInc(t_addr* pc,uint32_t* inst)
 {
     t_stat rc;
-    uint32 val1,val2;
+    uint32_t val1,val2;
     ASSERT_OKRET(ReadInstr(*pc,&val1));
     *pc += 2;
     ASSERT_OKRET(ReadInstr(*pc,&val2));
@@ -365,7 +365,7 @@ static void m68k_nocallback(DEVICE* dev,int trapnum)
 t_stat m68kcpu_reset(DEVICE* dptr) 
 {
     t_stat rc;
-    uint32 dummy;
+    uint32_t dummy;
     
     cpudev_self = dptr;
 
@@ -450,7 +450,7 @@ t_stat m68kcpu_boot(int32 unitno,DEVICE* dptr)
 #define DRX         DR[IR_REGX]
 #define DRY         DR[IR_REGY]
 
-static uint32 quickarg[] = { 8,1,2,3,4,5,6,7 };
+static uint32_t quickarg[] = { 8,1,2,3,4,5,6,7 };
 static int32  shmask8[]  = { 0x00,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0xfe,0xff };
 static int32  shmask16[] = { 0x0000,
                              0x8000,0xc000,0xe000,0xf000,0xf800,0xfc00,0xfe00,0xff00,
@@ -479,10 +479,10 @@ static int32  bitmask[]  = { 0x00000000,
 
 static t_addr saved_ea;
 
-static t_stat ea_src_b(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
+static t_stat ea_src_b(uint32_t eamod,uint32_t eareg,uint32_t* val,t_addr* pc)
 {
     t_stat rc = SCPE_OK;
-    uint32 reg, regno, IRE;
+    uint32_t reg, regno, IRE;
     t_addr *areg;
 //  printf("src eamod=%x eareg=%x\n",eamod,eareg);
     switch (eamod) {
@@ -544,7 +544,7 @@ static t_stat ea_src_b(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
     }
 }
 
-static t_stat ea_src_bs(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
+static t_stat ea_src_bs(uint32_t eamod,uint32_t eareg,uint32_t* val,t_addr* pc)
 {
     if (eamod==EA_EXT && eareg==EAX_IMM) {
         *val = MASK_8L(SR);
@@ -553,10 +553,10 @@ static t_stat ea_src_bs(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
     return ea_src_b(eamod,eareg,val,pc);
 }
 
-static t_stat ea_src_w(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
+static t_stat ea_src_w(uint32_t eamod,uint32_t eareg,uint32_t* val,t_addr* pc)
 {
     t_stat rc = SCPE_OK;
-    uint32 reg, regno, IRE;
+    uint32_t reg, regno, IRE;
     t_addr *areg;
 
     switch (eamod) {
@@ -614,7 +614,7 @@ static t_stat ea_src_w(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
     }
 }
 
-static t_stat ea_src_ws(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
+static t_stat ea_src_ws(uint32_t eamod,uint32_t eareg,uint32_t* val,t_addr* pc)
 {
     if (eamod==EA_EXT && eareg==EAX_IMM) {
         *val = SR;
@@ -624,10 +624,10 @@ static t_stat ea_src_ws(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
 }
 
 /* non dereferencing version of ea_src_l, only accepts ea category control */
-static t_stat ea_src_l_nd(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
+static t_stat ea_src_l_nd(uint32_t eamod,uint32_t eareg,uint32_t* val,t_addr* pc)
 {
     t_stat rc = SCPE_OK;
-    uint32 reg, regno, IRE;
+    uint32_t reg, regno, IRE;
 
     switch (eamod) {
     case EA_AIND:
@@ -673,10 +673,10 @@ static t_stat ea_src_l_nd(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
     }
 }
 
-static t_stat ea_src_l(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
+static t_stat ea_src_l(uint32_t eamod,uint32_t eareg,uint32_t* val,t_addr* pc)
 {
     t_stat rc = SCPE_OK;
-    uint32 reg, regno, IRE;
+    uint32_t reg, regno, IRE;
     t_addr *areg;
 
     switch (eamod) {
@@ -736,15 +736,15 @@ static t_stat ea_src_l(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
     }
 }
 
-static t_stat ea_src_l64(uint32 eamod,uint32 eareg,t_uint64* val64,t_addr* pc)
+static t_stat ea_src_l64(uint32_t eamod,uint32_t eareg,t_uint64* val64,t_addr* pc)
 {
-    uint32 val32;
+    uint32_t val32;
     t_stat rc = ea_src_l(eamod,eareg,&val32,pc);
     *val64 = (t_uint64)val32;
     return rc;
 }
 
-t_stat ea_src(uint32 eamod,uint32 eareg,uint32* val,int sz,t_addr* pc)
+t_stat ea_src(uint32_t eamod,uint32_t eareg,uint32_t* val,int sz,t_addr* pc)
 {
     switch (sz) {
     case SZ_BYTE:
@@ -758,10 +758,10 @@ t_stat ea_src(uint32 eamod,uint32 eareg,uint32* val,int sz,t_addr* pc)
     }
 }
 
-static t_stat ea_dst_b(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
+static t_stat ea_dst_b(uint32_t eamod,uint32_t eareg,uint32_t val,t_addr* pc)
 {
     t_stat rc;
-    uint32 IRE,reg,regno;
+    uint32_t IRE,reg,regno;
     t_addr *areg;
 
 //  printf("dst: eamod=%x eareg=%x\n",eamod,eareg);
@@ -808,7 +808,7 @@ static t_stat ea_dst_b(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
     }
 }
 
-t_stat ea_dst_b_rmw(uint32 eamod,uint32 eareg,uint32 val)
+t_stat ea_dst_b_rmw(uint32_t eamod,uint32_t eareg,uint32_t val)
 {
     switch (eamod) {
     case EA_DDIR:
@@ -836,10 +836,10 @@ t_stat ea_dst_b_rmw(uint32 eamod,uint32 eareg,uint32 val)
     }
 }
 
-static t_stat ea_dst_w(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
+static t_stat ea_dst_w(uint32_t eamod,uint32_t eareg,uint32_t val,t_addr* pc)
 {
     t_stat rc;
-    uint32 IRE,reg,regno;
+    uint32_t IRE,reg,regno;
     t_addr *areg;
 
     switch (eamod) {
@@ -887,7 +887,7 @@ static t_stat ea_dst_w(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
     }
 }
 
-static t_stat ea_dst_w_rmw(uint32 eamod,uint32 eareg,uint32 val)
+static t_stat ea_dst_w_rmw(uint32_t eamod,uint32_t eareg,uint32_t val)
 {
     switch (eamod) {
     case EA_DDIR:
@@ -919,10 +919,10 @@ static t_stat ea_dst_w_rmw(uint32 eamod,uint32 eareg,uint32 val)
     }
 }
 
-static t_stat ea_dst_l(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
+static t_stat ea_dst_l(uint32_t eamod,uint32_t eareg,uint32_t val,t_addr* pc)
 {
     t_stat rc;
-    uint32 IRE,reg,regno;
+    uint32_t IRE,reg,regno;
     t_addr *areg;
 
     switch (eamod) {
@@ -969,7 +969,7 @@ static t_stat ea_dst_l(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
     }
 }
 
-t_stat ea_dst_l_rmw(uint32 eamod,uint32 eareg,uint32 val)
+t_stat ea_dst_l_rmw(uint32_t eamod,uint32_t eareg,uint32_t val)
 {
 
     switch (eamod) {
@@ -998,7 +998,7 @@ t_stat ea_dst_l_rmw(uint32 eamod,uint32 eareg,uint32 val)
     }
 }
 
-t_stat ea_dst(uint32 eamod,uint32 eareg,uint32 val,int sz,t_addr* pc)
+t_stat ea_dst(uint32_t eamod,uint32_t eareg,uint32_t val,int sz,t_addr* pc)
 {
     switch (sz) {
     case SZ_BYTE:
@@ -1012,7 +1012,7 @@ t_stat ea_dst(uint32 eamod,uint32 eareg,uint32 val,int sz,t_addr* pc)
     }
 }
 
-static t_bool testcond(uint32 c)
+static t_bool testcond(uint32_t c)
 {
     int n,v;
     
@@ -1059,50 +1059,50 @@ static t_bool testcond(uint32 c)
 }
 
 /* push/pop on supervisor sp */
-static t_stat m68k_push16(uint32 data)
+static t_stat m68k_push16(uint32_t data)
 {
     A7 -= 2;
     return WriteVW(A7,data);
 }
 
-static t_stat m68k_push32(uint32 data)
+static t_stat m68k_push32(uint32_t data)
 {
     A7 -= 4;
     return WriteVL(A7,data);
 }
 
-static t_stat m68k_pop16(uint32* data)
+static t_stat m68k_pop16(uint32_t* data)
 {
     A7 += 2;
     return ReadVW(A7-2,data);
 }
 
-static t_stat m68k_pop32(uint32* data)
+static t_stat m68k_pop32(uint32_t* data)
 {
     A7 += 4;
     return ReadVL(A7-4,data);
 }
 
 /* push/pop on current sp */
-t_stat m68k_cpush16(uint32 data)
+t_stat m68k_cpush16(uint32_t data)
 {
     *cur_sp -= 2;
     return WriteVW(*cur_sp,data);
 }
 
-static t_stat m68k_cpush32(uint32 data)
+static t_stat m68k_cpush32(uint32_t data)
 {
     *cur_sp -= 4;
     return WriteVL(*cur_sp,data);
 }
 
-static t_stat m68k_cpop16(uint32* data)
+static t_stat m68k_cpop16(uint32_t* data)
 {
     *cur_sp += 2;
     return ReadVW(*cur_sp-2,data);
 }
 
-static t_stat m68k_cpop32(uint32* data)
+static t_stat m68k_cpop32(uint32_t* data)
 {
     *cur_sp += 4;
     return ReadVL(*cur_sp-4,data);
@@ -1111,7 +1111,7 @@ static t_stat m68k_cpop32(uint32* data)
 t_stat m68k_gen_exception(int vecno,t_addr* pc)
 {
     t_stat rc;
-    uint32 dummy;
+    uint32_t dummy;
     t_addr oldpc = *pc;
     char out[20];
     
@@ -1132,18 +1132,18 @@ t_stat m68k_gen_exception(int vecno,t_addr* pc)
     return ReadInstr(*pc,&dummy); /* fill prefetch cache */
 }
 
-static uint32 m68k_add8(uint32 src1,uint32 src2,uint32 x)
+static uint32_t m68k_add8(uint32_t src1,uint32_t src2,uint32_t x)
 {
-    uint32 res = MASK_8L(src1) + MASK_8L(src2) + x;
+    uint32_t res = MASK_8L(src1) + MASK_8L(src2) + x;
     SETNZ8(res);
     SETF(MASK_9(res),FLAG_C|FLAG_X);
     SETV_ADD8(src1,src2,res);
     return res;
 }
 
-static uint32 m68k_add16(uint32 src1,uint32 src2,uint32 x,t_bool chgflags)
+static uint32_t m68k_add16(uint32_t src1,uint32_t src2,uint32_t x,t_bool chgflags)
 {
-    uint32 res = MASK_16L(src1) + MASK_16L(src2) + x;
+    uint32_t res = MASK_16L(src1) + MASK_16L(src2) + x;
     if (chgflags) {
         SETNZ16(res);
         SETF(MASK_17(res),FLAG_C|FLAG_X);
@@ -1152,7 +1152,7 @@ static uint32 m68k_add16(uint32 src1,uint32 src2,uint32 x,t_bool chgflags)
     return res;
 }
 
-static uint32 m68k_add32(t_uint64 src1,t_uint64 src2,t_uint64 x,t_bool chgflags)
+static uint32_t m68k_add32(t_uint64 src1,t_uint64 src2,t_uint64 x,t_bool chgflags)
 {
     t_uint64 resx = MASK_32L(src1) + MASK_32L(src2) + x;
     if (chgflags) {
@@ -1160,21 +1160,21 @@ static uint32 m68k_add32(t_uint64 src1,t_uint64 src2,t_uint64 x,t_bool chgflags)
         SETF(MASK_33(resx),FLAG_C|FLAG_X);
         SETV_ADD32(src1,src2,resx);
     }
-    return (uint32)resx;
+    return (uint32_t)resx;
 }
 
-static uint32 m68k_sub8(uint32 dst,uint32 src,uint32 x)
+static uint32_t m68k_sub8(uint32_t dst,uint32_t src,uint32_t x)
 {
-    uint32 res = MASK_8L(dst) - MASK_8L(src) - x;
+    uint32_t res = MASK_8L(dst) - MASK_8L(src) - x;
     SETNZ8(res);
     SETF(MASK_9(res),FLAG_C|FLAG_X);
     SETV_SUB8(src,dst,res);
     return res;
 }
 
-static uint32 m68k_sub16(uint32 dst,uint32 src,uint32 x,t_bool chgflags)
+static uint32_t m68k_sub16(uint32_t dst,uint32_t src,uint32_t x,t_bool chgflags)
 {
-    uint32 res = MASK_16L(dst) - MASK_16L(src) - x;
+    uint32_t res = MASK_16L(dst) - MASK_16L(src) - x;
     if (chgflags) {
         SETNZ16(res);
         SETF(MASK_17(res),FLAG_C|FLAG_X);
@@ -1183,7 +1183,7 @@ static uint32 m68k_sub16(uint32 dst,uint32 src,uint32 x,t_bool chgflags)
     return res;
 }
 
-static uint32 m68k_sub32(t_uint64 dst,t_uint64 src, t_uint64 x,t_bool chgflags)
+static uint32_t m68k_sub32(t_uint64 dst,t_uint64 src, t_uint64 x,t_bool chgflags)
 {
     t_uint64 resx = MASK_32L(dst) - MASK_32L(src) - x;
     if (chgflags) {
@@ -1191,15 +1191,15 @@ static uint32 m68k_sub32(t_uint64 dst,t_uint64 src, t_uint64 x,t_bool chgflags)
         SETF(MASK_33(resx),FLAG_C|FLAG_X);
         SETV_SUB32(src,dst,resx);
     }
-    return (uint32)resx;
+    return (uint32_t)resx;
 }
 
-static uint32* movem_regs[] = {
-        (uint32*)&D0, (uint32*)&D1, (uint32*)&D2, (uint32*)&D3, (uint32*)&D4, (uint32*)&D5, (uint32*)&D6, (uint32*)&D7,
-        (uint32*)&A0, (uint32*)&A1, (uint32*)&A2, (uint32*)&A3, (uint32*)&A4, (uint32*)&A5, (uint32*)&A6, 0
+static uint32_t* movem_regs[] = {
+        (uint32_t*)&D0, (uint32_t*)&D1, (uint32_t*)&D2, (uint32_t*)&D3, (uint32_t*)&D4, (uint32_t*)&D5, (uint32_t*)&D6, (uint32_t*)&D7,
+        (uint32_t*)&A0, (uint32_t*)&A1, (uint32_t*)&A2, (uint32_t*)&A3, (uint32_t*)&A4, (uint32_t*)&A5, (uint32_t*)&A6, 0
 };
 
-static t_stat m68k_movem_r_pd(t_addr* areg,uint32 regs,t_bool sz)
+static t_stat m68k_movem_r_pd(t_addr* areg,uint32_t regs,t_bool sz)
 {
     int i;
     t_stat rc;
@@ -1220,7 +1220,7 @@ static t_stat m68k_movem_r_pd(t_addr* areg,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_movem_r_ea(t_addr ea,uint32 regs,t_bool sz)
+static t_stat m68k_movem_r_ea(t_addr ea,uint32_t regs,t_bool sz)
 {
     int i;
     t_stat rc;
@@ -1239,11 +1239,11 @@ static t_stat m68k_movem_r_ea(t_addr ea,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_movem_pi_r(t_addr* areg,uint32 regs,t_bool sz)
+static t_stat m68k_movem_pi_r(t_addr* areg,uint32_t regs,t_bool sz)
 {
     int i;
     t_addr ea = *areg;
-    uint32 src;
+    uint32_t src;
     t_stat rc;
     movem_regs[15] = cur_sp;
     for (i=0; i<16; i++) {
@@ -1262,10 +1262,10 @@ static t_stat m68k_movem_pi_r(t_addr* areg,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_movem_ea_r(t_addr ea,uint32 regs,t_bool sz)
+static t_stat m68k_movem_ea_r(t_addr ea,uint32_t regs,t_bool sz)
 {
     int i;
-    uint32 src;
+    uint32_t src;
     t_stat rc;
     movem_regs[15] = cur_sp;
     for (i=0; i<16; i++) {
@@ -1283,11 +1283,11 @@ static t_stat m68k_movem_ea_r(t_addr ea,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_divu_w(uint32 divdr,int32* reg, t_addr* pc)
+static t_stat m68k_divu_w(uint32_t divdr,int32* reg, t_addr* pc)
 {
-    uint32 quo,rem,*dst;
+    uint32_t quo,rem,*dst;
 
-    dst = (uint32*)reg;
+    dst = (uint32_t*)reg;
     divdr = MASK_16L(divdr);
     if (divdr==0) return m68k_gen_exception(5,pc);
 
@@ -1302,7 +1302,7 @@ static t_stat m68k_divu_w(uint32 divdr,int32* reg, t_addr* pc)
     return SCPE_OK; 
 }
 
-static t_stat m68k_divs_w(uint32 divdr,int32* reg, t_addr* pc)
+static t_stat m68k_divs_w(uint32_t divdr,int32* reg, t_addr* pc)
 {
     int32 quo,rem,div;
     
@@ -1365,12 +1365,12 @@ static t_stat m68k_stop(t_addr* pc)
 t_stat sim_instr()
 {
     t_stat rc;
-    uint32 IR, IRE, src1, src2, res, ea;
+    uint32_t IR, IRE, src1, src2, res, ea;
     int32 sres, *reg, cnt;
     t_uint64 resx, srcx1, srcx2;
     t_addr PC, srca, *areg, oldpc;
     t_bool isbsr,iscond;
-    uint16 tracet0;
+    uint16_t tracet0;
     char out[20];
     
     /* restore state */
@@ -2039,7 +2039,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                     case 000002: /*stop*/
                         ASSERT_PRIV();
                         ASSERT_OKRET(ReadInstrInc(&PC,&IRE));
-                        SR = (uint16)IRE;
+                        SR = (uint16_t)IRE;
                         rc = STOP_HALT;
                         tracet0 = SR_T0;
                         break;
@@ -2484,7 +2484,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000300: case 0000310: case 0000320: case 0000330: 
             case 0000340: case 0000350: case 0000360: case 0000370: /*mulu*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = (uint16)MASK_16L(src1) * (uint16)MASK_16L(DRX);
+                res = (uint16_t)MASK_16L(src1) * (uint16_t)MASK_16L(DRX);
                 DRX = res;
                 SETNZ32(res);
                 CLRF(FLAG_C|FLAG_V);
@@ -2493,7 +2493,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000740: case 0000750: case 0000760: case 0000770: /*muls*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
                 sres = (int16)MASK_16L(src1) * (int16)MASK_16L(DRX);
-                DRX = (uint32)sres;
+                DRX = (uint32_t)sres;
                 SETNZ32(sres);
                 CLRF(FLAG_C|FLAG_V);
                 break;
@@ -2504,7 +2504,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 srca = *AREG(IR_REGX); *AREG(IR_REGX) = *AREG(IR_REGY); *AREG(IR_REGY) = srca;
                 rc = SCPE_OK; break;
             case 0000610: /* exg a,d */
-                res = DRX; DRX = (uint32)*AREG(IR_REGY); *AREG(IR_REGY) = (t_addr)res;
+                res = DRX; DRX = (uint32_t)*AREG(IR_REGY); *AREG(IR_REGY) = (t_addr)res;
                 rc = SCPE_OK; break;
             case 0000400: /* abcd d */
                 rc = STOP_IMPL; break;
@@ -3241,7 +3241,7 @@ do_rol16:       ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
             case 004630: case 005630: case 006630: case 007630: /*rol.l #*/
                 cnt = quickarg[IR_REGX];
 do_rol32:       reg = DR+IR_REGY;
-                resx = (uint32)*reg;
+                resx = (uint32_t)*reg;
                 if (cnt) {
                     cnt &= 31;
                     resx = (resx<<cnt) | (resx>>(32-cnt));

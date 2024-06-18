@@ -234,7 +234,7 @@
                         rh = arh
 
 
-uint32 *M = NULL;                                       /* memory */
+uint32_t *M = NULL;                                       /* memory */
 int32 R[16];                                            /* registers */
 int32 STK[5];                                           /* stack pointers */
 int32 PSL;                                              /* PSL */
@@ -267,13 +267,13 @@ int32 cpu_astop = 0;
 int32 mchk_va, mchk_ref;                                /* mem ref param */
 int32 ibufl, ibufh;                                     /* prefetch buf */
 int32 ibcnt, ppc;                                       /* prefetch ctl */
-uint32 cpu_idle_mask =                                  /* idle mask */
+uint32_t cpu_idle_mask =                                  /* idle mask */
 #if defined (VAX_411) || defined (VAX_412)
                        VAX_IDLE_INFOSERVER;
-uint32 cpu_idle_type = 2;                               /* default INFOSERVER */
+uint32_t cpu_idle_type = 2;                               /* default INFOSERVER */
 #else
                        VAX_IDLE_VMS;
-uint32 cpu_idle_type = 1;                               /* default VMS */
+uint32_t cpu_idle_type = 1;                               /* default VMS */
 #endif
 int32 extra_bytes;                                      /* bytes referenced by current string instruction */
 jmp_buf save_env;
@@ -287,7 +287,7 @@ FILE *hst_log;                                          /* history log file */
 int32 hst_log_p;                                        /* history last log written pointer */
 int32 step_out_nest_level = 0;                          /* step to call return - nest level */
 
-const uint32 byte_mask[33] = { 0x00000000,
+const uint32_t byte_mask[33] = { 0x00000000,
  0x00000001, 0x00000003, 0x00000007, 0x0000000F,
  0x0000001F, 0x0000003F, 0x0000007F, 0x000000FF,
  0x000001FF, 0x000003FF, 0x000007FF, 0x00000FFF,
@@ -297,7 +297,7 @@ const uint32 byte_mask[33] = { 0x00000000,
  0x01FFFFFF, 0x03FFFFFF, 0x07FFFFFF, 0x0FFFFFFF,
  0x1FFFFFFF, 0x3FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF
  };
-const uint32 byte_sign[33] = { 0x00000000,
+const uint32_t byte_sign[33] = { 0x00000000,
  0x00000001, 0x00000002, 0x00000004, 0x00000008,
  0x00000010, 0x00000020, 0x00000040, 0x00000080,
  0x00000100, 0x00000200, 0x00000400, 0x00000800,
@@ -307,7 +307,7 @@ const uint32 byte_sign[33] = { 0x00000000,
  0x01000000, 0x02000000, 0x04000000, 0x08000000,
  0x10000000, 0x20000000, 0x40000000, 0x80000000
  };
-const uint32 align[4] = {
+const uint32_t align[4] = {
  0xFFFFFFFF, 0x00FFFFFF, 0x0000FFFF, 0x000000FF
  };
 
@@ -474,7 +474,7 @@ return cpu_print_model (st);
 const char *cpu_description (DEVICE *dptr)
 {
 static char buf[80];
-uint32 min_mem = 4096, max_mem = 0;
+uint32_t min_mem = 4096, max_mem = 0;
 MTAB *mptr;
 
 for (mptr = dptr->modifiers; mptr && (mptr->mask != 0); mptr++) {
@@ -498,7 +498,7 @@ t_stat ret;
 int32 r = 0, rh = 0, temp = 0;
 int32 spec = 0, disp = 0, rn = 0, index = 0, numspec = 0;
 int32 vfldrp1 = 0, brdisp = 0, flg = 0, mstat = 0;
-uint32 va = 0, iad = 0;
+uint32_t va = 0, iad = 0;
 int32 opnd[OPND_SIZE];                                  /* operand queue */
 
 if ((ret = build_dib_tab ()) != SCPE_OK)                /* build, chk dib_tab */
@@ -722,7 +722,7 @@ for ( ;; ) {
         }                                               /* end PSL event */
 
     if (sim_brk_summ &&
-        sim_brk_test ((uint32) PC, SWMASK ('E'))) {     /* breakpoint? */
+        sim_brk_test ((uint32_t) PC, SWMASK ('E'))) {     /* breakpoint? */
         ABORT (STOP_IBKPT);                             /* stop simulation */
         }
 
@@ -1571,11 +1571,11 @@ for ( ;; ) {
         for (i = 0; i < j; i++)
             h->opnd[i] = opnd[i];
         lim = PC - fault_PC;
-        if ((uint32) lim > INST_SIZE)
+        if ((uint32_t) lim > INST_SIZE)
             lim = INST_SIZE;
         for (i = 0; i < lim; i++) {
             if ((cpu_ex (&wd, fault_PC + i, &cpu_unit, SWMASK ('V'))) == SCPE_OK)
-                h->inst[i] = (uint8) wd;
+                h->inst[i] = (uint8_t) wd;
             else {
                 h->inst[0] = h->inst[1] = 0xFF;
                 break;
@@ -2010,8 +2010,8 @@ for ( ;; ) {
             temp = CC_V;
             SET_TRAP (TRAP_DIVZRO);
             }
-        else if ((((uint32)op0) == LMASK) && 
-                 (((uint32)op1) == LSIGN)) {            /* overflow? */
+        else if ((((uint32_t)op0) == LMASK) && 
+                 (((uint32_t)op1) == LSIGN)) {            /* overflow? */
             r = op1;
             temp = CC_V;
             INTOV;
@@ -2106,7 +2106,7 @@ for ( ;; ) {
     case ROTL:
         j = op0 % 32;                                   /* reduce sc, mod 32 */
         if (j)
-            r = ((((uint32) op1) << j) | (((uint32) op1) >> (32 - j))) & LMASK;
+            r = ((((uint32_t) op1) << j) | (((uint32_t) op1) >> (32 - j))) & LMASK;
         else r = op1;
         WRITE_L (r);                                    /* store result */
         CC_IIZP_L (r);                                  /* set cc's */
@@ -2126,7 +2126,7 @@ for ( ;; ) {
             if (op0 > 31)                               /* sc > 31? */
                 r = temp = 0;
             else {
-                r = (((uint32) op1) << op0) & LMASK;    /* shift */
+                r = (((uint32_t) op1) << op0) & LMASK;    /* shift */
                 temp = r >> op0;                        /* shift back */
                 }
             WRITE_L (r);                                /* store result */
@@ -2157,7 +2157,7 @@ for ( ;; ) {
     case EMUL:
         r = op_emul (op0, op1, &rh);                    /* calc 64b result */
         r = r + op2;                                    /* add 32b value */
-        rh = rh + (((uint32) r) < ((uint32) op2)) -     /* into 64b result */
+        rh = rh + (((uint32_t) r) < ((uint32_t) op2)) -     /* into 64b result */
             ((op2 & LSIGN)? 1: 0);
         WRITE_Q (r, rh);                                /* write result */
         CC_IIZZ_Q (r, rh);                              /* set cc's */
@@ -2450,7 +2450,7 @@ for ( ;; ) {
     case CASEL:
         r = (op0 - op1) & LMASK;                        /* sel - base */
         CC_CMP_L (r, op2);                              /* r:limit, set cc's */
-        if (((uint32) r) > ((uint32) op2))              /* r > limit (unsgnd)? */
+        if (((uint32_t) r) > ((uint32_t) op2))              /* r > limit (unsgnd)? */
             JUMP (PC + ((op2 + 1) * 2));
         else {
             temp = Read (PC + (r * 2), L_WORD, RA);
@@ -3222,7 +3222,7 @@ else if (lnt == L_WORD) {                               /* word? */
     }
 else if (bo) {                                          /* unaligned lw? */
     sc = bo << 3;
-    val =  (((ibufl >> sc) & align[bo]) | (((uint32) ibufh) << (32 - sc)));
+    val =  (((ibufl >> sc) & align[bo]) | (((uint32_t) ibufh) << (32 - sc)));
     }
 else val = ibufl;                                       /* aligned lw */
 if ((bo + lnt) >= 4) {                                  /* retire ibufl? */
@@ -3340,7 +3340,7 @@ if (M == NULL) {                        /* first time init? */
     if (pcq_r == NULL)
         return SCPE_IERR;
     pcq_r->qptr = 0;
-    M = (uint32 *) calloc (((uint32) MEMSIZE) >> 2, sizeof (uint32));
+    M = (uint32_t *) calloc (((uint32_t) MEMSIZE) >> 2, sizeof (uint32_t));
     if (M == NULL)
         return SCPE_MEM;
     auto_config(NULL, 0);               /* do an initial auto configure */
@@ -3399,7 +3399,7 @@ switch (sim_eval[0])
 t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
 int32 st;
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (vptr == NULL) 
     return SCPE_ARG;
@@ -3410,7 +3410,7 @@ if (sw & SWMASK ('V')) {
 else addr = addr & PAMASK;
 if (ADDR_IS_MEM (addr) || ADDR_IS_CDG (addr) ||
     ADDR_IS_ROM (addr) || ADDR_IS_NVR (addr)) {
-    *vptr = (uint32) ReadB (addr);
+    *vptr = (uint32_t) ReadB (addr);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -3421,7 +3421,7 @@ return SCPE_NXM;
 t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
 int32 st;
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (sw & SWMASK ('V')) {
     int32 acc = cpu_get_vsw (sw);
@@ -3445,8 +3445,8 @@ return SCPE_NXM;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i, clim, uval = (uint32)val;
-uint32 *nM = NULL;
+uint32_t i, clim, uval = (uint32_t)val;
+uint32_t *nM = NULL;
 
 if ((val <= 0) || (val > MAXMEMSIZE_X))
     return SCPE_ARG;
@@ -3454,10 +3454,10 @@ for (i = val; i < MEMSIZE; i = i + 4)
     mc = mc | M[i >> 2];
 if ((mc != 0) && !get_yn ("Really truncate memory [N]?", FALSE))
     return SCPE_OK;
-nM = (uint32 *) calloc (uval >> 2, sizeof (uint32));
+nM = (uint32_t *) calloc (uval >> 2, sizeof (uint32_t));
 if (nM == NULL)
     return SCPE_MEM;
-clim = (uint32)((uval < MEMSIZE)? uval: MEMSIZE);
+clim = (uint32_t)((uval < MEMSIZE)? uval: MEMSIZE);
 for (i = 0; i < clim; i = i + 4)
     nM[i >> 2] = M[i >> 2];
 free (M);
@@ -3473,7 +3473,7 @@ t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
 t_stat r;
 const char *cptr = (const char *) desc;
-uint32 va, pa;
+uint32_t va, pa;
 int32 st;
 static const char *mm_str[] = {
     "Access control violation",
@@ -3486,7 +3486,7 @@ static const char *mm_str[] = {
     };
 
 if (cptr) {
-    va = (uint32) get_uint (cptr, 16, 0xFFFFFFFF, &r);
+    va = (uint32_t) get_uint (cptr, 16, 0xFFFFFFFF, &r);
     if (r == SCPE_OK) {
         int32 acc = cpu_get_vsw (sim_switches);
         pa = Test (va, acc, &st);
@@ -3727,7 +3727,7 @@ return more;
 
 struct os_idle {
     const char        *name;
-    uint32      mask;
+    uint32_t      mask;
     };
 
 static struct os_idle os_tab[] = {
@@ -3757,7 +3757,7 @@ static struct os_idle os_tab[] = {
 
 t_stat cpu_set_idle (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i;
+uint32_t i;
 char gbuf[CBUFSIZE];
 
 if (cptr != NULL) {

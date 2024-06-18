@@ -31,8 +31,8 @@
 
 t_uint64 *rom = NULL;                                   /* boot ROM */
 
-t_bool rom_rd (t_uint64 pa, t_uint64 *val, uint32 lnt);
-t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
+t_bool rom_rd (t_uint64 pa, t_uint64 *val, uint32_t lnt);
+t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32_t lnt);
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_reset (DEVICE *dptr);
@@ -74,10 +74,10 @@ DEVICE rom_dev = {
         TRUE if read succeeds, else FALSE
 */
 
-t_bool ReadIO (t_uint64 pa, t_uint64 *dat, uint32 lnt)
+t_bool ReadIO (t_uint64 pa, t_uint64 *dat, uint32_t lnt)
 {
 DEVICE *dptr;
-uint32 i;
+uint32_t i;
 
 for (i = 0; sim_devices[i] != NULL; i++) {
     dptr = sim_devices[i];
@@ -101,10 +101,10 @@ return FALSE;
         TRUE if write succeeds, else FALSE
 */
 
-t_bool WriteIO (t_uint64 pa, t_uint64 dat, uint32 lnt)
+t_bool WriteIO (t_uint64 pa, t_uint64 dat, uint32_t lnt)
 {
 DEVICE *dptr;
-uint32 i;
+uint32_t i;
 
 for (i = 0; sim_devices[i] != NULL; i++) {
     dptr = sim_devices[i];
@@ -119,19 +119,19 @@ return FALSE;
 
 /* Boot ROM read */
 
-t_bool rom_rd (t_uint64 pa, t_uint64 *val, uint32 lnt)
+t_bool rom_rd (t_uint64 pa, t_uint64 *val, uint32_t lnt)
 {
-uint32 sc, rg = ((uint32) ((pa - ROMBASE) & (ROMSIZE - 1))) >> 3;
+uint32_t sc, rg = ((uint32_t) ((pa - ROMBASE) & (ROMSIZE - 1))) >> 3;
 
 switch (lnt) {
 
     case L_BYTE:
-        sc = (((uint32) pa) & 7) * 8;
+        sc = (((uint32_t) pa) & 7) * 8;
         *val = (rom[rg] >> sc) & M8;
         break;
 
     case L_WORD:
-        sc = (((uint32) pa) & 6) * 8;
+        sc = (((uint32_t) pa) & 6) * 8;
         *val = (rom[rg] >> sc) & M16;
         break;
 
@@ -150,19 +150,19 @@ return TRUE;
 
 /* Boot ROM write */
 
-t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt)
+t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32_t lnt)
 {
-uint32 sc, rg = ((uint32) ((pa - ROMBASE) & (ROMSIZE - 1))) >> 3;
+uint32_t sc, rg = ((uint32_t) ((pa - ROMBASE) & (ROMSIZE - 1))) >> 3;
 
 switch (lnt) {
 
     case L_BYTE:
-        sc = (((uint32) pa) & 7) * 8;
+        sc = (((uint32_t) pa) & 7) * 8;
         rom[rg] = (rom[rg] & ~(((t_uint64) M8) << sc)) | (((t_uint64) (val & M8)) << sc);
         break;
 
     case L_WORD:
-        sc = (((uint32) pa) & 6) * 8;
+        sc = (((uint32_t) pa) & 6) * 8;
         rom[rg] = (rom[rg] & ~(((t_uint64) M16) << sc)) | (((t_uint64) (val & M16)) << sc);
         break;
 
@@ -183,7 +183,7 @@ return TRUE;
 
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (vptr == NULL) return SCPE_ARG;
 if (addr >= ROMSIZE) return SCPE_NXM;
@@ -195,7 +195,7 @@ return SCPE_OK;
 
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr >= ROMSIZE) return SCPE_NXM;
 rom[addr >> 3] = val;

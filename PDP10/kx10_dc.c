@@ -79,17 +79,17 @@
 uint64   dc_l_status;                             /* Line status */
 int      dc_l_count = 0;                          /* Scan counter */
 int      dc_modem = DC10_MLINES;                  /* Modem base address */
-uint8    dcix_buf[DC10_MLINES] = { 0 };           /* Input buffers */
-uint8    dcox_buf[DC10_MLINES] = { 0 };           /* Output buffers */
+uint8_t    dcix_buf[DC10_MLINES] = { 0 };           /* Input buffers */
+uint8_t    dcox_buf[DC10_MLINES] = { 0 };           /* Output buffers */
 TMLN     dc_ldsc[DC10_MLINES] = { 0 };            /* Line descriptors */
 TMXR     dc_desc = { DC10_LINES, 0, 0, dc_ldsc };
-uint32   tx_enable, rx_rdy;                       /* Flags */
-uint32   dc_enable;                               /* Enable line */
-uint32   dc_ring;                                 /* Connection pending */
-uint32   rx_conn;                                 /* Connection flags */
+uint32_t   tx_enable, rx_rdy;                       /* Flags */
+uint32_t   dc_enable;                               /* Enable line */
+uint32_t   dc_ring;                                 /* Connection pending */
+uint32_t   rx_conn;                                 /* Connection flags */
 extern int32 tmxr_poll;
 
-t_stat dc_devio(uint32 dev, uint64 *data);
+t_stat dc_devio(uint32_t dev, uint64 *data);
 t_stat dc_svc (UNIT *uptr);
 t_stat dc_doscan (UNIT *uptr);
 t_stat dc_reset (DEVICE *dptr);
@@ -162,7 +162,7 @@ DEVICE dc_dev = {
 
 
 /* IOT routine */
-t_stat dc_devio(uint32 dev, uint64 *data) {
+t_stat dc_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &dc_unit;
     TMLN *lp;
     int   ln;
@@ -174,7 +174,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
              dc_doscan(uptr);
          *data = uptr->STATUS & (PI_CHN|RCV_PI|XMT_PI);
          sim_debug(DEBUG_CONI, &dc_dev, "DC %03o CONI %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
 
     case CONO:
@@ -203,7 +203,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
          }
 
          sim_debug(DEBUG_CONO, &dc_dev, "DC %03o CONO %06o PC=%06o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          dc_doscan(uptr);
          break;
 
@@ -219,9 +219,9 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
                 dc_l_status &= ~(1LL << ln);
              ln -= dc_modem;
              sim_debug(DEBUG_DETAIL, &dc_dev, "DC line modem %d %03o\n",
-                   ln, (uint32)(*data & 0777));
+                   ln, (uint32_t)(*data & 0777));
              if ((*data & OFF_HOOK) == 0) {
-                uint32 mask = ~(1 << ln);
+                uint32_t mask = ~(1 << ln);
                 rx_rdy &= mask;
                 tx_enable &= mask;
                 dc_enable &= mask;

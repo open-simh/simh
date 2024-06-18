@@ -270,11 +270,11 @@ extern int32 tmr_poll;                                  /* instructions per tick
 #define DMP_QUEUE_SIZE 64
 
 struct csrs {
-    uint16 *sel0;
-    uint16 *sel2;
-    uint16 *sel4;
-    uint16 *sel6;
-    uint16 *sel10;
+    uint16_t *sel0;
+    uint16_t *sel2;
+    uint16_t *sel4;
+    uint16_t *sel6;
+    uint16_t *sel10;
     };
 
 typedef struct csrs CSRS;
@@ -295,7 +295,7 @@ typedef enum {
 
 /* 129 words taken from RSTS/E ECO checker listing; the rest is not
    used so we can leave it as zeroes.  */
-static const uint16 hi_speed_ucode[256] = {
+static const uint16_t hi_speed_ucode[256] = {
     063220,
     063223,
     063237,
@@ -535,11 +535,11 @@ typedef enum {
 typedef struct buffer {
     QH hdr;                   /* queue linkage */
     BufferType type;          /* 0 = Receive Buffer, 1 = Transmit Buffer */
-    uint32 address;           /* unibus address of the buffer (or 0 for DDCMP control messages) */
-    uint16 count;             /* size of the buffer passed to the device by the driver */
-    uint8 *transfer_buffer;   /* the buffer into which data is received or from which it is transmitted*/
+    uint32_t address;           /* unibus address of the buffer (or 0 for DDCMP control messages) */
+    uint16_t count;             /* size of the buffer passed to the device by the driver */
+    uint8_t *transfer_buffer;   /* the buffer into which data is received or from which it is transmitted*/
     int actual_bytes_transferred;/* the number of bytes from the actual block that have been read or written */
-    uint32 buffer_return_time;/* time to return buffer to host */
+    uint32_t buffer_return_time;/* time to return buffer to host */
     } BUFFER;
 
 typedef enum {
@@ -552,28 +552,28 @@ typedef enum {
     } DDCMP_LinkState;
 
 typedef struct {
-    uint8 R;                /* number of the highest sequential data message received . 
+    uint8_t R;                /* number of the highest sequential data message received . 
                                Sent in the RESP field of data messages, ACK messages,
                                and NAK messages as acknowledgment to the other station. */
-    uint8 N;                /* Number of the highest sequential data message 
+    uint8_t N;                /* Number of the highest sequential data message 
                                transmitted.  Sent in the NUM field of REP 
                                messages. N is the number assigned to the last 
                                user transmit request which has been transmitted 
                                (sent in the NUM field of that data message).*/
-    uint8 A;                /* Number of the highest sequential data message acknowledged.
+    uint8_t A;                /* Number of the highest sequential data message acknowledged.
                                Received in the RESP field of data messages, ACK messages, 
                                and NAK messages.*/
-    uint8 T;                /* Number of the next data message to be transmitted.
+    uint8_t T;                /* Number of the next data message to be transmitted.
                                When sending new data messages T will have the 
                                value N+l. When retransmitting T will be set back
                                to A+l and will advance to N+l.*/
-    uint8 X;                /* Number of the last data message that has been 
+    uint8_t X;                /* Number of the last data message that has been 
                                transmitted.  When a new data message has been 
                                completely transmitted X will have the value N. 
                                When retransmitting and receiving acknowledgments 
                                asynchronously with respect to transmission, X will 
                                have some value less than or equal to N. */
-    uint8 NAKed;            /* The value of R sent in the most recent NAK message.  This
+    uint8_t NAKed;            /* The value of R sent in the most recent NAK message.  This
                                is used to avoid sending additional NAKs when one has already
                                been sent while the remaining packets in the transmit pipeline
                                are still arriving. */
@@ -606,19 +606,19 @@ typedef struct {
                                timer expires in the running state and a REP 
                                should be sent. It is independent of the SACK 
                                and SNAK flags.*/
-    uint8 *rcv_pkt;         /* Current Rcvd Packet buffer */
-    uint16 rcv_pkt_size;    /* Current Rcvd Packet size */
+    uint8_t *rcv_pkt;         /* Current Rcvd Packet buffer */
+    uint16_t rcv_pkt_size;    /* Current Rcvd Packet size */
     BUFFER *xmt_buffer;     /* Current Transmit Buffer */
     BUFFER *xmt_done_buffer;/* Just Completed Transmit Buffer */
-    uint8 nak_reason;       /*  */
-    uint8 nak_crc_reason;   /* CRC status for current received packet */
+    uint8_t nak_reason;       /*  */
+    uint8_t nak_crc_reason;   /* CRC status for current received packet */
     DDCMP_LinkState state;  /* Current State */
     t_bool TimerRunning;    /* Timer Running Flag */
     t_bool TimeRemaining;   /* Seconds remaining before timeout (when timer running) */
     t_bool Scanning;        /* Event Scanning in progress */
-    uint32 ScanningEvents;  /* Event Mask while scanning */
+    uint32_t ScanningEvents;  /* Event Mask while scanning */
     t_bool RecurseScan;     /* Scan was attempted while scanning */
-    uint32 RecurseEventMask;/* Mask for recursive Scan */
+    uint32_t RecurseEventMask;/* Mask for recursive Scan */
 #define DDCMP_EVENT_XMIT_DONE 0x001
 #define DDCMP_EVENT_PKT_RCVD  0x002
 #define DDCMP_EVENT_TIMER     0x004
@@ -627,7 +627,7 @@ typedef struct {
 
 typedef struct control {
     struct control *next;       /* Link */
-    uint16  sel6;               /* Control Out Status Flags */
+    uint16_t  sel6;               /* Control Out Status Flags */
     } CONTROL_OUT;
 
 typedef enum {
@@ -654,23 +654,23 @@ typedef struct dmc_controller {
     BUFFER **buffers;               /* Buffers */
     CONTROL_OUT *control_out;
     DEVTYPE dev_type;
-    uint32 in_int;
-    uint32 out_int;
-    uint32 dmc_wr_delay;
-    uint32 *baseaddr;
-    uint16 *basesize;
-    uint8 *modem;
+    uint32_t in_int;
+    uint32_t out_int;
+    uint32_t dmc_wr_delay;
+    uint32_t *baseaddr;
+    uint16_t *basesize;
+    uint8_t *modem;
     int32 *corruption_factor;
-    uint32 buffers_received_from_net;
-    uint32 buffers_transmitted_to_net;
-    uint32 receive_buffer_output_transfers_completed;
-    uint32 transmit_buffer_output_transfers_completed;
-    uint32 receive_buffer_input_transfers_completed;
-    uint32 transmit_buffer_input_transfers_completed;
-    uint32 control_out_operations_completed;
-    uint32 ddcmp_control_packets_received;
-    uint32 ddcmp_control_packets_sent;
-    uint32 byte_wait;                           /* rcv/xmt byte delay */
+    uint32_t buffers_received_from_net;
+    uint32_t buffers_transmitted_to_net;
+    uint32_t receive_buffer_output_transfers_completed;
+    uint32_t transmit_buffer_output_transfers_completed;
+    uint32_t receive_buffer_input_transfers_completed;
+    uint32_t transmit_buffer_input_transfers_completed;
+    uint32_t control_out_operations_completed;
+    uint32_t ddcmp_control_packets_received;
+    uint32_t ddcmp_control_packets_sent;
+    uint32_t byte_wait;                           /* rcv/xmt byte delay */
     } CTLR;
 
 /* 
@@ -1035,7 +1035,7 @@ DDCMP_LinkAction_Routine Actions[10];
 
 #define ctlr up7                        /* Unit back pointer to controller */
 
-void ddcmp_dispatch               (CTLR *controller, uint32 EventMask);
+void ddcmp_dispatch               (CTLR *controller, uint32_t EventMask);
 
 
 t_stat dmc_rd (int32* data, int32 PA, int32 access);
@@ -1076,11 +1076,11 @@ int dmc_is_rqi_set (CTLR *controller);
 int dmc_is_rdyi_set (CTLR *controller);
 int dmc_is_iei_set (CTLR *controller);
 int dmc_is_ieo_set (CTLR *controller);
-uint32 dmc_get_addr (CTLR *controller);
-void dmc_set_addr (CTLR *controller, uint32 addr);
-uint16 dmc_get_count (CTLR *controller);
-void dmc_set_count (CTLR *controller, uint16 count);
-uint8 dmc_get_modem (CTLR *controller);
+uint32_t dmc_get_addr (CTLR *controller);
+void dmc_set_addr (CTLR *controller, uint32_t addr);
+uint16_t dmc_get_count (CTLR *controller);
+void dmc_set_count (CTLR *controller, uint16_t count);
+uint8_t dmc_get_modem (CTLR *controller);
 void dmc_set_modem_dtr (CTLR *controller);
 void dmc_clr_modem_dtr (CTLR *controller);
 void dmc_process_immediate(CTLR *controller);
@@ -1093,7 +1093,7 @@ BUFFER *dmc_buffer_queue_head (BUFFER_QUEUE *q);
 BUFFER *dmc_buffer_allocate (CTLR *controller);
 t_bool dmc_transmit_queue_empty  (CTLR *controller);
 void dmc_ddcmp_start_transmitter (CTLR *controller);
-void dmc_queue_control_out (CTLR *controller, uint16 sel6);
+void dmc_queue_control_out (CTLR *controller, uint16_t sel6);
 
 /* debugging bitmaps */
 #define DBG_TRC  0x0001                                 /* trace routine calls */
@@ -1131,42 +1131,42 @@ UNIT dmc_timer_unit_template = { UDATA (&dmc_timer_svc, UNIT_DIS|UNIT_IDLE, 0) }
 UNIT dmp_units[DMP_NUMDEVICE+2];            /* One per device plus an I/O polling unit and a timing unit */
 
 CSRS dmc_csrs[DMC_NUMDEVICE];
-uint16 dmc_sel0[DMC_NUMDEVICE];
-uint16 dmc_sel2[DMC_NUMDEVICE];
-uint16 dmc_sel4[DMC_NUMDEVICE];
-uint16 dmc_sel6[DMC_NUMDEVICE];
+uint16_t dmc_sel0[DMC_NUMDEVICE];
+uint16_t dmc_sel2[DMC_NUMDEVICE];
+uint16_t dmc_sel4[DMC_NUMDEVICE];
+uint16_t dmc_sel6[DMC_NUMDEVICE];
 
 #define PEERSIZE 512
-uint32 dmc_speed[DMC_NUMDEVICE];
+uint32_t dmc_speed[DMC_NUMDEVICE];
 char dmc_peer[DMC_NUMDEVICE][PEERSIZE];
 char dmc_port[DMC_NUMDEVICE][PEERSIZE];
-uint32 dmc_baseaddr[DMC_NUMDEVICE];
-uint16 dmc_basesize[DMC_NUMDEVICE];
-uint8 dmc_modem[DMC_NUMDEVICE];
+uint32_t dmc_baseaddr[DMC_NUMDEVICE];
+uint16_t dmc_basesize[DMC_NUMDEVICE];
+uint8_t dmc_modem[DMC_NUMDEVICE];
 t_bool dmc_microdiag[DMC_NUMDEVICE];
 int32 dmc_corruption[DMC_NUMDEVICE];
 
 CSRS dmp_csrs[DMP_NUMDEVICE];
-uint16 dmp_sel0[DMC_NUMDEVICE];
-uint16 dmp_sel2[DMC_NUMDEVICE];
-uint16 dmp_sel4[DMC_NUMDEVICE];
-uint16 dmp_sel6[DMC_NUMDEVICE];
-uint16 dmp_sel10[DMC_NUMDEVICE];
+uint16_t dmp_sel0[DMC_NUMDEVICE];
+uint16_t dmp_sel2[DMC_NUMDEVICE];
+uint16_t dmp_sel4[DMC_NUMDEVICE];
+uint16_t dmp_sel6[DMC_NUMDEVICE];
+uint16_t dmp_sel10[DMC_NUMDEVICE];
 
-uint32 dmp_speed[DMP_NUMDEVICE];
+uint32_t dmp_speed[DMP_NUMDEVICE];
 char dmp_peer[DMP_NUMDEVICE][PEERSIZE];
 char dmp_port[DMP_NUMDEVICE][PEERSIZE];
-uint32 dmp_baseaddr[DMP_NUMDEVICE];
-uint16 dmp_basesize[DMP_NUMDEVICE];
-uint8 dmp_modem[DMP_NUMDEVICE];
+uint32_t dmp_baseaddr[DMP_NUMDEVICE];
+uint16_t dmp_basesize[DMP_NUMDEVICE];
+uint8_t dmp_modem[DMP_NUMDEVICE];
 int32 dmp_corruption[DMC_NUMDEVICE];
 
 TMLN dmc_ldsc[DMC_NUMDEVICE];               /* line descriptors */
 TMXR dmc_desc = { 1, NULL, 0, dmc_ldsc };   /* mux descriptor */
-uint32 dmc_connect_poll = DMC_CONNECT_POLL; /* seconds between polls when no connection */
+uint32_t dmc_connect_poll = DMC_CONNECT_POLL; /* seconds between polls when no connection */
 
-uint32 dmc_ini_summary = 0;         /* In Command Interrupt Summary for all controllers */
-uint32 dmc_outi_summary = 0;        /* Out Command Interrupt Summary for all controllers */
+uint32_t dmc_ini_summary = 0;         /* In Command Interrupt Summary for all controllers */
+uint32_t dmc_outi_summary = 0;        /* Out Command Interrupt Summary for all controllers */
 
 BUFFER_QUEUE dmc_rcv_queues[DMC_NUMDEVICE];
 BUFFER_QUEUE dmc_completion_queues[DMC_NUMDEVICE];
@@ -1177,7 +1177,7 @@ BUFFER *dmc_buffers[DMC_NUMDEVICE];
 
 TMLN dmp_ldsc[DMC_NUMDEVICE];               /* line descriptors */
 TMXR dmp_desc = { 1, NULL, 0, dmp_ldsc };   /* mux descriptor */
-uint32 dmp_connect_poll;                    /* seconds between polls when no connection */
+uint32_t dmp_connect_poll;                    /* seconds between polls when no connection */
 
 BUFFER_QUEUE dmp_rcv_queues[DMP_NUMDEVICE];
 BUFFER_QUEUE dmp_completion_queues[DMP_NUMDEVICE];
@@ -1368,7 +1368,7 @@ CTLR *dmc_get_controller_from_unit(UNIT *unit)
 return (CTLR *)unit->ctlr;
 }
 
-CTLR* dmc_get_controller_from_address(uint32 address)
+CTLR* dmc_get_controller_from_address(uint32_t address)
 {
 int i;
 
@@ -1417,7 +1417,7 @@ t_stat dmc_showspeed (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
 DEVICE *dptr = (UNIBUS) ? ((&dmc_dev == find_dev_from_unit(uptr)) ? &dmc_dev : &dmp_dev) : &dmv_dev;
 int32 dmc = (int32)(uptr-dptr->units);
-uint32 *speeds = ((dptr == &dmc_dev)? dmc_speed : dmp_speed);
+uint32_t *speeds = ((dptr == &dmc_dev)? dmc_speed : dmp_speed);
 
 if (speeds[dmc] > 0)
     fprintf(st, "speed=%d bits/sec", speeds[dmc]);
@@ -1431,7 +1431,7 @@ t_stat dmc_setspeed (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 {
 DEVICE *dptr = (UNIBUS) ? ((&dmc_dev == find_dev_from_unit(uptr)) ? &dmc_dev : &dmp_dev) : &dmv_dev;
 int32 dmc = (int32)(uptr-dptr->units);
-uint32 *speeds = ((dptr == &dmc_dev)? dmc_speed : dmp_speed);
+uint32_t *speeds = ((dptr == &dmc_dev)? dmc_speed : dmp_speed);
 t_stat r;
 int32 newspeed;
 
@@ -1598,7 +1598,7 @@ if (detail) {
             if (buffer->buffer_return_time)
                 fprintf (st, "   buffer_return_time:       0x%08X\n", buffer->buffer_return_time);
             if (strcmp(queue->name, "transmit") == 0) {
-                uint8 *msg = buffer->transfer_buffer;
+                uint8_t *msg = buffer->transfer_buffer;
                 static const char *const flags [4] = { "..", ".Q", "S.", "SQ" };
                 static const char *const nak[18] = { "", " (HCRC)", " (DCRC)", " (REPREPLY)", /* 0-3 */
                                                      "", "", "", "",                          /* 4-7 */
@@ -1693,7 +1693,7 @@ return SCPE_OK;
 
 t_stat dmc_showconnectpoll (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-uint32 poll_interval = *((const uint32 *)desc);
+uint32_t poll_interval = *((const uint32_t *)desc);
 
 fprintf(st, "connectpoll=%u", poll_interval);
 return SCPE_OK;
@@ -1702,8 +1702,8 @@ return SCPE_OK;
 t_stat dmc_setconnectpoll (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 {
 t_stat status = SCPE_OK;
-uint32 *poll_interval = ((uint32 *)desc);
-uint32 newpoll;
+uint32_t *poll_interval = ((uint32_t *)desc);
+uint32_t newpoll;
 
 if (!cptr) 
     return SCPE_IERR;
@@ -1719,7 +1719,7 @@ return tmxr_connection_poll_interval ((poll_interval == &dmc_connect_poll) ? &dm
 t_stat dmc_setnumdevices (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 newln;
-uint32 i, j;
+uint32_t i, j;
 t_stat r;
 DEVICE *dptr = (DEVICE *)desc;
 TMXR *mp = (dptr == &dmc_dev) ? &dmc_desc : &dmp_desc;
@@ -1746,7 +1746,7 @@ if (newln == 0)
     return SCPE_ARG;
 sim_cancel (dptr->units + dptr->numunits - 2);
 sim_cancel (dptr->units + dptr->numunits - 1);
-for (i=dptr->numunits-2; i<(uint32)newln; ++i) {
+for (i=dptr->numunits-2; i<(uint32_t)newln; ++i) {
     dptr->units[i] = dmc_unit_template;
     dptr->units[i].ctlr = &dmc_ctrls[(dptr == &dmc_dev) ? i : i+DMC_NUMDEVICE];
     }
@@ -2065,18 +2065,18 @@ int dmc_getsel(int addr)
 return (addr >> 1) & ((UNIBUS) ? 03 : 07);
 }
 
-uint16 dmc_bitfld(int data, int start_bit, int length)
+uint16_t dmc_bitfld(int data, int start_bit, int length)
 {
-uint16 ans = (uint16)(data >> start_bit);
-uint32 mask = (1 << (length))-1;
+uint16_t ans = (uint16_t)(data >> start_bit);
+uint32_t mask = (1 << (length))-1;
 ans &= mask;
 return ans;
 }
 
-void dmc_dumpregsel0(CTLR *controller, int trace_level, const char * prefix, uint16 data)
+void dmc_dumpregsel0(CTLR *controller, int trace_level, const char * prefix, uint16_t data)
 {
 const char *type_str = "";
-uint16 type = dmc_bitfld(data, DMC_SEL0_V_ITYPE, DMC_SEL0_S_ITYPE);
+uint16_t type = dmc_bitfld(data, DMC_SEL0_V_ITYPE, DMC_SEL0_S_ITYPE);
 static const char *dmc_types[] = {"XMT BA/CC", "CNTL IN", "HALT", "BASE IN", "RCV BA/CC", "?????",  "?????", "?????"};
 
 if (dmc_is_dmc(controller)) {
@@ -2120,10 +2120,10 @@ else {
     }
 }
 
-void dmc_dumpregsel2(CTLR *controller, int trace_level, const char *prefix, uint16 data)
+void dmc_dumpregsel2(CTLR *controller, int trace_level, const char *prefix, uint16_t data)
 {
 const char *type_str = "";
-uint16 type = dmc_bitfld(data, DMC_SEL2_V_CODE, DMC_SEL2_S_CODE);
+uint16_t type = dmc_bitfld(data, DMC_SEL2_V_CODE, DMC_SEL2_S_CODE);
 static const char *dmc_types[] = {"XMT BA/CC OUT", "CNTL OUT", "?????", "?????", "RCV BA/CC OUT", "?????",  "?????", "?????"};
 
 type_str = dmc_types[type];
@@ -2144,7 +2144,7 @@ sim_debug(
     );
 }
 
-void dmc_dumpregsel4(CTLR *controller, int trace_level, const char *prefix, uint16 data)
+void dmc_dumpregsel4(CTLR *controller, int trace_level, const char *prefix, uint16_t data)
 {
 if (dmc_is_rdyi_set(controller)) {
     sim_debug(
@@ -2174,7 +2174,7 @@ else {
     }
 }
 
-void dmc_dumpregsel6(CTLR *controller, int trace_level, const char *prefix, uint16 data)
+void dmc_dumpregsel6(CTLR *controller, int trace_level, const char *prefix, uint16_t data)
 {
 if (dmc_is_rdyi_set(controller)) {
     sim_debug(
@@ -2198,7 +2198,7 @@ else {
     }
 }
 
-void dmc_dumpregsel10(CTLR *controller, int trace_level, const char *prefix, uint16 data)
+void dmc_dumpregsel10(CTLR *controller, int trace_level, const char *prefix, uint16_t data)
 {
 sim_debug(
     trace_level,
@@ -2210,9 +2210,9 @@ sim_debug(
     dmc_bitfld(data, DMC_SEL6_M_LOSTDATA, 1) ? "LOST_DATA " : "");
 }
 
-uint16 dmc_getreg(CTLR *controller, int reg, int ctx)
+uint16_t dmc_getreg(CTLR *controller, int reg, int ctx)
 {
-uint16 ans = 0;
+uint16_t ans = 0;
 
 switch (dmc_getsel(reg)) {
     case 00:
@@ -2243,7 +2243,7 @@ switch (dmc_getsel(reg)) {
 return ans;
 }
 
-void dmc_setreg(CTLR *controller, int reg, uint16 data, int ctx)
+void dmc_setreg(CTLR *controller, int reg, uint16_t data, int ctx)
 {
 const char *trace = "Setting";
 
@@ -2382,19 +2382,19 @@ dmc_setreg(controller, 2, *controller->csrs->sel2 | DMC_SEL2_M_RDO, DBG_RGC);
 dmc_setoutint(controller);
 }
 
-uint32 dmc_get_addr(CTLR *controller)
+uint32_t dmc_get_addr(CTLR *controller)
 {
 if (dmc_is_dmc(controller) || (!(*controller->csrs->sel2 & DMP_SEL2_M_22BIT)))
-    return ((uint32)dmc_getreg(controller, 4, DBG_RGC))  | ((((uint32)dmc_getreg(controller, 6, DBG_RGC) & 0xc000)) << 2);
+    return ((uint32_t)dmc_getreg(controller, 4, DBG_RGC))  | ((((uint32_t)dmc_getreg(controller, 6, DBG_RGC) & 0xc000)) << 2);
 else
-    return ((uint32)dmc_getreg(controller, 4, DBG_RGC))  | (((uint32)dmc_getreg(controller, 6, DBG_RGC) & 0x3FF) << 16);
+    return ((uint32_t)dmc_getreg(controller, 4, DBG_RGC))  | (((uint32_t)dmc_getreg(controller, 6, DBG_RGC) & 0x3FF) << 16);
 }
 
-void dmc_set_addr(CTLR *controller, uint32 addr)
+void dmc_set_addr(CTLR *controller, uint32_t addr)
 {
 if (dmc_is_dmc(controller) || (!(*controller->csrs->sel2 & DMP_SEL2_M_22BIT))) {
     dmc_setreg(controller, 4, addr & 0xFFFF, DBG_RGC);
-    dmc_setreg(controller, 6, (uint16)(((addr >> 16) << 14) | (*controller->csrs->sel6 & 0x3FFF)) , DBG_RGC);
+    dmc_setreg(controller, 6, (uint16_t)(((addr >> 16) << 14) | (*controller->csrs->sel6 & 0x3FFF)) , DBG_RGC);
     }
 else {
     dmc_setreg(controller, 4, addr & 0xFFFF, DBG_RGC);
@@ -2402,7 +2402,7 @@ else {
     }
 }
 
-uint16 dmc_get_count(CTLR *controller)
+uint16_t dmc_get_count(CTLR *controller)
 {
 if (dmc_is_dmc(controller) || (!(*controller->csrs->sel2 & DMP_SEL2_M_22BIT)))
     return dmc_getreg(controller, 6, DBG_RGC) & 0x3FFF;
@@ -2410,7 +2410,7 @@ else
     return dmc_getreg(controller, 010, DBG_RGC) & 0x3FFF;
 }
 
-void dmc_set_count(CTLR *controller, uint16 count)
+void dmc_set_count(CTLR *controller, uint16_t count)
 {
 if (dmc_is_dmc(controller) || (!(*controller->csrs->sel2 & DMP_SEL2_M_22BIT)))
     dmc_setreg(controller, 6, (*controller->csrs->sel6 & 0xc000) | (0x3FFF & count), DBG_RGC);
@@ -2418,7 +2418,7 @@ else
     dmc_setreg(controller, 010, (*controller->csrs->sel10 & 0xc000) | (0x3FFF & count), DBG_RGC);
 }
 
-uint8 dmc_get_modem(CTLR *controller)
+uint8_t dmc_get_modem(CTLR *controller)
 {
 int32 modem_bits;
 
@@ -2634,7 +2634,7 @@ tmxr_poll_tx (mp);
 for (dmc=active=attached=0; dmc < mp->lines; dmc++) {
     CTLR *controller = (CTLR *)dptr->units[dmc].ctlr;
     TMLN *lp = controller->line;
-    uint8 old_modem, new_modem;
+    uint8_t old_modem, new_modem;
 
     controller = (CTLR *)dptr->units[dmc].ctlr;
     if (controller->unit->flags & UNIT_ATT)
@@ -2664,7 +2664,7 @@ if (active)
     sim_clock_coschedule (uptr, tmxr_poll);         /* reactivate */
 else {
     for (dmc=0; dmc < mp->lines; dmc++) {
-        uint32 *speeds = (dptr == &dmc_dev) ? dmc_speed : dmp_speed;
+        uint32_t *speeds = (dptr == &dmc_dev) ? dmc_speed : dmp_speed;
         CTLR *controller = (CTLR *)dptr->units[dmc].ctlr;
 
         if (speeds[dmc]/8)
@@ -2766,7 +2766,7 @@ buffer->buffer_return_time = 0;
 return buffer;
 }
 
-BUFFER *dmc_buffer_queue_add(BUFFER_QUEUE *q, uint32 address, uint16 count, BufferType type)
+BUFFER *dmc_buffer_queue_add(BUFFER_QUEUE *q, uint32_t address, uint16_t count, BufferType type)
 {
 BUFFER *buffer = dmc_buffer_allocate(q->controller);
 
@@ -2790,7 +2790,7 @@ BUFFER *dmc_buffer_queue_head(BUFFER_QUEUE *q)
 return ((q->hdr.next == &q->hdr) ? NULL : (BUFFER *)q->hdr.next);
 }
 
-void dmc_queue_control_out(CTLR *controller, uint16 sel6)
+void dmc_queue_control_out(CTLR *controller, uint16_t sel6)
 {
 CONTROL_OUT *control = (CONTROL_OUT *)calloc(1, sizeof(*control));
 CONTROL_OUT *last = NULL;
@@ -2815,7 +2815,7 @@ if (controller->state == Running) {
     BUFFER *buffer = dmc_buffer_queue_head(controller->rcv_queue);
 
     while (buffer) {
-        ddcmp_tmxr_get_packet_ln (controller->line, (const uint8 **)&controller->link.rcv_pkt, &controller->link.rcv_pkt_size, *controller->corruption_factor);
+        ddcmp_tmxr_get_packet_ln (controller->line, (const uint8_t **)&controller->link.rcv_pkt, &controller->link.rcv_pkt_size, *controller->corruption_factor);
         if (!controller->link.rcv_pkt)
             break;
         ans = TRUE;
@@ -2831,13 +2831,13 @@ return ans;
 void dmc_start_transfer_buffer(CTLR *controller)
 {
 BUFFER *head = dmc_buffer_queue_head(controller->completion_queue);
-uint16 count;
+uint16_t count;
 
 if ((!head) ||
     (controller->transfer_state != Idle) ||
     (dmc_is_rdyo_set(controller)))
     return;
-count = (uint16)head->actual_bytes_transferred;
+count = (uint16_t)head->actual_bytes_transferred;
 switch (head->type) {
     case Receive:
         sim_debug(DBG_INF, controller->device, "%s%d: Starting data output transfer for receive, address=0x%08x, count=%d %s\n", controller->device->name, controller->index, head->address, count, controller_queue_state(controller));
@@ -2894,9 +2894,9 @@ if (dmc_is_dmc(controller)) {
     if (dmc_is_run_set(controller) && 
         (!dmc_is_rqi_set(controller))) {
         /* Time to decode input command arguments */
-        uint16 sel6 = *controller->csrs->sel6;
-        uint32 addr = dmc_get_addr(controller);
-        uint16 count = dmc_get_count(controller);
+        uint16_t sel6 = *controller->csrs->sel6;
+        uint32_t addr = dmc_get_addr(controller);
+        uint16_t count = dmc_get_count(controller);
 
         controller->transfer_type = dmc_get_input_transfer_type(controller);
         dmc_clear_rdyi(controller);
@@ -2912,7 +2912,7 @@ if (dmc_is_dmc(controller)) {
                     int n;
 
                     /* construct buffer - leaving room for DDCMP header and CRCs */
-                    buffer->transfer_buffer = (uint8 *)realloc (buffer->transfer_buffer, buffer->count + DDCMP_HEADER_SIZE + DDCMP_CRC_SIZE);
+                    buffer->transfer_buffer = (uint8_t *)realloc (buffer->transfer_buffer, buffer->count + DDCMP_HEADER_SIZE + DDCMP_CRC_SIZE);
                     memset (buffer->transfer_buffer, 0, DDCMP_HEADER_SIZE);
                     n = Map_ReadB (buffer->address, buffer->count, buffer->transfer_buffer + DDCMP_HEADER_SIZE);
                     if (n > 0) {
@@ -2957,10 +2957,10 @@ if (dmc_is_dmc(controller)) {
     }
 else {  /* DMP */
     if (!dmc_is_rdyi_set(controller)) {
-        uint16 sel6 = *controller->csrs->sel6;
+        uint16_t sel6 = *controller->csrs->sel6;
 
         if (controller->transfer_type == DMP_C_TYPE_MODE) {
-            uint16 mode = sel6 & DMP_TYPE_INPUT_MASK;
+            uint16_t mode = sel6 & DMP_TYPE_INPUT_MASK;
             const char * duplex = (mode & 1) ? "Full-Duplex" : "Half-Duplex";
             const char * config;
 
@@ -3002,7 +3002,7 @@ typedef enum {
 } CompareOP;
 
 /* DDCMP Modulo 256 compare - from Rob Jarratt */
-static int Mod256Cmp(uint8 a, uint8 b, size_t queue_size)
+static int Mod256Cmp(uint8_t a, uint8_t b, size_t queue_size)
 {
 int ans;
 int abdiff = (int)b - (int)a;
@@ -3022,7 +3022,7 @@ if (abs(badiff) <= (int)queue_size)
 return ans;
 }
 
-t_bool ddcmp_compare (uint8 a, CompareOP Op, uint8 b, CTLR *controller)
+t_bool ddcmp_compare (uint8_t a, CompareOP Op, uint8_t b, CTLR *controller)
 {
 int cmp = Mod256Cmp(a & 0xFF, b & 0xFF, controller->free_queue->size);
 
@@ -3100,7 +3100,7 @@ void ddcmp_SendStrt               (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_allocate(controller);
 
-buffer->transfer_buffer = (uint8 *)malloc (DDCMP_HEADER_SIZE);
+buffer->transfer_buffer = (uint8_t *)malloc (DDCMP_HEADER_SIZE);
 buffer->count = DDCMP_HEADER_SIZE;
 ddcmp_build_start_packet (buffer->transfer_buffer);
 ASSURE (insqueue (&buffer->hdr, &controller->xmt_queue->hdr));
@@ -3110,7 +3110,7 @@ void ddcmp_SendStack              (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_allocate(controller);
 
-buffer->transfer_buffer = (uint8 *)malloc (DDCMP_HEADER_SIZE);
+buffer->transfer_buffer = (uint8_t *)malloc (DDCMP_HEADER_SIZE);
 buffer->count = DDCMP_HEADER_SIZE;
 ddcmp_build_start_ack_packet (buffer->transfer_buffer);
 ASSURE (insqueue (&buffer->hdr, &controller->xmt_queue->hdr));
@@ -3120,7 +3120,7 @@ void ddcmp_SendAck                (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_allocate(controller);
 
-buffer->transfer_buffer = (uint8 *)malloc (DDCMP_HEADER_SIZE);
+buffer->transfer_buffer = (uint8_t *)malloc (DDCMP_HEADER_SIZE);
 buffer->count = DDCMP_HEADER_SIZE;
 ddcmp_build_ack_packet (buffer->transfer_buffer, controller->link.R, DDCMP_FLAG_SELECT);
 ASSURE (insqueue (&buffer->hdr, &controller->xmt_queue->hdr));
@@ -3130,7 +3130,7 @@ void ddcmp_SendNak                (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_allocate(controller);
 
-buffer->transfer_buffer = (uint8 *)malloc (DDCMP_HEADER_SIZE);
+buffer->transfer_buffer = (uint8_t *)malloc (DDCMP_HEADER_SIZE);
 buffer->count = DDCMP_HEADER_SIZE;
 ddcmp_build_nak_packet (buffer->transfer_buffer, controller->link.nak_reason, controller->link.R, DDCMP_FLAG_SELECT);
 ASSURE (insqueue (&buffer->hdr, &controller->xmt_queue->hdr));
@@ -3140,7 +3140,7 @@ void ddcmp_SendRep                (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_allocate(controller);
 
-buffer->transfer_buffer = (uint8 *)malloc (DDCMP_HEADER_SIZE);
+buffer->transfer_buffer = (uint8_t *)malloc (DDCMP_HEADER_SIZE);
 buffer->count = DDCMP_HEADER_SIZE;
 ddcmp_build_rep_packet (buffer->transfer_buffer, controller->link.N, DDCMP_FLAG_SELECT);
 ASSURE (insqueue (&buffer->hdr, &controller->xmt_queue->hdr));
@@ -3196,7 +3196,7 @@ controller->link.nak_reason = controller->link.nak_crc_reason;
 }
 void ddcmp_NAKMissingPacket       (CTLR *controller)
 {
-uint8 R = controller->link.R;
+uint8_t R = controller->link.R;
 QH *qh = &controller->xmt_queue->hdr;
 
 while (ddcmp_compare (controller->link.rcv_pkt[DDCMP_NUM_OFFSET], GE, R, controller)) {
@@ -3211,7 +3211,7 @@ while (ddcmp_compare (controller->link.rcv_pkt[DDCMP_NUM_OFFSET], GE, R, control
         ASSURE (insqueue (&buffer->hdr, &controller->free_queue->hdr)); /* Release buffer */
         break;
         }
-    buffer->transfer_buffer = (uint8 *)malloc (DDCMP_HEADER_SIZE);
+    buffer->transfer_buffer = (uint8_t *)malloc (DDCMP_HEADER_SIZE);
     buffer->count = DDCMP_HEADER_SIZE;
     ddcmp_build_nak_packet (buffer->transfer_buffer, 2, R, DDCMP_FLAG_SELECT);
     controller->link.NAKed = R;
@@ -3274,7 +3274,7 @@ void ddcmp_ReTransmitMessageT (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_queue_head(controller->ack_wait_queue);
 size_t i;
-uint8 T = controller->link.T;
+uint8_t T = controller->link.T;
 
 for (i=0; i < controller->ack_wait_queue->count; ++i) {
     if ((!buffer->transfer_buffer) || 
@@ -3542,7 +3542,7 @@ return ((controller->link.ScanningEvents & DDCMP_EVENT_XMIT_DONE) &&
         (controller->link.xmt_done_buffer->transfer_buffer[1] == DDCMP_CTL_REP));
 }
 
-void ddcmp_dispatch(CTLR *controller, uint32 EventMask)
+void ddcmp_dispatch(CTLR *controller, uint32_t EventMask)
 {
 DDCMP_STATETABLE *table;
 int matched = 0;
@@ -3734,7 +3734,7 @@ t_stat dmc_wr(int32 data, int32 PA, int32 access)
 {
 CTLR *controller = dmc_get_controller_from_address(PA);
 int reg = PA & ((UNIBUS) ? 07 : 017);
-uint16 oldValue = dmc_getreg(controller, PA, 0);
+uint16_t oldValue = dmc_getreg(controller, PA, 0);
 
 if (access == WRITE) {
     sim_debug(DBG_REG, controller->device, "dmc_wr(%s%d), addr=0x%08x, SEL%d, newdata=0x%04x, olddata=0x%04x\n", controller->device->name, controller->index, PA, reg, data, oldValue);
@@ -3747,10 +3747,10 @@ if (access == WRITE) {
     if (PA & 1) {
         sim_debug(DBG_WRN, controller->device, "dmc_wr(%s%d), Unexpected non-16-bit write access to SEL%d\n", controller->device->name, controller->index, reg);
         }
-    dmc_setreg(controller, PA, (uint16)data, DBG_REG);
+    dmc_setreg(controller, PA, (uint16_t)data, DBG_REG);
     }
 else {
-    uint16 mask;
+    uint16_t mask;
     if (PA & 1) {
         mask = 0xFF00;
         data = data << 8;
@@ -3816,7 +3816,7 @@ t_stat dmc_reset (DEVICE *dptr)
 {
 t_stat ans = SCPE_OK;
 CTLR *controller;
-uint32 i, j;
+uint32_t i, j;
 
 sim_debug(DBG_TRC, dptr, "dmc_reset(%s)\n", dptr->name);
 

@@ -78,50 +78,50 @@
 /* Bits 16-23 - Channel address (0-127) */
 /* Bits 24-31 - Device Sub address (0-255) */
 
-uint32  channels        = MAX_CHAN;             /* maximum number of channels */
+uint32_t  channels        = MAX_CHAN;             /* maximum number of channels */
 int     subchannels     = SUB_CHANS;            /* maximum number of subchannel devices */
 
-extern  uint32  SPAD[];                         /* cpu SPAD memory */
-extern  uint32  CPUSTATUS;                      /* CPU status word */
-extern  uint32  INTS[];                         /* Interrupt status flags */
-extern  uint32  TPSD[];                         /* Temp save of PSD from memory 0&4 */
-extern  uint32  inbusy;
-extern  uint32  outbusy;
+extern  uint32_t  SPAD[];                         /* cpu SPAD memory */
+extern  uint32_t  CPUSTATUS;                      /* CPU status word */
+extern  uint32_t  INTS[];                         /* Interrupt status flags */
+extern  uint32_t  TPSD[];                         /* Temp save of PSD from memory 0&4 */
+extern  uint32_t  inbusy;
+extern  uint32_t  outbusy;
 
 DIB     *dib_unit[MAX_DEV];                     /* Pointer to Device info block */
 DIB     *dib_chan[MAX_CHAN];                    /* pointer to channel mux dib */
-uint16  loading;                                /* set when booting */
+uint16_t  loading;                                /* set when booting */
 
 /* forward definitions */
-CHANP   *find_chanp_ptr(uint16 chsa);           /* find chanp pointer */
-UNIT    *find_unit_ptr(uint16 chsa);            /* find unit pointer */
-int     chan_read_byte(uint16 chsa, uint8 *data);
-int     chan_write_byte(uint16 chsa, uint8 *data);
-void    set_devattn(uint16 chsa, uint16 flags);
-void    set_devwake(uint16 chsa, uint16 flags); /* wakeup O/S for async line */
-void    chan_end(uint16 chsa, uint16 flags);
-int     test_write_byte_end(uint16 chsa);
-t_stat  checkxio(uint16 chsa, uint32 *status);  /* check XIO */
-t_stat  startxio(uint16 chsa, uint32 *status);  /* start XIO */
-t_stat  testxio(uint16 chsa, uint32 *status);   /* test XIO */
-t_stat  stoptxio(uint16 chsa, uint32 *status);  /* stop XIO */
-t_stat  rschnlxio(uint16 chsa, uint32 *status); /* reset channel XIO */
-t_stat  haltxio(uint16 chsa, uint32 *status);   /* halt XIO */
-t_stat  grabxio(uint16 chsa, uint32 *status);   /* grab XIO n/u */
-t_stat  rsctlxio(uint16 chsa, uint32 *status);  /* reset controller XIO */
-uint32  find_int_icb(uint16 chsa);
-uint32  find_int_lev(uint16 chsa);
-uint32  scan_chan(uint32 *ilev);
-uint32  cont_chan(uint16 chsa);
-t_stat  set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch);    /* set inch addr */
-t_stat  chan_boot(uint16 chsa, DEVICE *dptr);
+CHANP   *find_chanp_ptr(uint16_t chsa);           /* find chanp pointer */
+UNIT    *find_unit_ptr(uint16_t chsa);            /* find unit pointer */
+int     chan_read_byte(uint16_t chsa, uint8_t *data);
+int     chan_write_byte(uint16_t chsa, uint8_t *data);
+void    set_devattn(uint16_t chsa, uint16_t flags);
+void    set_devwake(uint16_t chsa, uint16_t flags); /* wakeup O/S for async line */
+void    chan_end(uint16_t chsa, uint16_t flags);
+int     test_write_byte_end(uint16_t chsa);
+t_stat  checkxio(uint16_t chsa, uint32_t *status);  /* check XIO */
+t_stat  startxio(uint16_t chsa, uint32_t *status);  /* start XIO */
+t_stat  testxio(uint16_t chsa, uint32_t *status);   /* test XIO */
+t_stat  stoptxio(uint16_t chsa, uint32_t *status);  /* stop XIO */
+t_stat  rschnlxio(uint16_t chsa, uint32_t *status); /* reset channel XIO */
+t_stat  haltxio(uint16_t chsa, uint32_t *status);   /* halt XIO */
+t_stat  grabxio(uint16_t chsa, uint32_t *status);   /* grab XIO n/u */
+t_stat  rsctlxio(uint16_t chsa, uint32_t *status);  /* reset controller XIO */
+uint32_t  find_int_icb(uint16_t chsa);
+uint32_t  find_int_lev(uint16_t chsa);
+uint32_t  scan_chan(uint32_t *ilev);
+uint32_t  cont_chan(uint16_t chsa);
+t_stat  set_inch(UNIT *uptr, uint32_t inch_addr, uint32_t num_inch);    /* set inch addr */
+t_stat  chan_boot(uint16_t chsa, DEVICE *dptr);
 t_stat  chan_set_devs();
 t_stat  set_dev_addr(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat  show_dev_addr(FILE *st, UNIT *uptr, int32 v, CONST void *desc);
 DEVICE  *get_dev(UNIT *uptr);
 void    store_csw(CHANP *chp);
 void    push_csw(CHANP *chp);
-int16   post_csw(CHANP *chp, uint32 rstat);
+int16   post_csw(CHANP *chp, uint32_t rstat);
 
 /* FIFO support */
 /* These are FIFO queues which return an error when full.
@@ -139,7 +139,7 @@ int16   post_csw(CHANP *chp, uint32 rstat);
 /* initialize FIFO to empty in boot channel code */
 
 /* add an entry to the start of the FIFO */
-int32 FIFO_Push(uint16 chsa, uint32 entry)
+int32 FIFO_Push(uint16_t chsa, uint32_t entry)
 {
     int32 num;                                  /* number of entries */
     DIB *dibp = dib_chan[get_chan(chsa)];       /* get DIB pointer for channel */
@@ -165,7 +165,7 @@ int32 FIFO_Push(uint16 chsa, uint32 entry)
 }
 
 /* add an entry to the FIFO */
-int32 FIFO_Put(uint16 chsa, uint32 entry)
+int32 FIFO_Put(uint16_t chsa, uint32_t entry)
 {
     int32 num;                                  /* number of entries */
     DIB *dibp = dib_chan[get_chan(chsa)];       /* get DIB pointer for channel */
@@ -189,7 +189,7 @@ int32 FIFO_Put(uint16 chsa, uint32 entry)
 }
 
 /* get the next entry from the FIFO */
-int32 FIFO_Get(uint16 chsa, uint32 *old)
+int32 FIFO_Get(uint16_t chsa, uint32_t *old)
 {
     DIB *dibp = dib_chan[get_chan(chsa)];       /* get DIB pointer for channel */
     if (dibp == NULL) {
@@ -209,7 +209,7 @@ int32 FIFO_Get(uint16 chsa, uint32 *old)
 }
 
 /* get number of entries in FIFO for channel */
-int32 FIFO_Num(uint16 chsa)
+int32 FIFO_Num(uint16_t chsa)
 {
     int32 num;                                  /* number of entries */
     DIB *dibp = dib_chan[get_chan(chsa)];       /* get DIB pointer for channel */
@@ -224,7 +224,7 @@ int32 FIFO_Num(uint16 chsa)
 }
 
 /* add an entry to the IOCLQ */
-int32 IOCLQ_Put(IOCLQ *qptr, uint32 entry)
+int32 IOCLQ_Put(IOCLQ *qptr, uint32_t entry)
 {
     int32 num;                                  /* number of entries */
     if (qptr == NULL) {
@@ -245,7 +245,7 @@ int32 IOCLQ_Put(IOCLQ *qptr, uint32 entry)
 }
 
 /* get the next entry from the IOCLQ */
-int32 IOCLQ_Get(IOCLQ *qptr, uint32 *old)
+int32 IOCLQ_Get(IOCLQ *qptr, uint32_t *old)
 {
     if (qptr == NULL) {
         sim_debug(DEBUG_EXP, &cpu_dev, "IOCLQ_Get ERROR NULL qptr\n");
@@ -291,10 +291,10 @@ int32 IOCLQ_Num(IOCLQ *qptr)
  *  */
 /* Set INCH buffer address for channel */
 /* return SCPE_OK or SCPE_MEM if invalid address or SCPE_ARG if already defined */
-t_stat set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch) {
-    uint16  chsa = GET_UADDR(uptr->u3);         /* get channel & sub address */
-    uint32  chan = chsa & 0x7f00;               /* get just channel address */
-    uint32  last = inch_addr + (num_inch-1)*8;  /* last inch address to use */
+t_stat set_inch(UNIT *uptr, uint32_t inch_addr, uint32_t num_inch) {
+    uint16_t  chsa = GET_UADDR(uptr->u3);         /* get channel & sub address */
+    uint32_t  chan = chsa & 0x7f00;               /* get just channel address */
+    uint32_t  last = inch_addr + (num_inch-1)*8;  /* last inch address to use */
     DIB     *pdibp = dib_chan[chan>>8];         /* get parent channel dib ptr */
     CHANP   *pchp;                              /* for parent channel prog ptr */
 
@@ -329,11 +329,11 @@ t_stat set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch) {
 
 /* Find interrupt level for the given physical device (ch/sa) */
 /* return 0 if not found, otherwise level number */
-uint32 find_int_lev(uint16 chsa)
+uint32_t find_int_lev(uint16_t chsa)
 {
-    uint32  inta;
+    uint32_t  inta;
     /* get the device entry for channel in SPAD */
-    uint32  spadent = SPAD[get_chan(chsa)];     /* get spad device entry for logical channel */
+    uint32_t  spadent = SPAD[get_chan(chsa)];     /* get spad device entry for logical channel */
 
     if ((spadent == 0) || ((spadent&MASK24) == MASK24)) {   /* see if valid entry */
         sim_debug(DEBUG_EXP, &cpu_dev,
@@ -346,9 +346,9 @@ uint32 find_int_lev(uint16 chsa)
 
 /* Find interrupt context block address for given device (ch/sa) */
 /* return 0 if not found, otherwise ICB memory address */
-uint32 find_int_icb(uint16 chsa)
+uint32_t find_int_icb(uint16_t chsa)
 {
-    uint32  inta, icba;
+    uint32_t  inta, icba;
 
     inta = find_int_lev(chsa);                  /* find the int level */
     if (inta == 0) {
@@ -373,7 +373,7 @@ uint32 find_int_icb(uint16 chsa)
 }
 
 /* Find unit pointer for given device (ch/sa) */
-UNIT *find_unit_ptr(uint16 chsa)
+UNIT *find_unit_ptr(uint16_t chsa)
 {
     DIB         *dibp;                          /* DIB pointer */
     UNIT        *uptr;                          /* UNIT pointer */
@@ -403,7 +403,7 @@ UNIT *find_unit_ptr(uint16 chsa)
 }
 
 /* Find channel program pointer for given device (ch/sa) */
-CHANP *find_chanp_ptr(uint16 chsa)
+CHANP *find_chanp_ptr(uint16_t chsa)
 {
     struct dib  *dibp;                          /* DIB pointer */
     UNIT        *uptr;                          /* UNIT pointer */
@@ -441,7 +441,7 @@ CHANP *find_chanp_ptr(uint16 chsa)
  * Return 1 if fail.
  * Return 0 if success.
  */
-int readfull(CHANP *chp, uint32 maddr, uint32 *word)
+int readfull(CHANP *chp, uint32_t maddr, uint32_t *word)
 {
     maddr &= MASK24;                            /* mask addr to 24 bits */
     if (!MEM_ADDR_OK(maddr)) {                  /* see if mem addr >= MEMSIZE */
@@ -462,7 +462,7 @@ int readfull(CHANP *chp, uint32 maddr, uint32 *word)
  */
 int readbuff(CHANP *chp)
 {
-    uint32 addr = chp->ccw_addr;                /* channel buffer address */
+    uint32_t addr = chp->ccw_addr;                /* channel buffer address */
 
     if (!MEM_ADDR_OK(addr & MASK24)) {          /* see if memory address invalid */
         chp->chan_status |= STATUS_PCHK;        /* bad, program check */
@@ -482,7 +482,7 @@ int readbuff(CHANP *chp)
  */
 int writebuff(CHANP *chp)
 {
-    uint32 addr = chp->ccw_addr;
+    uint32_t addr = chp->ccw_addr;
 
     if (!MEM_ADDR_OK(addr & MASK24)) {          /* make sure write to good addr */
         chp->chan_status |= STATUS_PCHK;        /* non-present memory, abort */
@@ -504,14 +504,14 @@ int writebuff(CHANP *chp)
 /* return = 1 error, chan_status will have reason */
 int32 load_ccw(CHANP *chp, int32 tic_ok)
 {
-    uint32      word1 = 0;
-    uint32      word2 = 0;
+    uint32_t      word1 = 0;
+    uint32_t      word2 = 0;
     int32       docmd = 0;
     DIB         *dibp = dib_unit[chp->chan_dev];    /* get the DIB pointer */
     UNIT        *uptr = chp->unitptr;           /* get the unit ptr */
-    uint16      chan = get_chan(chp->chan_dev); /* our channel */
-    uint16      chsa = chp->chan_dev;           /* our chan/sa */
-    uint16      devstat = 0;
+    uint16_t      chan = get_chan(chp->chan_dev); /* our channel */
+    uint16_t      chsa = chp->chan_dev;           /* our chan/sa */
+    uint16_t      devstat = 0;
 
     sim_debug(DEBUG_XIO, &cpu_dev,
         "load_ccw @%06x entry chan_status[%02x]=%04x\n",
@@ -520,8 +520,8 @@ int32 load_ccw(CHANP *chp, int32 tic_ok)
 #ifdef TEST_FOR_IOCL_CHANGE
     /* see if iocla or iocd has changed since start */
     if (!loading && (chp->chan_info & INFO_SIOCD)) {  /* see if 1st IOCD in channel prog */
-        uint32  chan_icb;                       /* Interrupt level context block address */
-        uint32  iocla;                          /* I/O channel IOCL address int ICB */
+        uint32_t  chan_icb;                       /* Interrupt level context block address */
+        uint32_t  iocla;                          /* I/O channel IOCL address int ICB */
 
         chan_icb = find_int_icb(chsa);          /* Interrupt level context block address */
         iocla = RMW(chan_icb+16);               /* iocla is in wd 4 of ICB */
@@ -764,7 +764,7 @@ loop:
         /* we have good status */
         /* TODO Test if chan_end called? */
         if (chp->chan_status & (STATUS_DEND|STATUS_CEND)) {
-            uint16  chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
+            uint16_t  chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
             chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* show I/O complete */
             sim_debug(DEBUG_XIO, &cpu_dev,
                 "load_ccw @%06x FIFO #%1x cmd complete chan %04x status %04x count %04x\n",
@@ -781,7 +781,7 @@ loop:
 
 /* read byte from memory */
 /* write to device */
-int chan_read_byte(uint16 chsa, uint8 *data)
+int chan_read_byte(uint16_t chsa, uint8_t *data)
 {
     CHANP   *chp = find_chanp_ptr(chsa);        /* get channel prog pointer */
     int     byte;
@@ -827,7 +827,7 @@ int chan_read_byte(uint16 chsa, uint8 *data)
 }
 
 /* test end of write byte I/O (device read) */
-int test_write_byte_end(uint16 chsa)
+int test_write_byte_end(uint16_t chsa)
 {
     CHANP   *chp = find_chanp_ptr(chsa);        /* get channel prog pointer */
 
@@ -845,7 +845,7 @@ int test_write_byte_end(uint16 chsa)
 
 /* write byte to memory */
 /* read from device */
-int chan_write_byte(uint16 chsa, uint8 *data)
+int chan_write_byte(uint16_t chsa, uint8_t *data)
 {
     int     chan = get_chan(chsa);              /* get the channel number */
     CHANP   *chp = find_chanp_ptr(chsa);        /* get channel prog pointer */
@@ -905,13 +905,13 @@ int chan_write_byte(uint16 chsa, uint8 *data)
 }
 
 /* post wakeup interrupt for specified async line */
-void set_devwake(uint16 chsa, uint16 flags)
+void set_devwake(uint16_t chsa, uint16_t flags)
 {
-    uint32  stwd1, stwd2;                       /* words 1&2 of stored status */
+    uint32_t  stwd1, stwd2;                       /* words 1&2 of stored status */
     /* put sub address in byte 0 */
     stwd1 = (chsa & 0xff) << 24;                /* subaddress and IOCD address to SW 1 */
     /* save 16 bit channel status and residual byte count in SW 2 */
-    stwd2 = (uint32)flags << 16;
+    stwd2 = (uint32_t)flags << 16;
     if ((FIFO_Put(chsa, stwd1) == -1) || (FIFO_Put(chsa, stwd2) == -1)) {
         sim_debug(DEBUG_EXP, &cpu_dev,
             "set_devwake FIFO Overflow ERROR on chsa %04x\n", chsa);
@@ -920,7 +920,7 @@ void set_devwake(uint16 chsa, uint16 flags)
 }
 
 /* post interrupt for specified channel */
-void set_devattn(uint16 chsa, uint16 flags)
+void set_devattn(uint16_t chsa, uint16_t flags)
 {
     CHANP   *chp = find_chanp_ptr(chsa);        /* get channel prog pointer */
 
@@ -932,15 +932,15 @@ void set_devattn(uint16 chsa, uint16 flags)
     }
 
     if (chp->chan_dev == chsa && (chp->chan_status & STATUS_CEND) != 0 && (flags & SNS_DEVEND) != 0) {
-        chp->chan_status |= ((uint16)flags);
+        chp->chan_status |= ((uint16_t)flags);
     }
     sim_debug(DEBUG_CMD, &cpu_dev, "set_devattn(%04x, %04x) %04x\n", chsa, flags, chp->chan_dev);
     irq_pend = 1;
 }
 
 /* channel operation completed */
-void chan_end(uint16 chsa, uint16 flags) {
-    uint16  tstat, tcnt;
+void chan_end(uint16_t chsa, uint16_t flags) {
+    uint16_t  tstat, tcnt;
     CHANP   *chp = find_chanp_ptr(chsa);        /* get channel prog pointer */
 
     sim_debug(DEBUG_CMD, &cpu_dev,
@@ -957,7 +957,7 @@ void chan_end(uint16 chsa, uint16 flags) {
 
     chp->chan_byte = BUFF_BUSY;                 /* we are empty & still busy now */
     chp->chan_status |= STATUS_CEND;            /* set channel end */
-    chp->chan_status |= ((uint16)flags);        /* add in the callers flags */
+    chp->chan_status |= ((uint16_t)flags);        /* add in the callers flags */
 
     /* read/write must have none-zero byte count */
     /* all others can be zero, except NOP, which must be 0 */
@@ -1035,11 +1035,11 @@ void chan_end(uint16 chsa, uint16 flags) {
             /* we have channel end and no CC flag, continue channel prog */
             UNIT        *uptr = chp->unitptr;   /* get the unit ptr */
             DEVICE      *dptr = get_dev(uptr);
-            uint16      chsa = GET_UADDR(uptr->u3);
+            uint16_t      chsa = GET_UADDR(uptr->u3);
             int         unit = (uptr-dptr->units);  /* get the UNIT number */
             DIB*        dibp = (DIB *)dptr->ctxt;   /* get the DIB pointer */
             IOCLQ       *qp = &dibp->ioclq_ptr[unit];   /* IOCLQ pointer */
-            uint32      iocla;
+            uint32_t      iocla;
 
             /* we have channel end and no CC flag, end this iocl command */
             sim_debug(DEBUG_CMD, &cpu_dev,
@@ -1121,20 +1121,20 @@ goout:
 /* post the device status from the channel FIFO into memory */
 /* the INCH command provides the status DW address in memory */
 /* rstat are the bits to remove from status */
-int16 post_csw(CHANP *chp, uint32 rstat)
+int16 post_csw(CHANP *chp, uint32_t rstat)
 {
-    uint32  chsa = chp->chan_dev;               /* get ch/sa information */
+    uint32_t  chsa = chp->chan_dev;               /* get ch/sa information */
     DIB     *dibp = dib_chan[chsa>>8];          /* get parent channel dib ptr */
     CHANP   *pchp = dibp->chan_prg;             /* for parent channel prog ptr */
-    uint32  incha = pchp->chan_inch_addr;       /* get inch status buffer address */
-    uint32  sw1, sw2;                           /* status words */
+    uint32_t  incha = pchp->chan_inch_addr;       /* get inch status buffer address */
+    uint32_t  sw1, sw2;                           /* status words */
 
     irq_pend = 1;                               /* flag to test for int condition */
     /* check channel FIFO for status to post */
     if ((FIFO_Num(chsa)) &&
         ((FIFO_Get(chsa, &sw1) == 0) && (FIFO_Get(chsa, &sw2) == 0))) {
         /* get chan_icb address */
-        uint32 chan_icb = RMW(SPAD[0xf1] + (chp->chan_int<<2));
+        uint32_t chan_icb = RMW(SPAD[0xf1] + (chp->chan_int<<2));
 
         if (chan_icb == 0) {
             sim_debug(DEBUG_EXP, &cpu_dev,
@@ -1184,14 +1184,14 @@ int16 post_csw(CHANP *chp, uint32 rstat)
 /* store the device status into the status FIFO for the channel */
 void store_csw(CHANP *chp)
 {
-    uint32  stwd1, stwd2;                       /* words 1&2 of stored status */
-    uint32  chsa = chp->chan_dev;               /* get ch/sa information */
+    uint32_t  stwd1, stwd2;                       /* words 1&2 of stored status */
+    uint32_t  chsa = chp->chan_dev;               /* get ch/sa information */
 
     /* put sub address in byte 0 */
     stwd1 = ((chsa & 0xff) << 24) | chp->chan_caw;  /* subaddress and IOCD address to SW 1 */
 
     /* save 16 bit channel status and residual byte count in SW 2 */
-    stwd2 = ((uint32)chp->chan_status << 16) | ((uint32)chp->ccw_count);
+    stwd2 = ((uint32_t)chp->chan_status << 16) | ((uint32_t)chp->ccw_count);
 
     if ((FIFO_Put(chsa, stwd1) == -1) || (FIFO_Put(chsa, stwd2) == -1)) {
         sim_debug(DEBUG_EXP, &cpu_dev,
@@ -1207,13 +1207,13 @@ void store_csw(CHANP *chp)
 void push_csw(CHANP *chp)
 {
     int32  stwd1, stwd2;                       /* words 1&2 of stored status */
-    uint32  chsa = chp->chan_dev;              /* get ch/sa information */
+    uint32_t  chsa = chp->chan_dev;              /* get ch/sa information */
 
     /* put sub address in byte 0 */
     stwd1 = ((chsa & 0xff) << 24) | chp->chan_caw;  /* subaddress and IOCD address to SW 1 */
 
     /* save 16 bit channel status and residual byte count in SW 2 */
-    stwd2 = ((uint32)chp->chan_status << 16) | ((uint32)chp->ccw_count);
+    stwd2 = ((uint32_t)chp->chan_status << 16) | ((uint32_t)chp->ccw_count);
 
     /* Push in reverse order to allign status correctly */
     if ((FIFO_Push(chsa, stwd2) == -1) || (FIFO_Push(chsa, stwd1) == -1)) {
@@ -1230,15 +1230,15 @@ void push_csw(CHANP *chp)
 /* logical chan channel number 0-7f */
 /* suba unit address within channel 0-ff */
 /* Condition codes to return 0-f as specified above */
-t_stat checkxio(uint16 lchsa, uint32 *status) {
+t_stat checkxio(uint16_t lchsa, uint32_t *status) {
     DIB     *dibp;                              /* device information pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
     CHANP   *chp;                               /* channel program pointer */
-    uint16  lchan = get_chan(lchsa);            /* get the logical channel number */
+    uint16_t  lchan = get_chan(lchsa);            /* get the logical channel number */
     DEVICE  *dptr;                              /* DEVICE pointer */
-    uint32  inta;
-    uint32  spadent;
-    uint16  rchan, chsa;                        /* the real channel number */
+    uint32_t  inta;
+    uint32_t  spadent;
+    uint16_t  rchan, chsa;                        /* the real channel number */
 
     /* get the device entry for the logical channel in SPAD */
     spadent = SPAD[lchan];                      /* get spad device entry for logical channel */
@@ -1321,19 +1321,19 @@ nothere:
 /* chan channel number 0-7f */
 /* suba unit address within channel 0-ff */
 /* Condition codes to return 0-f as specified above */
-t_stat startxio(uint16 lchsa, uint32 *status) {
+t_stat startxio(uint16_t lchsa, uint32_t *status) {
     DIB     *dibp;                              /* device information pointer */
     DIB     *pdibp;                             /* parent DIB pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
-    uint32  chan_icb;                           /* Interrupt level context block address */
-    uint32  iocla;                              /* I/O channel IOCL address int ICB */
+    uint32_t  chan_icb;                           /* Interrupt level context block address */
+    uint32_t  iocla;                              /* I/O channel IOCL address int ICB */
     int32   stat;                               /* return status 0/1 from loadccw */
     CHANP   *chp;                               /* channel program pointer */
     CHANP   *pchp;                              /* for parent channel prog ptr */
     DEVICE  *dptr;                              /* Device ptr */
-    uint16  chsa;
-    uint32  tempa, inta, spadent, chan, incha;
-    uint32  word1, word2, cmd;
+    uint16_t  chsa;
+    uint32_t  tempa, inta, spadent, chan, incha;
+    uint32_t  word1, word2, cmd;
 
     /* get the device entry for the logical channel in SPAD */
     spadent = SPAD[get_chan(lchsa)];            /* get spad device entry for logical channel */
@@ -1438,8 +1438,8 @@ missing:
 
     /* check for a Command or data chain operation in progresss */
     if ((chp->chan_byte & BUFF_BUSY) && (chp->chan_byte != BUFF_POST)) {
-        uint16  tstat = chp->chan_status;       /* save status */
-        uint16  tcnt = chp->ccw_count;          /* save count */
+        uint16_t  tstat = chp->chan_status;       /* save status */
+        uint16_t  tcnt = chp->ccw_count;          /* save count */
 
         sim_debug(DEBUG_EXP, &cpu_dev,
             "startxio busy return CC3&CC4 chsa %04x chp %p cmd %02x flags %04x byte %02x\n",
@@ -1560,8 +1560,8 @@ missing:
 
     /* check for a Command or data chain operation in progresss */
     if ((chp->chan_byte & BUFF_BUSY) && (chp->chan_byte != BUFF_POST)) {
-        uint16  tstat = chp->chan_status;       /* save status */
-        uint16  tcnt = chp->ccw_count;          /* save count */
+        uint16_t  tstat = chp->chan_status;       /* save status */
+        uint16_t  tcnt = chp->ccw_count;          /* save count */
 
         sim_debug(DEBUG_EXP, &cpu_dev,
             "startxio busy return CC3&CC4 chsa %04x chp %p cmd %02x flags %04x byte %02x\n",
@@ -1633,17 +1633,17 @@ missing:
 }
 
 /* TIO - I/O status */
-t_stat testxio(uint16 lchsa, uint32 *status) {  /* test XIO */
+t_stat testxio(uint16_t lchsa, uint32_t *status) {  /* test XIO */
     DIB     *dibp;                              /* device information pointer */
     DIB     *pdibp;                             /* parent DIB pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
-    uint32  chan_icb;                           /* Interrupt level context block address */
+    uint32_t  chan_icb;                           /* Interrupt level context block address */
     CHANP   *chp;                               /* Channel prog pointers */
     CHANP   *pchp;                              /* for parent channel prog ptr */
     DEVICE  *dptr;                              /* Device ptr */
-    uint32  inta, incha;
-    uint32  spadent;
-    uint16  chan, chsa;                         /* the real channel number, chsa */
+    uint32_t  inta, incha;
+    uint32_t  spadent;
+    uint16_t  chan, chsa;                         /* the real channel number, chsa */
 
     /* get the device entry for the logical channel in SPAD */
     spadent = SPAD[get_chan(lchsa)];            /* get spad device entry for logical channel */
@@ -1754,18 +1754,18 @@ missing:
 }
 
 /* Stop XIO */
-t_stat stopxio(uint16 lchsa, uint32 *status) {  /* stop XIO */
+t_stat stopxio(uint16_t lchsa, uint32_t *status) {  /* stop XIO */
     DIB     *dibp;                              /* device information pointer */
     DIB     *pdibp;                             /* parent DIB pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
-    uint32  chan_icb;                           /* Interrupt level context block address */
-    uint32  iocla;                              /* I/O channel IOCL address int ICB */
+    uint32_t  chan_icb;                           /* Interrupt level context block address */
+    uint32_t  iocla;                              /* I/O channel IOCL address int ICB */
     CHANP   *chp;                               /* Channel prog pointers */
     CHANP   *pchp;                              /* for parent channel prog ptr */
     DEVICE  *dptr;                              /* Device ptr */
-    uint32  inta, incha;
-    uint32  spadent;
-    uint16  chan, chsa;                         /* the real channel number, chsa */
+    uint32_t  inta, incha;
+    uint32_t  spadent;
+    uint16_t  chan, chsa;                         /* the real channel number, chsa */
 
     /* get the device entry for the logical channel in SPAD */
     spadent = SPAD[get_chan(lchsa)];            /* get spad device entry for logical channel */
@@ -1952,17 +1952,17 @@ missing:
 }
 
 /* Reset Channel XIO */
-t_stat rschnlxio(uint16 lchsa, uint32 *status) {    /* reset channel XIO */
+t_stat rschnlxio(uint16_t lchsa, uint32_t *status) {    /* reset channel XIO */
     DIB     *dibp;                              /* device information pointer */
     DIB     *pdibp;                             /* parent DIB pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
-    uint32  chan_icb;                           /* Interrupt level context block address */
+    uint32_t  chan_icb;                           /* Interrupt level context block address */
     CHANP   *chp;                               /* Channel prog pointers */
     CHANP   *pchp;                              /* for parent channel prog ptr */
     DEVICE  *dptr;                              /* Device ptr */
-    uint32  inta;
-    uint32  spadent;
-    uint16  chan, chsa;                         /* the real channel number, chsa */
+    uint32_t  inta;
+    uint32_t  spadent;
+    uint16_t  chan, chsa;                         /* the real channel number, chsa */
     int     i;
 
     /* get the device entry for the logical channel in SPAD */
@@ -2068,18 +2068,18 @@ missing:
 }
 
 /* HIO - Halt I/O */
-t_stat haltxio(uint16 lchsa, uint32 *status) {  /* halt XIO */
+t_stat haltxio(uint16_t lchsa, uint32_t *status) {  /* halt XIO */
     DIB     *dibp;                              /* device information pointer */
     DIB     *pdibp;                             /* parent DIB pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
-    uint32  chan_icb;                           /* Interrupt level context block address */
-    uint32  iocla;                              /* I/O channel IOCL address int ICB */
+    uint32_t  chan_icb;                           /* Interrupt level context block address */
+    uint32_t  iocla;                              /* I/O channel IOCL address int ICB */
     CHANP   *chp;                               /* Channel prog pointers */
     CHANP   *pchp;                              /* for parent channel prog ptr */
     DEVICE  *dptr;                              /* Device ptr */
-    uint32  inta, incha;
-    uint32  spadent;
-    uint16  chan, chsa;                         /* the real channel number, chsa */
+    uint32_t  inta, incha;
+    uint32_t  spadent;
+    uint16_t  chan, chsa;                         /* the real channel number, chsa */
 
     /* get the device entry for the logical channel in SPAD */
     spadent = SPAD[get_chan(lchsa)];            /* get spad device entry for logical channel */
@@ -2148,7 +2148,7 @@ missing:
     /* see if we have a haltio device entry */
     if (dibp->halt_io != NULL) {                /* NULL if no haltio function */
         /* call the device controller to get halt_io status */
-        uint32 tempa = dibp->halt_io(uptr);     /* get status from device */
+        uint32_t tempa = dibp->halt_io(uptr);     /* get status from device */
 
         /* CC's are returned in bits 1-4.  Bits 16-31 has SCPE code */
         /* SCPE_IOERR is 2 */
@@ -2289,17 +2289,17 @@ missing:
 
 /* grab controller n/u */
 /* TODO return unimplemented function error, not busy */
-t_stat grabxio(uint16 lchsa, uint32 *status) {  /* grab controller XIO n/u */
+t_stat grabxio(uint16_t lchsa, uint32_t *status) {  /* grab controller XIO n/u */
     DIB     *dibp;                              /* device information pointer */
     DIB     *pdibp;                             /* parent DIB pointer */
     UNIT    *uptr;                              /* pointer to unit in channel */
-    uint32  chan_icb;                           /* Interrupt level context block address */
+    uint32_t  chan_icb;                           /* Interrupt level context block address */
     CHANP   *chp;                               /* Channel prog pointers */
     CHANP   *pchp;                              /* for parent channel prog ptr */
     DEVICE  *dptr;                              /* Device ptr */
-    uint32  inta, incha;
-    uint32  spadent;
-    uint16  chan, chsa;                         /* the real channel number, chsa */
+    uint32_t  inta, incha;
+    uint32_t  spadent;
+    uint16_t  chan, chsa;                         /* the real channel number, chsa */
 
     /* get the device entry for the logical channel in SPAD */
     spadent = SPAD[get_chan(lchsa)];            /* get spad device entry for logical channel */
@@ -2373,10 +2373,10 @@ missing:
     /* restore code to old CC1BIT return 12/21/2020 */
     // try using CC4 on MPX3X when still busy
     if (chp->chan_byte == BUFF_POST) {
-        uint32  chan_icb;                       /* Interrupt level context block address */
-        uint32  inta = ((~spadent)>>16)&0x7f;   /* get channel interrupt level */
+        uint32_t  chan_icb;                       /* Interrupt level context block address */
+        uint32_t  inta = ((~spadent)>>16)&0x7f;   /* get channel interrupt level */
         /* get the address of the interrupt IVL in main memory */
-        uint32  itva = SPAD[0xf1] + (inta<<2);  /* int vector address */
+        uint32_t  itva = SPAD[0xf1] + (inta<<2);  /* int vector address */
         chan_icb = RMW(itva);                   /* Interrupt context block addr */
         *status = CC1BIT;                       /* request accepted, no status, so CC1 */
         /* see if any status ready to post */
@@ -2423,14 +2423,14 @@ missing:
 }
 
 /* reset controller XIO */
-t_stat rsctlxio(uint16 lchsa, uint32 *status) { /* reset controller XIO */
+t_stat rsctlxio(uint16_t lchsa, uint32_t *status) { /* reset controller XIO */
     DIB     *dibp;
     UNIT    *uptr;
-    uint32  spadent;
-    uint16  chsa;
+    uint32_t  spadent;
+    uint16_t  chsa;
     CHANP   *chp;
     int     lev, i;
-    uint32  chan = get_chan(lchsa);
+    uint32_t  chan = get_chan(lchsa);
     DEVICE  *dptr;                              /* get device ptr */
 
     /* get the device entry for the logical channel in SPAD */
@@ -2519,7 +2519,7 @@ t_stat rsctlxio(uint16 lchsa, uint32 *status) { /* reset controller XIO */
 
 /* boot from the device (ch/sa) the caller specified */
 /* on CPU reset, the cpu has set the IOCD data at location 0-4 */
-t_stat chan_boot(uint16 chsa, DEVICE *dptr) {
+t_stat chan_boot(uint16_t chsa, DEVICE *dptr) {
     int     chan = get_chan(chsa);
     DIB     *dibp = (DIB *)dptr->ctxt;          /* get pointer to DIB for this device */
     UNIT    *uptr = find_unit_ptr(chsa);        /* find pointer to unit on channel */
@@ -2592,7 +2592,7 @@ t_stat chan_boot(uint16 chsa, DEVICE *dptr) {
 }
 
 /* Continue a channel program for a device */
-uint32 cont_chan(uint16 chsa)
+uint32_t cont_chan(uint16_t chsa)
 {
     int32   stat;                               /* return status 0/1 from loadccw */
     CHANP   *chp = find_chanp_ptr(chsa);        /* channel program */
@@ -2609,7 +2609,7 @@ uint32 cont_chan(uint16 chsa)
         return 1;
     }
     if (chp->chan_byte == BUFF_NEXT) {
-        uint32  chan = get_chan(chsa);
+        uint32_t  chan = get_chan(chsa);
         sim_debug(DEBUG_XIO, &cpu_dev,
             "cont_chan resume chan prog chsa %04x iocla %06x\n",
             chsa, chp->chan_caw);
@@ -2659,19 +2659,19 @@ uint32 cont_chan(uint16 chsa)
 /* Scan all channels and see if one is ready to start or has
    interrupt pending. Return icb address and interrupt level
 */
-uint32 scan_chan(uint32 *ilev) {
+uint32_t scan_chan(uint32_t *ilev) {
     int         i;
-    uint32      chsa;                           /* No device */
-    uint32      chsa0;                          /* channel num with sa=0 */
-    uint32      tempa;                          /* icb address */
-    uint32      incha;                          /* inch address */
-    uint32      chan_ivl;                       /* int level table address */
-    uint32      chan_icba;                      /* Interrupt level context block address */
+    uint32_t      chsa;                           /* No device */
+    uint32_t      chsa0;                          /* channel num with sa=0 */
+    uint32_t      tempa;                          /* icb address */
+    uint32_t      incha;                          /* inch address */
+    uint32_t      chan_ivl;                       /* int level table address */
+    uint32_t      chan_icba;                      /* Interrupt level context block address */
     CHANP       *chp;                           /* channel prog pointer */
     CHANP       *pchp;                          /* for parent channel prog ptr */
     DIB         *dibp;                          /* DIB pointer */
     DIB         *pdibp;                         /* parent DIB pointer */
-    uint32      sw1, sw2;                       /* status words */
+    uint32_t      sw1, sw2;                       /* status words */
 
     /* see if we are loading */
     if (loading) {
@@ -2853,7 +2853,7 @@ uint32 scan_chan(uint32 *ilev) {
 DEVICE *get_dev(UNIT *uptr)
 {
     DEVICE *dptr = NULL;
-    uint32 i, j;
+    uint32_t i, j;
 
     if (uptr == NULL)                           /* must be valid unit */
         return NULL;
@@ -2876,7 +2876,7 @@ DEVICE *get_dev(UNIT *uptr)
 /* set up the devices configured into the simulator */
 /* only devices with a DIB will be processed */
 t_stat chan_set_devs() {
-    uint32 i, j;
+    uint32_t i, j;
 
     for (i = 0; i < MAX_DEV; i++) {
         dib_unit[i] = NULL;                     /* clear DIB pointer array */

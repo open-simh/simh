@@ -33,11 +33,11 @@
 #define TTY_FILE    1  /* Attached to a file. */
 #define TTY_PORT    2  /* Attached to a network port. */
 
-static uint16 RBUF, TBUF;
+static uint16_t RBUF, TBUF;
 static int tty_type = TTY_PORT;
 
 /* Function declaration. */
-static uint16 tty_iot (uint16, uint16);
+static uint16_t tty_iot (uint16_t, uint16_t);
 static t_stat tty_r_svc (UNIT *uptr);
 static t_stat tty_t_svc (UNIT *uptr);
 static t_stat tty_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -49,14 +49,14 @@ static t_stat tty_detach (UNIT *uptr);
 static TMLN tty_ldsc = { 0 };
 static TMXR tty_desc = { 1, 0, 0, &tty_ldsc };
 
-static uint16 tty_rom[] = {
+static uint16_t tty_rom[] = {
   0060077, 0020010, 0104076, 0020020, 0001032, 0100011, 0002040, 0010046,
   0001031, 0074075, 0010044, 0002040, 0010053, 0001033, 0003003, 0003003,
   0003002, 0002040, 0010061, 0001033, 0120010, 0100011, 0030020, 0010053,
   0110076, 0000000, 0000000, 0000000, 0000000, 0000002, 0037700, 0037677,
 };
 
-static uint16 stty_rom[] = {
+static uint16_t stty_rom[] = {
   0001032, 0104101, 0020010, 0020020, 0104004, 0020021, 0100011, 0020022,
   0100011, 0002040, 0010051, 0001033, 0020023, 0044075, 0074076, 0010050,
   0060023, 0044077, 0024022, 0003003, 0003001, 0050022, 0020022, 0030021,
@@ -64,7 +64,7 @@ static uint16 stty_rom[] = {
 };
 
 #if 0 /* Unused so far. */
-static uint16 mtty_rom[] = {
+static uint16_t mtty_rom[] = {
   0060077, 0020010, 0104076, 0020020, 0001032, 0100011, 0002040, 0010046,
   0001031, 0074075, 0010044, 0002040, 0010053, 0001033, 0003003, 0003003,
   0003002, 0002040, 0010061, 0001033, 0120010, 0100011, 0030020, 0010053,
@@ -180,8 +180,8 @@ tty_t_svc(UNIT *uptr)
   return SCPE_OK;
 }
 
-static uint16
-tty_iot (uint16 insn, uint16 AC)
+static uint16_t
+tty_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0031) { /* RRB */
     sim_debug (DBG, &tty_dev, "Read character %03o\n", RBUF);
@@ -246,7 +246,7 @@ void rom_stty (void)
 
 static t_stat tty_boot (int32 u, DEVICE *dptr)
 {
-  uint16 *PC = (uint16 *)sim_PC->loc;
+  uint16_t *PC = (uint16_t *)sim_PC->loc;
   if (sim_switches & SWMASK ('T'))
     set_cmd (0, "ROM TYPE=TTY");
   else if (sim_switches & SWMASK ('S'))

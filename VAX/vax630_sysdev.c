@@ -124,8 +124,8 @@ extern UNIT clk_unit;
 extern int32 tmr_poll;
 extern DEVICE va_dev, vc_dev, lk_dev, vs_dev;
 
-uint32 *rom = NULL;                                     /* boot ROM */
-uint8 *nvr = NULL;                                     /* non-volatile mem */
+uint32_t *rom = NULL;                                     /* boot ROM */
+uint8_t *nvr = NULL;                                     /* non-volatile mem */
 int32 conisp, conpc, conpsl;                            /* console reg */
 int32 ka_bdr = BDR_BRKENB;                              /* KA630 boot diag */
 int32 ka_mser = 0;                                      /* KA630 mem sys err */
@@ -314,7 +314,7 @@ return;
 
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -328,13 +328,13 @@ return SCPE_OK;
 
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= ROMSIZE)
     return SCPE_NXM;
-rom[addr >> 2] = (uint32) val;
+rom[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -343,7 +343,7 @@ return SCPE_OK;
 t_stat rom_reset (DEVICE *dptr)
 {
 if (rom == NULL)
-    rom = (uint32 *) calloc (ROMSIZE >> 2, sizeof (uint32));
+    rom = (uint32_t *) calloc (ROMSIZE >> 2, sizeof (uint32_t));
 if (rom == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -391,7 +391,7 @@ if (rg < 14) {                                           /* watch chip */
         result = (result << 16);                         /* word aligned */
     }
 else {
-    result = (nvr[rg] & WMASK) | (((uint32)nvr[rg]) << 16);
+    result = (nvr[rg] & WMASK) | (((uint32_t)nvr[rg]) << 16);
     if (pa & 1)
         result = result << 8;
     }
@@ -413,7 +413,7 @@ else {
     switch (pa & 03) {
         case 0:
         case 2:
-            nvr[rg] = (uint8)val;
+            nvr[rg] = (uint8_t)val;
             break;
         case 1:
             nvr[rg] = 0;
@@ -434,7 +434,7 @@ else {
 
 t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -448,14 +448,14 @@ return SCPE_OK;
 
 t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NVRASIZE)
     return SCPE_NXM;
-nvr[addr >> 1] = (uint8)val;
-nvr[(addr >> 1) + 1] = (uint8)(val >> 16);
+nvr[addr >> 1] = (uint8_t)val;
+nvr[(addr >> 1) + 1] = (uint8_t)(val >> 16);
 return SCPE_OK;
 }
 
@@ -464,7 +464,7 @@ return SCPE_OK;
 t_stat nvr_reset (DEVICE *dptr)
 {
 if (nvr == NULL) {
-    nvr = (uint8 *) calloc (NVRSIZE, sizeof (*nvr));
+    nvr = (uint8_t *) calloc (NVRSIZE, sizeof (*nvr));
     nvr_unit.filebuf = (void *)nvr;
     }
 if (nvr == NULL)
@@ -490,7 +490,7 @@ return SCPE_OK;
    ROM behavior the first time the NVR device is attached (to an empty 
    file).  Attaching a already existing file will overwrite this initial
    contents with whatever the NVRAM file contains.  */
-uint8 nvr_empty_valid[NVRSIZE] = {
+uint8_t nvr_empty_valid[NVRSIZE] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 
     0x00, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE, 
     0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x48, 0x45, 0x41, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -511,7 +511,7 @@ if (r != SCPE_OK)
 else {
     if (uptr->hwmark == 0)
         memcpy (nvr, nvr_empty_valid, NVRSIZE);
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     wtc_set_valid ();
     }
 return r;
@@ -688,8 +688,8 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa, int32 lnt);           /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt);/* write routine */
     };
@@ -711,7 +711,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 
@@ -732,7 +732,7 @@ MACH_CHECK (MCHK_READ);
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32 ReadRegU (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 int32 val;
@@ -760,7 +760,7 @@ MACH_CHECK (MCHK_READ);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -784,7 +784,7 @@ MACH_CHECK (MCHK_WRITE);
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32 val, int32 lnt)
 {
 int32 sc = (pa & 03) << 3;
 int32 dat = ReadReg (pa & ~03, L_LONG);
@@ -1087,10 +1087,10 @@ return SCPE_OK;
 
 t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-uint32 memsize = (uint32)(MEMSIZE>>20);
-uint32 baseaddr = 0;
+uint32_t memsize = (uint32_t)(MEMSIZE>>20);
+uint32_t baseaddr = 0;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 16, "MS630-CA"},

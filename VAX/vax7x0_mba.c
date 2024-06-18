@@ -242,26 +242,26 @@ BITFIELD *mba_reg_bits[] = {
 #define MBA_DEB_ERR     0x20                            /* errors */
 #define MBA_DEB_INT     0x40                            /* interrupts */
 
-uint32 mba_cnf[MBA_NUM];                                /* config reg */
-uint32 mba_cr[MBA_NUM];                                 /* control reg */
-uint32 mba_sr[MBA_NUM];                                 /* status reg */
-uint32 mba_va[MBA_NUM];                                 /* virt addr */
-uint32 mba_bc[MBA_NUM];                                 /* byte count */
-uint32 mba_dr[MBA_NUM];                                 /* diag reg */
-uint32 mba_smr[MBA_NUM];                                /* sel map reg */
-uint32 mba_map[MBA_NUM][MBA_NMAPR];                     /* map */
+uint32_t mba_cnf[MBA_NUM];                                /* config reg */
+uint32_t mba_cr[MBA_NUM];                                 /* control reg */
+uint32_t mba_sr[MBA_NUM];                                 /* status reg */
+uint32_t mba_va[MBA_NUM];                                 /* virt addr */
+uint32_t mba_bc[MBA_NUM];                                 /* byte count */
+uint32_t mba_dr[MBA_NUM];                                 /* diag reg */
+uint32_t mba_smr[MBA_NUM];                                /* sel map reg */
+uint32_t mba_map[MBA_NUM][MBA_NMAPR];                     /* map */
 
-extern uint32 nexus_req[NEXUS_HLVL];
+extern uint32_t nexus_req[NEXUS_HLVL];
 
 t_stat mba_reset (DEVICE *dptr);
 t_stat mba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *mba_description (DEVICE *dptr);
 t_stat mba_rdreg (int32 *val, int32 pa, int32 mode);
 t_stat mba_wrreg (int32 val, int32 pa, int32 lnt);
-t_bool mba_map_addr (uint32 va, uint32 *ma, uint32 mb);
-void mba_set_int (uint32 mb);
-void mba_clr_int (uint32 mb);
-void mba_upd_sr (uint32 set, uint32 clr, uint32 mb);
+t_bool mba_map_addr (uint32_t va, uint32_t *ma, uint32_t mb);
+void mba_set_int (uint32_t mb);
+void mba_clr_int (uint32_t mb);
+void mba_upd_sr (uint32_t set, uint32_t clr, uint32_t mb);
 
 /* Massbus register dispatches */
 
@@ -361,7 +361,7 @@ DEVICE mba_dev[] = {
 t_stat mba_rdreg (int32 *val, int32 pa, int32 lnt)
 {
 int32 mb, ofs, drv, rtype;
-uint32 t;
+uint32_t t;
 t_stat r;
 
 mb = NEXUS_GETNEX (pa) - TR_MBA0;                       /* get MBA */
@@ -460,7 +460,7 @@ return SCPE_OK;
 t_stat mba_wrreg (int32 val, int32 pa, int32 lnt)
 {
 int32 mb, ofs, drv, rtype;
-uint32 old_reg, old_sr;
+uint32_t old_reg, old_sr;
 t_stat r;
 t_bool cs1dt;
 
@@ -593,10 +593,10 @@ return SCPE_OK;
    Returns number of bytes successfully transferred/checked
 */
 
-int32 mba_rdbufW (uint32 mb, int32 bc, uint16 *buf)
+int32 mba_rdbufW (uint32_t mb, int32 bc, uint16_t *buf)
 {
 int32 i, j, ba, mbc, pbc;
-uint32 pa, dat;
+uint32_t pa, dat;
 
 if (mb >= MBA_NUM)                                      /* valid MBA? */
     return 0;
@@ -642,10 +642,10 @@ mba_va[mb] = (mba_va[mb] + i) & MBAVA_WR;
 return i;
 }
 
-int32 mba_wrbufW (uint32 mb, int32 bc, const uint16 *buf)
+int32 mba_wrbufW (uint32_t mb, int32 bc, const uint16_t *buf)
 {
 int32 i, j, ba, mbc, pbc;
-uint32 pa, dat;
+uint32_t pa, dat;
 
 if (mb >= MBA_NUM)                                      /* valid MBA? */
     return 0;
@@ -681,8 +681,8 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
         }
     else {                                              /* yes, do by LW */
         for (j = 0; j < pbc; pa = pa + 4, j = j + 4) {
-            dat = (uint32) *buf++;                      /* get low 16b */
-            dat = dat | (((uint32) *buf++) << 16);      /* merge hi 16b */
+            dat = (uint32_t) *buf++;                      /* get low 16b */
+            dat = dat | (((uint32_t) *buf++) << 16);      /* merge hi 16b */
             WriteL (pa, dat);                           /* store LW */
             }
         }
@@ -692,10 +692,10 @@ mba_va[mb] = (mba_va[mb] + i) & MBAVA_WR;
 return i;
 }
 
-int32 mba_chbufW (uint32 mb, int32 bc, uint16 *buf)
+int32 mba_chbufW (uint32_t mb, int32 bc, uint16_t *buf)
 {
 int32 i, j, ba, mbc, pbc;
-uint32 pa, dat, cmp;
+uint32_t pa, dat, cmp;
 
 if (mb >= MBA_NUM)                                      /* valid MBA? */
     return 0;
@@ -732,10 +732,10 @@ return i;
 
 /* Map an address via the translation map */
 
-t_bool mba_map_addr (uint32 va, uint32 *ma, uint32 mb)
+t_bool mba_map_addr (uint32_t va, uint32_t *ma, uint32_t mb)
 {
-uint32 vblk = (va >> VA_V_VPN);                         /* map index */
-uint32 mmap = mba_map[mb][vblk];                        /* get map */
+uint32_t vblk = (va >> VA_V_VPN);                         /* map index */
+uint32_t mmap = mba_map[mb][vblk];                        /* get map */
 
 mba_smr[mb] = mmap;                                     /* save map reg */
 if (mmap & MBAMAP_VLD) {                                /* valid? */
@@ -748,9 +748,9 @@ return 0;
 
 /* Device access, status, and interrupt routines */
 
-void mba_set_don (uint32 mb)
+void mba_set_don (uint32_t mb)
 {
-uint32 old_sr = mba_sr[mb];
+uint32_t old_sr = mba_sr[mb];
 
 mba_upd_sr (MBASR_DTCMP, 0, mb);
 if (old_sr != mba_sr[mb])
@@ -758,9 +758,9 @@ if (old_sr != mba_sr[mb])
 return;
 }
 
-void mba_upd_ata (uint32 mb, uint32 val)
+void mba_upd_ata (uint32_t mb, uint32_t val)
 {
-uint32 old_sr = mba_sr[mb];
+uint32_t old_sr = mba_sr[mb];
 
 if (val)
     mba_upd_sr (MBASR_ATA, 0, mb);
@@ -770,21 +770,21 @@ if (old_sr != mba_sr[mb])
 return;
 }
 
-void mba_set_exc (uint32 mb)
+void mba_set_exc (uint32_t mb)
 {
 sim_debug (MBA_DEB_ERR, &mba_dev[mb], "mba_set_exc(EXC write)\n");
 mba_upd_sr (MBASR_MBEXC, 0, mb);
 return;
 }
 
-int32 mba_get_bc (uint32 mb)
+int32 mba_get_bc (uint32_t mb)
 {
 if (mb >= MBA_NUM)
     return 0;
 return (MBABC_WR + 1) - mba_bc[mb];
 }
 
-void mba_set_int (uint32 mb)
+void mba_set_int (uint32_t mb)
 {
 DIB *dibp;
 
@@ -798,7 +798,7 @@ if (dibp) {
 return;
 }
 
-void mba_clr_int (uint32 mb)
+void mba_clr_int (uint32_t mb)
 {
 DIB *dibp;
 
@@ -812,9 +812,9 @@ if (dibp) {
 return;
 }
 
-void mba_upd_sr (uint32 set, uint32 clr, uint32 mb)
+void mba_upd_sr (uint32_t set, uint32_t clr, uint32_t mb)
 {
-uint32 o_sr;
+uint32_t o_sr;
 
 if (mb >= MBA_NUM)
     return;
@@ -875,7 +875,7 @@ return SCPE_OK;
 const char *mba_description (DEVICE *dptr)
 {
 static char buf[64];
-uint32 mb = dptr - mba_dev;
+uint32_t mb = dptr - mba_dev;
 
 if (dptr->flags & DEV_DIS)
     dptr = NULL;
@@ -922,7 +922,7 @@ if (((dptr->flags & DEV_DIS) &&     /* Already Disabled     */
      (dibp->ba != MBA_AUTO)))
     return;
 if (dptr->flags & DEV_DIS) {        /* Disabling? */
-    uint32 mb = dibp->ba;
+    uint32_t mb = dibp->ba;
 
     dibp->ba = MBA_AUTO;            /*   Flag unassigned */
     mba_reset (&mba_dev[mb]);       /*   reset prior MBA */
@@ -936,7 +936,7 @@ if (!(dptr->flags & DEV_DIS))       /* Enabling? */
 
 void init_mbus_tab (void)
 {
-uint32 i;
+uint32_t i;
 int mba_devs;
 
 for (i = 0; i < MBA_NUM; i++) {
@@ -959,7 +959,7 @@ mba_active = 0;
 
 t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))                   /* validate args */
     return SCPE_IERR;

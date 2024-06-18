@@ -130,8 +130,8 @@ void cq_serr (int32 pa);
 t_stat qba_reset (DEVICE *dptr);
 t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
-t_bool qba_map_addr (uint32 qa, uint32 *ma);
-t_bool qba_map_addr_c (uint32 qa, uint32 *ma);
+t_bool qba_map_addr (uint32_t qa, uint32_t *ma);
+t_bool qba_map_addr_c (uint32_t qa, uint32_t *ma);
 t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, CONST void *desc);
 t_stat qba_show_map (FILE *of, UNIT *uptr, int32 val, CONST void *desc);
 t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
@@ -208,7 +208,7 @@ int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
         - write: set DSER<7>, latch addr in MEAR, MEMERR interrupt
 */
 
-int32 ReadQb (uint32 pa)
+int32 ReadQb (uint32_t pa)
 {
 int32 idx, val;
 
@@ -226,7 +226,7 @@ MACH_CHECK (MCHK_READ);
 return 0;
 }
 
-void WriteQb (uint32 pa, int32 val, int32 mode)
+void WriteQb (uint32_t pa, int32 val, int32 mode)
 {
 int32 idx;
 
@@ -253,7 +253,7 @@ return;
         longword of data
 */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32 ReadIO (uint32_t pa, int32 lnt)
 {
 int32 iod;
 
@@ -295,7 +295,7 @@ bo = 2, byte or word - read one word
 bo = 3, byte - read one word
 */
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32 ReadIOU (uint32_t pa, int32 lnt)
 {
 int32 iod;
 
@@ -317,7 +317,7 @@ return iod;
         none
 */
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32 val, int32 lnt)
 {
 if (lnt == L_BYTE)
     WriteQb (pa, val, WRITEB);
@@ -349,7 +349,7 @@ bo = 0, lnt = tribyte - write word, byte
 bo = 1, lnt = tribyte - write byte, word
 */
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32 val, int32 lnt)
 {
 switch (lnt) {
 case L_BYTE:                                            /* byte */
@@ -611,7 +611,7 @@ return;
 t_stat cqm_rd (int32 *dat, int32 pa, int32 md)
 {
 int32 qa = pa & CQMAMASK;                               /* Qbus addr */
-uint32 ma;
+uint32_t ma;
 
 if (qba_map_addr (qa, &ma)) {                           /* in map? */
     if (ADDR_IS_MEM (ma)) {                             /* real memory? */
@@ -632,7 +632,7 @@ return SCPE_OK;
 t_stat cqm_wr (int32 dat, int32 pa, int32 md)
 {
 int32 qa = pa & CQMAMASK;                               /* Qbus addr */
-uint32 ma;
+uint32_t ma;
 
 if (qba_map_addr (qa, &ma)) {                           /* in map? */
     if (ADDR_IS_MEM (ma)) {                             /* real memory? */
@@ -660,7 +660,7 @@ return SCPE_OK;
 
 /* Map an address via the translation map */
 
-t_bool qba_map_addr (uint32 qa, uint32 *ma)
+t_bool qba_map_addr (uint32_t qa, uint32_t *ma)
 {
 int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
 int32 qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;       /* map entry */
@@ -683,7 +683,7 @@ return FALSE;
 
 /* Map an address via the translation map - console version (no status changes) */
 
-t_bool qba_map_addr_c (uint32 qa, uint32 *ma)
+t_bool qba_map_addr_c (uint32_t qa, uint32_t *ma)
 {
 int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
 int32 qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;       /* map entry */
@@ -760,10 +760,10 @@ return SCPE_OK;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -771,7 +771,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        *buf = (uint8)ReadB (ma);
+        *buf = (uint8_t)ReadB (ma);
         ma = ma + 1;
         }
     }
@@ -792,10 +792,10 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i;
-uint32 ma,dat;
+uint32_t ma,dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -805,7 +805,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        *buf = (uint16)ReadW (ma);
+        *buf = (uint16_t)ReadW (ma);
         ma = ma + 2;
         }
     }
@@ -824,10 +824,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -845,10 +845,10 @@ else {
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                          /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);           /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);          /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);            /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -856,10 +856,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -879,8 +879,8 @@ else {
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                          /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);            /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -892,12 +892,12 @@ return 0;
 
 t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 qa = (uint32) exta, pa;
+uint32_t qa = (uint32_t) exta, pa;
 
 if ((vptr == NULL) || (qa >= CQMSIZE))
     return SCPE_ARG;
 if (qba_map_addr_c (qa, &pa) && ADDR_IS_MEM (pa)) {
-    *vptr = (uint32) ReadW (pa);
+    *vptr = (uint32_t) ReadW (pa);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -907,7 +907,7 @@ return SCPE_NXM;
 
 t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 qa = (uint32) exta, pa;
+uint32_t qa = (uint32_t) exta, pa;
 
 if (qa >= CQMSIZE)
     return SCPE_ARG;
@@ -944,10 +944,10 @@ t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
 t_stat r;
 const char *cptr = (const char *) desc;
-uint32 qa, pa;
+uint32_t qa, pa;
 
 if (cptr) {
-    qa = (uint32) get_uint (cptr, 16, CQMSIZE - 1, &r);
+    qa = (uint32_t) get_uint (cptr, 16, CQMSIZE - 1, &r);
     if (r == SCPE_OK) {
         if (qba_map_addr_c (qa, &pa))
             fprintf (of, "Qbus %-X = physical %-X\n", qa, pa);
@@ -963,7 +963,7 @@ return SCPE_OK;
 
 t_stat qba_show_map (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 *qb_map = &M[cq_mbr >> 2];
+uint32_t *qb_map = &M[cq_mbr >> 2];
 
 return show_bus_map (of, (const char *)desc, qb_map, (CQMAPSIZE >> 2), "Qbus", CQMAP_VLD);
 }

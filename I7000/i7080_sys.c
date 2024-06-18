@@ -198,10 +198,10 @@ t_stat parse_sym(CONST char *, t_addr, UNIT *, t_value *, int32);
 
 /* Load BCD card image into memory, following 705 standard load format */
 int
-load_rec(uint8 *image) {
-    extern uint8       bcd_bin[16];
-    extern uint32      IC;
-    uint32             addr;
+load_rec(uint8_t *image) {
+    extern uint8_t       bcd_bin[16];
+    extern uint32_t      IC;
+    uint32_t             addr;
     int                len, i;
 
     /* Convert blanks to space code */
@@ -227,7 +227,7 @@ load_rec(uint8 *image) {
         return 1;
     }
     for(i = 0; i < len; i++) {
-        uint8   ch = image[15+i];
+        uint8_t   ch = image[15+i];
         if (ch == 075)
            ch = 077;
         M[addr++] = ch;
@@ -243,12 +243,12 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
     int                 i, j;
 
     if (match_ext(fnam, "crd")) {
-        uint8               image[80];
+        uint8_t               image[80];
 
         while (sim_fread(buffer, 1, 160, fileref) == 160) {
             /* Convert bits into image */
             for (j = i = 0; j < 80; j++) {
-                uint16  x;
+                uint16_t  x;
                 x = buffer[i++];
                 x |= buffer[i++] << 8;
                 image[j] = sim_hol_to_bcd(x);
@@ -258,12 +258,12 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
         }
         return SCPE_OK;
     } else if (match_ext(fnam, "cbn")) {
-        uint8               image[80];
+        uint8_t               image[80];
 
         while (sim_fread(buffer, 1, 160, fileref) == 160) {
             /* Convert bits into image */
             for (j = i = 0; j < 80; j++) {
-                uint16  x;
+                uint16_t  x;
                 x = buffer[i++];
                 x |= buffer[i++] << 8;
                 image[j] = sim_hol_to_bcd(x);
@@ -274,7 +274,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
         return SCPE_OK;
      } else if (match_ext(fnam, "dck")) {
         while (fgets(buffer, 160, fileref) != 0) {
-            uint8               image[80];
+            uint8_t               image[80];
             /* Convert bits into image */
             memset(image, 0, sizeof(image));
             for (j = 0; j < 80; j++) {
@@ -297,9 +297,9 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint32              opbase;
+    uint32_t              opbase;
     const char         *name;
-    uint8               type;
+    uint8_t               type;
 }
 t_opcode;
 
@@ -436,7 +436,7 @@ t_opcode optbl[] = {
 
 
 /* Print out a address plus index */
-t_stat fprint_addr (FILE *of, uint32 addr) {
+t_stat fprint_addr (FILE *of, uint32_t addr) {
     fprintf(of, "%d", addr);
     return SCPE_OK;
 }
@@ -449,7 +449,7 @@ t_stat fprint_addr (FILE *of, uint32 addr) {
 */
 
 t_stat
-fprint_reg (FILE *of, uint32 rdx, t_value *val, UNIT *uptr, int32 sw)
+fprint_reg (FILE *of, uint32_t rdx, t_value *val, UNIT *uptr, int32 sw)
 {
     fprintf(of, "Register(%d, %x)", rdx, *val);
     return SCPE_OK;
@@ -472,7 +472,7 @@ fprint_reg (FILE *of, uint32 rdx, t_value *val, UNIT *uptr, int32 sw)
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
 int32   i, t;
-uint8   op;
+uint8_t   op;
 
 if (sw & SIM_SW_REG)
     return fprint_reg(of, addr, val, uptr, sw);
@@ -496,11 +496,11 @@ if (sw & SWMASK ('S')) {                                /* string? */
     return -(i - 1);
     }
 if (sw & SWMASK ('M')) {                                /* machine code? */
-    uint32      addr;
+    uint32_t      addr;
     t_opcode    *tab;
-    uint8       zone;
-    uint8       reg;
-    uint16      opvalue;
+    uint8_t       zone;
+    uint8_t       reg;
+    uint16_t      opvalue;
 
     i = 0;
     op = val[i++] & 077;
@@ -615,10 +615,10 @@ parse_sym(CONST char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
         return -(i - 1);
     } else if (sw & SWMASK('M')) {
         t_opcode           *op;
-        uint32             addr = 0;
-        uint8              asu = 0;
-        uint8              zone;
-        uint8              t;
+        uint32_t             addr = 0;
+        uint8_t              asu = 0;
+        uint8_t              zone;
+        uint8_t              t;
 
         i = 0;
         /* Grab opcode */

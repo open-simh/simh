@@ -80,16 +80,16 @@
 
 extern int32 tmxr_poll;
 
-uint16 dci_csr[DCX_LINES] = { 0 };                      /* control/status */
-uint8 dci_buf[DCX_LINES] = { 0 };
-uint32 dci_ireq = 0;
-uint16 dco_csr[DCX_LINES] = { 0 };                      /* control/status */
-uint8 dco_buf[DCX_LINES] = { 0 };
-uint32 dco_ireq = 0;
+uint16_t dci_csr[DCX_LINES] = { 0 };                      /* control/status */
+uint8_t dci_buf[DCX_LINES] = { 0 };
+uint32_t dci_ireq = 0;
+uint16_t dco_csr[DCX_LINES] = { 0 };                      /* control/status */
+uint8_t dco_buf[DCX_LINES] = { 0 };
+uint32_t dco_ireq = 0;
 TMLN dcx_ldsc[DCX_LINES] = { {0} };                     /* line descriptors */
 TMXR dcx_desc = { DCX_LINES, 0, 0, dcx_ldsc };          /* mux descriptor */
 
-static const uint8 odd_par[] = {
+static const uint8_t odd_par[] = {
     0x80, 0, 0, 0x80, 0, 0x80, 0x80, 0,                 /* 00 */
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,                 /* 10 */
@@ -350,7 +350,7 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
                  dco_csr[ln] &= ~DCOCSR_CTS;            /* clr CDT,RNG,CTS */
                  }                                      /* end DTR 1->0 */
             }                                           /* end DTR chg+modem */
-        dci_csr[ln] = (uint16) ((dci_csr[ln] & ~DCICSR_WR) | (data & DCICSR_WR));
+        dci_csr[ln] = (uint16_t) ((dci_csr[ln] & ~DCICSR_WR) | (data & DCICSR_WR));
         return SCPE_OK;
 
     case 01:                                            /* dci buf */
@@ -365,7 +365,7 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
             dco_clr_int (ln);                           /* clr int req */
         else if ((dco_csr[ln] & (CSR_DONE + CSR_IE)) == CSR_DONE)
             dco_set_int (ln);
-        dco_csr[ln] = (uint16) ((dco_csr[ln] & ~DCOCSR_WR) | (data & DCOCSR_WR));
+        dco_csr[ln] = (uint16_t) ((dco_csr[ln] & ~DCOCSR_WR) | (data & DCOCSR_WR));
         return SCPE_OK;
 
     case 03:                                            /* dco buf */
@@ -415,7 +415,7 @@ for (ln = 0; ln < DCX_LINES; ln++) {                    /* loop thru lines */
                 c = (c & 0177) | odd_par[c & 0177];
             else if (dco_unit[ln].flags & DCX_EPAR)     /* even parity */
                 c = (c & 0177) | (odd_par[c & 0177] ^ 0200);
-            dci_buf[ln] = (uint8)c;
+            dci_buf[ln] = (uint8_t)c;
             if ((c & 0200) == odd_par[c & 0177])        /* odd par? */
                 dci_csr[ln] |= DCICSR_PAR;
             else dci_csr[ln] &= ~DCICSR_PAR;

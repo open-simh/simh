@@ -78,7 +78,7 @@ DEVICE              drm_dev = {
 
 
 /* Start off a disk command */
-t_stat drm_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc, uint8 rd_flg)
+t_stat drm_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc, uint8_t rd_flg)
 {
     UNIT        *uptr;
     int         u = (dev==DRUM1_DEV)? 0: 1;
@@ -116,7 +116,7 @@ t_stat drm_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc, uint8 rd_flg)
 t_stat drm_srv(UNIT * uptr)
 {
     int                 chan = uptr->CMD & DR_CHAN;
-    uint8               *ch = &(((uint8 *)uptr->filebuf)[uptr->ADDR]);
+    uint8_t               *ch = &(((uint8_t *)uptr->filebuf)[uptr->ADDR]);
     
  
     /* Process for each unit */

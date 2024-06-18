@@ -91,10 +91,10 @@
 #define PORTNO(P)      ((P) == &iu_console ? PORT_A : PORT_B)
 
 /* Static function declarations */
-static void iu_w_cmd(IU_PORT *port, uint8 val);
-static t_stat iu_tx(IU_PORT *port, uint8 val);
-static void iu_rx(IU_PORT *port, uint8 val);
-static uint8 iu_rx_getc(IU_PORT *port);
+static void iu_w_cmd(IU_PORT *port, uint8_t val);
+static t_stat iu_tx(IU_PORT *port, uint8_t val);
+static void iu_rx(IU_PORT *port, uint8_t val);
+static uint8_t iu_rx_getc(IU_PORT *port);
 
 /*
  * Registers
@@ -313,15 +313,15 @@ t_stat iu_timer_set_mult(UNIT *uptr, int32 val, const char *cptr, void *desc)
     if (v < 1 || v > 4) {
         return SCPE_ARG;
     }
-    iu_timer_multiplier = (uint32) v;
+    iu_timer_multiplier = (uint32_t) v;
     return SCPE_OK;
 
 }
 
-uint8 brg_reg = 0;       /* Selected baud-rate generator register */
-uint8 brg_clk = 11;      /* Selected baud-rate generator clock */
-uint8 parity_sel = 1;    /* Selected parity */
-uint8 bits_per_char = 7;
+uint8_t brg_reg = 0;       /* Selected baud-rate generator register */
+uint8_t brg_clk = 11;      /* Selected baud-rate generator clock */
+uint8_t parity_sel = 1;    /* Selected parity */
+uint8_t bits_per_char = 7;
 
 t_stat contty_attach(UNIT *uptr, CONST char *cptr)
 {
@@ -423,7 +423,7 @@ t_stat contty_reset(DEVICE *dtpr)
     return SCPE_OK;
 }
 
-static void iu_rx(IU_PORT *port, uint8 val)
+static void iu_rx(IU_PORT *port, uint8_t val)
 {
     if (port->conf & RX_EN) {
         if (!(port->sr & STS_FFL)) {
@@ -456,9 +456,9 @@ static void iu_rx(IU_PORT *port, uint8 val)
     UPDATE_IRQ;
 }
 
-static uint8 iu_rx_getc(IU_PORT *port)
+static uint8_t iu_rx_getc(IU_PORT *port)
 {
-    uint8 val = 0;
+    uint8_t val = 0;
 
     if (port->conf & RX_EN) {
         val = port->rxbuf[port->r_p];
@@ -512,7 +512,7 @@ t_stat iu_svc_tti(UNIT *uptr)
         return c;
     }
 
-    iu_rx(&iu_console, (uint8) c);
+    iu_rx(&iu_console, (uint8_t) c);
 
     return SCPE_OK;
 }
@@ -621,7 +621,7 @@ t_stat iu_svc_contty(UNIT *uptr)
     if ((iu_contty.conf & RX_EN) && contty_ldsc[0].conn) {
         c = tmxr_getc_ln(&contty_ldsc[0]);
         if (c && !(c & SCPE_BREAK)) {
-            iu_rx(&iu_contty, (uint8) c);
+            iu_rx(&iu_contty, (uint8_t) c);
         }
     }
 
@@ -737,12 +737,12 @@ t_stat iu_svc_timer(UNIT *uptr)
  */
 
 
-uint32 iu_read(uint32 pa, size_t size)
+uint32_t iu_read(uint32_t pa, size_t size)
 {
-    uint8 reg, modep;
-    uint32 data = 0;
+    uint8_t reg, modep;
+    uint32_t data = 0;
 
-    reg = (uint8) (pa - IUBASE);
+    reg = (uint8_t) (pa - IUBASE);
 
     switch (reg) {
     case MR12A:
@@ -809,14 +809,14 @@ uint32 iu_read(uint32 pa, size_t size)
     return data;
 }
 
-void iu_write(uint32 pa, uint32 val, size_t size)
+void iu_write(uint32_t pa, uint32_t val, size_t size)
 {
-    uint8 reg;
-    uint8 modep;
-    uint8 bval = (uint8) val;
+    uint8_t reg;
+    uint8_t modep;
+    uint8_t bval = (uint8_t) val;
     char  line_config[16];
 
-    reg = (uint8) (pa - IUBASE);
+    reg = (uint8_t) (pa - IUBASE);
 
     switch (reg) {
     case MR12A:
@@ -845,7 +845,7 @@ void iu_write(uint32 pa, uint32 val, size_t size)
         /* Clear out high byte */
         iu_timer_state.c_set &= 0x00ff;
         /* Set high byte */
-        iu_timer_state.c_set |= ((uint16) bval << 8);
+        iu_timer_state.c_set |= ((uint16_t) bval << 8);
         break;
     case CTLR:  /* Counter/Timer Lower Preset Value */
         /* Clear out low byte */
@@ -925,10 +925,10 @@ void iu_write(uint32 pa, uint32 val, size_t size)
 /*
  * Transmit a single character
  */
-t_stat iu_tx(IU_PORT *port, uint8 val)
+t_stat iu_tx(IU_PORT *port, uint8_t val)
 {
     int32 c;
-    uint8 tx_ists = (port == &iu_console) ? ISTS_TXRA : ISTS_TXRB;
+    uint8_t tx_ists = (port == &iu_console) ? ISTS_TXRA : ISTS_TXRB;
     UNIT *uptr = (port == &iu_console) ? &tto_unit : &contty_unit[1];
 
     sim_debug(EXECUTE_MSG, &tto_dev,
@@ -955,10 +955,10 @@ t_stat iu_tx(IU_PORT *port, uint8 val)
     return SCPE_OK;
 }
 
-static void iu_w_cmd(IU_PORT *port, uint8 cmd)
+static void iu_w_cmd(IU_PORT *port, uint8_t cmd)
 {
-    uint8 tx_ists = (port == &iu_console) ? ISTS_TXRA : ISTS_TXRB;
-    uint8 dbk_ists = (port == &iu_console) ? ISTS_DBA : ISTS_DBB;
+    uint8_t tx_ists = (port == &iu_console) ? ISTS_TXRA : ISTS_TXRB;
+    uint8_t dbk_ists = (port == &iu_console) ? ISTS_DBA : ISTS_DBB;
 
     /* Enable or disable transmitter        */
     /* Disable always wins, if both are set */
@@ -1066,10 +1066,10 @@ static void iu_w_cmd(IU_PORT *port, uint8 cmd)
 /*
  * Initiate DMA transfer or continue one already in progress.
  */
-void iu_dma_console(uint8 channel, uint32 service_address)
+void iu_dma_console(uint8_t channel, uint32_t service_address)
 {
-    uint8 data;
-    uint32 addr;
+    uint8_t data;
+    uint32_t addr;
     t_stat status = SCPE_OK;
     dma_channel *chan = &dma_state.channels[channel];
     IU_PORT *port = &iu_console;
@@ -1107,10 +1107,10 @@ void iu_dma_console(uint8 channel, uint32 service_address)
     }
 }
 
-void iu_dma_contty(uint8 channel, uint32 service_address)
+void iu_dma_contty(uint8_t channel, uint32_t service_address)
 {
-    uint8 data;
-    uint32 addr;
+    uint8_t data;
+    uint32_t addr;
     t_stat status = SCPE_OK;
     dma_channel *chan = &dma_state.channels[channel];
     IU_PORT *port = &iu_contty;

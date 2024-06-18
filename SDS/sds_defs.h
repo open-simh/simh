@@ -96,7 +96,7 @@
 #define MAXMEMSIZE      (1 << 16)                       /* max memory size */
 #define PAMASK          (MAXMEMSIZE - 1)                /* physical addr mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 #define ReadP(x)        M[x]
 #define WriteP(x,y)     if (MEM_ADDR_OK (x)) M[x] = y
 
@@ -182,8 +182,8 @@
 /* Dispatch template */
 
 struct sdsdspt {
-    uint32      num;                                    /* # entries */
-    uint32      off;                                    /* offset from base */
+    uint32_t      num;                                    /* # entries */
+    uint32_t      off;                                    /* offset from base */
     };
 
 typedef struct sdsdspt DSPT;
@@ -195,7 +195,7 @@ struct sdsdib {
     int32       dev;                                    /* base dev no */
     int32       xfr;                                    /* xfer flag */
     DSPT        *tplt;                                  /* dispatch templates */
-    t_stat      (*iop) (uint32 fnc, uint32 dev, uint32 *dat);
+    t_stat      (*iop) (uint32_t fnc, uint32_t dev, uint32_t *dat);
     };
 
 typedef struct sdsdib DIB;
@@ -421,10 +421,10 @@ enum opcodes {
 
 /* Channel function prototypes */
 
-void chan_set_flag (int32 ch, uint32 fl);
+void chan_set_flag (int32 ch, uint32_t fl);
 void chan_set_ordy (int32 ch);
 void chan_disc (int32 ch);
-void chan_set_uar (int32 ch, uint32 dev);
+void chan_set_uar (int32 ch, uint32_t dev);
 t_stat set_chan (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat show_chan (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat chan_process (void);

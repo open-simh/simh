@@ -62,25 +62,25 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
-    uint8   rom_type;       /* Select ADC or Digitex ROM. */
-    uint8   j7;             /* 7-position jumper block J7 */
-    uint8 head_sel;
-    uint8 autowait;
-    uint8 rtc;
-    uint8 imask;        /* Interrupt Mask Register */
-    uint8 ipend;        /* Interrupt Pending Register */
-    uint8 s100_addr_u;  /* A23:16 of S-100 bus */
-    uint8   mctrl0;         /* MCTRL0 Register */
-    uint8   mctrl1;         /* MCTRL1 Register */
-    uint8   ctc_ccw[4];     /* Z80-CTC Channel Control Word */
-    uint8   ctc_tc_follows[4];  /* Set if TC write is expected to follow CCW write */
-    uint8   ctc_tc[4];      /* Z80-CTC Time Constant */
-    uint8   ctc_count[4];   /* Z80-CTC current count */
-    uint8   ctc_vec;        /* Z80-CTC Interrupt Vector */
-    uint16  ctc_vec_table;  /* Z80-CTC Interrupt Vector table */
-    uint8   dma;            /* Z80-DMA I/O register */
+    uint32_t dma_addr;    /* DMA Transfer Address */
+    uint8_t rom_disabled; /* TRUE if ROM has been disabled */
+    uint8_t   rom_type;       /* Select ADC or Digitex ROM. */
+    uint8_t   j7;             /* 7-position jumper block J7 */
+    uint8_t head_sel;
+    uint8_t autowait;
+    uint8_t rtc;
+    uint8_t imask;        /* Interrupt Mask Register */
+    uint8_t ipend;        /* Interrupt Pending Register */
+    uint8_t s100_addr_u;  /* A23:16 of S-100 bus */
+    uint8_t   mctrl0;         /* MCTRL0 Register */
+    uint8_t   mctrl1;         /* MCTRL1 Register */
+    uint8_t   ctc_ccw[4];     /* Z80-CTC Channel Control Word */
+    uint8_t   ctc_tc_follows[4];  /* Set if TC write is expected to follow CCW write */
+    uint8_t   ctc_tc[4];      /* Z80-CTC Time Constant */
+    uint8_t   ctc_count[4];   /* Z80-CTC current count */
+    uint8_t   ctc_vec;        /* Z80-CTC Interrupt Vector */
+    uint16_t  ctc_vec_table;  /* Z80-CTC Interrupt Vector table */
+    uint8_t   dma;            /* Z80-DMA I/O register */
 } ADCS6_INFO;
 
 extern WD179X_INFO_PUB *wd179x_infop;
@@ -89,15 +89,15 @@ extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern void setBankSelect(const int32 b);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
 
 static t_stat adcs6_svc (UNIT *uptr);
 static t_stat adcs6_ctc_svc(UNIT* uptr);
 
-extern uint32 PCX;                              /* external view of PC  */
+extern uint32_t PCX;                              /* external view of PC  */
 extern int32  IR_S;                             /* Z80 Interrupt/Refresh register */
 extern int32  timerInterruptHandler;            /* SIO timer address of interrupt handling routine */
 #define ADCS6_CAPACITY          (77*1*26*128)   /* Default SSSD Disk Capacity         */
@@ -205,7 +205,7 @@ static ADCS6_INFO* adcs6_info = &adcs6_info_data;
  * SIMH/AltairZ80 Resource Mapping Scheme, rather than Map and Unmap the ROM, simply implement our
  * own RAM that can be swapped in when the ADCS6 Boot ROM is disabled.
  */
-static uint8 adcs6ram[ADCS6_ROM_SIZE];
+static uint8_t adcs6ram[ADCS6_ROM_SIZE];
 
 #define ADCS6_WAIT  16
 
@@ -306,7 +306,7 @@ DEVICE adcs6_dev = {
 };
 
 /* Monitor ROMs for ADC and DIGITEX. */
-static uint8 adcs6_rom[2][ADCS6_ROM_SIZE] = {
+static uint8_t adcs6_rom[2][ADCS6_ROM_SIZE] = {
     /*  > ADVANCED DIGITAL CORP.
      *    Monitor Version 3.6
      *    January - 1984
@@ -585,7 +585,7 @@ static uint8 adcs6_rom[2][ADCS6_ROM_SIZE] = {
     }
 };
 
-static uint8 motor_timeout = 0;
+static uint8_t motor_timeout = 0;
 
 /* Unit service routine */
 static t_stat adcs6_svc (UNIT *uptr)
@@ -614,7 +614,7 @@ static t_stat adcs6_svc (UNIT *uptr)
  */
 static t_stat adcs6_ctc_svc(UNIT* uptr)
 {
-    uint8 ctc_index = (uint8)(uptr->u4 - 4);
+    uint8_t ctc_index = (uint8_t)(uptr->u4 - 4);
 
     switch (ctc_index & 0x03) {
     case 0:
@@ -764,7 +764,7 @@ static int32 adcs6rom(const int32 Addr, const int32 write, const int32 data)
             sim_debug(ERROR_MSG, &adcs6_dev, DEV_NAME ": " ADDRESS_FORMAT
                       " Cannot write to ROM.\n", PCX);
         } else {
-            adcs6ram[Addr & ADCS6_ADDR_MASK] = (uint8)data;
+            adcs6ram[Addr & ADCS6_ADDR_MASK] = (uint8_t)data;
         }
         return 0;
     } else {
@@ -811,7 +811,7 @@ static t_stat adcs6_dev_show_rom(FILE* st, UNIT* uptr, int32 val, CONST void* de
 
 t_stat adcs6_show_vectable(FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-    uint8 i;
+    uint8_t i;
     int32 vectable = (IR_S & 0xFF00);
     int32 vector;
 
@@ -890,7 +890,7 @@ static int32 adcs6_dma(const int32 port, const int32 io, const int32 data)
     if(io) { /* I/O Write */
         sim_debug(DMA_MSG, &adcs6_dev, DEV_NAME ": " ADDRESS_FORMAT
                   " WR DMA: 0x%02x\n", PCX, data & 0xFF);
-        adcs6_info->dma = (uint8)data;
+        adcs6_info->dma = (uint8_t)data;
     } else { /* I/O Read */
         result = 0xFF;
         sim_debug(DMA_MSG, &adcs6_dev, DEV_NAME ": " ADDRESS_FORMAT
@@ -955,7 +955,7 @@ static int32 adcs6_pio(const int32 port, const int32 io, const int32 data)
     return result;
 }
 
-static uint8 testresult = 0;
+static uint8_t testresult = 0;
 
 /* ADC Super-Six CTC ports */
 
@@ -965,7 +965,7 @@ static uint8 testresult = 0;
 static int32 adcs6_ctc(const int32 port, const int32 io, const int32 data)
 {
     static int32 result = 0xFF;
-    uint8 ctc_channel = port & 0x03;
+    uint8_t ctc_channel = port & 0x03;
 
     if(io) { /* Write */
         switch(port) {
@@ -974,16 +974,16 @@ static int32 adcs6_ctc(const int32 port, const int32 io, const int32 data)
         case ADCS6_CTC2:
         case ADCS6_CTC3:
             if (adcs6_info->ctc_tc_follows[ctc_channel]) { /* If expecting TC write */
-                adcs6_info->ctc_tc[ctc_channel] = (uint8)data;
-                adcs6_info->ctc_count[ctc_channel] = (uint8)data;
+                adcs6_info->ctc_tc[ctc_channel] = (uint8_t)data;
+                adcs6_info->ctc_count[ctc_channel] = (uint8_t)data;
                 adcs6_info->ctc_tc_follows[ctc_channel] = 0;
                 sim_debug(CTC_MSG, &adcs6_dev, ADDRESS_FORMAT
                     " WR CTC%d  TC=0x%02x\n", PCX, ctc_channel, data);
 
             } else { /* Not expecting TC, write CCW or Vector */
                 if (data & CTC_CCW_BIT) {
-                    adcs6_info->ctc_ccw[ctc_channel] = (uint8)data;
-                    adcs6_info->ctc_tc_follows[ctc_channel] = (uint8)(data & CTC_TC_FOLLOWS);
+                    adcs6_info->ctc_ccw[ctc_channel] = (uint8_t)data;
+                    adcs6_info->ctc_tc_follows[ctc_channel] = (uint8_t)(data & CTC_TC_FOLLOWS);
                     sim_debug(CTC_MSG, &adcs6_dev, ADDRESS_FORMAT
                         " WR CTC%d CCW=0x%02x: [%s%s%s%s%s%s]\n", PCX, ctc_channel, data,
                         data & 0x80 ? "INT_EN, " : "",
@@ -1000,7 +1000,7 @@ static int32 adcs6_ctc(const int32 port, const int32 io, const int32 data)
                     }
                 } else {
                     int i;
-                    adcs6_info->ctc_vec = (uint8)data;
+                    adcs6_info->ctc_vec = (uint8_t)data;
                     adcs6_info->ctc_vec_table = (IR_S & 0xFF00) | adcs6_info->ctc_vec;
                     sim_debug(CTC_MSG, &adcs6_dev, ADDRESS_FORMAT
                         " WR CTC%d VEC=0x%02x, table: 0x%04x\n", PCX, ctc_channel, adcs6_info->ctc_vec, adcs6_info->ctc_vec_table);
@@ -1043,7 +1043,7 @@ static int32 adcs6_ctc(const int32 port, const int32 io, const int32 data)
 static int32 adcs6_banksel(const int32 port, const int32 io, const int32 data)
 {
     int32 result;
-    uint8 cpm3_bank = 0;
+    uint8_t cpm3_bank = 0;
 
     if(io) {    /* Write */
         switch(port) {
@@ -1060,7 +1060,7 @@ static int32 adcs6_banksel(const int32 port, const int32 io, const int32 data)
                       (data & MCTRL_POJ_ENABLED) ? "Enabled" : "Disabled",
                       (data & MCTRL_PARITY_ENABLED) ? "Enabled" : "Disabled");
             adcs6_info->rom_disabled = (data & MCTRL_ROM_DISABLE) ? TRUE : FALSE; /* Unmap Boot ROM */
-            adcs6_info->mctrl0 = (uint8)data;
+            adcs6_info->mctrl0 = (uint8_t)data;
             break;
         case ADCS6_MCTRL1:
             switch (data) {
@@ -1079,7 +1079,7 @@ static int32 adcs6_banksel(const int32 port, const int32 io, const int32 data)
                       cpm3_bank,
                       data & MCTRL_BANK_MASK,
                       (data & MCTRL_MAP_MASK) >> 4);
-            adcs6_info->mctrl1 = (uint8)data;
+            adcs6_info->mctrl1 = (uint8_t)data;
             setBankSelect(cpm3_bank);
             break;
         case ADCS6_SET_BAUD:

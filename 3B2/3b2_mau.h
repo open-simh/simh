@@ -215,18 +215,18 @@
 #define PACK_DFP(SIGN,EXP,FRAC) ((((t_uint64)(SIGN))<<63) +      \
                                  (((t_uint64)(EXP))<<52) +       \
                                  ((t_uint64)(FRAC)))
-#define PACK_SFP(SIGN,EXP,FRAC) (((uint32)(SIGN)<<31) +  \
-                                 ((uint32)(EXP)<<23) +   \
-                                 ((uint32)(FRAC)))
+#define PACK_SFP(SIGN,EXP,FRAC) (((uint32_t)(SIGN)<<31) +  \
+                                 ((uint32_t)(EXP)<<23) +   \
+                                 ((uint32_t)(FRAC)))
 #define PACK_XFP(SIGN,EXP,FRAC,V)    do {               \
         (V)->frac = (FRAC);                             \
-        (V)->sign_exp = ((uint16)(SIGN) << 15) + (EXP); \
+        (V)->sign_exp = ((uint16_t)(SIGN) << 15) + (EXP); \
         (V)->s = FALSE;                                 \
     } while (0)
 
 #define PACK_XFP_S(SIGN,EXP,FRAC,S,V)   do {             \
         (V)->frac = (FRAC);                              \
-        (V)->sign_exp = ((uint16)(SIGN) << 15) + (EXP);  \
+        (V)->sign_exp = ((uint16_t)(SIGN) << 15) + (EXP);  \
         (V)->s = (S) != 0;                               \
     } while (0)
 
@@ -310,7 +310,7 @@ typedef struct {
  * Extended Precision (80 bits).
  *
  * Note that an undocumented feature of the WE32106 requires the use
- * of uint32 rather than uint16 for the sign and exponent components
+ * of uint32_t rather than uint16_t for the sign and exponent components
  * of the struct. Although bits 80-95 are "unused", several
  * diagnostics actually expect these bits to be moved and preserved on
  * word transfers. They are ignored and discarded by math routines,
@@ -319,13 +319,13 @@ typedef struct {
  * The 's' field holds the Sticky bit used by rounding.
  */
 typedef struct {
-    uint32 sign_exp;  /* Sign and Exponent */
+    uint32_t sign_exp;  /* Sign and Exponent */
     t_uint64 frac;    /* Fraction/Significand/Mantissa */
     t_bool s;         /* Sticky bit */
 } XFP;
 
 typedef struct {
-    uint32 h;
+    uint32_t h;
     t_uint64 l;
 } DEC;
 
@@ -347,29 +347,29 @@ typedef t_uint64 DFP;
 /*
  * Single Precision (32 bits)
  */
-typedef uint32 SFP;
+typedef uint32_t SFP;
 
 /*
  * MAU state
  */
 
 typedef struct {
-    uint32   cmd;
+    uint32_t   cmd;
     /* Exception  */
-    uint32   exception;
+    uint32_t   exception;
     /* Status register */
-    uint32   asr;
+    uint32_t   asr;
     t_bool   trapping_nan;
     /* Generate a Non-Trapping NaN */
     t_bool   ntnan;
     /* Source (from broadcast) */
-    uint32   src;
+    uint32_t   src;
     /* Destination (from broadcast) */
-    uint32   dst;
-    uint8    opcode;
-    uint8    op1;
-    uint8    op2;
-    uint8    op3;
+    uint32_t   dst;
+    uint8_t    opcode;
+    uint8_t    op1;
+    uint8_t    op2;
+    uint8_t    op3;
     /* Data Register */
     XFP      dr;
     /* Operand Registers */
@@ -382,8 +382,8 @@ typedef struct {
 t_stat mau_reset(DEVICE *dptr);
 t_stat mau_attach(UNIT *uptr, CONST char *cptr);
 t_stat mau_detach(UNIT *uptr);
-t_stat mau_broadcast(uint32 cmd, uint32 src, uint32 dst);
+t_stat mau_broadcast(uint32_t cmd, uint32_t src, uint32_t dst);
 CONST char *mau_description(DEVICE *dptr);
-t_stat mau_broadcast(uint32 cmd, uint32 src, uint32 dst);
+t_stat mau_broadcast(uint32_t cmd, uint32_t src, uint32_t dst);
 
 #endif /* _3B2_REV2_MAU_H_ */

@@ -33,7 +33,7 @@
 #define IN_MSG      (1 << 2)
 #define OUT_MSG     (1 << 3)
 
-extern uint32 PCX;
+extern uint32_t PCX;
 
 #define UNIT_V_SERVER   (UNIT_V_UF + 0) /* define machine as a server   */
 #define UNIT_SERVER     (1 << UNIT_V_SERVER)
@@ -49,8 +49,8 @@ int32 netStatus             (const int32 port, const int32 io, const int32 data)
 int32 netData               (const int32 port, const int32 io, const int32 data);
 static const char* net_description(DEVICE *dptr);
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 #define MAX_CONNECTIONS 2   /* maximal number of server connections */
 #define BUFFER_LENGTH   512 /* length of input and output buffer    */
@@ -121,7 +121,7 @@ DEVICE net_dev = {
 
 static t_stat set_net(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
     char temp[CBUFSIZE];
-    if ((net_unit.flags & UNIT_ATT) && ((net_unit.flags & UNIT_SERVER) != (uint32)value)) {
+    if ((net_unit.flags & UNIT_ATT) && ((net_unit.flags & UNIT_SERVER) != (uint32_t)value)) {
         strncpy(temp, net_unit.filename, CBUFSIZE - 1); /* save name for later attach */
         net_detach(&net_unit);
         net_unit.flags ^= UNIT_SERVER; /* now switch from client to server and vice versa */
@@ -131,7 +131,7 @@ static t_stat set_net(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
     return SCPE_OK;
 }
 
-static void serviceDescriptor_reset(const uint32 i) {
+static void serviceDescriptor_reset(const uint32_t i) {
     serviceDescriptor[i].inputPosRead   = 0;
     serviceDescriptor[i].inputPosWrite  = 0;
     serviceDescriptor[i].inputSize      = 0;
@@ -141,7 +141,7 @@ static void serviceDescriptor_reset(const uint32 i) {
 }
 
 static t_stat net_reset(DEVICE *dptr) {
-    uint32 i;
+    uint32_t i;
     if (net_unit.flags & UNIT_ATT)
         sim_activate(&net_unit, net_unit.wait); /* start poll */
     for (i = 0; i <= MAX_CONNECTIONS; i++) {
@@ -155,7 +155,7 @@ static t_stat net_reset(DEVICE *dptr) {
 }
 
 static t_stat net_attach(UNIT *uptr, CONST char *cptr) {
-    uint32 i;
+    uint32_t i;
     char host[CBUFSIZE], port[CBUFSIZE];
 
     if (sim_parse_addr (cptr, host, sizeof(host), "localhost", port, sizeof(port), "3000", NULL))
@@ -183,7 +183,7 @@ static t_stat net_attach(UNIT *uptr, CONST char *cptr) {
 }
 
 static t_stat net_detach(UNIT *uptr) {
-    uint32 i;
+    uint32_t i;
     if (!(net_unit.flags & UNIT_ATT))
         return SCPE_OK;       /* if not attached simply return */
     if (net_unit.flags & UNIT_SERVER)
@@ -262,7 +262,7 @@ static t_stat net_svc(UNIT *uptr) {
 }
 
 int32 netStatus(const int32 port, const int32 io, const int32 data) {
-    uint32 i;
+    uint32_t i;
     if ((net_unit.flags & UNIT_ATT) == 0)
         return 0;
     net_svc(&net_unit);
@@ -275,7 +275,7 @@ int32 netStatus(const int32 port, const int32 io, const int32 data) {
 }
 
 int32 netData(const int32 port, const int32 io, const int32 data) {
-    uint32 i;
+    uint32_t i;
     char result;
     if ((net_unit.flags & UNIT_ATT) == 0)
         return 0;

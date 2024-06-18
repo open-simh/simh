@@ -674,8 +674,8 @@ return outbound;                                        /* return the outbound s
 t_stat drc_svc (UNIT *uptr)
 {
 int32 trk, sec;
-uint32 da;
-uint16 *bptr = (uint16 *) uptr->filebuf;
+uint32_t da;
+uint16_t *bptr = (uint16_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_ATT) == 0) {
     drc_sta = DRS_ABO;
@@ -690,8 +690,8 @@ drc_run = 1;                                            /* set run ff */
 
 if (drc_cw & CW_WR) {                                   /* write? */
     if ((da < uptr->capac) && (sec < DR_NUMSC)) {
-        bptr[da + drd_ptr] = (uint16) drd_obuf;
-        if (((uint32) (da + drd_ptr)) >= uptr->hwmark)
+        bptr[da + drd_ptr] = (uint16_t) drd_obuf;
+        if (((uint32_t) (da + drd_ptr)) >= uptr->hwmark)
             uptr->hwmark = da + drd_ptr + 1;
         }
     drd_ptr = dr_incda (trk, sec, drd_ptr);             /* inc disk addr */
@@ -702,7 +702,7 @@ if (drc_cw & CW_WR) {                                   /* write? */
     else {                                              /* done */
         if (drd_ptr)                                    /* need to fill? */
             for ( ; drd_ptr < DR_NUMWD; drd_ptr++)
-                bptr[da + drd_ptr] = (uint16) drd_obuf; /* fill with last word */
+                bptr[da + drd_ptr] = (uint16_t) drd_obuf; /* fill with last word */
         if (!(drc_unit [0].flags & UNIT_DRUM))          /* disk? */
             drc_sta = drc_sta | DRS_PER;                /* parity bit sets on write */
         drc_run = 0;                                    /* clear run ff */
@@ -806,7 +806,7 @@ else
 result = attach_unit (uptr, cptr);                      /* attach the drive */
 
 if (result == SCPE_OK && (sim_switches & SWMASK ('N'))) /* if the attach was successful and a new image was specified */
-    uptr->hwmark = (uint32) uptr->capac;                /*   then set the high-water mark to the last byte */
+    uptr->hwmark = (uint32_t) uptr->capac;                /*   then set the high-water mark to the last byte */
 
 return result;                                          /* return the result of the attach */
 }
@@ -1024,7 +1024,7 @@ static const LOADER_ARRAY dr_loaders = {
 
 t_stat drc_boot (int32 unitno, DEVICE *dptr)
 {
-uint32 start;
+uint32_t start;
 
 if (unitno != 0)                                        /* a BOOT DRC for a non-zero unit */
     return SCPE_NOFNC;                                  /*   is rejected as unsupported */

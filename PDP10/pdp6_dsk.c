@@ -123,13 +123,13 @@
 #define DSK_SIZE       (DSK_SECS * DSK_CYL * DSK_WDS)
 
 uint64          dsk_buf[DSK_WDS];
-uint8           dsk_octflp;
-uint32          dsk_status;
-uint32          dsk_cmd;
-uint32          dsk_addr;
+uint8_t           dsk_octflp;
+uint32_t          dsk_status;
+uint32_t          dsk_cmd;
+uint32_t          dsk_addr;
 int             dsk_dct = 0;
 
-t_stat          dsk_devio(uint32 dev, uint64 *data);
+t_stat          dsk_devio(uint32_t dev, uint64 *data);
 t_stat          dsk_svc(UNIT *);
 t_stat          dsk_boot(int32, DEVICE *);
 t_stat          dsk_set_dct (UNIT *, int32, CONST char *, void *);
@@ -185,7 +185,7 @@ DEVICE              dsk_dev = {
 
 
 t_stat
-dsk_devio(uint32 dev, uint64 *data) {
+dsk_devio(uint32_t dev, uint64 *data) {
      UNIT        *uptr = &dsk_unit[(dsk_addr >> 16) & 03];
      uint64       res;
 
@@ -224,7 +224,7 @@ dsk_devio(uint32 dev, uint64 *data) {
           if ((dsk_cmd & EFR) != 0 && dsk_status & SECT_END)
               set_interrupt(dev, dsk_cmd);
           sim_debug(DEBUG_CONO, &dsk_dev, "DSK %03o CONO %06o PC=%o %06o\n", dev,
-                    (uint32)*data, PC, dsk_status);
+                    (uint32_t)*data, PC, dsk_status);
           break;
      case DATAI:
           sim_debug(DEBUG_DATAIO, &dsk_dev, "DSK %03o DATI %012llo PC=%o\n",

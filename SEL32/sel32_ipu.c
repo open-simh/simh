@@ -32,58 +32,58 @@ extern  UNIT    cpu_unit;                   /* The CPU */
 
 /* running IPU thread on CPU, n/u in IPU fork */
 /* this is different than CPU defines */
-static  uint8   wait4sipu = 0;              /* waiting for sipu in IPU if set */
+static  uint8_t   wait4sipu = 0;              /* waiting for sipu in IPU if set */
 static  int     MyIndex;
 static  int     PeerIndex;
-extern  uint32  M[];                        /* Memory */
+extern  uint32_t  M[];                        /* Memory */
 extern  struct  ipcom   *IPC;               /* TRAPS & flags */
 extern  pthread_t   ipuThread;
 extern  DEVICE  cpu_dev;                    /* cpu device structure */
-extern  uint32  cpustop;                    /* cpu is stopping */
+extern  uint32_t  cpustop;                    /* cpu is stopping */
 
 LOCAL   DEVICE* my_dev = &ipu_dev;          /* current DEV pointer CPU or IPU */
-LOCAL   uint32  OIR=0;                      /* Original Instruction register */
-LOCAL   uint32  OPSD1=0;                    /* Original PSD1 */
-LOCAL   uint32  OPSD2=0;                    /* Original PSD2 */
+LOCAL   uint32_t  OIR=0;                      /* Original Instruction register */
+LOCAL   uint32_t  OPSD1=0;                    /* Original PSD1 */
+LOCAL   uint32_t  OPSD2=0;                    /* Original PSD2 */
 
 /* IPU registers, map cache, spad, and other variables */
-LOCAL   uint32  PSD[2];                     /* the PC for the instruction */
+LOCAL   uint32_t  PSD[2];                     /* the PC for the instruction */
 #define PSD1 PSD[0]                         /* word 1 of PSD */
 #define PSD2 PSD[1]                         /* word 2 of PSD */
-LOCAL   uint32  GPR[8];                     /* General Purpose Registers */
-LOCAL   uint32  BR[8];                      /* Base registers */
-LOCAL   uint32  BOOTR[8] = {0};             /* Boot registers settings */
-LOCAL   uint32  SPAD[256];                  /* Scratch pad memory */
+LOCAL   uint32_t  GPR[8];                     /* General Purpose Registers */
+LOCAL   uint32_t  BR[8];                      /* Base registers */
+LOCAL   uint32_t  BOOTR[8] = {0};             /* Boot registers settings */
+LOCAL   uint32_t  SPAD[256];                  /* Scratch pad memory */
 /* IPU mapping cache entries */
 /* 32/55 has none */
 /* 32/7x has 32 8KW maps per task */
 /* Concept 32/27 has 256 2KW maps per task */
 /* Concept 32/X7 has 2048 2KW maps per task */
-LOCAL   uint32  MAPC[1024];                 /* maps are 16bit entries on word bountries */
-LOCAL   uint32  TLB[2048];                  /* Translated addresses for each map entry */
-LOCAL   uint32  PC;                         /* Program counter */
-LOCAL   uint32  IR;                         /* Last Instruction */
-LOCAL   uint32  HIWM=0;                     /* max maps loaded so far */
-LOCAL   uint32  BPIX=0;                     /* # pages loaded for O/S */
-LOCAL   uint32  CPIXPL=0;                   /* highest page loaded for User */
-LOCAL   uint32  CPIX=0;                     /* CPIX user MPL offset */
-LOCAL   uint32  IPUSTATUS;                  /* ipu status word */
-LOCAL   uint32  TRAPSTATUS;                 /* trap status word */
-LOCAL   uint32  CC;                         /* Condition codes, bits 1-4 of PSD1 */
-LOCAL   uint32  MODES=0;                    /* Operating modes, bits 0, 5, 6, 7 of PSD1 */
-LOCAL   uint16  OPR;                        /* Top half of Instruction register */
-LOCAL   uint16  OP;                         /* Six bit instruction opcode */
-LOCAL   uint32  INTS[128];                  /* Interrupt status flags */
-LOCAL   uint32  CMCR;                       /* Cache Memory Control Register */
-LOCAL   uint32  SMCR;                       /* Shared Memory Control Register */
-LOCAL   uint32  CMSMC;                      /* V9 Cache/Shadow Memory Configuration */
-LOCAL   uint32  CSMCW;                      /* CPU Shadow Memory Configuration Word */
-LOCAL   uint32  ISMCW;                      /* IPU Shadow Memory Configuration Word */
-LOCAL   uint32  CCW = 0;                    /* Computer Configuration Word */
-LOCAL   uint32  CSW = 0;                    /* Console switches going to 0x780 */
+LOCAL   uint32_t  MAPC[1024];                 /* maps are 16bit entries on word bountries */
+LOCAL   uint32_t  TLB[2048];                  /* Translated addresses for each map entry */
+LOCAL   uint32_t  PC;                         /* Program counter */
+LOCAL   uint32_t  IR;                         /* Last Instruction */
+LOCAL   uint32_t  HIWM=0;                     /* max maps loaded so far */
+LOCAL   uint32_t  BPIX=0;                     /* # pages loaded for O/S */
+LOCAL   uint32_t  CPIXPL=0;                   /* highest page loaded for User */
+LOCAL   uint32_t  CPIX=0;                     /* CPIX user MPL offset */
+LOCAL   uint32_t  IPUSTATUS;                  /* ipu status word */
+LOCAL   uint32_t  TRAPSTATUS;                 /* trap status word */
+LOCAL   uint32_t  CC;                         /* Condition codes, bits 1-4 of PSD1 */
+LOCAL   uint32_t  MODES=0;                    /* Operating modes, bits 0, 5, 6, 7 of PSD1 */
+LOCAL   uint16_t  OPR;                        /* Top half of Instruction register */
+LOCAL   uint16_t  OP;                         /* Six bit instruction opcode */
+LOCAL   uint32_t  INTS[128];                  /* Interrupt status flags */
+LOCAL   uint32_t  CMCR;                       /* Cache Memory Control Register */
+LOCAL   uint32_t  SMCR;                       /* Shared Memory Control Register */
+LOCAL   uint32_t  CMSMC;                      /* V9 Cache/Shadow Memory Configuration */
+LOCAL   uint32_t  CSMCW;                      /* CPU Shadow Memory Configuration Word */
+LOCAL   uint32_t  ISMCW;                      /* IPU Shadow Memory Configuration Word */
+LOCAL   uint32_t  CCW = 0;                    /* Computer Configuration Word */
+LOCAL   uint32_t  CSW = 0;                    /* Console switches going to 0x780 */
 /* end of IPU simh registers */
 
-LOCAL   uint32  pfault;                     /* page # of fault from read/write */
+LOCAL   uint32_t  pfault;                     /* page # of fault from read/write */
 
 /* bits 0-4 are bits 0-4 from map entry */
 /* bit 0 valid */
@@ -97,10 +97,10 @@ LOCAL   uint32  pfault;                     /* page # of fault from read/write *
 /* bits 8-18 has map reg contents for this page (Map << 13) */
 /* bit 19-31 is zero for page offset of zero */
 
-LOCAL   uint8           wait4int = 0;       /* waiting for interrupt if set */
+LOCAL   uint8_t           wait4int = 0;       /* waiting for interrupt if set */
 
 /* define traps */
-LOCAL   uint32          TRAPME = 0;         /* trap to be executed */
+LOCAL   uint32_t          TRAPME = 0;         /* trap to be executed */
 
 /* forward definitions */
 t_stat ipu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw);
@@ -111,36 +111,36 @@ t_stat ipu_clr_ipu(UNIT * uptr, int32 val, CONST char *cptr, void *desc);
 t_stat ipu_show_ipu(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat ipu_show_hist(FILE * st, UNIT * uptr, int32 val, CONST void *desc);
 t_stat ipu_set_hist(UNIT * uptr, int32 val, CONST char *cptr, void *desc);
-uint32 ipu_cmd(UNIT * uptr, uint16 cmd, uint16 dev);
+uint32_t ipu_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev);
 t_stat ipu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *ipu_description (DEVICE *dptr);
-LOCAL  t_stat RealAddr(uint32 addr, uint32 *realaddr, uint32 *prot, uint32 access);
-LOCAL  t_stat load_maps(uint32 thepsd[2], uint32 lmap);
-LOCAL  t_stat read_instruction(uint32 thepsd[2], uint32 *instr);
-LOCAL  t_stat Mem_read(uint32 addr, uint32 *data);
-LOCAL  t_stat Mem_write(uint32 addr, uint32 *data);
+LOCAL  t_stat RealAddr(uint32_t addr, uint32_t *realaddr, uint32_t *prot, uint32_t access);
+LOCAL  t_stat load_maps(uint32_t thepsd[2], uint32_t lmap);
+LOCAL  t_stat read_instruction(uint32_t thepsd[2], uint32_t *instr);
+LOCAL  t_stat Mem_read(uint32_t addr, uint32_t *data);
+LOCAL  t_stat Mem_write(uint32_t addr, uint32_t *data);
 
 /* external definitions */
-extern uint16 loading;                                  /* set when doing IPL */
-extern int fprint_inst(FILE *of, uint32 val, int32 sw); /* instruction print function */
+extern uint16_t loading;                                  /* set when doing IPL */
+extern int fprint_inst(FILE *of, uint32_t val, int32 sw); /* instruction print function */
 
 /* floating point subroutines definitions */
-extern uint32   s_fixw(uint32 val, uint32 *cc);
-extern uint32   s_fltw(uint32 val, uint32 *cc);
-extern t_uint64 s_fixd(t_uint64 val, uint32 *cc);
-extern t_uint64 s_fltd(t_uint64 val, uint32 *cc);
-extern uint32   s_nor(uint32 reg, uint32 *exp);
-extern t_uint64 s_nord(t_uint64 reg, uint32 *exp);
-extern uint32   s_adfw(uint32 reg, uint32 mem, uint32 *cc);
-extern uint32   s_sufw(uint32 reg, uint32 mem, uint32 *cc);
-extern t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32 *cc);
-extern t_uint64 s_sufd(t_uint64 reg, t_uint64 mem, uint32 *cc);
-extern uint32   s_mpfw(uint32 reg, uint32 mem, uint32 *cc);
-extern uint32   s_dvfw(uint32 reg, uint32 mem, uint32 *cc);
-extern t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32 *cc);
-extern t_uint64 s_dvfd(t_uint64 reg, t_uint64 mem, uint32 *cc);
-extern uint32   s_normfw(uint32 mem, uint32 *cc);
-extern t_uint64 s_normfd(t_uint64 mem, uint32 *cc);
+extern uint32_t   s_fixw(uint32_t val, uint32_t *cc);
+extern uint32_t   s_fltw(uint32_t val, uint32_t *cc);
+extern t_uint64 s_fixd(t_uint64 val, uint32_t *cc);
+extern t_uint64 s_fltd(t_uint64 val, uint32_t *cc);
+extern uint32_t   s_nor(uint32_t reg, uint32_t *exp);
+extern t_uint64 s_nord(t_uint64 reg, uint32_t *exp);
+extern uint32_t   s_adfw(uint32_t reg, uint32_t mem, uint32_t *cc);
+extern uint32_t   s_sufw(uint32_t reg, uint32_t mem, uint32_t *cc);
+extern t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
+extern t_uint64 s_sufd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
+extern uint32_t   s_mpfw(uint32_t reg, uint32_t mem, uint32_t *cc);
+extern uint32_t   s_dvfw(uint32_t reg, uint32_t mem, uint32_t *cc);
+extern t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
+extern t_uint64 s_dvfd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
+extern uint32_t   s_normfw(uint32_t mem, uint32_t *cc);
+extern t_uint64 s_normfd(t_uint64 mem, uint32_t *cc);
 
 /* History information */
 LOCAL   int32   hst_p = 0;                  /* History pointer */
@@ -165,15 +165,15 @@ UNIT  ipu_unit =
     NULL,       /* char *filename */         /* open file name */
     NULL,       /* FILE *fileref */          /* file reference */
     NULL,       /* void *filebuf */          /* memory buffer */
-    0,          /* uint32 hwmark */          /* high water mark */
+    0,          /* uint32_t hwmark */          /* high water mark */
     0,          /* int32 time */             /* time out */
 //    UNIT_IDLE|UNIT_FIX|UNIT_BINK|MODEL(MODEL_27)|MEMAMOUNT(4), /* flags */
     UNIT_FIX|UNIT_BINK|MODEL(MODEL_27)|MEMAMOUNT(4), /* flags */
-    0,          /* uint32 dynflags */        /* dynamic flags */
+    0,          /* uint32_t dynflags */        /* dynamic flags */
     0x800000,   /* t_addr capac */           /* capacity */
     0,          /* t_addr pos */             /* file position */
     0,          /* void (*io_flush) */       /* io flush routine */
-    0,          /* uint32 iostarttime */     /* I/O start time */
+    0,          /* uint32_t iostarttime */     /* I/O start time */
     0,          /* int32 buf */              /* buffer */
     80,         /* int32 wait */             /* wait */
 };
@@ -220,8 +220,8 @@ MTAB ipu_mod[] = {
     {
     /* MTAB table layout for ipu type */
     /* {UNIT_MODEL, MODEL(MODEL_55), "32/55", "32/55", NULL, NULL, NULL, "Concept 32/55"}, */
-    UNIT_MODEL,          /* uint32 mask */          /* mask */
-    MODEL(MODEL_55),     /* uint32 match */         /* match */
+    UNIT_MODEL,          /* uint32_t mask */          /* mask */
+    MODEL(MODEL_55),     /* uint32_t match */         /* match */
     "32/55",             /* cchar  *pstring */      /* print string */
     "32/55",             /* cchar  *mstring */      /* match string */
     NULL,                /* t_stat (*valid) */      /* validation routine */
@@ -245,8 +245,8 @@ MTAB ipu_mod[] = {
     {
     /* MTAB table layout for ipu memory size */
     /* {UNIT_MSIZE, MEMAMOUNT(0), "128K", "128K", &ipu_set_size}, */
-    UNIT_MSIZE,          /* uint32 mask */          /* mask */
-    MEMAMOUNT(0),        /* uint32 match */         /* match */
+    UNIT_MSIZE,          /* uint32_t mask */          /* mask */
+    MEMAMOUNT(0),        /* uint32_t match */         /* match */
     NULL,                /* cchar  *pstring */      /* print string */
     "128K",              /* cchar  *mstring */      /* match string */
     NULL,                /* t_stat (*valid) */      /* validation routine */
@@ -284,12 +284,12 @@ DEVICE ipu_dev = {
     &ipu_unit,           /* UNIT *units */          /* unit array */
     ipu_reg,             /* REG *registers */       /* register array */
     ipu_mod,             /* MTAB *modifiers */      /* modifier array */
-    1,                   /* uint32 numunits */      /* number of units */
-    16,                  /* uint32 aradix */        /* address radix */
-    32,                  /* uint32 awidth */        /* address width */
-    1,                   /* uint32 aincr */         /* address increment */
-    16,                  /* uint32 dradix */        /* data radix */
-    8,                   /* uint32 dwidth */        /* data width */
+    1,                   /* uint32_t numunits */      /* number of units */
+    16,                  /* uint32_t aradix */        /* address radix */
+    32,                  /* uint32_t awidth */        /* address width */
+    1,                   /* uint32_t aincr */         /* address increment */
+    16,                  /* uint32_t dradix */        /* data radix */
+    8,                   /* uint32_t dwidth */        /* data width */
     &ipu_ex,             /* t_stat (*examine) */    /* examine routine */
     &ipu_dep,            /* t_stat (*deposit) */    /* deposit routine */
     &ipu_reset,          /* t_stat (*reset) */      /* reset routine */
@@ -297,8 +297,8 @@ DEVICE ipu_dev = {
     NULL,                /* t_stat (*attach) */     /* attach routine */
     NULL,                /* t_stat (*detach) */     /* detach routine */
     NULL,                /* void *ctxt */           /* (context) device information block pointer */
-    DEV_DEBUG,           /* uint32 flags */         /* device flags */
-    0,                   /* uint32 dctrl */         /* debug control flags */
+    DEV_DEBUG,           /* uint32_t flags */         /* device flags */
+    0,                   /* uint32_t dctrl */         /* debug control flags */
     dev_debug,           /* DEBTAB *debflags */     /* debug flag name array */
     NULL,                /* t_stat (*msize) */      /* memory size change routine */
     NULL,                /* char *lname */          /* logical device name */
@@ -551,9 +551,9 @@ LOCAL void unlock_mutex()
 
 #ifdef NOT_USED
 /* this function is used to extract mode bits from PSD 1 & 2 */
-LOCAL uint32 set_modes(uint32 psd[2])
+LOCAL uint32_t set_modes(uint32_t psd[2])
 {
-    uint32 modes = 0;
+    uint32_t modes = 0;
     modes = psd[0] & 0x87000000;                    /* extract bits 0, 5, 6, 7 from PSD 1 */
 
     if (psd[1] & MAPBIT)                            /* is bit 0 of PSD2 set, we are mapped */
@@ -584,12 +584,12 @@ LOCAL uint32 set_modes(uint32 psd[2])
 /* The RMR and WMR macros are used to read/write the MAPC cache registers */
 /* RMR(addr) or WMR(addr, data) where addr is a half word alligned address */
 /* We will only get here if the retain maps bit is not set in PSD word 2 */
-LOCAL t_stat load_maps(uint32 thepsd[2], uint32 lmap)
+LOCAL t_stat load_maps(uint32_t thepsd[2], uint32_t lmap)
 {
-    uint32 num, sdc, spc, onlyos=0;
-    uint32 mpl, cpixmsdl, bpixmsdl, msdl, midl;
-    uint32 cpix, bpix, i, j, map, osmsdl, osmidl;
-    uint32 MAXMAP = MAX2048;                        /* default to 2048 maps */
+    uint32_t num, sdc, spc, onlyos=0;
+    uint32_t mpl, cpixmsdl, bpixmsdl, msdl, midl;
+    uint32_t cpix, bpix, i, j, map, osmsdl, osmidl;
+    uint32_t MAXMAP = MAX2048;                        /* default to 2048 maps */
 
     sim_debug(DEBUG_CMD, my_dev,
         "Load Maps Entry PSD %08x %08x STATUS %08x lmap %1x IPU Mode %2x\n",
@@ -667,7 +667,7 @@ LOCAL t_stat load_maps(uint32 thepsd[2], uint32 lmap)
                 }
 
                 for (j = 0; j < spc; j++, num++) {  /* loop throught the midl's */
-                    uint32 pad = RMW(midl+(j<<1));  /* get page descriptor address */
+                    uint32_t pad = RMW(midl+(j<<1));  /* get page descriptor address */
                     if (num >= MAXMAP) {
                         TRAPSTATUS |= BIT5;         /* set bit 5 of trap status */
                         return MAPFLT;              /* map loading overflow, map fault error */
@@ -709,7 +709,7 @@ LOCAL t_stat load_maps(uint32 thepsd[2], uint32 lmap)
             }
 
             for (j = 0; j < spc; j++, num++) {      /* loop through the midl's */
-                uint32 pad = RMW(midl+(j<<1));      /* get page descriptor address */
+                uint32_t pad = RMW(midl+(j<<1));      /* get page descriptor address */
                 if (num >= MAXMAP) {
                     TRAPSTATUS |= (BIT16|BIT9);     /* set bit 5 of trap status */
                     return MAPFLT;                  /* map loading overflow, map fault error */
@@ -843,7 +843,7 @@ nomaps:
 
         /* load the O/S maps */
         for (j = 0; j < spc; j++, num++) {          /* copy maps from msdl to map cache */
-            uint32 pad = osmsdl+(j<<1);             /* get page descriptor address */
+            uint32_t pad = osmsdl+(j<<1);             /* get page descriptor address */
 
             /* see if map overflow */
             if (num >= MAXMAP) {
@@ -988,7 +988,7 @@ loaduser:
         /* do 32/27 and 32/87 that force load all maps */
         /* now load user maps specified by the cpix value */
         for (j = 0; j < spc; j++, num++) {          /* copy maps from midl to map cache */
-            uint32 pad = msdl+(j<<1);               /* get page descriptor address */
+            uint32_t pad = msdl+(j<<1);               /* get page descriptor address */
 
             /* see if map overflow */
             if (num >= MAXMAP) {
@@ -1039,7 +1039,7 @@ loaduser:
     /* handle load on memory access case for 67, 97, V6 & V9 */
     /* now clear TLB & maps specified by the cpix value */
     for (j = 0; j < spc; j++, num++) {              /* clear maps in map cache */
-        uint32 pad = msdl+(j<<1);                   /* get page descriptor address */
+        uint32_t pad = msdl+(j<<1);                   /* get page descriptor address */
 
         /* if this is a LPSDCM instruction, just clear the TLB entry */
         if (!lmap) {
@@ -1112,11 +1112,11 @@ loaduser:
  * For 67, 97, V6, & V9 return all protection bits.
  * Addr is a byte address.
  */
-LOCAL t_stat RealAddr(uint32 addr, uint32 *realaddr, uint32 *prot, uint32 access)
+LOCAL t_stat RealAddr(uint32_t addr, uint32_t *realaddr, uint32_t *prot, uint32_t access)
 {
-    uint32  word, index, map, raddr, mpl, offset;
-    uint32  nix, msdl, mix;
-    uint32  MAXMAP = MAX2048;                       /* default to 2048 maps */
+    uint32_t  word, index, map, raddr, mpl, offset;
+    uint32_t  nix, msdl, mix;
+    uint32_t  MAXMAP = MAX2048;                       /* default to 2048 maps */
 
     *prot = 0;      /* show unprotected memory as default */
                     /* unmapped mode is unprotected */
@@ -1228,10 +1228,10 @@ LOCAL t_stat RealAddr(uint32 addr, uint32 *realaddr, uint32 *prot, uint32 access
     offset = word & 0x1fff;                         /* get 13 bit page offset */
 
     if (MODES & MAPMODE) {
-        uint32 mpl = SPAD[0xf3];                    /* get mpl from spad address */
-        uint32 cpix = CPIX;                         /* get cpix 11 bit offset from psd wd 2 */
-        uint32 midl = RMW(mpl+cpix);                /* get midl entry for given user cpix */
-        uint32 spc = midl & MASK16;                 /* get 16 bit user segment description count */
+        uint32_t mpl = SPAD[0xf3];                    /* get mpl from spad address */
+        uint32_t cpix = CPIX;                         /* get cpix 11 bit offset from psd wd 2 */
+        uint32_t midl = RMW(mpl+cpix);                /* get midl entry for given user cpix */
+        uint32_t spc = midl & MASK16;                 /* get 16 bit user segment description count */
         /* output O/S and User MPL entries */
         sim_debug(DEBUG_DETAIL, my_dev,
             "+MEMORY %06x MPL %06x MPL[0] %08x %06x MPL[%04x] %08x %06x\n",
@@ -1543,9 +1543,9 @@ LOCAL t_stat RealAddr(uint32 addr, uint32 *realaddr, uint32 *prot, uint32 access
 }
 
 /* fetch the current instruction from the PC address */
-LOCAL t_stat read_instruction(uint32 thepsd[2], uint32 *instr)
+LOCAL t_stat read_instruction(uint32_t thepsd[2], uint32_t *instr)
 {
-    uint32 status, addr;
+    uint32_t status, addr;
 
     if (CPU_MODEL < MODEL_27) {
         /* 32/7x machine with 8KW maps */
@@ -1579,9 +1579,9 @@ LOCAL t_stat read_instruction(uint32 thepsd[2], uint32 *instr)
  * Return error type if failure, ALLOK if
  * success.  Addr is logical byte address.
  */
-LOCAL t_stat Mem_read(uint32 addr, uint32 *data)
+LOCAL t_stat Mem_read(uint32_t addr, uint32_t *data)
 {
-    uint32 status, realaddr=0, prot, page, map, mix, nix, msdl, mpl, nmap;
+    uint32_t status, realaddr=0, prot, page, map, mix, nix, msdl, mpl, nmap;
 
     status = RealAddr(addr, &realaddr, &prot, MEM_RD);  /* convert address to real physical address */
 
@@ -1665,9 +1665,9 @@ LOCAL t_stat Mem_read(uint32 addr, uint32 *data)
  * and alignment restrictions. Return 1 if failure, 0 if
  * success.  Addr is logical byte address, data is 32bit word
  */
-LOCAL t_stat Mem_write(uint32 addr, uint32 *data)
+LOCAL t_stat Mem_write(uint32_t addr, uint32_t *data)
 {
-    uint32 status, realaddr=0, prot=0, raddr, page, nmap, msdl, mpl, map, nix, mix;
+    uint32_t status, realaddr=0, prot=0, raddr, page, nmap, msdl, mpl, map, nix, mix;
 
     status = RealAddr(addr, &realaddr, &prot, MEM_WR);  /* convert address to real physical address */
 
@@ -1771,7 +1771,7 @@ LOCAL t_stat Mem_write(uint32 addr, uint32 *data)
 
 /* function to set the CCs in PSD1 */
 /* ovr is setting for CC1 */
-LOCAL void set_CCs(uint32 value, int ovr)
+LOCAL void set_CCs(uint32_t value, int ovr)
 {
     PSD1 &= 0x87FFFFFE;                             /* clear the old CC's */
     if (ovr)
@@ -1788,9 +1788,9 @@ LOCAL void set_CCs(uint32 value, int ovr)
 }
 
 /* retain these values across calls to sim_instr */
-LOCAL uint32  skipinstr = 0;                        /* Skip test for interrupt on this instruction */
-LOCAL uint32  drop_nop = 0;                         /* Set if right hw instruction is a nop */
-LOCAL uint32  TPSD[2];                              /* Temp PSD */
+LOCAL uint32_t  skipinstr = 0;                        /* Skip test for interrupt on this instruction */
+LOCAL uint32_t  drop_nop = 0;                         /* Set if right hw instruction is a nop */
+LOCAL uint32_t  TPSD[2];                              /* Temp PSD */
 #define TPSD1 TPSD[0]                               /* word 1 of PSD */
 #define TPSD2 TPSD[1]                               /* word 2 of PSD */
 
@@ -1804,31 +1804,31 @@ void *ipu_sim_instr(void *value) {
     t_int64             int64a;                     /* temp int */
     t_int64             int64b;                     /* temp int */
     t_int64             int64c;                     /* temp int */
-    uint32              addr;                       /* Holds address of last access */
-    uint32              temp;                       /* General holding place for stuff */
-//  uint32              IR;                         /* Instruction register */
-    uint32              i_flags = 0;                /* Instruction description flags from table */
-    uint32              t;                          /* Temporary */
-    uint32              temp2;                      /* Temporary */
-    uint32              bc=0;                       /* Temporary bit count */
-//  uint16              OPR;                        /* Top half of Instruction register */
-//  uint16              OP;                         /* Six bit instruction opcode */
-//  uint16              chan;                       /* I/O channel address */
-//  uint16              lchan;                      /* Logical I/O channel address */
-//  uint16              suba;                       /* I/O subaddress */
-//  uint16              lchsa;                      /* logical I/O channel & subaddress */
-//  uint16              rchsa;                      /* real I/O channel & subaddress */
-    uint8               FC;                         /* Current F&C bits */
-    uint8               EXM_EXR=0;                  /* PC Increment for EXM/EXR instructions */
-    uint8               BM, MM, BK;                 /* basemode, mapped mode, blocked mode */
-    uint32              reg;                        /* GPR or Base register bits 6-8 */
-    uint32              sreg;                       /* Source reg in from bits 9-11 reg-reg instructions */
-    uint32              ix = 0;                     /* index register */
-    uint32              dbl;                        /* Double word */
-    uint32              ovr=0;                      /* Overflow flag */
-//FORSTEP    uint32              stopnext = 0;      /* Stop on next instruction */
-//  uint32              int_icb;                    /* interrupt context block address */
-//  uint32              rstatus;                    /* temp return status */
+    uint32_t              addr;                       /* Holds address of last access */
+    uint32_t              temp;                       /* General holding place for stuff */
+//  uint32_t              IR;                         /* Instruction register */
+    uint32_t              i_flags = 0;                /* Instruction description flags from table */
+    uint32_t              t;                          /* Temporary */
+    uint32_t              temp2;                      /* Temporary */
+    uint32_t              bc=0;                       /* Temporary bit count */
+//  uint16_t              OPR;                        /* Top half of Instruction register */
+//  uint16_t              OP;                         /* Six bit instruction opcode */
+//  uint16_t              chan;                       /* I/O channel address */
+//  uint16_t              lchan;                      /* Logical I/O channel address */
+//  uint16_t              suba;                       /* I/O subaddress */
+//  uint16_t              lchsa;                      /* logical I/O channel & subaddress */
+//  uint16_t              rchsa;                      /* real I/O channel & subaddress */
+    uint8_t               FC;                         /* Current F&C bits */
+    uint8_t               EXM_EXR=0;                  /* PC Increment for EXM/EXR instructions */
+    uint8_t               BM, MM, BK;                 /* basemode, mapped mode, blocked mode */
+    uint32_t              reg;                        /* GPR or Base register bits 6-8 */
+    uint32_t              sreg;                       /* Source reg in from bits 9-11 reg-reg instructions */
+    uint32_t              ix = 0;                     /* index register */
+    uint32_t              dbl;                        /* Double word */
+    uint32_t              ovr=0;                      /* Overflow flag */
+//FORSTEP    uint32_t              stopnext = 0;      /* Stop on next instruction */
+//  uint32_t              int_icb;                    /* interrupt context block address */
+//  uint32_t              rstatus;                    /* temp return status */
     int32               int32a;                     /* temp int */
     int32               int32b;                     /* temp int */
     int32               int32c;                     /* temp int */
@@ -2334,7 +2334,7 @@ exec2:
                     TRAPME = ADDRSPEC_TRAP;         /* bad address, error */
                     sim_debug(DEBUG_TRAP, my_dev,
                         "ADDRSPEC4 case RM wd 1/3 Mem_read DW status %02x @ %08x src %08x\n",
-                        TRAPME, addr, (uint32)source);
+                        TRAPME, addr, (uint32_t)source);
                     goto newpsd;                    /* go execute the trap now */
                 }
                 if ((TRAPME = Mem_read(addr+4, &temp))) {   /* get the 2nd word from memory */
@@ -3262,8 +3262,8 @@ zbr:            /* handle basemode too */
                     }
                     dest &= ~DMSIGN;                /* clear sign bit */
                     dest |= source;                 /* restore original sign bit */
-                    GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                    GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                    GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                    GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                     PSD1 &= 0x87FFFFFE;             /* clear the old CC's */
                     if (ovr)
                         PSD1 |= BIT1;               /* CC1 in PSD */
@@ -3280,8 +3280,8 @@ zbr:            /* handle basemode too */
                     dest <<= bc;                    /* shift left #bits */
                     break;
                 }
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 break;
 
             } else {                                /* handle nonbase mode ABR */
@@ -3405,7 +3405,7 @@ tbr:                                                /* handle basemode TBR too *
                 /* otherwise it is a CALL instruction (Rd != 0) */
                 if (reg == 0) {
                     /* BSUB instruction */
-                    uint32 cfp = BR[2];             /* get dword bounded frame pointer from BR2 */
+                    uint32_t cfp = BR[2];             /* get dword bounded frame pointer from BR2 */
                     if ((BR[2] & 0x7) != 0)  {
                         /* Fault, must be dw bounded address */
                         TRAPME = ADDRSPEC_TRAP;     /* bad address, error */
@@ -3426,7 +3426,7 @@ tbr:                                                /* handle basemode TBR too *
                 {
                     /* CALL instruction */
                     /* get frame pointer from BR2-16 words & make it a dword addr */
-                    uint32 cfp = ((BR[2]-0x40) & 0x00fffff8);
+                    uint32_t cfp = ((BR[2]-0x40) & 0x00fffff8);
 
                     /* if cfp and cfp+15w are in different maps, then addr exception error */
                     if ((cfp & 0xffe000) != ((cfp+0x3f) & 0xffe000)) {
@@ -3585,7 +3585,7 @@ tbr:                                                /* handle basemode TBR too *
                     goto newpsd;                    /* handle trap */
                 }
                 {   /* load the ipu maps using diag psd */
-                    uint32  DPSD[2];                /* the PC for the instruction */
+                    uint32_t  DPSD[2];                /* the PC for the instruction */
                     /* get PSD pointed to by real addr in Rd (temp) */
                     DPSD[0] = RMW(temp);            /* get word one of psd */
                     DPSD[1] = RMW(temp+4);          /* get word two of psd */
@@ -3917,7 +3917,7 @@ skipit:
                 temp = GPR[reg];                    /* reg contents specified by Rd */
                 addr = GPR[sreg];                   /* reg contents specified by Rs */
                 /* temp has Rd (GPR[reg]), addr has Rs (GPR[sreg]) */
-                temp2 = (uint32)s_dvfw(temp, addr, &CC);    /* divide reg by sreg */
+                temp2 = (uint32_t)s_dvfw(temp, addr, &CC);    /* divide reg by sreg */
                 sim_debug(DEBUG_DETAIL, my_dev,
                     "DVRFW GPR[%d] %08x src %08x result %08x\n",
                     reg, GPR[reg], addr, temp2);
@@ -4041,8 +4041,8 @@ skipit:
                 }
                 /* AEXPBIT not set, so save the fixed return value */
                 /* return result to destination reg */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 break;
 
             case 0xA:       /* DVRBR */
@@ -4079,8 +4079,8 @@ doovr4:
                     /* the original regs must be returned unchanged if aexp */
                     set_CCs(temp, ovr);             /* set the CC's */
                 } else {
-                    GPR[reg] = (uint32)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
-                    GPR[reg+1] = (uint32)(dest & FMASK);    /* store quotient in reg+1 */
+                    GPR[reg] = (uint32_t)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
+                    GPR[reg+1] = (uint32_t)(dest & FMASK);    /* store quotient in reg+1 */
                     set_CCs(GPR[reg+1], ovr);       /* set the CC's, CC1 = ovr */
                 }
                 break;
@@ -4111,8 +4111,8 @@ doovr4:
                 }
                 /* AEXPBIT not set, so save the fixed return value */
                 /* return result to destination reg */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 break;
 
             case 0xD:       /* FIXD */
@@ -4141,8 +4141,8 @@ doovr4:
                 }
                 /* AEXPBIT not set, so save the fixed return value */
                 /* return result to destination reg */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 break;
 
             case 0xE:       /* MPRFD */
@@ -4171,8 +4171,8 @@ doovr4:
                 }
                 /* AEXPBIT not set, so save the fixed return value */
                 /* return result to destination reg */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 break;
 
             case 0xF:       /* FLTD */
@@ -4190,8 +4190,8 @@ doovr4:
                     sreg, GPR[sreg], GPR[sreg+1], dest);
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 PSD1 |= (CC & 0x78000000);          /* update the CC's in the PSD */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 break;
             }
             if (i_flags & SF) {                     /* see if special processing */
@@ -4346,8 +4346,8 @@ doovr3:
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's from PSD1 */
                 PSD1 |= CC;                         /* update the CC's in the PSD */
             } else {
-                GPR[reg] = (uint32)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* store quotient in reg+1 */
+                GPR[reg] = (uint32_t)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* store quotient in reg+1 */
                 set_CCs(GPR[reg+1], ovr);           /* set the CC's, CC1 = ovr */
             }
             break;
@@ -4399,14 +4399,14 @@ doovr3:
                 goto newpsd;                        /* go execute the trap now */
             }
             if ((FC & 0x4) == 0) {                  /* this is a LWBR 0x5C00 instruction */
-                BR[reg] = (uint32)source;           /* load memory location into BR */
+                BR[reg] = (uint32_t)source;           /* load memory location into BR */
             } else
             {                                       /* this is a CALLM/BSUBM instruction */
                 /* if Rd field is 0 (reg is b6-8), this is a BSUBM instruction */
                 /* otherwise it is a CALLM instruction (Rd != 0) */
                 if (reg == 0) {
                     /* BSUBM instruction */
-                    uint32 cfp = BR[2];             /* get dword bounded frame pointer from BR2 */
+                    uint32_t cfp = BR[2];             /* get dword bounded frame pointer from BR2 */
 
                     if ((BR[2] & 0x7) != 0)  {
                         /* Fault, must be dw bounded address */
@@ -4448,7 +4448,7 @@ doovr3:
                     /* CALLM instruction */
 
                     /* get frame pointer from BR2 - 16 words & make it a dword addr */
-                    uint32 cfp = ((BR[2]-0x40) & 0x00fffff8);
+                    uint32_t cfp = ((BR[2]-0x40) & 0x00fffff8);
 
                     /* if cfp and cfp+15w are in different maps, then addr exception error */
                     if ((cfp & 0xffe000) != ((cfp+0x3f) & 0xffe000)) {
@@ -4552,8 +4552,8 @@ doovr3:
             sim_debug(DEBUG_DETAIL, my_dev,
                 "NORD GPR[%d] %08x %08x result %016llx exp %02x\n",
                 reg, GPR[reg], GPR[reg+1], dest, GPR[sreg]);
-            GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-            GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+            GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+            GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
             break;
 
         case 0x68>>2:       /* 0x68 HLF - INV */    /* non basemode SCZ */
@@ -4655,8 +4655,8 @@ doovr3:
                 }
                 dest &= ~DMSIGN;                    /* clear sign bit */
                 dest |= source;                     /* restore original sign bit */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 if (ovr)
                     PSD1 |= BIT1;                   /* CC1 in PSD */
@@ -4672,8 +4672,8 @@ doovr3:
                     dest >>= 1;                     /* shift bit 0 right one bit */
                     dest |= source;                 /* restore original sign bit */
                 }
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
             }
             break;
 
@@ -4691,8 +4691,8 @@ doovr3:
                 dest <<= bc;                        /* shift left #bits */
             else
                 dest >>= bc;                        /* shift right #bits */
-            GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-            GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+            GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+            GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
             break;
 
         case 0x80>>2:       /* 0x80 SD|ADR - SD|ADR */  /* LEAR */
@@ -4706,7 +4706,7 @@ doovr3:
             }
             /* set access bit for mapped addresses */
             if ((CPU_MODEL >= MODEL_V6) && (MODES & MAPMODE)) {
-                uint32 map, mix, nix, msdl, mpl, Mmap;
+                uint32_t map, mix, nix, msdl, mpl, Mmap;
 
                 nix = (addr >> 13) & 0x7ff;         /* get 11 bit map value */
                 /* check our access to the memory */
@@ -5299,8 +5299,8 @@ doovr:
                 if (MODES & AEXPBIT)
                     TRAPME = AEXPCEPT_TRAP;         /* set the trap type */
             } else {
-                GPR[reg] = (uint32)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* store quotient in reg+1 */
+                GPR[reg] = (uint32_t)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* store quotient in reg+1 */
                 set_CCs(GPR[reg+1], ovr);           /* set the CC's, CC1 = ovr */
             }
             break;
@@ -5399,8 +5399,8 @@ doovr2:
                     PSD1 &= 0x87FFFFFE;             /* clear the old CC's from PSD1 */
                     PSD1 |= CC;                     /* update the CC's in the PSD */
                 } else {
-                    GPR[reg] = (uint32)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
-                    GPR[reg+1] = (uint32)(dest & FMASK);    /* store quotient in reg+1 */
+                    GPR[reg] = (uint32_t)(td & FMASK);    /* reg gets remainder, reg+1 quotient */
+                    GPR[reg+1] = (uint32_t)(dest & FMASK);    /* store quotient in reg+1 */
                     set_CCs(GPR[reg+1], ovr);       /* set the CC's, CC1 = ovr */
                 }
                 break;
@@ -5456,9 +5456,9 @@ doovr2:
                 PSD2 &= ~RETMBIT;                   /* turn off retain bit in PSD2 */
 
                 if (PSD2 & MAPBIT) {                /* see if new PSD is mapped */
-                    uint32  mpl = SPAD[0xf3];       /* get mpl from spad address */
-                    uint32  osmidl = RMW(mpl);      /* get midl entry for O/S */
-                    uint32  MAXMAP = MAX2048;       /* default to 2048 maps */
+                    uint32_t  mpl = SPAD[0xf3];       /* get mpl from spad address */
+                    uint32_t  osmidl = RMW(mpl);      /* get midl entry for O/S */
+                    uint32_t  MAXMAP = MAX2048;       /* default to 2048 maps */
 
                     if (CPU_MODEL < MODEL_27)
                         MAXMAP = MAX32;             /* 32 maps for 32/77 */
@@ -5766,7 +5766,7 @@ dohist:
                 if (dbl == 0) {
                     /* do ADFW or SUFW instructions */
                     temp2 = GPR[reg];               /* dest - reg contents specified by Rd */
-                    addr = (uint32)(source & D32RMASK); /* get 32 bits from source memory */
+                    addr = (uint32_t)(source & D32RMASK); /* get 32 bits from source memory */
                     if ((OPR & 8) == 0) {           /* Was it SUFW? */
                         addr = NEGATE32(addr);      /* take negative for add */
                     }
@@ -5817,8 +5817,8 @@ dohist:
                     /* dest will be returned to destination regs */
                     /* if AEXP not enabled, apply fix here */
                     /* return dest to destination reg */
-                    GPR[reg] = (uint32)((dest & D32LMASK) >> 32);   /* get upper reg value */
-                    GPR[reg+1] = (uint32)(dest & D32RMASK); /* get lower reg value */
+                    GPR[reg] = (uint32_t)((dest & D32LMASK) >> 32);   /* get upper reg value */
+                    GPR[reg+1] = (uint32_t)(dest & D32RMASK); /* get lower reg value */
                 }
                 break;
 
@@ -5843,11 +5843,11 @@ dohist:
             if (dbl == 0) {
                 /* do MPFW or DVFW instructions */
                 temp2 = GPR[reg];                   /* dest - reg contents specified by Rd */
-                addr = (uint32)(source & D32RMASK); /* get 32 bits from source memory */
+                addr = (uint32_t)(source & D32RMASK); /* get 32 bits from source memory */
                 if (OPR & 8) {                      /* Was it MPFW? */
                     temp = s_mpfw(temp2, addr, &CC);    /* do MPFW */
                 } else {
-                    temp = (uint32)s_dvfw(temp2, addr, &CC);    /* do DVFW */
+                    temp = (uint32_t)s_dvfw(temp2, addr, &CC);    /* do DVFW */
                 }
                 sim_debug(DEBUG_DETAIL, my_dev,
                     "%s GPR[%d] %08x addr %08x result %08x\n",
@@ -5894,8 +5894,8 @@ dohist:
                 /* dest will be returned to destination regs */
                 /* if AEXP not enabled, apply fix here */
                 /* return dest to destination reg */
-                GPR[reg] = (uint32)((dest & D32LMASK) >> 32);   /* get upper reg value */
-                GPR[reg+1] = (uint32)(dest & D32RMASK); /* get lower reg value */
+                GPR[reg] = (uint32_t)((dest & D32LMASK) >> 32);   /* get upper reg value */
+                GPR[reg+1] = (uint32_t)(dest & D32RMASK); /* get lower reg value */
             }
             break;
 
@@ -6229,11 +6229,11 @@ dohist:
                         /* until the next context switch and causes loading error */
                         /* CHANGED 041420 maybe not right */
                         if ((PSD2 & RETMBIT)) {     /* don't load maps if retain bit set */
-                            uint32 mpl = SPAD[0xf3];    /* get mpl from spad address */
-                            uint32 cpix = PSD2 & 0x3ff8;    /* get cpix 11 bit offset from psd wd 2 */
-                            uint32 osmidl = RMW(mpl);   /* get midl entry for given O/S */
-                            uint32 midl = RMW(mpl+cpix);    /* get midl entry for given user cpix */
-                            uint32 spc = midl & MASK16; /* get 16 bit user segment description count */
+                            uint32_t mpl = SPAD[0xf3];    /* get mpl from spad address */
+                            uint32_t cpix = PSD2 & 0x3ff8;    /* get cpix 11 bit offset from psd wd 2 */
+                            uint32_t osmidl = RMW(mpl);   /* get midl entry for given O/S */
+                            uint32_t midl = RMW(mpl+cpix);    /* get midl entry for given user cpix */
+                            uint32_t spc = midl & MASK16; /* get 16 bit user segment description count */
 
                         sim_debug(DEBUG_TRAP, my_dev,
               "LPSDCM FIX %.8x %.8x mpl %.6x osmidl %06x umidl %06x OSMAPS %04x UMAPS %04x CPIXPL %04x\n",
@@ -6364,10 +6364,10 @@ dohist:
                         "ADDRSPEC13 OP %04x addr %08x reg %x\n", OP, addr, reg);
                     goto newpsd;                    /* go execute the trap now */
                 }
-                GPR[reg+1] = (uint32)(dest & FMASK);    /* save the low order reg */
-                GPR[reg] = (uint32)((dest>>32) & FMASK);/* save the hi order reg */
+                GPR[reg+1] = (uint32_t)(dest & FMASK);    /* save the low order reg */
+                GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
             } else {
-                GPR[reg] = (uint32)(dest & FMASK);  /* save the reg */
+                GPR[reg] = (uint32_t)(dest & FMASK);  /* save the reg */
             }
         }
 
@@ -6379,7 +6379,7 @@ dohist:
                     "ADDRSPEC14 OP %04x addr %08x\n", OP, addr);
                 goto newpsd;                        /* go execute the trap now */
             }
-            BR[reg] = (uint32)(dest & FMASK);       /* save the base reg */
+            BR[reg] = (uint32_t)(dest & FMASK);       /* save the base reg */
         }
 
         /* Store result to memory */
@@ -6398,14 +6398,14 @@ dohist:
                         "ADDRSPEC14 OP %04x addr %08x\n", OP, addr);
                     goto newpsd;                    /* go execute the trap now */
                 }
-                temp = (uint32)(dest & MASK32);/* get lo 32 bit */
+                temp = (uint32_t)(dest & MASK32);/* get lo 32 bit */
                 if ((TRAPME = Mem_write(addr + 4, &temp)))
                     goto newpsd;                    /* memory write error or map fault */
-                temp = (uint32)(dest >> 32);        /* move upper 32 bits to lo 32 bits */
+                temp = (uint32_t)(dest >> 32);        /* move upper 32 bits to lo 32 bits */
                 break;
 
             case 0:         /* word store */
-                temp = (uint32)(dest & FMASK);      /* mask 32 bit of reg */
+                temp = (uint32_t)(dest & FMASK);      /* mask 32 bit of reg */
                 if ((addr & 3) != 0) {
                     /* Address fault */
                     TRAPME = ADDRSPEC_TRAP;         /* address not on wd boundry, error */
@@ -6417,7 +6417,7 @@ dohist:
 
             case 1:         /* left halfword write */
                 temp &= RMASK;                      /* mask out 16 left most bits */
-                temp |= (uint32)(dest & RMASK) << 16;   /* put into left most 16 bits */
+                temp |= (uint32_t)(dest & RMASK) << 16;   /* put into left most 16 bits */
                 if ((addr & 1) != 1) {
                     /* Address fault */
                     TRAPME = ADDRSPEC_TRAP;         /* address not on hw boundry, error */
@@ -6429,7 +6429,7 @@ dohist:
 
             case 3:         /* right halfword write */
                 temp &= LMASK;                      /* mask out 16 right most bits */
-                temp |= (uint32)(dest & RMASK);     /* put into right most 16 bits */
+                temp |= (uint32_t)(dest & RMASK);     /* put into right most 16 bits */
                 if ((addr & 3) != 3) {
                     TRAPME = ADDRSPEC_TRAP;         /* address not on hw boundry, error */
                     sim_debug(DEBUG_TRAP, my_dev,
@@ -6443,7 +6443,7 @@ dohist:
             case 6:
             case 7:         /* byte store operation */
                 temp &= ~(0xFF << (8 * (7 - FC)));  /* clear the byte to store */
-                temp |= (uint32)(dest & 0xFF) << (8 * (7 - FC));    /* insert new byte */
+                temp |= (uint32_t)(dest & 0xFF) << (8 * (7 - FC));    /* insert new byte */
                 break;
             }
             /* store back the modified memory location */
@@ -6573,8 +6573,8 @@ newpsd:
         /* we get here from a LPSD, LPSDCM, INTR, or TRAP */
         if (TRAPME) {
             /* SPAD location 0xf0 has trap vector base address */
-            uint32 tta = SPAD[0xf0];                /* get trap table address in memory */
-            uint32 tvl;                             /* trap vector location */
+            uint32_t tta = SPAD[0xf0];                /* get trap table address in memory */
+            uint32_t tvl;                             /* trap vector location */
             if ((tta == 0) || ((tta&MASK24) == MASK24)) {
                 if (IPUSTATUS & ONIPU) {
                     tta = 0x20;                     /* if not set, assume 0x20 FIXME */
@@ -6772,7 +6772,7 @@ doahalt:
                     pthread_exit((void *)&reason);
 #endif
                 } else {
-                    uint32 oldstatus = IPUSTATUS;   /* keep for retain blocking state */
+                    uint32_t oldstatus = IPUSTATUS;   /* keep for retain blocking state */
                     /* valid vector, so store the PSD, fetch new PSD */
                     bc = PSD2 & 0x3ff8;             /* get copy of cpix */
                     if ((TRAPME) && ((CPU_MODEL <= MODEL_27))) {
@@ -6884,10 +6884,10 @@ doahalt:
 /* these are the default ipl devices defined by the CPU jumpers */
 /* they can be overridden by specifying IPL device at ipl time */
 #ifndef USE_IPU_CODE
-LOCAL uint32 def_disk = 0x0800;                     /* disk channel 8, device 0 */
-LOCAL uint32 def_floppy = 0x7ef0;                   /* IOP floppy disk channel 7e, device f0 */
+LOCAL uint32_t def_disk = 0x0800;                     /* disk channel 8, device 0 */
+LOCAL uint32_t def_floppy = 0x7ef0;                   /* IOP floppy disk channel 7e, device f0 */
 #endif
-LOCAL uint32 def_tape = 0x1000;                     /* tape device 10, device 0 */
+LOCAL uint32_t def_tape = 0x1000;                     /* tape device 10, device 0 */
 
 /* Reset routine */
 /* do any one time initialization here for ipu */
@@ -6986,8 +6986,8 @@ t_stat ipu_reset(DEVICE *dptr)
 /* examine a 32bit memory location and return a byte */
 t_stat ipu_ex(t_value *vptr, t_addr baddr, UNIT *uptr, int32 sw)
 {
-    uint32 status, realaddr, prot;
-    uint32 addr = (baddr & 0xfffffc) >> 2;          /* make 24 bit byte address into word address */
+    uint32_t status, realaddr, prot;
+    uint32_t addr = (baddr & 0xfffffc) >> 2;          /* make 24 bit byte address into word address */
 
     if (sw & SWMASK('V')) {
         /* convert address to real physical address */
@@ -7013,8 +7013,8 @@ t_stat ipu_ex(t_value *vptr, t_addr baddr, UNIT *uptr, int32 sw)
 /* address is byte address with bits 30,31 = 0 */
 t_stat ipu_dep(t_value val, t_addr baddr, UNIT *uptr, int32 sw)
 {
-    uint32 addr = (baddr & 0xfffffc) >> 2;          /* make 24 bit byte address into word address */
-    static const uint32 bmasks[4] = {0x00FFFFFF, 0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
+    uint32_t addr = (baddr & 0xfffffc) >> 2;          /* make 24 bit byte address into word address */
+    static const uint32_t bmasks[4] = {0x00FFFFFF, 0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
 
     /* MSIZE is in 32 bit words */
     if (!MEM_ADDR_OK(addr))                         /* see if address is within our memory */
@@ -7093,7 +7093,7 @@ t_stat ipu_show_hist(FILE *st, UNIT *uptr, int32 val, CONST void *desc)
     int32               k, di, lnt;
     char               *cptr = (char *) desc;
     t_stat              r;
-    uint8               BM, MM, BK;                 /* basemode, mapped mode, blocked mode */
+    uint8_t               BM, MM, BK;                 /* basemode, mapped mode, blocked mode */
     struct InstHistory *h;
 
     if (hst_lnt == 0)                               /* see if show history is enabled */

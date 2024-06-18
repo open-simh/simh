@@ -129,7 +129,7 @@ sim_byte_swap_data (bptr, size, count);
 
 void sim_byte_swap_data (void *bptr, size_t size, size_t count)
 {
-uint32 j;
+uint32_t j;
 int32 k;
 unsigned char by, *sptr, *dptr;
 
@@ -249,14 +249,14 @@ fclose (fp);
 return sz;
 }
 
-uint32 sim_fsize_name (const char *fname)
+uint32_t sim_fsize_name (const char *fname)
 {
-return (uint32)(sim_fsize_name_ex (fname));
+return (uint32_t)(sim_fsize_name_ex (fname));
 }
 
-uint32 sim_fsize (FILE *fp)
+uint32_t sim_fsize (FILE *fp)
 {
-return (uint32)(sim_fsize_ex (fp));
+return (uint32_t)(sim_fsize_ex (fp));
 }
 
 t_bool sim_can_seek (FILE *fp)
@@ -271,13 +271,13 @@ return TRUE;
 
 static char *_sim_expand_homedir (const char *file, char *dest, size_t dest_size)
 {
-uint8 *without_quotes = NULL;
-uint32 dsize = 0;
+uint8_t *without_quotes = NULL;
+uint32_t dsize = 0;
 
 errno = 0;
 if (((*file == '"') && (file[strlen (file) - 1] == '"')) ||
     ((*file == '\'') && (file[strlen (file) - 1] == '\''))) {
-    without_quotes = (uint8*)malloc (strlen (file) + 1);
+    without_quotes = (uint8_t*)malloc (strlen (file) + 1);
     if (without_quotes == NULL)
         return NULL;
     if (SCPE_OK != sim_decode_quoted_string (file, without_quotes, &dsize)) {

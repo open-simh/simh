@@ -137,24 +137,24 @@ extern int32 tmxr_poll;                                 /* calibrated delay */
 extern int32 fault_PC;
 extern int32 trpirq;
 
-uint8 va_red_map[256];                                  /* red colour map */
-uint8 va_blu_map[256];                                  /* blue colour map */
-uint8 va_grn_map[256];                                  /* green colour map */
-uint16 va_ram[RAM_SIZE];                                /* template RAM */
+uint8_t va_red_map[256];                                  /* red colour map */
+uint8_t va_blu_map[256];                                  /* blue colour map */
+uint8_t va_grn_map[256];                                  /* green colour map */
+uint16_t va_ram[RAM_SIZE];                                /* template RAM */
 
-uint32 va_dga_csr = 0;                                  /* control/status */
-uint32 va_dga_addr = 0;                                 /* DMA address */
-uint32 va_dga_count = 0;                                /* DMA counter */
+uint32_t va_dga_csr = 0;                                  /* control/status */
+uint32_t va_dga_addr = 0;                                 /* DMA address */
+uint32_t va_dga_count = 0;                                /* DMA counter */
 int32 va_dga_curx = 0;                                  /* cursor X */
 int32 va_dga_cury = 0;                                  /* cursor Y */
-uint32 va_dga_int = 0;                                  /* interrupt register */
-uint32 va_dga_fifo[VA_DGA_FIFOSIZE];                    /* FIFO */
-uint32 va_dga_fifo_wp = 0;                              /* write pointer */
-uint32 va_dga_fifo_rp = 0;                              /* read pointer */
-uint32 va_dga_fifo_sz = 0;                              /* data size */
+uint32_t va_dga_int = 0;                                  /* interrupt register */
+uint32_t va_dga_fifo[VA_DGA_FIFOSIZE];                    /* FIFO */
+uint32_t va_dga_fifo_wp = 0;                              /* write pointer */
+uint32_t va_dga_fifo_rp = 0;                              /* read pointer */
+uint32_t va_dga_fifo_sz = 0;                              /* data size */
 
-uint32 va_rdbk = 0;                                     /* video readback */
-uint32 va_mcsr = 0;                                     /* memory csr */
+uint32_t va_rdbk = 0;                                     /* video readback */
+uint32_t va_mcsr = 0;                                     /* memory csr */
 
 int32 va_cur_x = 0;                                     /* last cursor X-position */
 int32 va_cur_y = 0;                                     /* last cursor Y-position */
@@ -163,20 +163,20 @@ t_bool va_cur_v = FALSE;                                /* last cursor visible *
 t_bool va_active = FALSE;
 t_bool va_updated[VA_BYSIZE];
 t_bool va_input_captured = FALSE;                       /* Mouse and Keyboard input captured in video window */
-uint32 *va_buf = NULL;                                  /* Video memory */
-uint32 va_addr;                                         /* QDSS Qbus memory window address */
-uint32 *va_lines = NULL;                                /* Video Display Lines */
-uint32 va_palette[256];                                 /* Colour palette */
+uint32_t *va_buf = NULL;                                  /* Video memory */
+uint32_t va_addr;                                         /* QDSS Qbus memory window address */
+uint32_t *va_lines = NULL;                                /* Video Display Lines */
+uint32_t va_palette[256];                                 /* Colour palette */
 
-uint32 va_dla = 0;                                      /* display list addr */
-uint32 va_rom_poll = 0;
+uint32_t va_dla = 0;                                      /* display list addr */
+uint32_t va_rom_poll = 0;
 
 /* debug variables */
 
 int32 va_yoff = 0;                                      /* debug Y offset */
 int32 va_dpln = 0;                                      /* debug plane */
-uint32 va_white = 0;                                    /* white pixel */
-uint32 va_black = 0;                                    /* black pixel */
+uint32_t va_white = 0;                                    /* white pixel */
+uint32_t va_black = 0;                                    /* black pixel */
 
 const char *va_dga_rgd[] = {                            /* DMA gate array registers */
     "Control/Status",
@@ -207,7 +207,7 @@ t_stat va_show_cmap (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
 void va_setint (int32 src);
 int32 va_inta (void);
 void va_clrint (int32 src);
-void va_uart_int (uint32 set);
+void va_uart_int (uint32_t set);
 t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *va_description (DEVICE *dptr);
 void va_checkint (void);
@@ -324,7 +324,7 @@ if (rg == 0) {
         sim_activate_abs (&va_unit[0], tmxr_poll);
     else
         sim_cancel (&va_unit[0]);
-    va_addr = ((uint32)data) << QDMAWIDTH;
+    va_addr = ((uint32_t)data) << QDMAWIDTH;
     }
 sim_debug (DBG_REG, &va_dev, "va_wr: %d, %X from PC %08X\n", rg, data, fault_PC);
 return SCPE_OK;
@@ -339,7 +339,7 @@ va_dga_fifo_rp = VA_FFO_OF;
 va_dga_fifo_sz = 0;                                     /* empty */
 }
 
-void va_dga_fifo_wr (uint32 val)
+void va_dga_fifo_wr (uint32_t val)
 {
 sim_debug (DBG_DGA, &va_dev, "dga_fifo_wr: %d, %X (%d) from PC %08X\n", va_dga_fifo_wp, val, (va_dga_fifo_sz + 1), fault_PC);
 #if 0
@@ -371,9 +371,9 @@ if (va_dga_fifo_wp == VA_DGA_FIFOSIZE)                  /* pointer wrap? */
 va_dga_fifo_sz++;
 }
 
-uint32 va_dga_fifo_rd (void)
+uint32_t va_dga_fifo_rd (void)
 {
-uint32 val, wc, bc, r;
+uint32_t val, wc, bc, r;
 
 if (va_dga_fifo_sz == 0) {                              /* reading empty fifo */
     if (va_dga_count > 0) {                             /* DMA in progress? */
@@ -551,7 +551,7 @@ int32 va_mem_rd (int32 pa)
 {
 int32 rg = (pa >> 1) & 0x7FFF;
 int32 data;
-uint16 *qr = (uint16*) vax_vcb02_bin;
+uint16_t *qr = (uint16_t*) vax_vcb02_bin;
 
 if (rg >= VA_RSV_OF) {
     return 0;
@@ -689,7 +689,7 @@ if (rg >= VA_RAM_OF) {                                  /* RAM */
 void va_dlist ()
 {
 t_bool nodec = FALSE;
-uint32 inst, saved_inst;
+uint32_t inst, saved_inst;
 int32 val;
 
 saved_inst = (va_dla >> 16) & 0xFFFF;                   /* get saved instruction */
@@ -845,7 +845,7 @@ sim_debug (DBG_INT, &va_dev, "returning vector: %X\n", vec);
 return vec;
 }
 
-void va_uart_int (uint32 set)
+void va_uart_int (uint32_t set)
 {
 if (set)
     va_setint (INT_COM);
@@ -859,9 +859,9 @@ SET_INT (QDSS);
 return SCPE_OK;
 }
 
-static SIM_INLINE void va_invalidate (uint32 y1, uint32 y2)
+static SIM_INLINE void va_invalidate (uint32_t y1, uint32_t y2)
 {
-uint32 ln;
+uint32_t ln;
 
 for (ln = y1; ln < y2; ln++)
     va_updated[ln] = TRUE;                              /* flag as updated */
@@ -874,11 +874,11 @@ t_stat va_svc (UNIT *uptr)
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
 t_bool updated = FALSE;                                 /* flag for refresh */
-uint32 lines;
-uint32 col, off, pix;
-uint16 *plna, *plnb;
-uint16 bita, bitb;
-uint32 poll_time;
+uint32_t lines;
+uint32_t col, off, pix;
+uint16_t *plna, *plnb;
+uint16_t bita, bitb;
+uint32_t poll_time;
 int32 ln;
 
 va_adp_svc (uptr);
@@ -999,7 +999,7 @@ return SCPE_OK;
 
 t_stat va_dmasvc (UNIT *uptr)
 {
-uint32 wc, bc, i, r;
+uint32_t wc, bc, i, r;
 
 if (GET_MODE (va_dga_csr) == MODE_HALT)
     return SCPE_OK;
@@ -1111,12 +1111,12 @@ if (!vid_active)  {
     r = vid_open (dptr, NULL, VA_XSIZE, VA_YSIZE, va_input_captured ? SIM_VID_INPUTCAPTURED : 0);/* display size & capture mode */
     if (r != SCPE_OK)
         return r;
-    va_buf = (uint32 *) calloc (VA_BUFSIZE, sizeof (uint32));
+    va_buf = (uint32_t *) calloc (VA_BUFSIZE, sizeof (uint32_t));
     if (va_buf == NULL) {
         vid_close ();
         return SCPE_MEM;
         }
-    va_lines = (uint32 *) calloc (VA_XSIZE * VA_YSIZE, sizeof (uint32));
+    va_lines = (uint32_t *) calloc (VA_XSIZE * VA_YSIZE, sizeof (uint32_t));
     if (va_lines == NULL) {
         free (va_buf);
         va_buf = NULL;

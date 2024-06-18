@@ -97,7 +97,7 @@
 #define UPDATE_PCELL    if (GET_POS (df_time) < 6) df_sta = df_sta | DFS_PCA; \
                         else df_sta = df_sta & ~DFS_PCA
 
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 int_req, stop_inst;
 extern UNIT cpu_unit;
 
@@ -253,9 +253,9 @@ return AC;
 t_stat df_svc (UNIT *uptr)
 {
 int32 pa, t, mex;
-uint32 da;
+uint32_t da;
 int16 *fbuf = (int16 *) uptr->filebuf;
-uint16 wc = 0;
+uint16_t wc = 0;
 
 UPDATE_PCELL;                                           /* update photocell */
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
@@ -321,7 +321,7 @@ return SCPE_OK;
 #define DM4_START       00200
 #define DM4_LEN         (sizeof (dm4_rom) / sizeof (int16))
 
-static const uint16 os8_rom[] = {
+static const uint16_t os8_rom[] = {
     07600,                      /* 7750, CLA CLL        ; also word count */
     06603,                      /* 7751, DMAR           ; also address */
     06622,                      /* 7752, DFSC           ; done? */
@@ -329,7 +329,7 @@ static const uint16 os8_rom[] = {
     05752                       /* 7754, JMP @.-2       ; enter boot */
     };
 
-static const uint16 dm4_rom[] = {
+static const uint16_t dm4_rom[] = {
     00200, 07600,               /* 0200, CLA CLL */
     00201, 06603,               /* 0201, DMAR           ; read */
     00202, 06622,               /* 0202, DFSC           ; done? */
@@ -360,8 +360,8 @@ return SCPE_OK;
 
 t_stat df_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 p, sz;
-uint32 ds_bytes = DF_DKSIZE * sizeof (int16);
+uint32_t p, sz;
+uint32_t ds_bytes = DF_DKSIZE * sizeof (int16);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;

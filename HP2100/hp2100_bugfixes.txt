@@ -3698,11 +3698,11 @@ date above.
      of data words output from the CPU.  In the "ioCTL" handler in "muxlio," the
      output word is masked with OTL_CHAR (01777) to retain just the data before
      storing the result in "mux_xbuf".  However, "mux_xbuf" and the
-     corresponding "mux_rbuf" are declared as "uint8", so the upper three bits
+     corresponding "mux_rbuf" are declared as "uint8_t", so the upper three bits
      are lost.
 
      RESOLUTION:  Change the declarations of "mux_xbuf" and "mux_rbuf"
-     (hp2100_mux.c) from "uint8" to "uint16" to retain all of the character data
+     (hp2100_mux.c) from "uint8_t" to "uint16_t" to retain all of the character data
      bits.
 
      STATUS:  Fixed in version 3.7-1.
@@ -4009,11 +4009,11 @@ date above.
      VERSION:  3.7-3
 
      OBSERVATION:  Conversions from unsigned to signed values, e.g., from
-     "uint16" to "int16", using casts or union store/load are not portable.
+     "uint16_t" to "int16", using casts or union store/load are not portable.
      They will fail if the size in bits is > 16.  Portable versions are needed.
 
      RESOLUTION:  Add portable "INT16" and "INT32" macros (hp2100_defs.h) to
-     provide uint16-to-int16 and uint32-to-int32 conversions.
+     provide uint16_t-to-int16 and uint32_t-to-int32 conversions.
 
      STATUS:  Fixed in version 3.8-0.
 
@@ -5070,7 +5070,7 @@ date above.
      VERSION:  3.8-0
 
      OBSERVATION:  The A and B register values are stored in two places: as
-     "uint16 ABREG[2]" during execution, and as "uint32 saved_AR" and "uint32
+     "uint16_t ABREG[2]" during execution, and as "uint32_t saved_AR" and "uint32_t
      saved_BR" between executions.  The latter was to accommodate the
      requirement that register variables must be 32 bits in size.  That
      requirement was removed in version 3.5-2 for registers declared with the
@@ -6764,7 +6764,7 @@ date above.
      CAUSE:  Future expansion to 64-bit addressing was not envisioned.
 
      RESOLUTION:  Modify source files to ensure that "t_addr" and "t_value"
-     types are used instead of "uint32" and "int32" types where addressing and
+     types are used instead of "uint32_t" and "int32" types where addressing and
      data values may be 64 bits.  Also ensure that valid conversions to smaller
      sizes use explicit casts.
 

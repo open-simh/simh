@@ -56,18 +56,18 @@
 #define CMD_WRT         (0x02 << 8)                     /* write/read */
 #define CMD_TYP         0x01                            /* command type */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 extern int32 pas_par (int32 cmd, int32 c);
 extern int32 lfc_poll;
 
-uint32 ttp_sta = 0;                                     /* status */
-uint32 ttp_cmd = 0;                                     /* command */
-uint32 ttp_kchp = 0;                                    /* rcvr chr pend */
-uint32 ttp_karm = 0;                                    /* rcvr int armed */
-uint32 ttp_tarm = 0;                                    /* xmt int armed */
-uint8 ttp_tplte[] = { 0, 1, TPL_END };
+uint32_t ttp_sta = 0;                                     /* status */
+uint32_t ttp_cmd = 0;                                     /* command */
+uint32_t ttp_kchp = 0;                                    /* rcvr chr pend */
+uint32_t ttp_karm = 0;                                    /* rcvr int armed */
+uint32_t ttp_tarm = 0;                                    /* xmt int armed */
+uint8_t ttp_tplte[] = { 0, 1, TPL_END };
 
-uint32 ttp (uint32 dev, uint32 op, uint32 dat);
+uint32_t ttp (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat ttpi_svc (UNIT *uptr);
 t_stat ttpo_svc (UNIT *uptr);
 t_stat ttp_reset (DEVICE *dptr);
@@ -129,7 +129,7 @@ DEVICE ttp_dev = {
 
 /* Terminal: I/O routine */
 
-uint32 ttp (uint32 dev, uint32 op, uint32 dat)
+uint32_t ttp (uint32_t dev, uint32_t op, uint32_t dat)
 {
 int32 xmt = dev & 1;
 int32 t;

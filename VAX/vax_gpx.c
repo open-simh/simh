@@ -31,20 +31,20 @@
 #define VA_FIFOSIZE     64
 
 struct vdp_t {
-    uint32 rg[0x18];
+    uint32_t rg[0x18];
     };
 
 typedef struct vdp_t VDP;
 
 int32 va_adp[ADP_NUMREG];                               /* Address processor registers */
-uint32 va_adp_fifo[VA_FIFOSIZE];                        /* ADP FIFO */
-uint32 va_adp_fifo_wp;                                  /* write pointer */
-uint32 va_adp_fifo_rp;                                  /* read pointer */
-uint32 va_adp_fifo_sz;                                  /* data size */
+uint32_t va_adp_fifo[VA_FIFOSIZE];                        /* ADP FIFO */
+uint32_t va_adp_fifo_wp;                                  /* write pointer */
+uint32_t va_adp_fifo_rp;                                  /* read pointer */
+uint32_t va_adp_fifo_sz;                                  /* data size */
 
 VDP va_vdp[8];                                          /* 8 video processors */
-uint32 va_ucs = 0;                                      /* update chip select */
-uint32 va_scs = 0;                                      /* scroll chip select */
+uint32_t va_ucs = 0;                                      /* update chip select */
+uint32_t va_scs = 0;                                      /* scroll chip select */
 
 typedef struct {
     int32 x;
@@ -62,7 +62,7 @@ VA_LINE s1_slow, s1_fast, dst_slow, dst_fast;
 VA_LINE s2_slow, s2_fast;
 int32 dx, dy;
 int32 s2_pixf, s2_pixs;
-uint32 s2_xmask, s2_ymask;
+uint32_t s2_xmask, s2_ymask;
 DEVICE *gpx_dev;
 
 const char *va_adp_rgd[] = {                            /* address processor registers */
@@ -178,15 +178,15 @@ const char *va_fnc[] = {                                /* logic functions */
     "ONEs"
     };
 
-void va_adpstat (uint32 set, uint32 clr);
+void va_adpstat (uint32_t set, uint32_t clr);
 void va_fifo_clr (void);
 void va_cmd (int32 cmd);
 void va_scmd (int32 cmd);
 void va_fill_setup (void);
 void va_adp_setup (void);
-void va_erase (uint32 x0, uint32 x1, uint32 y0, uint32 y1);
+void va_erase (uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1);
 
-void va_adpstat (uint32 set, uint32 clr)
+void va_adpstat (uint32_t set, uint32_t clr)
 {
 if (va_adp[ADP_INT] & set)                              /* unmasked ints 0->1? */
     va_setint (INT_ADP);
@@ -204,7 +204,7 @@ va_adp_fifo_sz = 0;                                     /* empty */
 va_adpstat (ADPSTAT_ITR, ADPSTAT_IRR);
 }
 
-void va_fifo_wr (uint32 val)
+void va_fifo_wr (uint32_t val)
 {
 if (va_adp[ADP_STAT] & ADPSTAT_AC)                      /* addr output complete? */
     va_fifo_clr ();
@@ -223,9 +223,9 @@ else
     va_adpstat (0, ADPSTAT_ITR);                        /* I/D data xmt not rdy */
 }
 
-uint32 va_fifo_rd (void)
+uint32_t va_fifo_rd (void)
 {
-uint32 val;
+uint32_t val;
 
 if (va_adp_fifo_sz == 0)                                /* reading empty fifo */
     return 0;                                           /* should not get here */
@@ -382,7 +382,7 @@ switch (rg) {
         }
 }
 
-void va_vdp_wr (uint32 cn, uint32 rg, uint32 val)
+void va_vdp_wr (uint32_t cn, uint32_t rg, uint32_t val)
 {
 VDP *vptr = &va_vdp[cn];
 
@@ -458,18 +458,18 @@ if ((ln->x == ln->dx) && (ln->y == ln->dy)) {           /* finished? */
 return FALSE;                                           /* more steps to do */
 }
 
-void va_viper_rop (int32 cn, uint32 sc, uint32 *pix)
+void va_viper_rop (int32 cn, uint32_t sc, uint32_t *pix)
 {
-uint32 cmd = va_adp[ADP_CMD1];
-uint32 lu = (cmd >> 4) & 0x3;
-uint32 fnc = va_vdp[cn].rg[VDP_FNC0 + lu];
+uint32_t cmd = va_adp[ADP_CMD1];
+uint32_t lu = (cmd >> 4) & 0x3;
+uint32_t fnc = va_vdp[cn].rg[VDP_FNC0 + lu];
 int32 mask = (1u << va_vdp[cn].rg[VDP_PA]);
 
-uint32 mask1 = (va_vdp[cn].rg[VDP_MSK1] >> sc) & 0x1;
-uint32 mask2 = (va_vdp[cn].rg[VDP_MSK2] >> sc) & 0x1;
-uint32 src = (va_vdp[cn].rg[VDP_SRC] >> sc) & 0x1;
+uint32_t mask1 = (va_vdp[cn].rg[VDP_MSK1] >> sc) & 0x1;
+uint32_t mask2 = (va_vdp[cn].rg[VDP_MSK2] >> sc) & 0x1;
+uint32_t src = (va_vdp[cn].rg[VDP_SRC] >> sc) & 0x1;
 
-uint32 dest = (*pix >> va_vdp[cn].rg[VDP_PA]) & 0x1;
+uint32_t dest = (*pix >> va_vdp[cn].rg[VDP_PA]) & 0x1;
 
 if (fnc & 0x10)
     mask1 = ~mask1;
@@ -556,13 +556,13 @@ dest = (dest << va_vdp[cn].rg[VDP_PA]);
 
 t_stat va_fill (UNIT *uptr)
 {
-uint32 cmd = va_adp[ADP_CMD1];
+uint32_t cmd = va_adp[ADP_CMD1];
 int32 old_y, x0, x1;
 int32 sel, cn;
 int32 bs2 = -1;
 t_bool clip;
-uint32 s2_temp;
-uint32 s2_csr;
+uint32_t s2_temp;
+uint32_t s2_csr;
 
 if (cmd & 0x4)
     s2_csr = VDP_CSR5;
@@ -695,17 +695,17 @@ for (;;) {
 
 t_stat va_rop (UNIT *uptr)
 {
-uint32 cmd = va_adp[ADP_CMD1];
+uint32_t cmd = va_adp[ADP_CMD1];
 int32 sel, cn;
 int32 bs1 = -1;
 int32 bs2 = -1;
 t_bool clip, scale, wrap;
-uint32 s1_temp;
-uint32 s2_temp;
-uint32 s1_csr;
-uint32 s2_csr;
-uint32 acf = 0;                                         /* fast scale accumulator */
-uint32 acs = 0;                                         /* slow scale accumulator */
+uint32_t s1_temp;
+uint32_t s2_temp;
+uint32_t s1_csr;
+uint32_t s2_csr;
+uint32_t acf = 0;                                         /* fast scale accumulator */
+uint32_t acs = 0;                                         /* slow scale accumulator */
 
 scale = FALSE;
 if ((va_adp[ADP_FS] & 0x1FFF) != 0x1FFF)                /* fast scale != unity? */
@@ -942,9 +942,9 @@ return SCPE_OK;
 
 void va_cmd (int32 cmd)
 {
-uint32 sel, cn, val, rg;
-uint32 adp_opc = (cmd >> 8) & 0x7;
-uint32 lu;
+uint32_t sel, cn, val, rg;
+uint32_t adp_opc = (cmd >> 8) & 0x7;
+uint32_t lu;
 
 /* Commands on page 3-74 */
 
@@ -1277,8 +1277,8 @@ sim_debug (DBG_ROP, gpx_dev, "Command: Unknown(%02X)\n", cmd);
 
 void va_scmd (int32 cmd)
 {
-uint32 sel, cn, val, rg;
-uint32 adp_opc = (cmd >> 8) & 0x7;
+uint32_t sel, cn, val, rg;
+uint32_t adp_opc = (cmd >> 8) & 0x7;
 
 /* Commands on page 3-74 */
 
@@ -1367,12 +1367,12 @@ sim_debug (DBG_ROP, gpx_dev, "Scroll Command: Unknown(%02X)\n", cmd);
 
 void va_scroll ()
 {
-uint32 x_min, x_max, y_min, y_max, x_lim;
-uint32 src, dest;
+uint32_t x_min, x_max, y_min, y_max, x_lim;
+uint32_t src, dest;
 int32 y_old, y_new;
-uint32 x, y, x_size, y_size;
-uint32 vscroll, hscroll;
-uint32 sel, cn;
+uint32_t x, y, x_size, y_size;
+uint32_t vscroll, hscroll;
+uint32_t sel, cn;
 
 va_adpstat (ADPSTAT_SC, 0);                             /* scroll service */
 
@@ -1399,7 +1399,7 @@ if (va_adp[ADP_PYSC] & 0x1000) {                        /* down scrolling? */
             src = (y_old * VA_XSIZE);
             for (y = 0; y < 864; y++) {
                 if ((y_old >= va_adp[ADP_PYMN]) && (y_old < va_adp[ADP_PYMX])) {
-                    for (x = 0; x < (uint32)va_adp[ADP_PXMN]; x++) {
+                    for (x = 0; x < (uint32_t)va_adp[ADP_PXMN]; x++) {
                         va_buf[dest] = va_buf[dest] & ~sel;
                         va_buf[dest] |= (va_buf[src++] & sel);
                         sim_debug (DBG_ROP, gpx_dev, "(%d, %d) -> (%d, %d) = %X\n", x, y_old, x, y_new, va_buf[dest]);
@@ -1555,7 +1555,7 @@ va_adp[ADP_PYSC] = 0;
 void va_adp_setup ()
 {
 int32 sx, sy;
-uint32 pix;
+uint32_t pix;
 
 sim_debug (DBG_ROP, gpx_dev, "ROP: ");
 if (va_adp[ADP_CMD1] & 0x800) {                         /* source 1 enabled? */
@@ -1638,7 +1638,7 @@ sim_debug (DBG_ROP, gpx_dev, "\n");
 void va_fill_setup ()
 {
 int32 sx, sy;
-uint32 pix;
+uint32_t pix;
 
 sim_debug (DBG_ROP, gpx_dev, "ROP: Fill ");
 
@@ -1694,7 +1694,7 @@ sim_debug (DBG_ROP, gpx_dev, "\n");
 
 t_stat va_ptb (UNIT *uptr, t_bool zmode)
 {
-uint32 val = 0, sc;
+uint32_t val = 0, sc;
 t_bool clip;
 
 if ((uptr->CMD != CMD_PTBX) && (uptr->CMD != CMD_PTBZ))
@@ -1757,7 +1757,7 @@ return SCPE_OK;
 
 t_stat va_btp (UNIT *uptr, t_bool zmode)
 {
-uint32 val, sc;
+uint32_t val, sc;
 
 if ((uptr->CMD != CMD_BTPX) && (uptr->CMD != CMD_BTPZ))
     return SCPE_OK;
@@ -1812,10 +1812,10 @@ va_adpstat (ADPSTAT_RC, 0);
 return SCPE_OK;
 }
 
-void va_erase (uint32 x0, uint32 x1, uint32 y0, uint32 y1)
+void va_erase (uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1)
 {
-uint32 i, j, msk, val, x, y, dest;
-uint8 zfill[16];
+uint32_t i, j, msk, val, x, y, dest;
+uint8_t zfill[16];
 
 for (i = 0; i < 16; i++)
     zfill[i] = 0;

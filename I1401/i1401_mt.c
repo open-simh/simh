@@ -110,9 +110,9 @@
 #define MT_NUMDR        7                               /* #drives */
 #define MT_MAXFR        (MAXMEMSIZE * 2)                /* max transfer */
 
-uint8 dbuf[MT_MAXFR];                                   /* tape buffer */
+uint8_t dbuf[MT_MAXFR];                                   /* tape buffer */
 
-extern uint8 M[];                                       /* memory */
+extern uint8_t M[];                                       /* memory */
 extern int32 ind[64];
 extern int32 BS, iochk;
 extern UNIT cpu_unit;

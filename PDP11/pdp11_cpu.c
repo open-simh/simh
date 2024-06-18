@@ -268,18 +268,18 @@
 #define HIST_ILNT       4                               /* max inst length */
 
 typedef struct {
-    uint16              pc;
-    uint16              psw;
-    uint16              src;
-    uint16              dst;
-    uint16              sp;
-    uint16              pad;
-    uint16              inst[HIST_ILNT];
+    uint16_t              pc;
+    uint16_t              psw;
+    uint16_t              src;
+    uint16_t              dst;
+    uint16_t              sp;
+    uint16_t              pad;
+    uint16_t              inst[HIST_ILNT];
     } InstHistory;
 
 /* Global state */
 
-uint16 *M = NULL;                                       /* memory */
+uint16_t *M = NULL;                                       /* memory */
 int32 REGFILE[6][2] = { {0} };                          /* R0-R5, two sets */
 int32 STACKFILE[4] = { 0 };                             /* SP, four modes */
 int32 saved_PC = 0;                                     /* program counter */
@@ -313,10 +313,10 @@ int32 stop_trap = 1;                                    /* stop on trap */
 int32 stop_vecabort = 1;                                /* stop on vec abort */
 int32 stop_spabort = 1;                                 /* stop on SP abort */
 int32 autcon_enb = 1;                                   /* autoconfig enable */
-uint32 cpu_model = INIMODEL;                            /* CPU model */
-uint32 cpu_type = 1u << INIMODEL;                       /* model as bit mask */
-uint32 cpu_opt = INIOPTNS;                              /* CPU options */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint32_t cpu_model = INIMODEL;                            /* CPU model */
+uint32_t cpu_type = 1u << INIMODEL;                       /* model as bit mask */
+uint32_t cpu_opt = INIOPTNS;                              /* CPU options */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 jmp_buf save_env;                                       /* abort handler */
@@ -379,8 +379,8 @@ extern void fp11 (int32 IR);
 extern t_stat cis11 (int32 IR);
 extern t_stat fis11 (int32 IR);
 extern t_stat build_dib_tab (void);
-extern t_stat iopageR (int32 *data, uint32 addr, int32 access);
-extern t_stat iopageW (int32 data, uint32 addr, int32 access);
+extern t_stat iopageR (int32 *data, uint32_t addr, int32 access);
+extern t_stat iopageW (int32 data, uint32_t addr, int32 access);
 extern int32 calc_ints (int32 nipl, int32 trq);
 extern int32 get_vector (int32 nipl);
 
@@ -983,7 +983,7 @@ while (reason == 0)  {
     dstreg = (dstspec <= 07);
     if (hst_lnt) {                                      /* record history? */
         t_value val;
-        uint32 i;
+        uint32_t i;
         static int32 swmap[4] = {
             SWMASK ('K') | SWMASK ('V'), SWMASK ('S') | SWMASK ('V'),
             SWMASK ('U') | SWMASK ('V'), SWMASK ('U') | SWMASK ('V')
@@ -998,7 +998,7 @@ while (reason == 0)  {
         for (i = 1; i < HIST_ILNT; i++) {
             if (cpu_ex (&val, (PC + (i << 1)) & 0177777, &cpu_unit, swmap[cm & 03]))
                 hst_ent->inst[i] = 0;
-            else hst_ent->inst[i] = (uint16) val;
+            else hst_ent->inst[i] = (uint16_t) val;
             }
         hst_p = (hst_p + 1);
         if (hst_p >= hst_lnt)
@@ -1736,13 +1736,13 @@ while (reason == 0)  {
                 break;
                 }
             src2 = dstreg? R[dstspec]: ReadW (GeteaW (dstspec));
-            src = (((uint32) R[srcspec]) << 16) | R[srcspec | 1];
+            src = (((uint32_t) R[srcspec]) << 16) | R[srcspec | 1];
             if (src2 == 0) {
                 N = 0;                                  /* J11,11/70 compat */
                 Z = V = C = 1;                          /* N = 0, Z = 1 */
                 break;
                 }
-            if ((((uint32)src) == 020000000000) && (src2 == 0177777)) {
+            if ((((uint32_t)src) == 020000000000) && (src2 == 0177777)) {
                 V = 1;                                  /* J11,11/70 compat */
                 N = Z = C = 0;                          /* N = Z = 0 */
                 break;
@@ -1819,13 +1819,13 @@ while (reason == 0)  {
             src2 = dstreg? R[dstspec]: ReadW (GeteaW (dstspec));
             src2 = src2 & 077;
             sign = GET_SIGN_W (R[srcspec]);
-            src = (((uint32) R[srcspec]) << 16) | R[srcspec | 1];
+            src = (((uint32_t) R[srcspec]) << 16) | R[srcspec | 1];
             if (src2 == 0) {                            /* [0] */
                 dst = src;
                 V = C = 0;
                 }
             else if (src2 <= 31) {                      /* [1,31] */
-                dst = ((uint32) src) << src2;
+                dst = ((uint32_t) src) << src2;
                 i = (src >> (32 - src2)) | (-sign << src2);
                 V = (i != ((dst & 020000000000)? -1: 0));
                 C = (i & 1);
@@ -3216,7 +3216,7 @@ if (access == WRITEB)
     data = (pa & 1)? (curr & 0377) | (data << 8): (curr & ~0377) | data;
 if (left)
     APRFILE[idx] = ((APRFILE[idx] & 0177777) |
-        (((uint32) (data & cpu_tab[cpu_model].par)) << 16)) & ~(PDR_A|PDR_W);
+        (((uint32_t) (data & cpu_tab[cpu_model].par)) << 16)) & ~(PDR_A|PDR_W);
 else APRFILE[idx] = ((APRFILE[idx] & ~0177777) |
     (data & cpu_tab[cpu_model].pdr)) & ~(PDR_A|PDR_W);
 return SCPE_OK;
@@ -3437,7 +3437,7 @@ MMR3 = 0;
 trap_req = 0;
 wait_state = 0;
 if (M == NULL) {                    /* First time init */
-    M = (uint16 *) calloc (MEMSIZE >> 1, sizeof (uint16));
+    M = (uint16_t *) calloc (MEMSIZE >> 1, sizeof (uint16_t));
     if (M == NULL)
         return SCPE_MEM;
     sim_set_pchar (0, "01000023640"); /* ESC, CR, LF, TAB, BS, BEL, ENQ */
@@ -3667,10 +3667,10 @@ t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
 t_stat r;
 const char *cptr = (const char *) desc;
-uint32 va, pa;
+uint32_t va, pa;
 
 if (cptr) {
-    va = (uint32) get_uint (cptr, 8, VAMASK, &r);
+    va = (uint32_t) get_uint (cptr, 8, VAMASK, &r);
     if (r == SCPE_OK) {
         pa = relocC (va, sim_switches);                 /* relocate */
         if (pa < MAXMEMSIZE)

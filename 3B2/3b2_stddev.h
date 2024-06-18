@@ -37,29 +37,29 @@
 t_stat nvram_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat nvram_dep(t_value val, t_addr exta, UNIT *uptr, int32 sw);
 t_stat nvram_reset(DEVICE *dptr);
-uint32 nvram_read(uint32 pa, size_t size);
+uint32_t nvram_read(uint32_t pa, size_t size);
 t_stat nvram_attach(UNIT *uptr, CONST char *cptr);
 t_stat nvram_detach(UNIT *uptr);
 const char *nvram_description(DEVICE *dptr);
 t_stat nvram_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void nvram_write(uint32 pa, uint32 val, size_t size);
+void nvram_write(uint32_t pa, uint32_t val, size_t size);
 
 typedef struct tod_data {
     time_t time;     /* System time */
 
-    uint8 ctrl;      /* Control register (Rev 3 only) */
-    uint8 flags;     /* Data Changed & Interrutpt Flags (Rev 3 only) */
-    uint8 clkset;    /* Clock / Setting register (Rev 3 only) */
+    uint8_t ctrl;      /* Control register (Rev 3 only) */
+    uint8_t flags;     /* Data Changed & Interrutpt Flags (Rev 3 only) */
+    uint8_t clkset;    /* Clock / Setting register (Rev 3 only) */
 
-    uint8 tsec;      /* 1/100th seconds, 00-99 */
-    uint8 sec;       /* Seconds, 00-59 */
-    uint8 min;       /* Minutes, 00-59 */
-    uint8 hour;      /* Hours, 00-23 */
-    uint8 day;       /* Days, 00-27, 28, 29, or 30 */
-    uint8 mon;       /* Months, 00-11 */
-    uint8 year;      /* Years, 00-99 (Rev 3 only) */
-    uint8 wday;      /* Day of Week, 0-6 */
-    uint8 lyear;     /* Years since last leap year */
+    uint8_t tsec;      /* 1/100th seconds, 00-99 */
+    uint8_t sec;       /* Seconds, 00-59 */
+    uint8_t min;       /* Minutes, 00-59 */
+    uint8_t hour;      /* Hours, 00-23 */
+    uint8_t day;       /* Days, 00-27, 28, 29, or 30 */
+    uint8_t mon;       /* Months, 00-11 */
+    uint8_t year;      /* Years, 00-99 (Rev 3 only) */
+    uint8_t wday;      /* Day of Week, 0-6 */
+    uint8_t lyear;     /* Years since last leap year */
 } TOD_DATA;
 
 #if defined(REV2)
@@ -111,8 +111,8 @@ t_stat tod_attach(UNIT *uptr, CONST char *cptr);
 t_stat tod_detach(UNIT *uptr);
 t_stat tod_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *tod_description(DEVICE *dptr);
-uint32 tod_read(uint32 pa, size_t size);
-void tod_write(uint32, uint32 val, size_t size);
+uint32_t tod_read(uint32_t pa, size_t size);
+void tod_write(uint32_t, uint32_t val, size_t size);
 
 /* Global symbols */
 
@@ -126,12 +126,12 @@ extern int32 tmxr_poll;
 #define MEM_4M          0x2
 #define MEM_16M         0x3
 
-uint32 flt_read(uint32 pa, size_t size);
-void flt_write(uint32 pa, uint32 val, size_t size);
+uint32_t flt_read(uint32_t pa, size_t size);
+void flt_write(uint32_t pa, uint32_t val, size_t size);
 t_stat flt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *flt_description(DEVICE *dptr);
 
-extern uint32 flt[2];
+extern uint32_t flt[2];
 
 #endif /* defined(REV3) */
 

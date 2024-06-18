@@ -56,7 +56,7 @@ typedef struct {
      * A 3-card long tract, with 12 lines per card,
      * represented as 4 20-bit registers each.
      */
-    uint32 image[3][12][4];
+    uint32_t image[3][12][4];
     int cur;                    /* FIFO position */
     int running;                /* continue with the next card */
     pi_state_t state;
@@ -95,10 +95,10 @@ pi_t PI[2];
  */
 #define PI_RATE         (20*MSEC)
 
-const uint32 pi_punch_mask[2] = { PRP_PCARD1_PUNCH, PRP_PCARD2_PUNCH };
-const uint32 pi_check_mask[2] = { PRP_PCARD1_CHECK, PRP_PCARD2_CHECK };
-const uint32 pi_ready_mask[2] = { PI1_READY, PI2_READY };
-const uint32 pi_start_mask[2] = { PI1_START, PI2_START };
+const uint32_t pi_punch_mask[2] = { PRP_PCARD1_PUNCH, PRP_PCARD2_PUNCH };
+const uint32_t pi_check_mask[2] = { PRP_PCARD1_CHECK, PRP_PCARD2_CHECK };
+const uint32_t pi_ready_mask[2] = { PI1_READY, PI2_READY };
+const uint32_t pi_start_mask[2] = { PI1_START, PI2_START };
 
 REG pi_reg[] = {
     { REGDATA ( "READY", READY2, 2, 4, 12, 1, NULL, NULL, 0, 0, 0) },
@@ -347,7 +347,7 @@ t_stat pi_detach (UNIT *u)
     return detach_unit (u);
 }
 
-void pi_control (int num, uint32 cmd)
+void pi_control (int num, uint32_t cmd)
 {
     UNIT *u = &pi_unit[num];
     if (pi_dev.dctrl)
@@ -453,7 +453,7 @@ t_stat pi_event (UNIT *u)
 /*
  * Writing to the register punches the current card.
  */
-void pi_write (int num, uint32 val)
+void pi_write (int num, uint32_t val)
 {
     int unit = num >> 2;
     int card = PI[unit].cur;

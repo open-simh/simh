@@ -391,9 +391,9 @@ typedef enum {
 */
 
 typedef struct {
-    uint32  line_length;                        /* the maximum number of print positions */
-    uint32  char_set;                           /* the size of the character set */
-    uint32  vfu_channels;                       /* the number of VFU channels */
+    uint32_t  line_length;                        /* the maximum number of print positions */
+    uint32_t  char_set;                           /* the size of the character set */
+    uint32_t  vfu_channels;                       /* the number of VFU channels */
     t_bool  not_ready;                          /* TRUE if the printer reports a separate not ready status */
     t_bool  overprints;                         /* TRUE if the printer supports overprinting */
     t_bool  autoprints;                         /* TRUE if the printer automatically prints on buffer overflow */
@@ -535,13 +535,13 @@ static CARD_STATE lpt;                          /* per-card state */
 static t_bool paper_fault     = TRUE;           /* TRUE if the printer is out of paper */
 static t_bool tape_fault      = FALSE;          /* TRUE if there is no punch in a commanded VFU channel */
 static t_bool offline_pending = FALSE;          /* TRUE if an offline request is waiting for the printer to finish */
-static uint32 overprint_char  = DEL;            /* character to use if overprinted */
-static uint32 current_line    = 1;              /* current form line */
-static uint32 buffer_index    = 0;              /* current index into the print buffer */
+static uint32_t overprint_char  = DEL;            /* character to use if overprinted */
+static uint32_t current_line    = 1;              /* current form line */
+static uint32_t buffer_index    = 0;              /* current index into the print buffer */
 
-static uint32 form_length;                      /* form length in lines */
-static uint8  buffer [BUFFER_SIZE];             /* character and paper advance buffer */
-static uint16 VFU [VFU_SIZE];                   /* vertical format unit tape */
+static uint32_t form_length;                      /* form length in lines */
+static uint8_t  buffer [BUFFER_SIZE];             /* character and paper advance buffer */
+static uint16_t VFU [VFU_SIZE];                   /* vertical format unit tape */
 static char   vfu_title [LINE_SIZE];            /* descriptive title of the tape currently in the VFU */
 
 static int32  punched_char   = 'O';             /* character to display if VFU channel is punched */
@@ -583,7 +583,7 @@ static void   lp_master_clear (UNIT *uptr);
 static t_bool lp_set_alarm    (UNIT *uptr);
 static t_bool lp_set_locality (UNIT *uptr, LOCALITY printer_state);
 static t_stat lp_load_vfu     (UNIT *uptr, FILE *vf);
-static int32  lp_read_line    (FILE *vf,   char *line, uint32 size);
+static int32  lp_read_line    (FILE *vf,   char *line, uint32_t size);
 
 
 /* Interface SCP data structures */
@@ -1057,10 +1057,10 @@ static t_stat lp_service (UNIT *uptr)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);                 /* the printer model number */
 const t_bool       printing = ((lpt.output_word & CN_FORMAT) != 0); /* TRUE if a print command was received */
-static uint32      overprint_index = 0;                             /* the "high-water" mark while overprinting */
-uint8              data_byte, format_byte;
-uint16             channel;
-uint32             line_count, slew_count;
+static uint32_t      overprint_index = 0;                             /* the "high-water" mark while overprinting */
+uint8_t              data_byte, format_byte;
+uint16_t             channel;
+uint32_t             line_count, slew_count;
 
 tprintf (lpt_dev, TRACE_SERV, "Printer service entered\n");
 
@@ -1100,7 +1100,7 @@ else if (lpt.demand == TRUE) {                          /* otherwise if STROBE h
     lpt.demand = FALSE;                                 /*   then deny DEMAND */
     lpt.strobe = FALSE;                                 /*     which resets STROBE */
 
-    data_byte = (uint8) (lpt.output_word & DATA_MASK);  /* only the lower 7 bits are sent to the printer */
+    data_byte = (uint8_t) (lpt.output_word & DATA_MASK);  /* only the lower 7 bits are sent to the printer */
 
     if (printing == FALSE) {                            /* if loading the print buffer */
         if (data_byte > '_'                             /*   then if the character is "lowercase" */
@@ -1119,7 +1119,7 @@ else if (lpt.demand == TRUE) {                          /* otherwise if STROBE h
 
             else if (data_byte != ' '                           /* otherwise if we're overprinting a character */
               && data_byte != buffer [buffer_index])            /*   with a different character */
-                buffer [buffer_index] = (uint8) overprint_char; /*     then substitute the overprint character */
+                buffer [buffer_index] = (uint8_t) overprint_char; /*     then substitute the overprint character */
 
             buffer_index++;                             /* increment the buffer index */
 
@@ -1715,8 +1715,8 @@ static const char header_1 [] = " Ch 1 Ch 2 Ch 3 Ch 4 Ch 5 Ch 6 Ch 7 Ch 8 Ch 9 C
 static const char header_2 [] = " ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----";
 
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);             /* the printer model number */
-const uint32 channel_count = print_props [model].vfu_channels;  /* the count of VFU channels */
-uint32 chan, line, current_channel;
+const uint32_t channel_count = print_props [model].vfu_channels;  /* the count of VFU channels */
+uint32_t chan, line, current_channel;
 
 if (value == 0)                                         /* if we're called for a summary display */
     fputs (vfu_title, st);                              /*   then output only the VFU title */
@@ -2022,11 +2022,11 @@ return TRUE;                                            /*   successfully */
 static t_stat lp_load_vfu (UNIT *uptr, FILE *vf)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);     /* the printer model number */
-uint32             line, channel;
+uint32_t             line, channel;
 int32              len;
 char               buffer [LINE_SIZE], punch [LINE_SIZE], no_punch;
 char               *bptr, *tptr;
-uint16             tape [VFU_SIZE] = { 0 };
+uint16_t             tape [VFU_SIZE] = { 0 };
 
 if (vf == NULL) {                                       /* if the standard VFU is requested */
     tape [ 1] = VFU_CHANNEL_1;                          /*   then punch channel 1 for the top of form */
@@ -2168,7 +2168,7 @@ return SCPE_OK;                                         /* the VFU was successfu
        the end-of-line removal.
 */
 
-static int32 lp_read_line (FILE *vf, char *line, uint32 size)
+static int32 lp_read_line (FILE *vf, char *line, uint32_t size)
 {
 char  *result;
 int32 len = 0;

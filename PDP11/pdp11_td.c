@@ -605,22 +605,22 @@ static int32 td_itime = 180;                            /* init time */
 
 static int32 td_ctrls = 1;                              /* number of enabled controllers */
 
-static uint32 tdi_ireq = 0;
-static uint32 tdo_ireq = 0;
+static uint32_t tdi_ireq = 0;
+static uint32_t tdo_ireq = 0;
 
 struct CTLR {
     DEVICE *dptr;
     UNIT *uptr;
-    uint16 rx_csr;
-    uint16 rx_buf;
+    uint16_t rx_csr;
+    uint16_t rx_buf;
     void (*rx_set_int) (int32 ctlr_num, t_bool val);
-    uint16 tx_csr;
-    uint16 tx_buf;
+    uint16_t tx_csr;
+    uint16_t tx_buf;
     void (*tx_set_int) (int32 ctlr_num, t_bool val);
-    uint8 ibuf[TD_NUMBY+1];                 /* input buffer */
+    uint8_t ibuf[TD_NUMBY+1];                 /* input buffer */
     int32 ibptr;                            /* input buffer pointer */
     int32 ilen;                             /* input length */
-    uint8 obuf[TD_NUMBY+1];                 /* output buffer */
+    uint8_t obuf[TD_NUMBY+1];                 /* output buffer */
     int32 obptr;                            /* output buffer pointer */
     int32 olen;                             /* output length */
     int32 block;                            /* current block number */
@@ -885,7 +885,7 @@ return td_wr_regs[(PA >> 1) & 03](&td_ctlr[ctrl], data);
 
 static void td_process_packet(CTLR *ctlr)
 {
-uint32 unit;
+uint32_t unit;
 int32 opcode = ctlr->ibuf[0];
 const char *opcode_name, *command_name;
 
@@ -1050,8 +1050,8 @@ switch (opcode) {
 static t_stat td_svc (UNIT *uptr)
 {
 int32 i, t, data_size;
-uint16 c, w;
-uint32 da;
+uint16_t c, w;
+uint32_t da;
 int8 *fbuf = (int8 *)uptr->filebuf;
 CTLR *ctlr = (CTLR *)uptr->up7;
 
@@ -1106,7 +1106,7 @@ switch (ctlr->p_state) {                                /* case on state */
         c = 0;
         for (i = 0; i < (data_size + 2); i++) {         /* Calculate checksum */
             w = (ctlr->obuf[i] << ((i & 0x1) ? 8 : 0));
-            c = c + w + ( (uint32)((uint32)c + (uint32)w) > 0xFFFF ? 1 : 0);
+            c = c + w + ( (uint32_t)((uint32_t)c + (uint32_t)w) > 0xFFFF ? 1 : 0);
             }
         ctlr->obuf[ctlr->obptr++] = (c & 0xFF);         /* Checksum L */
         ctlr->obuf[ctlr->obptr++] = ((c >> 8) & 0xFF);  /* Checksum H */
@@ -1200,7 +1200,7 @@ switch (ctlr->p_state) {                                /* case on state */
         c = 0;
         for (i = 0; i < (0xA + 2); i++) {               /* Calculate checksum */
             w = (ctlr->obuf[i] << ((i & 0x1) ? 8 : 0));
-            c = c + w + ( (uint32)((uint32)c + (uint32)w) > 0xFFFF ? 1 : 0);
+            c = c + w + ( (uint32_t)((uint32_t)c + (uint32_t)w) > 0xFFFF ? 1 : 0);
             }
         ctlr->obuf[ctlr->obptr++] = c & 0xFF;           /* Checksum L */
         ctlr->obuf[ctlr->obptr++] = (c >> 8) & 0xFF;    /* Checksum H */
@@ -1494,7 +1494,7 @@ t_stat td_connect_console_device (DEVICE *dptr,
                                   void (*rx_set_int) (int32 ctlr_num, t_bool val),
                                   void (*tx_set_int) (int32 ctlr_num, t_bool val))
 {
-uint32 i;
+uint32_t i;
 CTLR *ctlr = &td_ctlr[TD_NUMCTLR];
 
 for (i=0; i<dptr->numunits; i++) {
@@ -1523,7 +1523,7 @@ return td_reset_ctlr (ctlr);
 
 /* PDP11 Bootstrap adapted from 23-76589.mac.txt */
 
-    static const uint16 boot_rom[] = {
+    static const uint16_t boot_rom[] = {
                         /* RCSR = 0 offset from CSR in R1                   */
                         /* RBUF = 2 offset from CSR in R1                   */
                         /* TCSR = 4 offset from CSR in R1                   */

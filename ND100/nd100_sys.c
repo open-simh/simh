@@ -98,7 +98,7 @@ sim_load(FILE *f, CONST char *buf, CONST char *fnam, t_bool flag)
 {
         int B, C, E, F, H, I;
         int w, i, rv;
-        uint16 s;
+        uint16_t s;
 
         rv = SCPE_OK;
         if (sim_switches & SWMASK('D')) {       /* read file from disk */

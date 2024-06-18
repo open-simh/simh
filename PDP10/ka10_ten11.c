@@ -234,7 +234,7 @@ static int error (int unibus, const char *message)
 
 static int transaction (int unibus, unsigned char *request, unsigned char *response)
 {
-  const uint8 *ten11_request;
+  const uint8_t *ten11_request;
   size_t size;
   t_stat stat;
 
@@ -347,7 +347,7 @@ int ten11_read (t_addr addr, uint64 *data)
   return 0;
 }
 
-static int write_word (int unibus, t_addr addr, uint16 data)
+static int write_word (int unibus, t_addr addr, uint16_t data)
 {
   unsigned char request[8];
   unsigned char response[8];

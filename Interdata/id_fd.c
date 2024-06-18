@@ -106,37 +106,37 @@
 #define C_RD            0x1                             /* cmd reads disk */
 #define C_WD            0x2                             /* cmd writes disk */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint32 fd_sta = 0;                                      /* status */
-uint32 fd_cmd = 0;                                      /* command */
-uint32 fd_db = 0;                                       /* data buffer */
-uint32 fd_bptr = 0;                                     /* buffer pointer */
-uint8 fdxb[FD_NUMBY] = { 0 };                           /* sector buffer */
-uint8 fd_es[FD_NUMDR][ES_SIZE] = { {0} };               /* ext status */
-uint32 fd_lrn = 0;                                      /* log rec # */
-uint32 fd_wdv = 0;                                      /* wd valid */
-uint32 fd_stopioe = 1;                                  /* stop on error */
-uint32 fd_arm = 0;                                      /* intr arm */
+uint32_t fd_sta = 0;                                      /* status */
+uint32_t fd_cmd = 0;                                      /* command */
+uint32_t fd_db = 0;                                       /* data buffer */
+uint32_t fd_bptr = 0;                                     /* buffer pointer */
+uint8_t fdxb[FD_NUMBY] = { 0 };                           /* sector buffer */
+uint8_t fd_es[FD_NUMDR][ES_SIZE] = { {0} };               /* ext status */
+uint32_t fd_lrn = 0;                                      /* log rec # */
+uint32_t fd_wdv = 0;                                      /* wd valid */
+uint32_t fd_stopioe = 1;                                  /* stop on error */
+uint32_t fd_arm = 0;                                      /* intr arm */
 int32 fd_ctime = 100;                                   /* command time */
 int32 fd_stime = 10;                                    /* seek, per LRN */
 int32 fd_xtime = 1;                                     /* tr set time */
 
-static uint32 ctab[16] = {
+static uint32_t ctab[16] = {
     0, C_RD, C_WD, 0,                                   /* 0, rd, wr, 0 */
     0, C_WD, C_RD, 0,                                   /* 0, del, boot, 0 */
     0, 0, 0, 0,
     0, 0, 0, 0
     };
 
-uint32 fd (uint32 dev, uint32 op, uint32 dat);
+uint32_t fd (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat fd_svc (UNIT *uptr);
 t_stat fd_reset (DEVICE *dptr);
 t_stat fd_clr (DEVICE *dptr);
 t_stat fd_boot (int32 unitno, DEVICE *dptr);
 t_bool fd_dte (UNIT *uptr, t_bool wr);
-uint32 fd_crc (uint32 crc, uint32 dat, uint32 cnt);
-void fd_done (uint32 u, uint32 nsta, uint32 nes0, uint32 nes1);
+uint32_t fd_crc (uint32_t crc, uint32_t dat, uint32_t cnt);
+void fd_done (uint32_t u, uint32_t nsta, uint32_t nes0, uint32_t nes1);
 void sched_seek (UNIT *uptr, int32 newlrn);
 
 /* FD data structures
@@ -202,7 +202,7 @@ DEVICE fd_dev = {
 
 /* Floppy disk: IO routine */
 
-uint32 fd (uint32 dev, uint32 op, uint32 dat)
+uint32_t fd (uint32_t dev, uint32_t op, uint32_t dat)
 {
 int32 u, t, fnc;
 UNIT *uptr;
@@ -304,8 +304,8 @@ return 0;
 
 t_stat fd_svc (UNIT *uptr)
 {
-uint32 i, u, tk, sc, crc, fnc, da;
-uint8 *fbuf = (uint8 *) uptr->filebuf;
+uint32_t i, u, tk, sc, crc, fnc, da;
+uint8_t *fbuf = (uint8_t *) uptr->filebuf;
 
 u = uptr - fd_dev.units;                                /* get unit number */
 fnc = GET_FNC (uptr->FNC);                              /* get function */
@@ -422,7 +422,7 @@ return;
 
 /* Command complete */
 
-void fd_done (uint32 u, uint32 nsta, uint32 nes0, uint32 nes1)
+void fd_done (uint32_t u, uint32_t nsta, uint32_t nes0, uint32_t nes1)
 {
 fd_sta = (fd_sta | STA_IDL | nsta) & ~STA_BSY;          /* set idle */
 if (fd_arm)                                             /* if armed, int */
@@ -436,7 +436,7 @@ return;
 
 t_bool fd_dte (UNIT *uptr, t_bool wr)
 {
-uint32 u = uptr - fd_dev.units;
+uint32_t u = uptr - fd_dev.units;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not attached? */
     fd_done (u, STA_ERR, ES0_ERR | ES0_FLT, ES1_NRDY);
@@ -455,9 +455,9 @@ return FALSE;
 
 /* Header CRC calculation */
 
-uint32 fd_crc (uint32 crc, uint32 dat, uint32 cnt)
+uint32_t fd_crc (uint32_t crc, uint32_t dat, uint32_t cnt)
 {
-uint32 i, wrk;
+uint32_t i, wrk;
 
 for (i = 0; i < cnt; i++) {
     wrk = crc ^ dat;
@@ -505,9 +505,9 @@ return fd_clr (dptr);;
 /* Bootstrap routine */
 
 #define BOOT_START      0x50
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8_t))
 
-static uint8 boot_rom[] = {
+static uint8_t boot_rom[] = {
     0xD5, 0x00,  0x00, 0xCF,                            /* ST:  AL CF */
     0x43, 0x00,  0x00, 0x80                             /*      BR 80 */
     };

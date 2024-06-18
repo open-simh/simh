@@ -33,15 +33,15 @@ const char *mb_description (DEVICE *dptr);
 
 #define HSIZE 64
 
-static uint16 MBCSR;
-static uint16 MBXHGH;
-static uint16 MBXLOW;
-static uint16 MBYHGH;
-static uint16 MBYLOW;
-static uint16 MBHHGH;
-static uint16 MBHLOW;
-static uint16 MBHCNT;
-static uint32 history[HSIZE];
+static uint16_t MBCSR;
+static uint16_t MBXHGH;
+static uint16_t MBXLOW;
+static uint16_t MBYHGH;
+static uint16_t MBYLOW;
+static uint16_t MBHHGH;
+static uint16_t MBHLOW;
+static uint16_t MBHCNT;
+static uint32_t history[HSIZE];
 
 /* BITS IN MBCSR */
 #define MBINTE 0100

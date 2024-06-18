@@ -60,15 +60,15 @@
 
 /* Visible state */
 
-uint32 ke_AC = 0;
-uint32 ke_MQ = 0;
-uint32 ke_SC = 0;
-uint32 ke_SR = 0;
+uint32_t ke_AC = 0;
+uint32_t ke_MQ = 0;
+uint32_t ke_SC = 0;
+uint32_t ke_SR = 0;
 
 t_stat ke_rd (int32 *data, int32 PA, int32 access);
 t_stat ke_wr (int32 data, int32 PA, int32 access);
 t_stat ke_reset (DEVICE *dptr);
-uint32 ke_set_SR (void);
+uint32_t ke_set_SR (void);
 t_stat ke_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *ke_description (DEVICE *dptr);
 
@@ -139,7 +139,7 @@ return SCPE_OK;
 t_stat ke_wr (int32 data, int32 PA, int32 access)
 {
 int32 quo, t32, sout, sign;
-uint32 absd, absr;
+uint32_t absd, absr;
 
 switch (PA & 017) {                                     /* decode PA<3:0> */
 
@@ -261,7 +261,7 @@ switch (PA & 017) {                                     /* decode PA<3:0> */
                 t32 = t32 | ~017777777777;
             if (data < 32) {                            /* [1,31] - left */
                 sout = (t32 >> (32 - data)) | (-sign << data);
-                t32 = ((uint32) t32) << data;           /* do shift (zext) */
+                t32 = ((uint32_t) t32) << data;           /* do shift (zext) */
                 if (sout != (GET_SIGN_L (t32)? -1: 0))  /* bits lost = sext? */
                     ke_SR |= KE_SR_NXV;                 /* no, V = 1 */
                 if (sout & 1)                           /* last bit lost = 1? */
@@ -270,7 +270,7 @@ switch (PA & 017) {                                     /* decode PA<3:0> */
             else {                                      /* [32,63] = -32,-1 */
                 if ((t32 >> (63 - data)) & 1)           /* last bit lost = 1? */
                     ke_SR |= KE_SR_C;                   /* yes, C = 1*/
-                t32 = (data != 32)? ((uint32) t32) >> (64 - data): 0;
+                t32 = (data != 32)? ((uint32_t) t32) >> (64 - data): 0;
                 }
            ke_AC = (t32 >> 16) & DMASK;
            ke_MQ = t32 & DMASK;
@@ -301,7 +301,7 @@ switch (PA & 017) {                                     /* decode PA<3:0> */
                 if ((t32 >> (63 - data)) & 1)           /* last bit lost = 1? */
                     ke_SR |= KE_SR_C;                   /* yes, C = 1 */
                 t32 = (data != 32)?                     /* special case 32 */
-                    (((uint32) t32) >> (64 - data)) | (-sign << (data - 32)):
+                    (((uint32_t) t32) >> (64 - data)) | (-sign << (data - 32)):
                     -sign;
                 }
            ke_AC = (t32 >> 16) & DMASK;
@@ -321,7 +321,7 @@ return SCPE_OK;
 
 /* Update status register based on current AC, MQ */
 
-uint32 ke_set_SR (void)
+uint32_t ke_set_SR (void)
 {
 ke_SR &= ~KE_SR_DYN;                                    /* clr dynamic bits */
 if (ke_MQ == 0)                                         /* MQ == 0? */

@@ -401,12 +401,12 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
   unsigned int a[6], g[6];
   FILE *f;
   char filebuf[64] = "";
-  uint32 i;
+  uint32_t i;
   static const ETH_MAC zeros = {0,0,0,0,0,0};
   static const ETH_MAC ones  = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   ETH_MAC newmac;
   struct {
-      uint32 bits;
+      uint32_t bits;
       char system_id[64];
       char cwd[PATH_MAX];
       char file[PATH_MAX];
@@ -415,7 +415,7 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
       char sim[128];
       } state;
   CONST char *cptr, *tptr;
-  uint32 data;
+  uint32_t data;
 
   /* Allow generated MAC address */
   /* XX:XX:XX:XX:XX:XX{/bits{>file}} */
@@ -441,7 +441,7 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
     }
   cptr = strchr (strmac, '/');
   if (cptr) {
-    state.bits = (uint32)strtotv (cptr + 1, &tptr, 10);
+    state.bits = (uint32_t)strtotv (cptr + 1, &tptr, 10);
     if ((state.bits < 16) || (state.bits > 48))
       return sim_messagef (SCPE_ARG, "Invalid MAC address bits specifier '%d'. Valid values are from 16 thru 48\n", state.bits);
     }
@@ -458,7 +458,7 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
     if (a[i] > 0xFF)
       return sim_messagef (SCPE_ARG, "Invalid MAC address byte value: %02X\n", a[i]);
     else {
-      uint32 mask, shift;
+      uint32_t mask, shift;
     
       state.base_mac[i] = a[i];
       if (((i + 1) << 3) < state.bits)
@@ -502,12 +502,12 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
 
 void eth_mac_fmt(ETH_MAC* const mac, char* buff)
 {
-  const uint8* m = (const uint8*) mac;
+  const uint8_t* m = (const uint8_t*) mac;
   sprintf(buff, "%02X:%02X:%02X:%02X:%02X:%02X", m[0], m[1], m[2], m[3], m[4], m[5]);
   return;
 }
 
-static const uint32 crcTable[256] = {
+static const uint32_t crcTable[256] = {
   0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
   0xE963A535, 0x9E6495A3, 0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
   0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2,
@@ -553,9 +553,9 @@ static const uint32 crcTable[256] = {
   0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
-uint32 eth_crc32(uint32 crc, const void* vbuf, size_t len)
+uint32_t eth_crc32(uint32_t crc, const void* vbuf, size_t len)
 {
-  const uint32 mask = 0xFFFFFFFF;
+  const uint32_t mask = 0xFFFFFFFF;
   const unsigned char* buf = (const unsigned char*)vbuf;
 
   crc ^= mask;
@@ -575,13 +575,13 @@ uint32 eth_crc32(uint32 crc, const void* vbuf, size_t len)
   return(crc ^ mask);
 }
 
-int eth_get_packet_crc32_data(const uint8 *msg, int len, uint8 *crcdata)
+int eth_get_packet_crc32_data(const uint8_t *msg, int len, uint8_t *crcdata)
 {
   int crc_len;
 
   if (len <= ETH_MAX_PACKET) {
-    uint32 crc = eth_crc32(0, msg, len);                  /* calculate CRC */
-    uint32 ncrc = htonl(crc);                             /* CRC in network order */
+    uint32_t crc = eth_crc32(0, msg, len);                  /* calculate CRC */
+    uint32_t ncrc = htonl(crc);                             /* CRC in network order */
     int size = sizeof(ncrc);                              /* size of crc field */
     memcpy(crcdata, &ncrc, size);                         /* append crc to packet */
     crc_len = len + size;                                 /* set packet crc length */
@@ -591,7 +591,7 @@ int eth_get_packet_crc32_data(const uint8 *msg, int len, uint8 *crcdata)
   return crc_len;
 }
 
-int eth_add_packet_crc32(uint8 *msg, int len)
+int eth_add_packet_crc32(uint8_t *msg, int len)
 {
   int crc_len;
 
@@ -608,13 +608,13 @@ void eth_setcrc(ETH_DEV* dev, int need_crc)
   dev->need_crc = need_crc;
 }
 
-void eth_packet_trace_ex(ETH_DEV* dev, const uint8 *msg, int len, const char* txt, int detail, uint32 reason)
+void eth_packet_trace_ex(ETH_DEV* dev, const uint8_t *msg, int len, const char* txt, int detail, uint32_t reason)
 {
   if (dev->dptr->dctrl & reason) {
     char src[20];
     char dst[20];
     const unsigned short* proto = (const unsigned short*) &msg[12];
-    uint32 crc = eth_crc32(0, msg, len);
+    uint32_t crc = eth_crc32(0, msg, len);
     eth_mac_fmt((ETH_MAC*)msg, dst);
     eth_mac_fmt((ETH_MAC*)(msg+6), src);
     sim_debug(reason, dev->dptr, "%s  dst: %s  src: %s  proto: 0x%04X  len: %d  crc: %X\n",
@@ -654,12 +654,12 @@ void eth_packet_trace_ex(ETH_DEV* dev, const uint8 *msg, int len, const char* tx
   }
 }
 
-void eth_packet_trace(ETH_DEV* dev, const uint8 *msg, int len, const char* txt)
+void eth_packet_trace(ETH_DEV* dev, const uint8_t *msg, int len, const char* txt)
 {
   eth_packet_trace_ex(dev, msg, len, txt, 0, dev->dbit);
 }
 
-void eth_packet_trace_detail(ETH_DEV* dev, const uint8 *msg, int len, const char* txt)
+void eth_packet_trace_detail(ETH_DEV* dev, const uint8_t *msg, int len, const char* txt)
 {
   eth_packet_trace_ex(dev, msg, len, txt, 1     , dev->dbit);
 }
@@ -729,7 +729,7 @@ void ethq_remove(ETH_QUE* que)
   }
 }
 
-void ethq_insert_data(ETH_QUE* que, int32 type, const uint8 *data, int used, size_t len, size_t crc_len, const uint8 *crc_data, int32 status)
+void ethq_insert_data(ETH_QUE* que, int32 type, const uint8_t *data, int used, size_t len, size_t crc_len, const uint8_t *crc_data, int32 status)
 {
   struct eth_item* item;
 
@@ -764,7 +764,7 @@ void ethq_insert_data(ETH_QUE* que, int32 type, const uint8 *data, int used, siz
       memcpy(&item->packet.msg[len], crc_data, ETH_CRC_SIZE);
     }
   else {
-    item->packet.oversize = (uint8 *)realloc (item->packet.oversize, ((len > crc_len) ? len : crc_len));
+    item->packet.oversize = (uint8_t *)realloc (item->packet.oversize, ((len > crc_len) ? len : crc_len));
     memcpy(item->packet.oversize, data, ((len > crc_len) ? len : crc_len));
     if (crc_data && (crc_len > len))
       memcpy(&item->packet.oversize[len], crc_data, ETH_CRC_SIZE);
@@ -935,7 +935,7 @@ t_stat eth_show (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 #if !defined (USE_NETWORK) && !defined (USE_SHARED)
 const char *eth_capabilities(void)
     {return "no Ethernet";}
-t_stat eth_open(ETH_DEV* dev, const char* name, DEVICE* dptr, uint32 dbit)
+t_stat eth_open(ETH_DEV* dev, const char* name, DEVICE* dptr, uint32_t dbit)
   {return SCPE_NOFNC;}
 t_stat eth_close (ETH_DEV* dev)
   {return SCPE_NOFNC;}
@@ -948,7 +948,7 @@ t_stat eth_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
 t_stat eth_check_address_conflict (ETH_DEV* dev, 
                                    ETH_MAC* const mac)
   {return SCPE_NOFNC;}
-t_stat eth_set_throttle (ETH_DEV* dev, uint32 time, uint32 burst, uint32 delay)
+t_stat eth_set_throttle (ETH_DEV* dev, uint32_t time, uint32_t burst, uint32_t delay)
   {return SCPE_NOFNC;}
 t_stat eth_set_async (ETH_DEV *dev, int latency)
   {return SCPE_NOFNC;}
@@ -1024,8 +1024,8 @@ const char *eth_capabilities(void)
 #include <string.h>
 #else
 struct pcap_pkthdr {
-    uint32 caplen;  /* length of portion present */
-    uint32 len;     /* length this packet (off wire) */
+    uint32_t caplen;  /* length of portion present */
+    uint32_t len;     /* length this packet (off wire) */
 };
 #define PCAP_ERRBUF_SIZE 256
 typedef void * pcap_t;  /* Pseudo Type to avoid compiler errors */
@@ -1574,10 +1574,10 @@ int pcap_sendpacket(pcap_t* handle, const u_char* msg, int len)
 #if defined(_WIN32) || defined(__CYGWIN__)
 /* extracted from WinPcap's Packet32.h */
 struct _PACKET_OID_DATA {
-    uint32 Oid;                 ///< OID code. See the Microsoft DDK documentation or the file ntddndis.h
+    uint32_t Oid;                 ///< OID code. See the Microsoft DDK documentation or the file ntddndis.h
                                 ///< for a complete list of valid codes.
-    uint32 Length;              ///< Length of the data field
-    uint8 Data[1];              ///< variable-lenght field that contains the information passed to or received 
+    uint32_t Length;              ///< Length of the data field
+    uint8_t Data[1];              ///< variable-lenght field that contains the information passed to or received 
                                 ///< from the adapter.
 }; 
 typedef struct _PACKET_OID_DATA PACKET_OID_DATA, *PPACKET_OID_DATA;
@@ -2146,7 +2146,7 @@ while (dev->handle) {
     pthread_mutex_unlock (&dev->writer_lock);
 
     if (dev->throttle_delay != ETH_THROT_DISABLED_DELAY) {
-      uint32 packet_delta_time = sim_os_msec() - dev->throttle_packet_time;
+      uint32_t packet_delta_time = sim_os_msec() - dev->throttle_packet_time;
       dev->throttle_events <<= 1;
       dev->throttle_events += (packet_delta_time < dev->throttle_time) ? 1 : 0;
       if ((dev->throttle_events & dev->throttle_mask) == dev->throttle_mask) {
@@ -2220,7 +2220,7 @@ return SCPE_OK;
 #endif
 }
 
-t_stat eth_set_throttle (ETH_DEV* dev, uint32 time, uint32 burst, uint32 delay)
+t_stat eth_set_throttle (ETH_DEV* dev, uint32_t time, uint32_t burst, uint32_t delay)
 {
 if (!dev)
   return SCPE_IERR;
@@ -2231,7 +2231,7 @@ dev->throttle_mask = (1 << dev->throttle_burst) - 1;
 return SCPE_OK;
 }
 
-static t_stat _eth_open_port(char *savname, int *eth_api, void **handle, SOCKET *fd_handle, char errbuf[PCAP_ERRBUF_SIZE], char *bpf_filter, void *opaque, DEVICE *dptr, uint32 dbit)
+static t_stat _eth_open_port(char *savname, int *eth_api, void **handle, SOCKET *fd_handle, char errbuf[PCAP_ERRBUF_SIZE], char *bpf_filter, void *opaque, DEVICE *dptr, uint32_t dbit)
 {
 int bufsz = (BUFSIZ < ETH_MAX_PACKET) ? ETH_MAX_PACKET : BUFSIZ;
 
@@ -2517,7 +2517,7 @@ if (bpf_filter && (*eth_api == ETH_API_PCAP)) {
 return SCPE_OK;
 }
 
-t_stat eth_open(ETH_DEV* dev, const char* name, DEVICE* dptr, uint32 dbit)
+t_stat eth_open(ETH_DEV* dev, const char* name, DEVICE* dptr, uint32_t dbit)
 {
 t_stat r;
 int bufsz = (BUFSIZ < ETH_MAX_PACKET) ? ETH_MAX_PACKET : BUFSIZ;
@@ -2768,9 +2768,9 @@ t_stat eth_check_address_conflict_ex (ETH_DEV* dev,
 {
 ETH_PACK send, recv;
 t_stat status;
-uint32 i;
+uint32_t i;
 int responses = 0;
-uint32 offset, function;
+uint32_t offset, function;
 char mac_string[32];
 
 if (reflections)
@@ -3243,47 +3243,47 @@ _eth_hash_validate(tMacs, sizeof(tMacs)/sizeof(tMacs[0]), thash);
 
 /* The IP header */
 struct IPHeader {
-  uint8 verhlen;          /* Version & Header Length in dwords */
+  uint8_t verhlen;          /* Version & Header Length in dwords */
 #define IP_HLEN(IP) (((IP)->verhlen&0xF)<<2) /* Header Length in Bytes */
 #define IP_VERSION(IP) ((((IP)->verhlen)>>4)&0xF) /* IP Version */
-  uint8 tos;              /* Type of service */
-  uint16 total_len;       /* Length of the packet in dwords */
-  uint16 ident;           /* unique identifier */
-  uint16 flags;           /* Fragmentation Flags */
+  uint8_t tos;              /* Type of service */
+  uint16_t total_len;       /* Length of the packet in dwords */
+  uint16_t ident;           /* unique identifier */
+  uint16_t flags;           /* Fragmentation Flags */
 #define IP_DF_FLAG (0x4000)
 #define IP_MF_FLAG (0x2000)
 #define IP_OFFSET_MASK (0x1FFF)
 #define IP_FRAG_DF(IP) (ntohs(((IP)->flags))&IP_DF_FLAG)
 #define IP_FRAG_MF(IP) (ntohs(((IP)->flags))&IP_MF_FLAG)
 #define IP_FRAG_OFFSET(IP) (ntohs(((IP)->flags))&IP_OFFSET_MASK)
-  uint8 ttl;              /* Time to live */
-  uint8 proto;            /* Protocol number (TCP, UDP etc) */
-  uint16 checksum;        /* IP checksum */
-  uint32 source_ip;       /* Source Address */
-  uint32 dest_ip;         /* Destination Address */
+  uint8_t ttl;              /* Time to live */
+  uint8_t proto;            /* Protocol number (TCP, UDP etc) */
+  uint16_t checksum;        /* IP checksum */
+  uint32_t source_ip;       /* Source Address */
+  uint32_t dest_ip;         /* Destination Address */
   };
 
 /* ICMP header */
 struct ICMPHeader {
-  uint8 type;          /* ICMP packet type */
-  uint8 code;          /* Type sub code */
-  uint16 checksum;     /* ICMP Checksum */
-  uint32 otherstuff[1];/* optional data */
+  uint8_t type;          /* ICMP packet type */
+  uint8_t code;          /* Type sub code */
+  uint16_t checksum;     /* ICMP Checksum */
+  uint32_t otherstuff[1];/* optional data */
   };
 
 struct UDPHeader {
-  uint16 source_port;
-  uint16 dest_port;
-  uint16 length;      /* The length of the entire UDP datagram, including both header and Data fields. */
-  uint16 checksum;
+  uint16_t source_port;
+  uint16_t dest_port;
+  uint16_t length;      /* The length of the entire UDP datagram, including both header and Data fields. */
+  uint16_t checksum;
   };
 
 struct TCPHeader {
-  uint16 source_port;
-  uint16 dest_port;
-  uint32 sequence_number;
-  uint32 acknowledgement_number;
-  uint16 data_offset_and_flags;
+  uint16_t source_port;
+  uint16_t dest_port;
+  uint32_t sequence_number;
+  uint32_t acknowledgement_number;
+  uint16_t data_offset_and_flags;
 #define TCP_DATA_OFFSET(TCP) ((ntohs((TCP)->data_offset_and_flags)>>12)<<2)
 #define TCP_CWR_FLAG (0x80)
 #define TCP_ECR_FLAG (0x40)
@@ -3294,10 +3294,10 @@ struct TCPHeader {
 #define TCP_SYN_FLAG (0x02)
 #define TCP_FIN_FLAG (0x01)
 #define TCP_FLAGS_MASK (0xFFF)
-  uint16 window;
-  uint16 checksum;
-  uint16 urgent;
-  uint16 otherstuff[1];  /* The rest of the packet */
+  uint16_t window;
+  uint16_t checksum;
+  uint16_t urgent;
+  uint16_t otherstuff[1];  /* The rest of the packet */
   };
 
 #ifndef IPPROTO_TCP
@@ -3310,8 +3310,8 @@ struct TCPHeader {
 #define IPPROTO_ICMP            1               /* control message protocol */
 #endif
 
-static uint16 
-ip_checksum(uint16 *buffer, int size) 
+static uint16_t 
+ip_checksum(uint16_t *buffer, int size) 
 {
 unsigned long cksum = 0;
     
@@ -3321,10 +3321,10 @@ while (size > 1) {
   size -= sizeof(*buffer);
 }
 if (size) {
-  uint16 endword;
-  uint8 *endbytes = (uint8 *)&endword;
+  uint16_t endword;
+  uint8_t *endbytes = (uint8_t *)&endword;
 
-  endbytes[0] = *((uint8 *)buffer);
+  endbytes[0] = *((uint8_t *)buffer);
   endbytes[1] = 0;
   cksum += endword;
   }
@@ -3334,22 +3334,22 @@ cksum = (cksum >> 16) + (cksum & 0xffff);
 cksum += (cksum >> 16);
     
 /* Return the bitwise complement of the resulting mishmash  */
-return (uint16)(~cksum);
+return (uint16_t)(~cksum);
 }
 
 /* 
  * src_addr and dest_addr are presented in network byte order
  */
 
-static uint16 
-pseudo_checksum(uint16 len, uint16 proto, void *nsrc_addr, void *ndest_addr, uint8 *buff)
+static uint16_t 
+pseudo_checksum(uint16_t len, uint16_t proto, void *nsrc_addr, void *ndest_addr, uint8_t *buff)
 {
-uint32 sum;
-uint16 *src_addr = (uint16 *)nsrc_addr;
-uint16 *dest_addr = (uint16 *)ndest_addr;
+uint32_t sum;
+uint16_t *src_addr = (uint16_t *)nsrc_addr;
+uint16_t *dest_addr = (uint16_t *)ndest_addr;
 
 /* Sum the data first */
-sum = 0xffff&(~ip_checksum((uint16 *)buff, len));
+sum = 0xffff&(~ip_checksum((uint16_t *)buff, len));
 
 /* add the pseudo header which contains the IP source and 
    destination addresses already in network byte order */
@@ -3365,7 +3365,7 @@ sum = (sum >> 16) + (sum & 0xffff);
 sum += (sum >> 16);
     
 /* Return the bitwise complement of the resulting mishmash  */
-return (uint16)(~sum);
+return (uint16_t)(~sum);
 }
 
 static void
@@ -3376,13 +3376,13 @@ struct IPHeader *IP;
 struct TCPHeader *TCP = NULL;
 struct UDPHeader *UDP;
 struct ICMPHeader *ICMP;
-uint16 orig_checksum;
-uint16 payload_len;
-uint16 mtu_payload;
-uint16 ip_flags;
-uint16 frag_offset;
+uint16_t orig_checksum;
+uint16_t payload_len;
+uint16_t mtu_payload;
+uint16_t ip_flags;
+uint16_t frag_offset;
 struct pcap_pkthdr header;
-uint16 orig_tcp_flags;
+uint16_t orig_tcp_flags;
 
 /* Only interested in IP frames */
 if (ntohs(*proto) != 0x0800) {
@@ -3413,7 +3413,7 @@ switch (IP->proto) {
       break; /* UDP Checksums are disabled */
     orig_checksum = UDP->checksum;
     UDP->checksum = 0;
-    UDP->checksum = pseudo_checksum(ntohs(UDP->length), IPPROTO_UDP, &IP->source_ip, &IP->dest_ip, (uint8 *)UDP);
+    UDP->checksum = pseudo_checksum(ntohs(UDP->length), IPPROTO_UDP, &IP->source_ip, &IP->dest_ip, (uint8_t *)UDP);
     if (orig_checksum != UDP->checksum)
       eth_packet_trace (dev, msg, len, "reading jumbo UDP header Checksum Fixed");
     break;
@@ -3421,7 +3421,7 @@ switch (IP->proto) {
     ICMP = (struct ICMPHeader *)(((char *)IP)+IP_HLEN(IP));
     orig_checksum = ICMP->checksum;
     ICMP->checksum = 0;
-    ICMP->checksum = ip_checksum((uint16 *)ICMP, ntohs(IP->total_len)-IP_HLEN(IP));
+    ICMP->checksum = ip_checksum((uint16_t *)ICMP, ntohs(IP->total_len)-IP_HLEN(IP));
     if (orig_checksum != ICMP->checksum)
       eth_packet_trace (dev, msg, len, "reading jumbo ICMP header Checksum Fixed");
     break;
@@ -3454,7 +3454,7 @@ switch (IP->proto) {
        'template' header which may not include a value being populated 
        in the IP header length (which is only 16 bits).
        We process as payload everything which isn't known header data. */
-    payload_len = (uint16)(len - (14 + IP_HLEN(IP)));
+    payload_len = (uint16_t)(len - (14 + IP_HLEN(IP)));
     mtu_payload = ETH_MIN_JUMBO_FRAME - (14 + IP_HLEN(IP));
     frag_offset = 0;
     while (payload_len > 0) {
@@ -3468,7 +3468,7 @@ switch (IP->proto) {
         }
       IP->flags = htons(ip_flags);
       IP->checksum = 0;
-      IP->checksum = ip_checksum((uint16 *)IP, IP_HLEN(IP));
+      IP->checksum = ip_checksum((uint16_t *)IP, IP_HLEN(IP));
       header.caplen = header.len = 14 + ntohs(IP->total_len);
       eth_packet_trace (dev, ((u_char *)IP)-14, header.len, "reading Datagram fragment");
 #if ETH_MIN_JUMBO_FRAME < ETH_MAX_PACKET
@@ -3508,7 +3508,7 @@ switch (IP->proto) {
        'template' header which may not include a value being populated 
        in the IP header length (which is only 16 bits).
        We process as payload everything which isn't known header data. */
-    payload_len = (uint16)(len - (14 + IP_HLEN(IP) + TCP_DATA_OFFSET(TCP)));
+    payload_len = (uint16_t)(len - (14 + IP_HLEN(IP) + TCP_DATA_OFFSET(TCP)));
     mtu_payload = ETH_MIN_JUMBO_FRAME - (14 + IP_HLEN(IP) + TCP_DATA_OFFSET(TCP));
     while (payload_len > 0) {
       if (payload_len > mtu_payload) {
@@ -3520,9 +3520,9 @@ switch (IP->proto) {
         IP->total_len = htons(payload_len + IP_HLEN(IP) + TCP_DATA_OFFSET(TCP));
         }
       IP->checksum = 0;
-      IP->checksum = ip_checksum((uint16 *)IP, IP_HLEN(IP));
+      IP->checksum = ip_checksum((uint16_t *)IP, IP_HLEN(IP));
       TCP->checksum = 0;
-      TCP->checksum = pseudo_checksum(ntohs(IP->total_len)-IP_HLEN(IP), IPPROTO_TCP, &IP->source_ip, &IP->dest_ip, (uint8 *)TCP);
+      TCP->checksum = pseudo_checksum(ntohs(IP->total_len)-IP_HLEN(IP), IPPROTO_TCP, &IP->source_ip, &IP->dest_ip, (uint8_t *)TCP);
       header.caplen = header.len = 14 + ntohs(IP->total_len);
       eth_packet_trace_ex (dev, ((u_char *)IP)-14, header.len, "reading TCP segment", 1, dev->dbit);
 #if ETH_MIN_JUMBO_FRAME < ETH_MAX_PACKET
@@ -3565,7 +3565,7 @@ struct IPHeader *IP;
 struct TCPHeader *TCP;
 struct UDPHeader *UDP;
 struct ICMPHeader *ICMP;
-uint16 orig_checksum;
+uint16_t orig_checksum;
 
 /* Only need to process locally originated packets */
 if ((!dev->have_host_nic_phy_addr) || (memcmp(msg+6, dev->host_nic_phy_hw_addr, 6)))
@@ -3580,7 +3580,7 @@ if ((IP_HLEN(IP) > len) || (ntohs(IP->total_len) > len))
   return; /* Bogus header length */
 orig_checksum = IP->checksum;
 IP->checksum = 0;
-IP->checksum = ip_checksum((uint16 *)IP, IP_HLEN(IP));
+IP->checksum = ip_checksum((uint16_t *)IP, IP_HLEN(IP));
 if (orig_checksum != IP->checksum)
   eth_packet_trace (dev, msg, len, "reading IP header Checksum Fixed");
 if (IP_FRAG_OFFSET(IP) || IP_FRAG_MF(IP))
@@ -3594,7 +3594,7 @@ switch (IP->proto) {
       return; /* UDP Checksums are disabled */
     orig_checksum = UDP->checksum;
     UDP->checksum = 0;
-    UDP->checksum = pseudo_checksum(ntohs(UDP->length), IPPROTO_UDP, &IP->source_ip, &IP->dest_ip, (uint8 *)UDP);
+    UDP->checksum = pseudo_checksum(ntohs(UDP->length), IPPROTO_UDP, &IP->source_ip, &IP->dest_ip, (uint8_t *)UDP);
     if (orig_checksum != UDP->checksum)
       eth_packet_trace (dev, msg, len, "reading UDP header Checksum Fixed");
     break;
@@ -3602,7 +3602,7 @@ switch (IP->proto) {
     TCP = (struct TCPHeader *)(((char *)IP)+IP_HLEN(IP));
     orig_checksum = TCP->checksum;
     TCP->checksum = 0;
-    TCP->checksum = pseudo_checksum(ntohs(IP->total_len)-IP_HLEN(IP), IPPROTO_TCP, &IP->source_ip, &IP->dest_ip, (uint8 *)TCP);
+    TCP->checksum = pseudo_checksum(ntohs(IP->total_len)-IP_HLEN(IP), IPPROTO_TCP, &IP->source_ip, &IP->dest_ip, (uint8_t *)TCP);
     if (orig_checksum != TCP->checksum)
       eth_packet_trace (dev, msg, len, "reading TCP header Checksum Fixed");
     break;
@@ -3610,7 +3610,7 @@ switch (IP->proto) {
     ICMP = (struct ICMPHeader *)(((char *)IP)+IP_HLEN(IP));
     orig_checksum = ICMP->checksum;
     ICMP->checksum = 0;
-    ICMP->checksum = ip_checksum((uint16 *)ICMP, ntohs(IP->total_len)-IP_HLEN(IP));
+    ICMP->checksum = ip_checksum((uint16_t *)ICMP, ntohs(IP->total_len)-IP_HLEN(IP));
     if (orig_checksum != ICMP->checksum)
       eth_packet_trace (dev, msg, len, "reading ICMP header Checksum Fixed");
     break;
@@ -3618,11 +3618,11 @@ switch (IP->proto) {
 }
 
 static int
-_eth_process_loopback (ETH_DEV* dev, const u_char* data, uint32 len)
+_eth_process_loopback (ETH_DEV* dev, const u_char* data, uint32_t len)
 {
 int protocol = data[12] | (data[13] << 8);
 ETH_PACK  response;
-uint32 offset, function;
+uint32_t offset, function;
 
 if (protocol != 0x0090)     /* !ethernet loopback */
   return 0;
@@ -3775,8 +3775,8 @@ if (bpf_used ? to_me : (to_me && !from_me)) {
 #if defined (USE_READER_THREAD)
   if (1) {
     int crc_len = 0;
-    uint8 crc_data[4];
-    uint32 len = header->len;
+    uint8_t crc_data[4];
+    uint32_t len = header->len;
     u_char *moved_data = NULL;
 
     if (header->len < ETH_MIN_PACKET) {   /* Pad runt packets before CRC append */
@@ -4303,8 +4303,8 @@ t_stat eth_test_crc32 (DEVICE *dptr)
 {
 int errors = 0;
 int val;
-uint8 data[12];
-static uint32 valcrc32[] = {
+uint8_t data[12];
+static uint32_t valcrc32[] = {
   0x7BD5C66F, 0x92C4D707, 0x7286E2FE, 0x9B97F396, 0x69738F4D, 0x80629E25, 0x6020ABDC, 0x8931BAB4,
   0x5E99542B, 0xB7884543, 0x57CA70BA, 0xBEDB61D2, 0x4C3F1D09, 0xA52E0C61, 0x456C3998, 0xAC7D28F0,
   0x314CE2E7, 0xD85DF38F, 0x381FC676, 0xD10ED71E, 0x23EAABC5, 0xCAFBBAAD, 0x2AB98F54, 0xC3A89E3C,

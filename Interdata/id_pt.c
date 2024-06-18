@@ -46,15 +46,15 @@
 #define CMD_V_SLEW      2                               /* slew/step */
 #define CMD_V_RD        0                               /* read/write */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint32 pt_run = 0, pt_slew = 0;                         /* ptr modes */
-uint32 pt_rd = 1, pt_chp = 0;                           /* pt state */
-uint32 pt_arm = 0;                                      /* int arm */
-uint32 pt_sta = STA_BSY;                                /* status */
-uint32 ptr_stopioe = 0, ptp_stopioe = 0;                /* stop on error */
+uint32_t pt_run = 0, pt_slew = 0;                         /* ptr modes */
+uint32_t pt_rd = 1, pt_chp = 0;                           /* pt state */
+uint32_t pt_arm = 0;                                      /* int arm */
+uint32_t pt_sta = STA_BSY;                                /* status */
+uint32_t ptr_stopioe = 0, ptp_stopioe = 0;                /* stop on error */
 
-uint32 pt (uint32 dev, uint32 op, uint32 dat);
+uint32_t pt (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptp_svc (UNIT *uptr);
 t_stat pt_boot (int32 unitno, DEVICE *dptr);
@@ -112,9 +112,9 @@ DEVICE pt_dev = {
 
 /* Paper tape: IO routine */
 
-uint32 pt (uint32 dev, uint32 op, uint32 dat)
+uint32_t pt (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 t, old_rd, old_run;
+uint32_t t, old_rd, old_run;
 
 switch (op) {                                           /* case IO op */
 
@@ -253,16 +253,16 @@ return SCPE_OK;
 /* Bootstrap routine */
 
 #define BOOT_START      0x50
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8_t))
 #define BOOT3_START     0x3E
-#define BOOT3_LEN       (sizeof (boot_rom) / sizeof (uint8))
+#define BOOT3_LEN       (sizeof (boot_rom) / sizeof (uint8_t))
 
-static uint8 boot_rom[] = {
+static uint8_t boot_rom[] = {
     0xD5, 0x00, 0x00, 0xCF,                             /* ST   AL CF */
     0x43, 0x00, 0x00, 0x80                              /*      BR 80 */
     };
 
-static uint8 boot3_rom[] = {
+static uint8_t boot3_rom[] = {
     0xC8, 0x20, 0x00, 0x80,                             /* ST   LHI 2,80 */
     0xC8, 0x30, 0x00, 0x01,                             /*      LHI 3,1 */
     0xC8, 0x40, 0x00, 0xCF,                             /*      LHI 4,CF */
@@ -300,10 +300,10 @@ return SCPE_OK;
 #define LOAD_LO         0x8A
 #define LOAD_HI         0x8E
 #define LOAD_CS         0x93
-#define LOAD_LEN        (sizeof (load_rom) / sizeof (uint8))
+#define LOAD_LEN        (sizeof (load_rom) / sizeof (uint8_t))
 #define LOAD_LDR        50
 
-static uint8 load_rom[] = {
+static uint8_t load_rom[] = {
     0x24, 0x21,                                         /* BOOT LIS R2,1 */
     0x23, 0x03,                                         /*      BS BOOT */
     0x00, 0x00,                                         /* 32b psw pointer */
@@ -340,7 +340,7 @@ static uint8 load_rom[] = {
 
 t_stat pt_dump (FILE *of, CONST char *cptr, CONST char *fnam)
 {
-uint32 i, lo, hi, cs;
+uint32_t i, lo, hi, cs;
 const char *tptr;
 extern DEVICE cpu_dev;
 

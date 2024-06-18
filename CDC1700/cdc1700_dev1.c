@@ -33,12 +33,12 @@
 
 extern char INTprefix[];
 
-extern void fw_IOunderwayData(IO_DEVICE *, uint16);
-extern void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
-extern void fw_setForced(IO_DEVICE *, uint16);
-extern void fw_clearForced(IO_DEVICE *, uint16);
+extern void fw_IOunderwayData(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
+extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16_t, uint16_t, uint16_t, const char *);
+extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8_t);
+extern void fw_setForced(IO_DEVICE *, uint16_t);
+extern void fw_clearForced(IO_DEVICE *, uint16_t);
 
 extern void rebuildPending(void);
 
@@ -54,7 +54,7 @@ extern t_stat clr_stoponrej(UNIT *, int32, CONST char *, void *);
 extern t_stat set_protected(UNIT *, int32, CONST char *, void *);
 extern t_stat clear_protected(UNIT *, int32, CONST char *, void *);
 
-extern uint16 Areg, IOAreg;
+extern uint16_t Areg, IOAreg;
 
 extern t_bool IOFWinitialized;
 
@@ -66,10 +66,10 @@ t_stat tto_reset(DEVICE *);
 void TTIstate(const char *, DEVICE *, IO_DEVICE *);
 void TTOstate(const char *, DEVICE *, IO_DEVICE *);
 void TTstate(const char *, DEVICE *, IO_DEVICE *);
-uint16 TTrebuild(void);
-t_bool TTreject(IO_DEVICE *, t_bool, uint8);
-enum IOstatus TTin(IO_DEVICE *, uint8);
-enum IOstatus TTout(IO_DEVICE *, uint8);
+uint16_t TTrebuild(void);
+t_bool TTreject(IO_DEVICE *, t_bool, uint8_t);
+enum IOstatus TTin(IO_DEVICE *, uint8_t);
+enum IOstatus TTout(IO_DEVICE *, uint8_t);
 
 t_stat tt_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
@@ -182,7 +182,7 @@ IO_DEVICE TTdev = IODEV("TT", "1711-A", 1711, 1, 1, 0,
    tti_mod      TTI modifiers list
 */
 
-uint8 tti_manualIntr = 0x7;
+uint8_t tti_manualIntr = 0x7;
 
 #define TTUF_V_HDX      (TTUF_V_UF + 0)
 #define TTUF_HDX        (1 << TTUF_V_HDX)
@@ -435,7 +435,7 @@ t_stat tti_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-enum IOstatus TTIin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus TTIin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * The logical TT device driver only passes INP operations for the data
@@ -545,7 +545,7 @@ t_stat tto_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-enum  IOstatus TTOout(IO_DEVICE *iod, uint8 reg)
+enum  IOstatus TTOout(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * The logical TT device driver only passes OUT operations for the data
@@ -623,7 +623,7 @@ void TTreset(void)
 
 /* Rebuild the director status register */
 
-uint16 TTrebuild(void)
+uint16_t TTrebuild(void)
 {
   TTdev.STATUS &= IO_1711_CONTR;
   if (TTdev.iod_rmode) {
@@ -636,7 +636,7 @@ uint16 TTrebuild(void)
 
 /* Check if I/O should be rejected */
 
-t_bool TTreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+t_bool TTreject(IO_DEVICE *iod, t_bool output, uint8_t reg)
 {
   if (reg == 0) {
     if (output)
@@ -645,7 +645,7 @@ t_bool TTreject(IO_DEVICE *iod, t_bool output, uint8 reg)
   }
 
   if (output) {
-    uint16 func = Areg & IO_1711_DIRMSK;
+    uint16_t func = Areg & IO_1711_DIRMSK;
 
     if (func != 0) {
       if ((func & (IO_DIR_ALARM | IO_DIR_EOP | IO_DIR_DATA | \
@@ -667,7 +667,7 @@ t_bool TTreject(IO_DEVICE *iod, t_bool output, uint8 reg)
 
 /* Perform I/O */
 
-enum IOstatus TTin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus TTin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * Certain invalid operations will already have been rejected in TTreject().
@@ -679,7 +679,7 @@ enum IOstatus TTin(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus TTout(IO_DEVICE *iod, uint8_t reg)
 {
   t_bool rmode, changed = FALSE;
   DEVICE *dptr;
@@ -787,8 +787,8 @@ t_stat ptr_reset(DEVICE *);
 t_stat ptr_attach(UNIT *, CONST char *);
 t_stat ptr_detach(UNIT *);
 
-enum IOstatus PTRin(IO_DEVICE *, uint8);
-enum IOstatus PTRout(IO_DEVICE *, uint8);
+enum IOstatus PTRin(IO_DEVICE *, uint8_t);
+enum IOstatus PTRout(IO_DEVICE *, uint8_t);
 
 t_stat ptr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
@@ -1017,7 +1017,7 @@ t_stat ptr_detach(UNIT *uptr)
 
 /* Perform I/O */
 
-enum IOstatus PTRin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus PTRin(IO_DEVICE *iod, uint8_t reg)
 {
   if ((ptr_dev.dctrl & DBG_DSTATE) != 0)
     PTRstate("before", &ptr_dev, &PTRdev);
@@ -1035,7 +1035,7 @@ enum IOstatus PTRin(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-enum IOstatus PTRout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus PTRout(IO_DEVICE *iod, uint8_t reg)
 {
   if ((ptr_dev.dctrl & DBG_DSTATE) != 0)
     PTRstate("before", &ptr_dev, &PTRdev);
@@ -1093,8 +1093,8 @@ t_stat ptr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr
 t_stat ptp_svc(UNIT *);
 t_stat ptp_reset(DEVICE *);
 
-enum IOstatus PTPin(IO_DEVICE *, uint8);
-enum IOstatus PTPout(IO_DEVICE *, uint8);
+enum IOstatus PTPin(IO_DEVICE *, uint8_t);
+enum IOstatus PTPout(IO_DEVICE *, uint8_t);
 
 t_stat ptp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
@@ -1297,7 +1297,7 @@ t_stat ptp_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-enum IOstatus PTPin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus PTPin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * The framework only passes IN operations for the data register (0x90)
@@ -1305,7 +1305,7 @@ enum IOstatus PTPin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus PTPout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus PTPout(IO_DEVICE *iod, uint8_t reg)
 {
   if ((ptp_dev.dctrl & DBG_DSTATE) != 0)
     PTPstate("before", &ptp_dev, &PTPdev);
@@ -1401,9 +1401,9 @@ t_stat ptp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr
  * Return device 1 interrupt status. If any of the sub-devices have their
  * interrupt status active, return the device 1 interrupt mask bit.
  */
-uint16 dev1INTR(DEVICE *dptr)
+uint16_t dev1INTR(DEVICE *dptr)
 {
-  uint16 status;
+  uint16_t status;
 
   status = TTIdev.STATUS |  TTOdev.STATUS | PTRdev.STATUS | PTPdev.STATUS;
 

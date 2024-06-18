@@ -177,7 +177,7 @@ DEVICE JEDEC_dev = {
 
 /* global variables */
 
-uint8 *JEDEC_buf[JEDEC_NUM] = {             /* JEDEC buffer pointers */
+uint8_t *JEDEC_buf[JEDEC_NUM] = {             /* JEDEC buffer pointers */
     NULL,
     NULL,
     NULL,
@@ -227,7 +227,7 @@ t_stat JEDEC_set_mode (UNIT *uptr, int32 val, char *cptr, void *desc)
 
 t_stat JEDEC_set_size (UNIT *uptr, int32 val, char *cptr, void *desc)
 {
-    uint32 i, basadr;
+    uint32_t i, basadr;
     UNIT *uptr1;
 
     if (JEDEC_dev.dctrl & DEBUG_flow)

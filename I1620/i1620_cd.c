@@ -47,10 +47,10 @@
 
 #define CD_LEN          80
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
+extern uint32_t io_stop;
 
 char cdr_buf[CD_LEN + 2];
 char cdp_buf[CD_LEN + 2];
@@ -60,8 +60,8 @@ t_stat cdr_attach (UNIT *uptr, CONST char *cptr);
 t_stat cdr_boot (int32 unitno, DEVICE *dptr);
 t_stat cdr_read (void);
 t_stat cdp_reset (DEVICE *dptr);
-t_stat cdp_write (uint32 len);
-t_stat cdp_num (uint32 pa, uint32 ndig, t_bool dump);
+t_stat cdp_write (uint32_t len);
+t_stat cdp_num (uint32_t pa, uint32_t ndig, t_bool dump);
 
 /* Card reader data structures
 
@@ -278,7 +278,7 @@ const int8 alp_to_cdp[256] = {
      If IO stop is set, the system halts at the end of the operation.
 */
 
-t_stat cdr (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat cdr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 int32 i;
 int8 cdc;
@@ -402,8 +402,8 @@ return SCPE_OK;
 t_stat cdr_boot (int32 unitno, DEVICE *dptr)
 {
 t_stat r;
-uint32 old_io_stop;
-extern uint32 saved_PC;
+uint32_t old_io_stop;
+extern uint32_t saved_PC;
 
 old_io_stop = io_stop;
 io_stop = 1;
@@ -422,11 +422,11 @@ return SCPE_OK;
      If IO stop is set, the system halts.
 */
 
-t_stat cdp (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat cdp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 int32 i;
 int8 cdc;
-uint8 z, d;
+uint8_t z, d;
 
 switch (op) {                                           /* decode op */
 
@@ -485,10 +485,10 @@ return STOP_INVFNC;
 
 /* Punch card numeric */
 
-t_stat cdp_num (uint32 pa, uint32 ndig, t_bool dump)
+t_stat cdp_num (uint32_t pa, uint32_t ndig, t_bool dump)
 {
 int32 i, ncd, len;
-uint8 d;
+uint8_t d;
 int8 cdc;
 t_stat r;
 
@@ -518,7 +518,7 @@ return SCPE_OK;
 
 /* Write punch card buffer - all errors are hard errors */
 
-t_stat cdp_write (uint32 len)
+t_stat cdp_write (uint32_t len)
 {
 if ((cdp_unit.flags & UNIT_ATT) == 0)                   /* attached? */
     return SCPE_UNATT;

@@ -64,7 +64,7 @@ t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
     t_stat r;
     int32 i;
-    uint32 origin = 0, limit = 0;
+    uint32_t origin = 0, limit = 0;
     int32 cnt = 0;
 
     if (flag) {
@@ -75,8 +75,8 @@ t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
         limit = ROM_BASE + ROM_SIZE;
         origin = ROM_BASE;
     } else if (sim_switches & SWMASK('O')) {
-        limit = PHYS_MEM_BASE + (uint32) cpu_unit.capac;
-        origin = (uint32) get_uint(cptr, 16, 0xffffffff, &r);
+        limit = PHYS_MEM_BASE + (uint32_t) cpu_unit.capac;
+        origin = (uint32_t) get_uint(cptr, 16, 0xffffffff, &r);
         if (r != SCPE_OK) {
             return SCPE_ARG;
         }
@@ -95,9 +95,9 @@ t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
             return SCPE_NXM;
         }
         if (sim_switches & SWMASK('R')) {
-            pwrite_b_rom(origin, (uint8)i);
+            pwrite_b_rom(origin, (uint8_t)i);
         } else {
-            pwrite_b(origin, (uint8)i, BUS_CPU);
+            pwrite_b(origin, (uint8_t)i, BUS_CPU);
         }
         origin++;
         cnt++;
@@ -153,7 +153,7 @@ t_stat parse_sym(CONST char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 
 
 t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
-    uint32 len = 4;
+    uint32_t len = 4;
     int32 k, vp, num;
     unsigned int c;
 
@@ -189,7 +189,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
         num = num | (((int32) val[vp++]) << (k * 8));
     }
 
-    fprint_val(of, (uint32) num, 16, len * 8, PV_RZRO);
+    fprint_val(of, (uint32_t) num, 16, len * 8, PV_RZRO);
 
     return -(vp - 1);
 }

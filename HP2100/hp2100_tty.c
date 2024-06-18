@@ -822,7 +822,7 @@ else {                                                  /* otherwise */
                                       TT_GET_MODE (uptr->flags));
 
         tprintf (tty_dev, TRACE_XFER, "Character %s entered at keyboard\n",
-                 fmt_char ((uint32) input));
+                 fmt_char ((uint32_t) input));
         }
     }
 
@@ -951,7 +951,7 @@ if (tty.mode & CN_PUNCH                                             /* if punchi
         punch_unit.pos = ftell (punch_unit.fileref);    /*   so update the file position */
 
         tprintf (tty_dev, TRACE_XFER, "Data %03o character %s sent to punch\n",
-                 character, fmt_char ((uint32) character));
+                 character, fmt_char ((uint32_t) character));
         }
 
 if (tty.mode & CN_PRINT                                 /* if printing is enabled */
@@ -967,13 +967,13 @@ if (tty.mode & CN_PRINT                                 /* if printing is enable
             print_unit.pos = print_unit.pos + 1;        /*   then update the file position */
 
             tprintf (tty_dev, TRACE_XFER, "Character %s sent to printer\n",
-                     fmt_char ((uint32) print_char));
+                     fmt_char ((uint32_t) print_char));
             }
         }
 
     else                                                /* otherwise the character was filtered out */
         tprintf (tty_dev, TRACE_XFER, "Character %s discarded by output filter\n",
-                 fmt_char ((uint32) character));
+                 fmt_char ((uint32_t) character));
     }
 
 return status;                                          /* return the status of the operation */

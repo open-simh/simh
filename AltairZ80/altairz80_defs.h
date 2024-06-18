@@ -90,10 +90,10 @@ typedef enum {
 #define ADDRESS_FORMAT          "[0x%08x]"
 
 typedef struct {
-    uint32 mem_base;    /* Memory Base Address */
-    uint32 mem_size;    /* Memory Address space requirement */
-    uint32 io_base;     /* I/O Base Address */
-    uint32 io_size;     /* I/O Address Space requirement */
+    uint32_t mem_base;    /* Memory Base Address */
+    uint32_t mem_size;    /* Memory Address space requirement */
+    uint32_t io_base;     /* I/O Base Address */
+    uint32_t io_size;     /* I/O Address Space requirement */
 } PNP_INFO;
 
 extern ChipType chiptype;

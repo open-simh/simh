@@ -83,19 +83,19 @@ int tty_rate = 300;
 /* Interrupt generator mode: 1 - model time, 0 - wallclock time */
 int tty_turbo = 1;
 
-uint32 vt_sending, vt_receiving;
-uint32 tt_sending, tt_receiving;
+uint32_t vt_sending, vt_receiving;
+uint32_t tt_sending, tt_receiving;
 
 // Attachments survive the reset
-uint32 tt_mask = 0, vt_mask = 0;
+uint32_t tt_mask = 0, vt_mask = 0;
 
-uint32 TTY_OUT = 0, TTY_IN = 0, vt_idle = 0;
-uint32 CONSUL_IN[2];
+uint32_t TTY_OUT = 0, TTY_IN = 0, vt_idle = 0;
+uint32_t CONSUL_IN[2];
 
-uint32 CONS_CAN_PRINT[2] = { 01000, 00400 };
-uint32 CONS_HAS_INPUT[2] = { 04000, 02000 };
+uint32_t CONS_CAN_PRINT[2] = { 01000, 00400 };
+uint32_t CONS_HAS_INPUT[2] = { 04000, 02000 };
 
-uint32 CONS_READY[2] = { 0200, 040 };
+uint32_t CONS_READY[2] = { 0200, 040 };
 /* Command line buffers for TELNET mode. */
 char vt_cbuf [CBUFSIZE] [LINES_MAX+1];
 char *vt_cptr [LINES_MAX+1];
@@ -298,7 +298,7 @@ t_stat tty_setmode (UNIT *u, int32 val, CONST char *cptr, void *desc)
 {
     int num = u - tty_unit;
     TMLN *t = &tty_line [num];
-    uint32 mask = 1 << (TTY_MAX - num);
+    uint32_t mask = 1 << (TTY_MAX - num);
 
     switch (val & TTY_STATE_MASK) {
     case TTY_OFFLINE_STATE:
@@ -509,7 +509,7 @@ DEVICE tty_dev = {
     NULL, DEV_MUX|DEV_DEBUG
 };
 
-void tty_send (uint32 mask)
+void tty_send (uint32_t mask)
 {
     /* besm6_debug ("*** TTY: transmit %08o", mask); */
 
@@ -560,7 +560,7 @@ const char * koi7_rus_to_unicode [32] = {
 };
 
 /* Videoton-340 employed single byte control codes rather than ESC sequences. */
-void vt_send(int num, uint32 sym)
+void vt_send(int num, uint32_t sym)
 {
     if ((tty_unit[num].flags & TTY_CHARSET_MASK) == TTY_RAW_CHARSET) {
         vt_putc(num, sym);
@@ -636,7 +636,7 @@ void vt_send(int num, uint32 sym)
  */
 void vt_print()
 {
-    uint32 workset = (TTY_OUT & vt_mask) | vt_sending;
+    uint32_t workset = (TTY_OUT & vt_mask) | vt_sending;
     int num;
 
     if (workset == 0) {
@@ -682,7 +682,7 @@ void vt_print()
  */
 void tt_print()
 {
-    uint32 workset = (TTY_OUT & tt_mask) | tt_sending;
+    uint32_t workset = (TTY_OUT & tt_mask) | tt_sending;
     int num;
 
     if (workset == 0) {
@@ -1237,13 +1237,13 @@ int vt_fix(int num, int c) {
  */
 void vt_receive()
 {
-    uint32 workset = vt_mask;
+    uint32_t workset = vt_mask;
     int num;
 
     TTY_IN = 0;
     for (num = besm6_highest_bit (workset) - TTY_MAX;
          workset; num = besm6_highest_bit (workset) - TTY_MAX) {
-        uint32 mask = 1 << (TTY_MAX - num);
+        uint32_t mask = 1 << (TTY_MAX - num);
         switch (tty_instate[num]) {
         case 0:
             if (tty_typed[num] <= -2) {
@@ -1326,7 +1326,7 @@ int tty_query ()
 
 static char cons_is_printing[2];
 
-void consul_print (int dev_num, uint32 cmd)
+void consul_print (int dev_num, uint32_t cmd)
 {
     extern unsigned short gost_to_unicode(unsigned char);
     extern void uni2utf8(unsigned short ch, char buf[5]);
@@ -1389,7 +1389,7 @@ void consul_receive ()
     }
 }
 
-uint32 consul_read (int num)
+uint32_t consul_read (int num)
 {
     if (tty_dev.dctrl)
         besm6_debug("<<< CONSUL%o: %03o", num+TTY_MAX+1, CONSUL_IN[num]);

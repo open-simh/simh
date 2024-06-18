@@ -148,14 +148,14 @@
 #define RH11            (cpu_opt & OPT_RH11)
 
 typedef struct {
-    uint32 cs1;                                         /* ctrl/status 1 */
-    uint32 wc;                                          /* word count */
-    uint32 ba;                                          /* bus addr */
-    uint32 cs2;                                         /* ctrl/status 2 */
-    uint32 db;                                          /* data buffer */
-    uint32 bae;                                         /* addr ext */
-    uint32 cs3;                                         /* ctrl/status 3 */
-    uint32 iff;                                         /* int flip flop */
+    uint32_t cs1;                                         /* ctrl/status 1 */
+    uint32_t wc;                                          /* word count */
+    uint32_t ba;                                          /* bus addr */
+    uint32_t cs2;                                         /* ctrl/status 2 */
+    uint32_t db;                                          /* data buffer */
+    uint32_t bae;                                         /* addr ext */
+    uint32_t cs3;                                         /* ctrl/status 3 */
+    uint32_t iff;                                         /* int flip flop */
     } MBACTX;
 
 MBACTX massbus[MBA_NUM];
@@ -168,15 +168,15 @@ t_stat mba_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 int32 mba0_inta (void);
 int32 mba1_inta (void);
 int32 mba2_inta (void);
-void mba_set_int (uint32 mb);
-void mba_clr_int (uint32 mb);
-void mba_upd_cs1 (uint32 set, uint32 clr, uint32 mb);
-void mba_set_cs2 (uint32 flg, uint32 mb);
+void mba_set_int (uint32_t mb);
+void mba_clr_int (uint32_t mb);
+void mba_upd_cs1 (uint32_t set, uint32_t clr, uint32_t mb);
+void mba_set_cs2 (uint32_t flg, uint32_t mb);
 int32 mba_map_pa (int32 pa, int32 *ofs);
 t_stat rh_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *rh_description (DEVICE *dptr);
 
-extern uint32 Map_Addr (uint32 ba);
+extern uint32_t Map_Addr (uint32_t ba);
 
 /* Massbus register dispatches */
 
@@ -539,10 +539,10 @@ return SCPE_OK;
    Returns number of bytes successfully transferred/checked
 */
 
-int32 mba_rdbufW (uint32 mb, int32 bc, uint16 *buf)
+int32 mba_rdbufW (uint32_t mb, int32 bc, uint16_t *buf)
 {
 int32 i, j, ba, mbc, pbc;
-uint32 pa;
+uint32_t pa;
 
 bc = bc & ~1;                                           /* bc even */
 if (mb >= MBA_NUM)                                      /* valid MBA? */
@@ -578,10 +578,10 @@ massbus[mb].cs1 = (massbus[mb].cs1 & ~ CS1_UAE) |        /* update CS1 */
 return i;
 }
 
-int32 mba_wrbufW (uint32 mb, int32 bc, const uint16 *buf)
+int32 mba_wrbufW (uint32_t mb, int32 bc, const uint16_t *buf)
 {
 int32 i, j, ba, mbc, pbc;
-uint32 pa;
+uint32_t pa;
 
 bc = bc & ~1;                                           /* bc even */
 if (mb >= MBA_NUM)                                      /* valid MBA? */
@@ -617,10 +617,10 @@ massbus[mb].cs1 = (massbus[mb].cs1 & ~ CS1_UAE) |       /* update CS1 */
 return i;
 }
 
-int32 mba_chbufW (uint32 mb, int32 bc, uint16 *buf)
+int32 mba_chbufW (uint32_t mb, int32 bc, uint16_t *buf)
 {
 int32 i, j, ba, mbc, pbc;
-uint32 pa;
+uint32_t pa;
 
 bc = bc & ~1;                                           /* bc even */
 if (mb >= MBA_NUM)                                      /* valid MBA? */
@@ -663,7 +663,7 @@ return i;
 
 /* Device access, status, and interrupt routines */
 
-void mba_set_don (uint32 mb)
+void mba_set_don (uint32_t mb)
 {
 mba_upd_cs1 (CS1_DONE, 0, mb);
 if (DEBUG_PRS (mba_dev[mb]))
@@ -672,7 +672,7 @@ if (DEBUG_PRS (mba_dev[mb]))
 return;
 }
 
-void mba_upd_ata (uint32 mb, uint32 val)
+void mba_upd_ata (uint32_t mb, uint32_t val)
 {
 if (val)
     mba_upd_cs1 (CS1_SC, 0, mb);
@@ -680,20 +680,20 @@ else mba_upd_cs1 (0, CS1_SC, mb);
 return;
 }
 
-void mba_set_exc (uint32 mb)
+void mba_set_exc (uint32_t mb)
 {
 mba_upd_cs1 (CS1_TRE | CS1_DONE, 0, mb);
 return;
 }
 
-int32 mba_get_bc (uint32 mb)
+int32 mba_get_bc (uint32_t mb)
 {
 if (mb >= MBA_NUM)
     return 0;
 return ((0200000 - massbus[mb].wc) << 1);
 }
 
-int32 mba_get_csr (uint32 mb)
+int32 mba_get_csr (uint32_t mb)
 {
 DIB *dibp;
 
@@ -703,7 +703,7 @@ dibp = (DIB *) mba_dev[mb].ctxt;
 return dibp->ba;
 }
 
-void mba_set_int (uint32 mb)
+void mba_set_int (uint32_t mb)
 {
 DIB *dibp;
 
@@ -714,7 +714,7 @@ int_req[dibp->vloc >> 5] |= (1 << (dibp->vloc & 037));
 return;
 }
 
-void mba_clr_int (uint32 mb)
+void mba_clr_int (uint32_t mb)
 {
 DIB *dibp;
 
@@ -725,7 +725,7 @@ int_req[dibp->vloc >> 5] &= ~(1 << (dibp->vloc & 037));
 return;
 }
 
-void mba_upd_cs1 (uint32 set, uint32 clr, uint32 mb)
+void mba_upd_cs1 (uint32_t set, uint32_t clr, uint32_t mb)
 {
 if (mb >= MBA_NUM)
     return;
@@ -745,7 +745,7 @@ else mba_clr_int (mb);
 return;
 }
 
-void mba_set_cs2 (uint32 flag, uint32 mb)
+void mba_set_cs2 (uint32_t flag, uint32_t mb)
 {
 if (mb >= MBA_NUM)
     return;
@@ -814,7 +814,7 @@ return -1;
 
 t_stat mba_reset (DEVICE *dptr)
 {
-uint32 mb;
+uint32_t mb;
 mb = dptr - mba_dev;
 if (mb >= MBA_NUM)
     return SCPE_NOFNC;
@@ -844,7 +844,7 @@ if (((dptr->flags & DEV_DIS) &&     /* Already Disabled     */
      (dibp->ba != MBA_AUTO)))
     return;
 if (dptr->flags & DEV_DIS) {        /* Disabling? */
-    uint32 mb = dibp->ba;
+    uint32_t mb = dibp->ba;
 
     dibp->ba = MBA_AUTO;            /*   Flag unassigned */
     mba_reset (&mba_dev[mb]);       /*   reset prior MBA */
@@ -874,7 +874,7 @@ return SCPE_OK;
 
 void init_mbus_tab (void)
 {
-uint32 i;
+uint32_t i;
 int mba_devs;
 
 for (i = 0; i < MBA_NUM; i++) {
@@ -896,7 +896,7 @@ for (i = mba_devs = 0; sim_devices[i] != NULL; i++) {
 
 t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 static const char *mbus_devs[MBA_NUM+1] = {"RP", "TU", "RS", NULL};
 
 if ((dptr == NULL) || (dibp == NULL))                   /* validate args */
@@ -954,7 +954,7 @@ return SCPE_OK;
 const char *rh_description (DEVICE *dptr)
 {
 static char buf[64];
-uint32 mb = dptr - mba_dev;
+uint32_t mb = dptr - mba_dev;
 
 if (dptr->flags & DEV_DIS)
     dptr = NULL;

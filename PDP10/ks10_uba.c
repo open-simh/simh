@@ -49,8 +49,8 @@
 #define VECT_H        0x20
 #define VECT_CTR      0x0F
 
-uint32  uba_map[2][64];
-uint32  uba_status[2];
+uint32_t  uba_map[2][64];
+uint32_t  uba_status[2];
 int     uba_device[16] = { -1, 0, -1, 1, -1, -1, -1, -1,
                            -1, -1, -1, -1, -1, -1, -1, -1 };
 
@@ -103,7 +103,7 @@ uba_read(t_addr addr, int ctl, uint64 *data, int access)
             continue;
         if (ctl == dibp->uba_ctl &&
             dibp->uba_addr == (addr & (~dibp->uba_mask))) {
-            uint16 buf;
+            uint16_t buf;
             int r = dibp->rd_io(dptr, addr, &buf, access);
             if (r)
                 break;
@@ -148,14 +148,14 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
     /* Check if in UBA map */
     if ((addr & 0777400) == 0763000) {
        if ((addr & 0100) == 0) {
-           uint32 map = (uint32)(data & 03777) << 9;
-           map |= (uint32)(data & 0740000) << 13;
+           uint32_t map = (uint32_t)(data & 03777) << 9;
+           map |= (uint32_t)(data & 0740000) << 13;
            uba_map[ubm][addr & 077] = map;
            sim_debug(DEBUG_EXP, &cpu_dev, "Wr MAP %02o %012llo %06o\n",
                  addr & 077, data, map);
            return 0;
        } else if ((addr & 077) == 0) {
-           uba_status[ubm] &= (uint32)(074000 ^ data) | 0746000;
+           uba_status[ubm] &= (uint32_t)(074000 ^ data) | 0746000;
            if (data & 0100) {
                uba_status[ubm] = 0;
                for(i = 0; (dptr = sim_devices[i]) != NULL; i++) {
@@ -166,7 +166,7 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
                        (void)(dptr->reset)(dptr);
                }
            }
-           uba_status[ubm] |= (uint32)(0277 & data);
+           uba_status[ubm] |= (uint32_t)(0277 & data);
            return 0;
        } else if ((addr & 077) == 1) {
            return 0;
@@ -181,7 +181,7 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
         if (dibp == NULL)
             continue;
         if (ctl == dibp->uba_ctl && dibp->uba_addr == (addr & (~dibp->uba_mask))) {
-            uint16 buf = (uint16)(data & 0177777);
+            uint16_t buf = (uint16_t)(data & 0177777);
             int r = dibp->wr_io(dptr, addr, buf, access);
     sim_debug(DEBUG_EXP, &cpu_dev, "UBA device write %02o %08o %012llo %06o\n", ctl, addr, data, buf);
             if (r)
@@ -195,10 +195,10 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
 }
 
 int
-uba_read_npr(t_addr addr, uint16 ctl, uint64 *data)
+uba_read_npr(t_addr addr, uint16_t ctl, uint64 *data)
 {
     int     ubm = uba_device[ctl];
-    uint32  map = uba_map[ubm][(077) & (addr >> 11)];
+    uint32_t  map = uba_map[ubm][(077) & (addr >> 11)];
     t_addr  oaddr = addr;
     if ((addr & 0400000) != 0)
         return 0;
@@ -211,10 +211,10 @@ uba_read_npr(t_addr addr, uint16 ctl, uint64 *data)
 }
 
 int
-uba_write_npr(t_addr addr, uint16 ctl, uint64 data)
+uba_write_npr(t_addr addr, uint16_t ctl, uint64 data)
 {
     int     ubm = uba_device[ctl];
-    uint32  map = uba_map[ubm][(077) & (addr >> 11)];
+    uint32_t  map = uba_map[ubm][(077) & (addr >> 11)];
     t_addr  oaddr = addr;
     if ((addr & 0400000) != 0)
         return 0;
@@ -227,10 +227,10 @@ uba_write_npr(t_addr addr, uint16 ctl, uint64 data)
 }
 
 int
-uba_read_npr_byte(t_addr addr, uint16 ctl, uint8 *data)
+uba_read_npr_byte(t_addr addr, uint16_t ctl, uint8_t *data)
 {
     int     ubm = uba_device[ctl];
-    uint32  map = uba_map[ubm][(077) & (addr >> 11)];
+    uint32_t  map = uba_map[ubm][(077) & (addr >> 11)];
     t_addr  oaddr = addr;
     uint64  wd;
     if ((addr & 0400000) != 0)
@@ -245,15 +245,15 @@ uba_read_npr_byte(t_addr addr, uint16 ctl, uint8 *data)
     if ((oaddr & 01))
         wd >>= 8;
     sim_debug(DEBUG_DATA, &cpu_dev, "%03llo\n", wd & 0377);
-    *data = (uint8)(wd & 0377);
+    *data = (uint8_t)(wd & 0377);
     return 1;
 }
 
 int
-uba_write_npr_byte(t_addr addr, uint16 ctl, uint8 data)
+uba_write_npr_byte(t_addr addr, uint16_t ctl, uint8_t data)
 {
     int     ubm = uba_device[ctl];
-    uint32  map = uba_map[ubm][(077) & (addr >> 11)];
+    uint32_t  map = uba_map[ubm][(077) & (addr >> 11)];
     t_addr  oaddr = addr;
     uint64  wd;
     uint64  msk;
@@ -283,10 +283,10 @@ uba_write_npr_byte(t_addr addr, uint16 ctl, uint8 data)
 }
 
 int
-uba_read_npr_word(t_addr addr, uint16 ctl, uint16 *data)
+uba_read_npr_word(t_addr addr, uint16_t ctl, uint16_t *data)
 {
     int     ubm = uba_device[ctl];
-    uint32  map = uba_map[ubm][(077) & (addr >> 11)];
+    uint32_t  map = uba_map[ubm][(077) & (addr >> 11)];
     t_addr  oaddr = addr;
     uint64  wd;
     if ((addr & 0400000) != 0)
@@ -298,15 +298,15 @@ uba_read_npr_word(t_addr addr, uint16 ctl, uint16 *data)
     sim_debug(DEBUG_DATA, &cpu_dev, "RD NPR W %08o %08o %012llo m=%o\n", oaddr, addr, wd, map);
     if ((oaddr & 02) == 0)
         wd >>= 18;
-    *data = (uint16)(wd & 0177777);
+    *data = (uint16_t)(wd & 0177777);
     return 1;
 }
 
 int
-uba_write_npr_word(t_addr addr, uint16 ctl, uint16 data)
+uba_write_npr_word(t_addr addr, uint16_t ctl, uint16_t data)
 {
     int     ubm = uba_device[ctl];
-    uint32  map = uba_map[ubm][(077) & (addr >> 11)];
+    uint32_t  map = uba_map[ubm][(077) & (addr >> 11)];
     t_addr  oaddr = addr;
     uint64  wd;
     uint64  msk;
@@ -406,7 +406,7 @@ uba_get_vect(t_addr addr, int lvl, int dev)
 }
 
 void
-uba_set_parity(uint16 ctl)
+uba_set_parity(uint16_t ctl)
 {
     int ubm = uba_device[ctl];
     if (ubm >= 0)
@@ -437,7 +437,7 @@ uba_set_addr(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
     if (r != SCPE_OK)
         return r;
-    dibp->uba_addr = (uint32)(newaddr & RMASK);
+    dibp->uba_addr = (uint32_t)(newaddr & RMASK);
     return SCPE_OK;
 }
 
@@ -479,7 +479,7 @@ uba_set_br(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
     if (br < 4 || br > 7)
         return SCPE_ARG;
-    dibp->uba_br = (uint16)br;
+    dibp->uba_br = (uint16_t)br;
     return SCPE_OK;
 }
 
@@ -519,7 +519,7 @@ uba_set_vect(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
     if (r != SCPE_OK)
         return r;
 
-    dibp->uba_vect = (uint16)vect;
+    dibp->uba_vect = (uint16_t)vect;
     return SCPE_OK;
 }
 
@@ -561,7 +561,7 @@ uba_set_ctl(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
     if (ctl != 1 && ctl != 3)
        return SCPE_ARG;
-    dibp->uba_ctl = (uint16)ctl;
+    dibp->uba_ctl = (uint16_t)ctl;
     return SCPE_OK;
 }
 

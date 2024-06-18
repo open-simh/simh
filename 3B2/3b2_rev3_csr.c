@@ -116,9 +116,9 @@ t_stat csr_reset(DEVICE *dptr)
     return SCPE_OK;
 }
 
-uint32 csr_read(uint32 pa, size_t size)
+uint32_t csr_read(uint32_t pa, size_t size)
 {
-    uint32 reg = (pa - CSRBASE) & 0xff;
+    uint32_t reg = (pa - CSRBASE) & 0xff;
 
     switch (reg & 0xf0) {
     case 0x00:
@@ -145,9 +145,9 @@ uint32 csr_read(uint32 pa, size_t size)
         }                                        \
     }
 
-void csr_write(uint32 pa, uint32 val, size_t size)
+void csr_write(uint32_t pa, uint32_t val, size_t size)
 {
-    uint32 reg = pa - CSRBASE;
+    uint32_t reg = pa - CSRBASE;
 
     switch (reg) {
 

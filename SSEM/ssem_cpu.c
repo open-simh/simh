@@ -81,17 +81,17 @@
 
 #include "ssem_defs.h"
 
-uint32 S[MEMSIZE] = { 0 };        /* storage (memory) */
+uint32_t S[MEMSIZE] = { 0 };        /* storage (memory) */
 
 int32  A[MEMSIZE] = { 0 };        /* A[0] accumulator */
-uint32 C[MEMSIZE] = { 0, 0 };    /* C[0] current instruction */
+uint32_t C[MEMSIZE] = { 0, 0 };    /* C[0] current instruction */
                                 /* C[1] present instruction */
-uint32 Staticisor = 0;
+uint32_t Staticisor = 0;
 
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_one_inst (uint32 opc, uint32 ir);
+t_stat cpu_one_inst (uint32_t opc, uint32_t ir);
 
 /* CPU data structures
 
@@ -195,9 +195,9 @@ return SCPE_OK;
 
 /* Execute one instruction */
 
-t_stat cpu_one_inst (uint32 opc, uint32 ir)
+t_stat cpu_one_inst (uint32_t opc, uint32_t ir)
 {
-uint32 ea, op;
+uint32_t ea, op;
 t_stat reason = 0;
 
 op = I_GETOP (ir);                    /* opcode */
@@ -220,7 +220,7 @@ switch (op) {                        /* case on opcode */
 
     case OP_STORE:                    /* S[ea] <- A[0] */
         ea = I_GETEA (ir);            /* address */
-        Write(ea, (uint32) *A);
+        Write(ea, (uint32_t) *A);
         break;
 
     case OP_SUBSTRACT:                /* A[0] <- A[0] - S[ea] */
@@ -245,12 +245,12 @@ return reason;
 
 /* Support routines */
 
-uint32 Read (uint32 ea)
+uint32_t Read (uint32_t ea)
 {
 return S[ea] & MMASK;
 }
 
-void Write (uint32 ea, uint32 dat)
+void Write (uint32_t ea, uint32_t dat)
 {
 S[ea] = dat & MMASK;
 return;

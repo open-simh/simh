@@ -37,7 +37,7 @@
    14-Jul-17    JDB     Removed calc_defer() prototype
    11-Jul-17    JDB     Moved "ibl_copy" and renamed to "cpu_ibl"
    10-Jul-17    JDB     Renamed the global routine "iogrp" to "cpu_iog"
-   07-Jul-17    JDB     Changed "iotrap" from uint32 to t_bool
+   07-Jul-17    JDB     Changed "iotrap" from uint32_t to t_bool
    07-Jun-17    JDB     Added maximum instruction length for sim_emax definition
    06-Jun-17    JDB     Added instruction group decoding macros
    04-Apr-17    JDB     Added "cpu_configuration" for symbolic ex/dep validation
@@ -173,7 +173,7 @@
 
 #define PCQ_SIZE        64                      /* must be 2 ** n */
 #define PCQ_MASK        (PCQ_SIZE - 1)
-#define PCQ_ENTRY       pcq [pcq_p = (pcq_p - 1) & PCQ_MASK] = (uint16) err_PR
+#define PCQ_ENTRY       pcq [pcq_p = (pcq_p - 1) & PCQ_MASK] = (uint16_t) err_PR
 
 
 /* Maximum instruction length.
@@ -325,7 +325,7 @@
 #define OP_N_FLAGS      4                       /* number of bits needed for flags */
 #define OP_M_FLAGS      ((1 << OP_N_FLAGS) - 1) /* mask for flag bits */
 
-#define OP_N_F          (8 * sizeof (uint32) / OP_N_FLAGS)  /* max number of op fields */
+#define OP_N_F          (8 * sizeof (uint32_t) / OP_N_FLAGS)  /* max number of op fields */
 
 #define OP_V_F1         (0 * OP_N_FLAGS)        /* 1st operand field */
 #define OP_V_F2         (1 * OP_N_FLAGS)        /* 2nd operand field */
@@ -497,7 +497,7 @@ typedef enum {                                  /* operand precision */
 
 /* Conversion from operand size to word count */
 
-#define TO_COUNT(s)     ((s == fp_a) ? 0 : (uint32) (s + (s < fp_f)))
+#define TO_COUNT(s)     ((s == fp_a) ? 0 : (uint32_t) (s + (s < fp_f)))
 
 
 /* HP in-memory representation of a packed floating-point number.
@@ -519,12 +519,12 @@ typedef HP_WORD FPK [5];
 typedef union {                                 /* general operand */
     FPK     fpk;                                /* floating-point value */
     HP_WORD word;                               /* 16-bit integer */
-    uint32  dword;                              /* 32-bit integer */
+    uint32_t  dword;                              /* 32-bit integer */
     } OP;
 
 typedef OP OPS[OP_N_F];                         /* operand array */
 
-typedef uint32 OP_PAT;                          /* operand pattern */
+typedef uint32_t OP_PAT;                          /* operand pattern */
 
 
 /* Microcode abort reasons */
@@ -549,8 +549,8 @@ extern HP_WORD MR;                              /* M register */
 extern HP_WORD TR;                              /* T register */
 extern HP_WORD XR;                              /* X register */
 extern HP_WORD YR;                              /* Y register */
-extern uint32  E;                               /* E register */
-extern uint32  O;                               /* O register */
+extern uint32_t  E;                               /* E register */
+extern uint32_t  O;                               /* O register */
 
 extern HP_WORD IR;                              /* Instruction Register */
 extern HP_WORD CIR;                             /* Central Interrupt Register */
@@ -563,8 +563,8 @@ extern DEVICE    cpu_dev;                       /* CPU device structure */
 
 extern HP_WORD   err_PR;                        /* P register error value */
 extern FLIP_FLOP cpu_interrupt_enable;          /* interrupt enable flip-flop */
-extern uint16    pcq [PCQ_SIZE];                /* PC queue (must be 16-bits wide for REG array entry) */
-extern uint32    pcq_p;                         /* PC queue pointer */
+extern uint16_t    pcq [PCQ_SIZE];                /* PC queue (must be 16-bits wide for REG array entry) */
+extern uint32_t    pcq_p;                         /* PC queue pointer */
 
 extern t_stat    cpu_ss_unimpl;                 /* status return for unimplemented instruction execution */
 extern t_stat    cpu_ss_undef;                  /* status return for undefined instruction execution */
@@ -574,28 +574,28 @@ extern t_stat    cpu_ss_inhibit;                /* simulation stop inhibition ma
 extern t_stat    cpu_ss_ioerr;                  /* status return for an unreported I/O error */
 extern UNIT      *cpu_ioerr_uptr;               /* pointer to a unit with an unreported I/O error */
 
-extern uint32    cpu_speed;                     /* the CPU speed, expressed as a multiplier of a real machine */
-extern uint32    cpu_pending_interrupt;         /* the select code of a pending interrupt or zero if none */
+extern uint32_t    cpu_speed;                     /* the CPU speed, expressed as a multiplier of a real machine */
+extern uint32_t    cpu_pending_interrupt;         /* the select code of a pending interrupt or zero if none */
 
 
 /* Microcode dispatcher functions (grouped by cpu module number) */
 
-extern t_stat cpu_uig_0   (uint32 intrq, t_bool int_ack);   /* [0] UIG group 0 dispatcher */
-extern t_stat cpu_uig_1   (uint32 intrq);                   /* [0] UIG group 1 dispatcher */
+extern t_stat cpu_uig_0   (uint32_t intrq, t_bool int_ack);   /* [0] UIG group 0 dispatcher */
+extern t_stat cpu_uig_1   (uint32_t intrq);                   /* [0] UIG group 1 dispatcher */
 extern t_stat cpu_ds      (void);                           /* [0] Distributed System stub */
 extern t_stat cpu_user    (void);                           /* [0] User firmware dispatcher */
 
 extern t_stat cpu_eau (void);                           /* [1] EAU group simulator */
-extern t_stat cpu_iop (uint32 intrq);                   /* [1] 2000 I/O Processor */
+extern t_stat cpu_iop (uint32_t intrq);                   /* [1] 2000 I/O Processor */
 
 #if !defined (HAVE_INT64)                               /* int64 support unavailable */
 extern t_stat cpu_fp  (void);                           /* [1] Firmware Floating Point */
 #endif
 
-extern t_stat cpu_dms (uint32 intrq);                   /* [2] Dynamic mapping system */
-extern t_stat cpu_eig (HP_WORD IR, uint32 intrq);       /* [2] Extended instruction group */
+extern t_stat cpu_dms (uint32_t intrq);                   /* [2] Dynamic mapping system */
+extern t_stat cpu_eig (HP_WORD IR, uint32_t intrq);       /* [2] Extended instruction group */
 
-extern t_stat cpu_ffp (uint32 intrq);                   /* [3] Fast FORTRAN Processor */
+extern t_stat cpu_ffp (uint32_t intrq);                   /* [3] Fast FORTRAN Processor */
 extern t_stat cpu_dbi (HP_WORD IR);                     /* [3] Double-Integer instructions */
 
 #if defined (HAVE_INT64)                                /* int64 support available */
@@ -642,4 +642,4 @@ extern void   cpu_microcode_abort   (MICRO_ABORT abort_reason);
 
 /* I/O subsystem global utility routine declarations */
 
-extern uint32 io_poll_interrupts (FLIP_FLOP interrupt_system);
+extern uint32_t io_poll_interrupts (FLIP_FLOP interrupt_system);

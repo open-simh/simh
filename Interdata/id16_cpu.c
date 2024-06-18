@@ -165,13 +165,13 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    uint16              vld;
-    uint16              pc;
-    uint16              ir1;
-    uint16              ir2;
-    uint16              r1;
-    uint16              ea;
-    uint16              opnd;
+    uint16_t              vld;
+    uint16_t              pc;
+    uint16_t              ir1;
+    uint16_t              ir2;
+    uint16_t              r1;
+    uint16_t              ea;
+    uint16_t              opnd;
     } InstHistory;
 
 #define PSW_GETMAP(x)   (((x) >> PSW_V_MAP) & PSW_M_MAP)
@@ -190,51 +190,51 @@ typedef struct {
 #define BUILD_PSW(x)    (((PSW & ~CC_MASK) | (x)) & psw_mask)
 #define CPU_x16         (cpu_unit.flags & (UNIT_716 | UNIT_816 | UNIT_816E))
 
-uint32 GREG[16] = { 0 };                                /* general registers */
-uint16 *M = NULL;                                       /* memory */
-uint32 *R = &GREG[0];                                   /* register set ptr */
-uint32 F[8] = { 0 };                                    /* sp fp registers */
+uint32_t GREG[16] = { 0 };                                /* general registers */
+uint16_t *M = NULL;                                       /* memory */
+uint32_t *R = &GREG[0];                                   /* register set ptr */
+uint32_t F[8] = { 0 };                                    /* sp fp registers */
 dpr_t D[8] = { {0, 0} };                                /* dp fp registers */
-uint32 PSW = 0;                                         /* processor status word */
-uint32 psw_mask = PSW_x16;                              /* PSW mask */
-uint32 PC = 0;                                          /* program counter */
-uint32 SR = 0;                                          /* switch register */
-uint32 DR = 0;                                          /* display register */
-uint32 DRX = 0;                                         /* display extension */
-uint32 drmod = 0;                                       /* mode */
-uint32 srpos = 0;                                       /* switch register pos */
-uint32 drpos = 0;                                       /* display register pos */
-uint32 s0_rel = 0;                                      /* S0 relocation */
-uint32 s1_rel = 0;                                      /* S1 relocation */
-uint32 int_req[INTSZ] = { 0 };                          /* interrupt requests */
-uint32 int_enb[INTSZ] = { 0 };                          /* interrupt enables */
+uint32_t PSW = 0;                                         /* processor status word */
+uint32_t psw_mask = PSW_x16;                              /* PSW mask */
+uint32_t PC = 0;                                          /* program counter */
+uint32_t SR = 0;                                          /* switch register */
+uint32_t DR = 0;                                          /* display register */
+uint32_t DRX = 0;                                         /* display extension */
+uint32_t drmod = 0;                                       /* mode */
+uint32_t srpos = 0;                                       /* switch register pos */
+uint32_t drpos = 0;                                       /* display register pos */
+uint32_t s0_rel = 0;                                      /* S0 relocation */
+uint32_t s1_rel = 0;                                      /* S1 relocation */
+uint32_t int_req[INTSZ] = { 0 };                          /* interrupt requests */
+uint32_t int_enb[INTSZ] = { 0 };                          /* interrupt enables */
 int32 blkiop = -1;                                      /* block I/O in prog */
-uint32 qevent = 0;                                      /* events */
-uint32 stop_inst = 0;                                   /* stop on ill inst */
-uint32 stop_wait = 0;                                   /* stop on wait */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint32_t qevent = 0;                                      /* events */
+uint32_t stop_inst = 0;                                   /* stop on ill inst */
+uint32_t stop_wait = 0;                                   /* stop on wait */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-uint32 dec_flgs = 0;                                    /* decode flags */
-uint32 fp_in_hwre = 0;                                  /* ucode/hwre fp */
-uint32 pawidth = PAWIDTH16;                             /* phys addr mask */
-uint32 hst_p = 0;                                       /* history pointer */
-uint32 hst_lnt = 0;                                     /* history length */
+uint32_t dec_flgs = 0;                                    /* decode flags */
+uint32_t fp_in_hwre = 0;                                  /* ucode/hwre fp */
+uint32_t pawidth = PAWIDTH16;                             /* phys addr mask */
+uint32_t hst_p = 0;                                       /* history pointer */
+uint32_t hst_lnt = 0;                                     /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 struct BlockIO blk_io;                                  /* block I/O status */
-uint32 (*dev_tab[DEVNO])(uint32 dev, uint32 op, uint32 datout) = { NULL };
+uint32_t (*dev_tab[DEVNO])(uint32_t dev, uint32_t op, uint32_t datout) = { NULL };
 
-uint32 ReadB (uint32 loc);
-uint32 ReadH (uint32 loc);
-void WriteB (uint32 loc, uint32 val);
-void WriteH (uint32 loc, uint32 val);
-uint32 int_auto (uint32 dev, uint32 cc);
-uint32 addtoq (uint32 ea, uint32 val, uint32 flg);
-uint32 remfmq (uint32 ea, uint32 r1, uint32 flg);
-uint32 newPSW (uint32 val);
-uint32 swap_psw (uint32 loc, uint32 cc);
-uint32 testsysq (uint32);
-uint32 display (uint32 dev, uint32 op, uint32 dat);
+uint32_t ReadB (uint32_t loc);
+uint32_t ReadH (uint32_t loc);
+void WriteB (uint32_t loc, uint32_t val);
+void WriteH (uint32_t loc, uint32_t val);
+uint32_t int_auto (uint32_t dev, uint32_t cc);
+uint32_t addtoq (uint32_t ea, uint32_t val, uint32_t flg);
+uint32_t remfmq (uint32_t ea, uint32_t r1, uint32_t flg);
+uint32_t newPSW (uint32_t val);
+uint32_t swap_psw (uint32_t loc, uint32_t cc);
+uint32_t testsysq (uint32_t);
+uint32_t display (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_reset (DEVICE *dptr);
@@ -246,19 +246,19 @@ t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
 extern t_bool devtab_init (void);
 extern void int_eval (void);
-extern uint32 int_getdev (void);
-extern t_bool sch_blk (uint32 dev);
-extern uint32 f_l (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_c (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_as (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_m (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_d (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_fix (uint32 op, uint32 r1, uint32 r2);
-extern uint32 f_flt (uint32 op, uint32 r1, uint32 r2);
+extern uint32_t int_getdev (void);
+extern t_bool sch_blk (uint32_t dev);
+extern uint32_t f_l (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_c (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_as (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_m (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_d (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_fix (uint32_t op, uint32_t r1, uint32_t r2);
+extern uint32_t f_flt (uint32_t op, uint32_t r1, uint32_t r2);
 
 /* Instruction decoding table - flags are first implementation */
 
-const uint16 decrom[256] = {
+const uint16_t decrom[256] = {
     0,                                                  /* 00 */
     OP_RR,                                              /* BALR */
     OP_RR,                                              /* BTCR */
@@ -423,14 +423,14 @@ const uint16 decrom[256] = {
 
 /* 8/16E relocation constants for S0 and S1, indexed by PSW<8:11> */
 
-static uint32 s0_rel_const[16] = {                      /* addr 0-7FFF */
+static uint32_t s0_rel_const[16] = {                      /* addr 0-7FFF */
     0x00000, 0x00000, 0x00000, 0x00000,                 /* 0 = no reloc */
     0x00000, 0x00000, 0x00000, 0x08000,                 /* 8000 = rel to S1 */
     0x08000, 0x08000, 0x08000, 0x08000,
     0x08000, 0x08000, 0x08000, 0x00000
     };
 
-static uint32 s1_rel_const[16] = {                      /* addr 8000-FFFF */
+static uint32_t s1_rel_const[16] = {                      /* addr 8000-FFFF */
     0x00000, 0x08000, 0x10000, 0x18000,                 /* reloc const must */
     0x20000, 0x28000, 0x30000, 0xFFF8000,               /* "sub" base addr */
     0x00000, 0x08000, 0x10000, 0x18000,
@@ -548,7 +548,7 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-uint32 cc;
+uint32_t cc;
 t_stat reason;
 
 /* Restore register state */
@@ -593,10 +593,10 @@ reason = 0;
 /* Process events */
 
 while (reason == 0) {                                   /* loop until halted */
-    uint32 dev, drom, inc, lim, opnd;
-    uint32 op, r1, r1p1, r2, ea = 0, oPC;
-    uint32 rslt, t, map;
-    uint32 ir1, ir2 = 0, ityp;
+    uint32_t dev, drom, inc, lim, opnd;
+    uint32_t op, r1, r1p1, r2, ea = 0, oPC;
+    uint32_t rslt, t, map;
+    uint32_t ir1, ir2 = 0, ityp;
     int32 sr, st;
 
     if (sim_interval <= 0) {                            /* check clock queue */
@@ -1493,7 +1493,7 @@ return reason;
 
 /* Load new PSW and memory map */
 
-uint32 newPSW (uint32 val)
+uint32_t newPSW (uint32_t val)
 {
 PSW = val & psw_mask;                                   /* store PSW */
 int_eval ();                                            /* update intreq */
@@ -1501,7 +1501,7 @@ if (PSW & PSW_WAIT)                                     /* wait state? */
     qevent = qevent | EV_WAIT;
 else qevent = qevent & ~EV_WAIT;
 if (cpu_unit.flags & UNIT_816E) {                       /* mapping enabled? */
-    uint32 map = PSW_GETMAP (PSW);                      /* get new map */
+    uint32_t map = PSW_GETMAP (PSW);                      /* get new map */
     s0_rel = s0_rel_const[map];                         /* set relocation */
     s1_rel = s1_rel_const[map];                         /* constants */
     }
@@ -1514,7 +1514,7 @@ return PSW & CC_MASK;
 
 /* Swap PSW */
 
-uint32 swap_psw (uint32 loc, uint32 cc)
+uint32_t swap_psw (uint32_t loc, uint32_t cc)
 {
 WriteH (loc, BUILD_PSW (cc));                           /* write PSW, PC */
 WriteH (loc + 2, PC);
@@ -1527,7 +1527,7 @@ return cc;                                              /* return CC */
 
 /* Test for queue interrupts */
 
-uint32 testsysq (uint32 cc)
+uint32_t testsysq (uint32_t cc)
 {
 int32 qb = ReadH (SQP);                                 /* get sys q addr */
 int32 usd = ReadB (qb + Q16_USD);                       /* get use count */
@@ -1543,9 +1543,9 @@ return cc;
 
 /* Add to head of queue */
 
-uint32 addtoq (uint32 ea, uint32 val, uint32 flg)
+uint32_t addtoq (uint32_t ea, uint32_t val, uint32_t flg)
 {
-uint32 slt, usd, wra, t;
+uint32_t slt, usd, wra, t;
 
 t = ReadH (ea);                                         /* slots/used */
 slt = (t >> 8) & DMASK8;                                /* # slots */
@@ -1572,9 +1572,9 @@ WriteH ((ea + Q16_BASE + (wra * Q16_SLNT)) & VAMASK, val); /* write slot */
 return 0;
 }
 
-uint32 remfmq (uint32 ea, uint32 r1, uint32 flg)
+uint32_t remfmq (uint32_t ea, uint32_t r1, uint32_t flg)
 {
-uint32 slt, usd, rda, t;
+uint32_t slt, usd, rda, t;
 
 t = ReadH (ea);                                         /* get slots/used */
 slt = (t >> 8) & DMASK8;                                /* # slots */
@@ -1608,7 +1608,7 @@ else return 0;
 #define CCW16_ERR(x)    (((x)|CCW16_INIT|CCW16_NOP|CCW16_Q) & \
                      ~(CCW16_CHN|CCW16_CON|CCW16_HI))
 
-uint32 int_auto (uint32 dev, uint32 cc)
+uint32_t int_auto (uint32_t dev, uint32_t cc)
 {
 int32 ba, ea, by, vec, ccw, bpi, fnc, trm, st, i, t;
 t_bool sysqe = FALSE;
@@ -1714,7 +1714,7 @@ return cc;
 
 /* Display register device */
 
-uint32 display (uint32 dev, uint32 op, uint32 dat)
+uint32_t display (uint32_t dev, uint32_t op, uint32_t dat)
 {
 int t;
 
@@ -1770,24 +1770,24 @@ return 0;
    IOWriteH     write halfword (IO)
 */
 
-uint32 ReadB (uint32 loc)
+uint32_t ReadB (uint32_t loc)
 {
-uint32 pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
+uint32_t pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
 
 return ((M[pa >> 1] >> ((pa & 1)? 0: 8)) & DMASK8);
 }
 
-uint32 ReadH (uint32 loc)
+uint32_t ReadH (uint32_t loc)
 {
-uint32 pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
+uint32_t pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
 
 return M[pa >> 1];
 }
 
-uint32 ReadF (uint32 loc, uint32 rel)
+uint32_t ReadF (uint32_t loc, uint32_t rel)
 {
-uint32 pa, pa1;
-uint32 loc1 = (loc + 2) & VAMASK;
+uint32_t pa, pa1;
+uint32_t loc1 = (loc + 2) & VAMASK;
 
 loc = loc & VAMASK;                                     /* FP doesn't mask */
 if (rel) {
@@ -1798,12 +1798,12 @@ else {
     pa = loc;
     pa1 = loc1;
     }
-return (((uint32) M[pa >> 1]) << 16) | ((uint32) M[pa1 >> 1]);
+return (((uint32_t) M[pa >> 1]) << 16) | ((uint32_t) M[pa1 >> 1]);
 }
 
-void WriteB (uint32 loc, uint32 val)
+void WriteB (uint32_t loc, uint32_t val)
 {
-uint32 pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
+uint32_t pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
 
 val = val & DMASK8;
 if (MEM_ADDR_OK (pa))
@@ -1812,19 +1812,19 @@ if (MEM_ADDR_OK (pa))
 return;
 }
 
-void WriteH (uint32 loc, uint32 val)
+void WriteH (uint32_t loc, uint32_t val)
 {
-uint32 pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
+uint32_t pa = (loc + ((loc & VA_S1)? s1_rel: s0_rel)) & PAMASK16E;
 
 if (MEM_ADDR_OK (pa))
     M[pa >> 1] = val & DMASK16;
 return;
 }
 
-void WriteF (uint32 loc, uint32 val, uint32 rel)
+void WriteF (uint32_t loc, uint32_t val, uint32_t rel)
 {
-uint32 pa, pa1;
-uint32 loc1 = (loc + 2) & VAMASK;
+uint32_t pa, pa1;
+uint32_t loc1 = (loc + 2) & VAMASK;
 
 loc = loc & VAMASK;                                     /* FP doesn't mask */
 if (rel) {
@@ -1842,12 +1842,12 @@ if (MEM_ADDR_OK (pa1))
 return;
 }
 
-uint32 IOReadB (uint32 loc)
+uint32_t IOReadB (uint32_t loc)
 {
 return ((M[loc >> 1] >> ((loc & 1)? 0: 8)) & DMASK8);
 }
 
-void IOWriteB (uint32 loc, uint32 val)
+void IOWriteB (uint32_t loc, uint32_t val)
 {
 val = val & DMASK8;
 M[loc >> 1] = ((loc & 1)?
@@ -1856,12 +1856,12 @@ M[loc >> 1] = ((loc & 1)?
 return;
 }
 
-uint32 IOReadH (uint32 loc)
+uint32_t IOReadH (uint32_t loc)
 {
 return (M[loc >> 1] & DMASK16);
 }
 
-void IOWriteH (uint32 loc, uint32 val)
+void IOWriteH (uint32_t loc, uint32_t val)
 {
 M[loc >> 1] = val & DMASK16;
 return;
@@ -1878,7 +1878,7 @@ drmod = 0;
 blk_io.dfl = blk_io.cur = blk_io.end = 0;               /* no block IO */
 sim_brk_types = sim_brk_dflt = SWMASK ('E');            /* init bkpts */
 if (M == NULL)
-    M = (uint16 *) calloc (MAXMEMSIZE16E >> 1, sizeof (uint16));
+    M = (uint16_t *) calloc (MAXMEMSIZE16E >> 1, sizeof (uint16_t));
 if (M == NULL)
     return SCPE_MEM;
 pcq_r = find_reg ("PCQ", NULL, dptr);                   /* init PCQ */
@@ -1924,10 +1924,10 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || ((val & 0xFFF) != 0) ||
-    (((uint32) val) > ((uptr->flags & UNIT_816E)? MAXMEMSIZE16E: MAXMEMSIZE16)))
+    (((uint32_t) val) > ((uptr->flags & UNIT_816E)? MAXMEMSIZE16E: MAXMEMSIZE16)))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i = i + 2)
     mc = mc | M[i >> 1];
@@ -1943,7 +1943,7 @@ return SCPE_OK;
 
 t_stat cpu_set_model (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i;
+uint32_t i;
 
 if (!(val & UNIT_816E) && (MEMSIZE > MAXMEMSIZE16)) {
     MEMSIZE = MAXMEMSIZE16;
@@ -1969,7 +1969,7 @@ return SCPE_OK;
 
 t_stat cpu_set_hist (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i, lnt;
+uint32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1978,7 +1978,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (uint32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (uint32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;

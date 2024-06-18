@@ -96,23 +96,23 @@ t_uint64 unix_mces = 0;                                 /* machine check err sum
 t_uint64 unix_stkp[2] = { 0 };
 t_uint64 unix_entVec[6] = { 0 };
 t_uint64 unix_kgp = 0;
-uint32 unix_ipl = 0;
-uint32 unix_cm = 0;
+uint32_t unix_ipl = 0;
+uint32_t unix_cm = 0;
 
-static const uint32 map_ipl[8] = {
+static const uint32_t map_ipl[8] = {
  0, 1, 2, IPL_HMIN, IPL_HMIN + 1, IPL_HMIN + 2, IPL_HMIN + 3, IPL_1F
  };
 
 extern t_uint64 R[32];
 extern t_uint64 PC, trap_mask;
 extern t_uint64 p1;
-extern uint32 vax_flag, lock_flag;
-extern uint32 fpen;
-extern uint32 ir, pcc_h, pcc_l, pcc_enb;
-extern uint32 cm_racc, cm_wacc;
-extern uint32 mmu_ispage, mmu_dspage;
+extern uint32_t vax_flag, lock_flag;
+extern uint32_t fpen;
+extern uint32_t ir, pcc_h, pcc_l, pcc_enb;
+extern uint32_t cm_racc, cm_wacc;
+extern uint32_t mmu_ispage, mmu_dspage;
 extern jmp_buf save_env;
-extern uint32 int_req[IPL_HLVL];
+extern uint32_t int_req[IPL_HLVL];
 
 t_stat unix_syscall (void);
 t_stat unix_retsys (void);
@@ -122,15 +122,15 @@ void unix_swpctx (void);
 t_stat unix_intexc (t_uint64 vec, t_uint64 arg);
 t_stat unix_mm_intexc (t_uint64 par1, t_uint64 par2);
 t_stat pal_proc_reset_unix (DEVICE *dptr);
-uint32 pal_find_pte_unix (uint32 vpn, t_uint64 *l3pte);
+uint32_t pal_find_pte_unix (uint32_t vpn, t_uint64 *l3pte);
 
-extern t_stat (*pal_eval_intr) (uint32 ipl);
-extern t_stat (*pal_proc_excp) (uint32 type);
-extern t_stat (*pal_proc_trap) (uint32 type);
-extern t_stat (*pal_proc_intr) (uint32 type);
-extern t_stat (*pal_proc_inst) (uint32 fnc);
-extern uint32 (*pal_find_pte) (uint32 vpn, t_uint64 *pte);
-extern uint32 Test (t_uint64 va, uint32 acc, t_uint64 *pa);
+extern t_stat (*pal_eval_intr) (uint32_t ipl);
+extern t_stat (*pal_proc_excp) (uint32_t type);
+extern t_stat (*pal_proc_trap) (uint32_t type);
+extern t_stat (*pal_proc_intr) (uint32_t type);
+extern t_stat (*pal_proc_inst) (uint32_t fnc);
+extern uint32_t (*pal_find_pte) (uint32_t vpn, t_uint64 *pte);
+extern uint32_t Test (t_uint64 va, uint32_t acc, t_uint64 *pa);
 
 /* UNIXPAL data structures
 
@@ -174,10 +174,10 @@ DEVICE unixpal_dev = {
 
 /* Unix interrupt evaluator - returns IPL of highest priority interrupt */
 
-uint32 pal_eval_intr_unix (uint32 lvl)
+uint32_t pal_eval_intr_unix (uint32_t lvl)
 {
-uint32 i;
-uint32 mipl = map_ipl[lvl & PSU_M_IPL];
+uint32_t i;
+uint32_t mipl = map_ipl[lvl & PSU_M_IPL];
 
 for (i = IPL_HMAX; i >= IPL_HMIN; i--) {                /* chk hwre int */
     if (i <= mipl) return 0;                            /* at ipl? no int */
@@ -188,7 +188,7 @@ return 0;
 
 /* Unix interrupt dispatch - reached from top of execute loop */
 
-t_stat pal_proc_intr_unix (uint32 lvl)
+t_stat pal_proc_intr_unix (uint32_t lvl)
 {
 t_stat r;
 
@@ -204,7 +204,7 @@ return r;
 
 /* Unix trap dispatch - reached synchronously from bottom of execute loop */
 
-t_stat pal_proc_trap_unix (uint32 tsum)
+t_stat pal_proc_trap_unix (uint32_t tsum)
 {
 t_stat r;
 
@@ -215,7 +215,7 @@ return r;
 
 /* Unix exception dispatch - reached from the ABORT handler */
 
-t_stat pal_proc_excp_unix (uint32 abval)
+t_stat pal_proc_excp_unix (uint32_t abval)
 {
 t_stat r;
 
@@ -291,9 +291,9 @@ return SCPE_OK;
 
 /* PALcode instruction dispatcher - function code verified in CPU */
 
-t_stat pal_proc_inst_unix (uint32 fnc)
+t_stat pal_proc_inst_unix (uint32_t fnc)
 {
-uint32 arg32 = (uint32) a0;
+uint32_t arg32 = (uint32_t) a0;
 
 if ((fnc < 0x40) && (unix_cm != MODE_K)) ABORT (EXC_RSVI);
 switch (fnc) {
@@ -479,7 +479,7 @@ return SCPE_OK;
 void unix_swpctx (void)
 {
 t_uint64 val;
-uint32 tmp1;
+uint32_t tmp1;
 
 WritePQ (unix_hwpcb + 0, SP);                           /* save stack ptrs */
 WritePQ (unix_hwpcb + 8, usp);
@@ -576,11 +576,11 @@ return SCPE_OK;
 t_stat unix_rti (void)
 {
 t_uint64 tpc;
-uint32 tps, newm;
+uint32_t tps, newm;
 
 if (Test (SP, cm_racc, NULL)) return STOP_KSNV;         /* validate reads */
 if (Test (SP + UNIX_L_STKF - 8, cm_racc, NULL)) return STOP_KSNV;
-tps = (uint32) ReadQ (SP);                              /* read PS, PC */
+tps = (uint32_t) ReadQ (SP);                              /* read PS, PC */
 tpc = ReadQ (SP + 8);
 gp = ReadQ (SP + 16);                                   /* restore gp, a0-a2 */
 a0 = ReadQ (SP + 24);
@@ -626,7 +626,7 @@ return SCPE_OK;
 void unix_urti (void)
 {
 t_uint64 tsp, tpc;
-uint32 tps;
+uint32_t tps;
 
 if (SP & 0x3F) ABORT (EXC_RSVO);                        /* not aligned? */
 tps = ReadL (SP + 16);                                  /* read PS */
@@ -656,10 +656,10 @@ return;
                         EXC_TNV for TNV on intermediate level
 */
 
-uint32 pal_find_pte_unix (uint32 vpn, t_uint64 *l3pte)
+uint32_t pal_find_pte_unix (uint32_t vpn, t_uint64 *l3pte)
 {
 t_uint64 vptea, l1ptea, l2ptea, l3ptea, l1pte, l2pte;
-uint32 vpte_vpn;
+uint32_t vpte_vpn;
 TLBENT *vpte_p;
 
 vptea = unix_vptptr | (((t_uint64) (vpn & VA_M_VPN)) << 3); /* try virtual lookup */ 

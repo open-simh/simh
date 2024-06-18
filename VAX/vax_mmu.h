@@ -56,7 +56,7 @@ typedef struct {
     int32       pte;                                    /* pte */
     } TLBENT;
 
-extern uint32 *M;
+extern uint32_t *M;
 extern UNIT cpu_unit;
 extern DEVICE cpu_dev;
 extern int32 mapen;                                     /* map enable */
@@ -69,23 +69,23 @@ static const int32 insert[4] = {
     };
 
 extern void zap_tb (int stb);
-extern void zap_tb_ent (uint32 va);
-extern t_bool chk_tb_ent (uint32 va);
+extern void zap_tb_ent (uint32_t va);
+extern t_bool chk_tb_ent (uint32_t va);
 extern void set_map_reg (void);
-extern int32 ReadIO (uint32 pa, int32 lnt);
-extern void WriteIO (uint32 pa, int32 val, int32 lnt);
-extern int32 ReadReg (uint32 pa, int32 lnt);
-extern void WriteReg (uint32 pa, int32 val, int32 lnt);
-extern TLBENT fill (uint32 va, int32 lnt, int32 acc, int32 *stat);
-static SIM_INLINE int32 ReadU (uint32 pa, int32 lnt);
-static SIM_INLINE void WriteU (uint32 pa, int32 val, int32 lnt);
-static SIM_INLINE int32 ReadB (uint32 pa);
-static SIM_INLINE int32 ReadW (uint32 pa);
-static SIM_INLINE int32 ReadL (uint32 pa);
-static SIM_INLINE int32 ReadLP (uint32 pa);
-static SIM_INLINE void WriteB (uint32 pa, int32 val);
-static SIM_INLINE void WriteW (uint32 pa, int32 val);
-static SIM_INLINE void WriteL (uint32 pa, int32 val);
+extern int32 ReadIO (uint32_t pa, int32 lnt);
+extern void WriteIO (uint32_t pa, int32 val, int32 lnt);
+extern int32 ReadReg (uint32_t pa, int32 lnt);
+extern void WriteReg (uint32_t pa, int32 val, int32 lnt);
+extern TLBENT fill (uint32_t va, int32 lnt, int32 acc, int32 *stat);
+static SIM_INLINE int32 ReadU (uint32_t pa, int32 lnt);
+static SIM_INLINE void WriteU (uint32_t pa, int32 val, int32 lnt);
+static SIM_INLINE int32 ReadB (uint32_t pa);
+static SIM_INLINE int32 ReadW (uint32_t pa);
+static SIM_INLINE int32 ReadL (uint32_t pa);
+static SIM_INLINE int32 ReadLP (uint32_t pa);
+static SIM_INLINE void WriteB (uint32_t pa, int32 val);
+static SIM_INLINE void WriteW (uint32_t pa, int32 val);
+static SIM_INLINE void WriteL (uint32_t pa, int32 val);
 
 /* Read and write virtual
 
@@ -116,7 +116,7 @@ static SIM_INLINE void WriteL (uint32 pa, int32 val);
         returned data, right justified in 32b longword
 */
 
-static SIM_INLINE int32 Read (uint32 va, int32 lnt, int32 acc)
+static SIM_INLINE int32 Read (uint32_t va, int32 lnt, int32 acc)
 {
 int32 vpn, off, tbi, pa;
 int32 pa1, bo, sc, wl, wh;
@@ -144,7 +144,7 @@ if ((pa & (lnt - 1)) == 0) {                            /* aligned? */
         return ReadW (pa);
     return ReadB (pa);                                  /* byte */
     }
-if (mapen && ((uint32)(off + lnt) > VA_PAGSIZE)) {      /* cross page? */
+if (mapen && ((uint32_t)(off + lnt) > VA_PAGSIZE)) {      /* cross page? */
     vpn = VA_GETVPN (va + lnt);                         /* vpn 2nd page */
     tbi = VA_GETTBI (vpn);
     xpte = (va & VA_S0)? stlb[tbi]: ptlb[tbi];          /* access tlb */
@@ -182,7 +182,7 @@ else {
         none
 */
 
-static SIM_INLINE void Write (uint32 va, int32 val, int32 lnt, int32 acc)
+static SIM_INLINE void Write (uint32_t va, int32 val, int32 lnt, int32 acc)
 {
 int32 vpn, off, tbi, pa;
 int32 pa1, bo, sc;
@@ -214,7 +214,7 @@ if ((pa & (lnt - 1)) == 0) {                            /* aligned? */
         }
     return;
     }
-if (mapen && ((uint32)(off + lnt) > VA_PAGSIZE)) {
+if (mapen && ((uint32_t)(off + lnt) > VA_PAGSIZE)) {
     vpn = VA_GETVPN (va + 4);
     tbi = VA_GETTBI (vpn);
     xpte = (va & VA_S0)? stlb[tbi]: ptlb[tbi];          /* access tlb */
@@ -242,7 +242,7 @@ return;
 
 /* Test access to a byte (VAX PROBEx) */
 
-static SIM_INLINE int32 Test (uint32 va, int32 acc, int32 *status)
+static SIM_INLINE int32 Test (uint32_t va, int32 acc, int32 *status)
 {
 int32 vpn, off, tbi;
 TLBENT xpte;
@@ -272,7 +272,7 @@ return va & PAMASK;                                     /* ret phys addr */
         returned data, right justified in 32b longword
 */
 
-static SIM_INLINE int32 ReadB (uint32 pa)
+static SIM_INLINE int32 ReadB (uint32_t pa)
 {
 int32 dat;
 
@@ -288,7 +288,7 @@ else {
 return ((dat >> ((pa & 3) << 3)) & BMASK);
 }
 
-static SIM_INLINE int32 ReadW (uint32 pa)
+static SIM_INLINE int32 ReadW (uint32_t pa)
 {
 int32 dat;
 
@@ -304,7 +304,7 @@ else {
 return ((dat >> ((pa & 2)? 16: 0)) & WMASK);
 }
 
-static SIM_INLINE int32 ReadL (uint32 pa)
+static SIM_INLINE int32 ReadL (uint32_t pa)
 {
 if (ADDR_IS_MEM (pa))
     return M[pa >> 2];
@@ -314,7 +314,7 @@ if (ADDR_IS_IO (pa))
 return ReadReg (pa, L_LONG);
 }
 
-static SIM_INLINE int32 ReadLP (uint32 pa)
+static SIM_INLINE int32 ReadLP (uint32_t pa)
 {
 if (ADDR_IS_MEM (pa))
     return M[pa >> 2];
@@ -334,7 +334,7 @@ return ReadReg (pa, L_LONG);
         returned data
 */
 
-static SIM_INLINE int32 ReadU (uint32 pa, int32 lnt)
+static SIM_INLINE int32 ReadU (uint32_t pa, int32 lnt)
 {
 int32 dat;
 int32 sc = (pa & 3) << 3;
@@ -359,7 +359,7 @@ return ((dat >> sc) & insert[lnt]);
         none
 */
 
-static SIM_INLINE void WriteB (uint32 pa, int32 val)
+static SIM_INLINE void WriteB (uint32_t pa, int32 val)
 {
 if (ADDR_IS_MEM (pa)) {
     int32 id = pa >> 2;
@@ -377,7 +377,7 @@ else {
 return;
 }
 
-static SIM_INLINE void WriteW (uint32 pa, int32 val)
+static SIM_INLINE void WriteW (uint32_t pa, int32 val)
 {
 if (ADDR_IS_MEM (pa)) {
     int32 id = pa >> 2;
@@ -394,7 +394,7 @@ else {
 return;
 }
 
-static SIM_INLINE void WriteL (uint32 pa, int32 val)
+static SIM_INLINE void WriteL (uint32_t pa, int32 val)
 {
 if (ADDR_IS_MEM (pa))
     M[pa >> 2] = val;
@@ -408,7 +408,7 @@ else {
 return;
 }
 
-static SIM_INLINE void WriteLP (uint32 pa, int32 val)
+static SIM_INLINE void WriteLP (uint32_t pa, int32 val)
 {
 if (ADDR_IS_MEM (pa))
     M[pa >> 2] = val;
@@ -433,7 +433,7 @@ return;
         none
 */
 
-static SIM_INLINE void WriteU (uint32 pa, int32 val, int32 lnt)
+static SIM_INLINE void WriteU (uint32_t pa, int32 val, int32 lnt)
 {
 if (ADDR_IS_MEM (pa)) {
     int32 bo = pa & 3;

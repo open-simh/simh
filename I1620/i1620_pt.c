@@ -49,22 +49,22 @@
 #define PT_C    0x10                                    /* C */
 #define PT_FD   0x7F                                    /* deleted */
 
-static uint32 ptr_mode = 0;                             /* normal/binary */
-static uint32 ptp_mode = 0;
+static uint32_t ptr_mode = 0;                             /* normal/binary */
+static uint32_t ptp_mode = 0;
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
-extern uint32 PAR, cpuio_opc, cpuio_cnt;
+extern uint32_t io_stop;
+extern uint32_t PAR, cpuio_opc, cpuio_cnt;
 
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptr_boot (int32 unitno, DEVICE *dptr);
-t_stat ptr_read (uint8 *c, t_bool ignfeed);
+t_stat ptr_read (uint8_t *c, t_bool ignfeed);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
-t_stat ptp_write (uint32 c);
+t_stat ptp_write (uint32_t c);
 t_stat ptp_num (void);
 
 /* PTR data structures
@@ -232,7 +232,7 @@ const int8 alp_to_ptp[256] = {
 
 /* Paper tape reader IO init routine */
 
-t_stat ptr (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat ptr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 if ((op != OP_RN) && (op != OP_RA))                     /* RN & RA only */
     return STOP_INVFNC;
@@ -245,7 +245,7 @@ return SCPE_OK;
 
 /* Binary paper tape reader IO init routine */
 
-t_stat btr (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat btr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 if (op != OP_RA)                                        /* RA only */
     return STOP_INVFNC;
@@ -270,7 +270,7 @@ return SCPE_OK;
 t_stat ptr_svc (UNIT *uptr)
 {
 t_stat r;
-uint8 ptc;
+uint8_t ptc;
 int8 mc;
 
 if (cpuio_cnt >= MEMSIZE) {                             /* over the limit? */
@@ -344,7 +344,7 @@ return SCPE_OK;
 
 /* Read ptr frame - all errors are 'hard' errors and halt the system */
 
-t_stat ptr_read (uint8 *c, t_bool ignfeed)
+t_stat ptr_read (uint8_t *c, t_bool ignfeed)
 {
 int32 temp;
 
@@ -377,17 +377,17 @@ return SCPE_OK;
 
 /* Bootstrap routine */
 
-static const uint8 boot_rom[] = {
+static const uint8_t boot_rom[] = {
  3, 6, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0,                    /* RNPT 0 */
  };
 
 #define BOOT_START      0
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8_t))
 
 t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 {
 size_t i;
-extern uint32 saved_PC;
+extern uint32_t saved_PC;
 
 for (i = 0; i < BOOT_LEN; i++)
     M[BOOT_START + i] = boot_rom[i];
@@ -397,7 +397,7 @@ return SCPE_OK;
 
 /* Paper tape punch IO init routine */
 
-t_stat ptp (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat ptp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 if ((op != OP_WN) && (op != OP_WA) && (op != OP_DN))
     return STOP_INVFNC;
@@ -410,7 +410,7 @@ return SCPE_OK;
 
 /* Binary paper tape punch IO init routine */
 
-t_stat btp (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat btp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 if (op != OP_WA)                                        /* WA only */
     return STOP_INVFNC;
@@ -426,7 +426,7 @@ return SCPE_OK;
 t_stat ptp_svc (UNIT *uptr)
 {
 int8 ptc;
-uint8 z, d;
+uint8_t z, d;
 t_stat r;
 
 if ((cpuio_opc != OP_DN) && (cpuio_cnt >= MEMSIZE)) {   /* wrap, ~dump? */
@@ -489,7 +489,7 @@ return SCPE_OK;
 t_stat ptp_num (void)
 {
 t_stat r;
-uint8 d;
+uint8_t d;
 int8 ptc;
 
 d = M[PAR] & (FLAG | DIGIT);                            /* get char */
@@ -508,7 +508,7 @@ return SCPE_OK;
 
 /* Write ptp frame - all errors are hard errors */
 
-t_stat ptp_write (uint32 c)
+t_stat ptp_write (uint32_t c)
 {
 if (putc (c, ptp_unit.fileref) == EOF) {                /* write char */
     sim_perror ("PTP I/O error");

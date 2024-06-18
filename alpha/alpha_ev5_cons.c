@@ -29,9 +29,9 @@
 
 t_uint64 srm_ptbr = 1;
 
-extern uint32 dtlb_spage;
-extern uint32 pal_type;
-extern uint32 ev5_mcsr;
+extern uint32_t dtlb_spage;
+extern uint32_t pal_type;
+extern uint32_t ev5_mcsr;
 extern t_uint64 *M;
 extern t_uint64 ev5_mvptbr;
 extern UNIT cpu_unit;
@@ -58,10 +58,10 @@ return FALSE;
                         EXC_TNV for TNV on intermediate level
 */
 
-uint32 cons_find_pte_srm (t_uint64 va, t_uint64 *l3pte)
+uint32_t cons_find_pte_srm (t_uint64 va, t_uint64 *l3pte)
 {
 t_uint64 vptea, l1ptea, l2ptea, l3ptea, l1pte, l2pte;
-uint32 vpte_vpn;
+uint32_t vpte_vpn;
 TLBENT *vpte_p;
 
 vptea = FMT_MVA_VMS (va);                               /* try virt lookup */
@@ -70,7 +70,7 @@ vpte_p = dtlb_lookup (vpte_vpn);                        /* get vpte tlb ptr */
 if (vpte_p && ((vpte_p->pte & (PTE_KRE|PTE_V)) == (PTE_KRE|PTE_V)))
     l3ptea = PHYS_ADDR (vpte_p->pfn, vptea);
 else {
-    uint32 vpn = VA_GETVPN (va);
+    uint32_t vpn = VA_GETVPN (va);
     if (srm_ptbr & 1) return 1;                         /* uninitialized? */
     l1ptea = srm_ptbr + VPN_GETLVL1 (vpn);
     if (!l_ReadPQ (l1ptea, &l1pte)) return 1;
@@ -99,10 +99,10 @@ return 0;
                         EXC_TNV for TNV on intermediate level
 */
 
-uint32 cons_find_pte_nt (t_uint64 va, t_uint64 *l3pte)
+uint32_t cons_find_pte_nt (t_uint64 va, t_uint64 *l3pte)
 {
 t_uint64 vptea, l3ptea;
-uint32 vpte_vpn;
+uint32_t vpte_vpn;
 TLBENT *vpte_p;
 
 vptea = FMT_MVA_NT (va);                                /* try virt lookup */
@@ -121,11 +121,11 @@ return 0;
 
 t_uint64 trans_c (t_uint64 va)
 {
-uint32 va_sext = VA_GETSEXT (va);
-uint32 vpn = VA_GETVPN (va);
+uint32_t va_sext = VA_GETSEXT (va);
+uint32_t vpn = VA_GETVPN (va);
 TLBENT *tlbp;
 t_uint64 pte64;
-uint32 exc, pfn;
+uint32_t exc, pfn;
 
 if ((va_sext != 0) && (va_sext != VA_M_SEXT))           /* invalid virt addr? */
     return M64;
@@ -138,6 +138,6 @@ if ((tlbp = dtlb_lookup (vpn)))                         /* try TLB */
 if (ev5_mcsr & MCSR_NT) exc = cons_find_pte_nt (va, &pte64);
 else exc = cons_find_pte_srm (va, &pte64);
 if (exc || ((pte64 & PTE_V) == 0)) return M64;          /* check valid */
-pfn = (uint32) (pte64 >> 32) & M32;
+pfn = (uint32_t) (pte64 >> 32) & M32;
 return PHYS_ADDR (pfn, va);                             /* return phys addr */
 }

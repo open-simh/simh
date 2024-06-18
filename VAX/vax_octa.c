@@ -49,10 +49,10 @@
 #define WORDSWAP(x)     ((((x) & WMASK) << 16) | (((x) >> 16) & WMASK))
 
 typedef struct {
-    uint32              f0;                             /* low */
-    uint32              f1;
-    uint32              f2;
-    uint32              f3;                             /* high */
+    uint32_t              f0;                             /* low */
+    uint32_t              f1;
+    uint32_t              f2;
+    uint32_t              f3;                             /* high */
     } UQP;
 
 typedef struct {
@@ -86,16 +86,16 @@ void h_write_w (int32 spec, int32 va, int32 val, int32 acc, InstHistory *hst);
 void h_write_l (int32 spec, int32 va, int32 val, int32 acc, InstHistory *hst);
 void h_write_q (int32 spec, int32 va, int32 vl, int32 vh, int32 acc, InstHistory *hst);
 void h_write_o (int32 spec, int32 va, int32 *val, int32 acc, InstHistory *hst);
-void vax_hadd (UFPH *a, UFPH *b, uint32 mlo);
-void vax_hmul (UFPH *a, UFPH *b, uint32 mlo);
+void vax_hadd (UFPH *a, UFPH *b, uint32_t mlo);
+void vax_hmul (UFPH *a, UFPH *b, uint32_t mlo);
 void vax_hmod (UFPH *a, int32 *intgr, int32 *flg);
 void vax_hdiv (UFPH *a, UFPH *b);
-uint32 qp_add (UQP *a, UQP *b);
-uint32 qp_sub (UQP *a, UQP *b);
+uint32_t qp_add (UQP *a, UQP *b);
+uint32_t qp_sub (UQP *a, UQP *b);
 void qp_inc (UQP *a);
-void qp_lsh (UQP *a, uint32 sc);
-void qp_rsh (UQP *a, uint32 sc);
-void qp_rsh_s (UQP *a, uint32 sc, uint32 neg);
+void qp_lsh (UQP *a, uint32_t sc);
+void qp_rsh (UQP *a, uint32_t sc);
+void qp_rsh_s (UQP *a, uint32_t sc, uint32_t neg);
 void qp_neg (UQP *a);
 int32 qp_cmp (UQP *a, UQP *b);
 void h_unpackfd (int32 hi, int32 lo, UFPH *a);
@@ -506,7 +506,7 @@ int32 op_cvthi (int32 *hf, int32 *flg, int32 opc)
 UFPH a;
 int32 lnt = opc & 03;
 int32 ubexp;
-static uint32 maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
+static uint32_t maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
 
 *flg = 0;                                               /* clear ovflo */
 h_unpackh (hf, &a);                                     /* unpack */
@@ -676,7 +676,7 @@ return h_rpackh (&a, hflt);                             /* round and pack frac *
 
 /* Floating add */
 
-void vax_hadd (UFPH *a, UFPH *b, uint32 mlo)
+void vax_hadd (UFPH *a, UFPH *b, uint32_t mlo)
 {
 int32 ediff;
 UFPH t;
@@ -719,7 +719,7 @@ return;
 
 /* Floating multiply - 128b * 128b */
 
-void vax_hmul (UFPH *a, UFPH *b, uint32 mlo)
+void vax_hmul (UFPH *a, UFPH *b, uint32_t mlo)
 {
 int32 i, c;
 UQP accum = { 0, 0, 0, 0 };
@@ -848,9 +848,9 @@ if (a->f0 > b->f0)
 return 0;                                               /* all equal */
 }
 
-uint32 qp_add (UQP *a, UQP *b)
+uint32_t qp_add (UQP *a, UQP *b)
 {
-uint32 cry1, cry2, cry3, cry4;
+uint32_t cry1, cry2, cry3, cry4;
 
 a->f0 = (a->f0 + b->f0) & LMASK;                        /* add lo */
 cry1 = (a->f0 < b->f0);                                 /* carry? */
@@ -878,9 +878,9 @@ if (a->f0 == 0) {                                       /* propagate carry */
 return;
 }
 
-uint32 qp_sub (UQP *a, UQP *b)
+uint32_t qp_sub (UQP *a, UQP *b)
 {
-uint32 brw1, brw2, brw3, brw4;
+uint32_t brw1, brw2, brw3, brw4;
 
 brw1 = (a->f0 < b->f0);                                 /* borrow? */
 a->f0 = (a->f0 - b->f0) & LMASK;                        /* sub lo */
@@ -895,7 +895,7 @@ return brw4;
 
 void qp_neg (UQP *a)
 {
-uint32 cryin;
+uint32_t cryin;
 
 cryin = 1;
 a->f0 = (~a->f0 + cryin) & LMASK;
@@ -911,7 +911,7 @@ a->f3 = (~a->f3 + cryin) & LMASK;
 return;
 }
 
-void qp_lsh (UQP *r, uint32 sc)
+void qp_lsh (UQP *r, uint32_t sc)
 {
 if (sc >= 128)                                          /* > 127? result 0 */
     r->f3 = r->f2 = r->f1 = r->f0 = 0;
@@ -950,7 +950,7 @@ else if (sc != 0) {                                     /* [31,1]? */
 return;
 }
 
-void qp_rsh (UQP *r, uint32 sc)
+void qp_rsh (UQP *r, uint32_t sc)
 {
 if (sc >= 128)                                          /* > 127? result 0 */
     r->f3 = r->f2 = r->f1 = r->f0 = 0;
@@ -989,7 +989,7 @@ else if (sc != 0) {                                     /* [31,1]? */
 return;
 }
 
-void qp_rsh_s (UQP *r, uint32 sc, uint32 neg)
+void qp_rsh_s (UQP *r, uint32_t sc, uint32_t neg)
 {
 qp_rsh (r, sc);                                         /* do unsigned right */
 if (neg && sc) {                                        /* negative? */
@@ -1068,7 +1068,7 @@ return;
 void h_normh (UFPH *r)
 {
 int32 i;
-static uint32 normmask[5] = {
+static uint32_t normmask[5] = {
  0xc0000000, 0xf0000000, 0xff000000, 0xffff0000, 0xffffffff };
 static int32 normtab[6] = { 1, 2, 4, 8, 16, 32};
 

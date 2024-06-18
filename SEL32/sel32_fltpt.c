@@ -59,29 +59,29 @@
 #include "sel32_defs.h"
 #include <math.h>
 
-uint32   s_fixw(uint32 val, uint32 *cc);
-uint32   s_fltw(uint32 val, uint32 *cc);
+uint32_t   s_fixw(uint32_t val, uint32_t *cc);
+uint32_t   s_fltw(uint32_t val, uint32_t *cc);
 
-t_uint64 s_fixd(t_uint64 val, uint32 *cc);
-t_uint64 s_fltd(t_uint64 val, uint32 *cc);
+t_uint64 s_fixd(t_uint64 val, uint32_t *cc);
+t_uint64 s_fltd(t_uint64 val, uint32_t *cc);
 
-uint32   s_nor(uint32 reg, uint32 *exp);
-t_uint64 s_nord(t_uint64 reg, uint32 *exp);
+uint32_t   s_nor(uint32_t reg, uint32_t *exp);
+t_uint64 s_nord(t_uint64 reg, uint32_t *exp);
 
-uint32   s_mpfw(uint32 reg, uint32 mem, uint32 *cc);
-uint32   s_dvfw(uint32 reg, uint32 mem, uint32 *cc);
+uint32_t   s_mpfw(uint32_t reg, uint32_t mem, uint32_t *cc);
+uint32_t   s_dvfw(uint32_t reg, uint32_t mem, uint32_t *cc);
 
-uint32   s_adfw(uint32 reg, uint32 mem, uint32 *cc);
-uint32   s_sufw(uint32 reg, uint32 mem, uint32 *cc);
+uint32_t   s_adfw(uint32_t reg, uint32_t mem, uint32_t *cc);
+uint32_t   s_sufw(uint32_t reg, uint32_t mem, uint32_t *cc);
 
-t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32 *cc);
-t_uint64 s_sufd(t_uint64 reg, t_uint64 mem, uint32 *cc);
+t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
+t_uint64 s_sufd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
 
-t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32 *cc);
-t_uint64 s_dvfd(t_uint64 reg, t_uint64 mem, uint32 *cc);
+t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
+t_uint64 s_dvfd(t_uint64 reg, t_uint64 mem, uint32_t *cc);
 
-uint32   s_normfw(uint32 num, uint32 *cc);
-t_uint64 s_normfd(t_uint64 num, uint32 *cc);
+uint32_t   s_normfw(uint32_t num, uint32_t *cc);
+t_uint64 s_normfd(t_uint64 num, uint32_t *cc);
 
 #define NORMASK 0xf8000000              /* normalize 5 bit mask */
 #define DNORMASK 0xf800000000000000ll   /* double normalize 5 bit mask */
@@ -118,11 +118,11 @@ t_uint64 s_normfd(t_uint64 num, uint32 *cc);
 **************************************************************/  
 
 /* normalize floating point fraction */
-uint32 s_nor(uint32 reg, uint32 *exp) {
-    uint32 texp = 0;                    /* no exponent yet */
+uint32_t s_nor(uint32_t reg, uint32_t *exp) {
+    uint32_t texp = 0;                    /* no exponent yet */
 
     if (reg != 0) {                     /* do nothing if reg is already zero */
-        uint32 mv = reg & NORMASK;      /* mask off bits 0-4 */
+        uint32_t mv = reg & NORMASK;      /* mask off bits 0-4 */
         while ((mv == 0) || (mv == NORMASK)) {
             /* not normalized yet, so shift 4 bits left */
             reg <<= 4;                  /* move over 4 bits */
@@ -131,15 +131,15 @@ uint32 s_nor(uint32 reg, uint32 *exp) {
         }
         /* bits 0-4 of reg is neither 0 nor all ones */
         /* show that reg is normalized */
-        texp = (uint32)(0x40-(int32)texp);  /* subtract shift count from 0x40 */
+        texp = (uint32_t)(0x40-(int32)texp);  /* subtract shift count from 0x40 */
     }
     *exp = texp;                        /* return exponent */
     return (reg);                       /* return normalized register */
 }
 
 /* normalize double floating point number */
-t_uint64 s_nord(t_uint64 reg, uint32 *exp) {
-    uint32 texp = 0;                    /* no exponent yet */
+t_uint64 s_nord(t_uint64 reg, uint32_t *exp) {
+    uint32_t texp = 0;                    /* no exponent yet */
 
     if (reg != 0) {                     /* do nothing if reg is already zero */
         t_uint64 mv = reg & DNORMASK;   /* mask off bits 0-4 */
@@ -151,19 +151,19 @@ t_uint64 s_nord(t_uint64 reg, uint32 *exp) {
         }
         /* bits 0-4 of reg is neither 0 nor all ones */
         /* show that reg is normalized */
-        texp = (uint32)(0x40-(int32)texp);  /* subtract shift count from 0x40 */
+        texp = (uint32_t)(0x40-(int32)texp);  /* subtract shift count from 0x40 */
     }
     *exp = texp;                        /* return exponent */
     return (reg);                       /* return normalized double register */
 }
 
 /* normalize the memory value when adding number to zero */
-uint32 s_normfw(uint32 num, uint32 *cc) {
-    uint32      ret;
+uint32_t s_normfw(uint32_t num, uint32_t *cc) {
+    uint32_t      ret;
     int32       val;                    /* temp word */
     int32       exp;                    /* exponent */
     int32       CCs;                    /* condition codes */
-    uint8       sign;                   /* original sign */
+    uint8_t       sign;                   /* original sign */
 
     if (num == 0) {                     /* make sure we have a number */
         *cc = CC4BIT;                   /* set the cc's */
@@ -246,9 +246,9 @@ uint32 s_normfw(uint32 num, uint32 *cc) {
 
 #ifdef FOR_DEBUG
 /* sfpval - determine floating point data value */
-float sfpval(uint32 val)
+float sfpval(uint32_t val)
 {
-    uint32      wd32;
+    uint32_t      wd32;
     float       num;
     int32       exp;
 
@@ -281,12 +281,12 @@ double dfpval(t_uint64 wd64)
 #endif /* FOR_DEBUG */
 
 /* normalize the memory value when adding number to zero */
-t_uint64 s_normfd(t_uint64 num, uint32 *cc) {
+t_uint64 s_normfd(t_uint64 num, uint32_t *cc) {
     t_uint64    ret;
     t_uint64    val;                    /* temp word */
     int32       exp;                    /* exponent */
     int32       CCs;                    /* condition codes */
-    uint8       sign;                   /* original sign */
+    uint8_t       sign;                   /* original sign */
 
     if (num == 0) {                     /* make sure we have a number */
         *cc = CC4BIT;                   /* set the cc's */
@@ -366,9 +366,9 @@ t_uint64 s_normfd(t_uint64 num, uint32 *cc) {
 
 /* convert from 32 bit float to 32 bit integer */
 /* set CC1 if overflow/underflow exception */
-uint32 s_fixw(uint32 fltv, uint32 *cc) {
-    uint32 CC = 0, temp, temp2, sc;
-    uint32 neg = 0;                     /* clear neg flag */
+uint32_t s_fixw(uint32_t fltv, uint32_t *cc) {
+    uint32_t CC = 0, temp, temp2, sc;
+    uint32_t neg = 0;                     /* clear neg flag */
 
     if (fltv & MSIGN) {                 /* check for negative */
         fltv = NEGATE32(fltv);          /* make src positive */
@@ -380,7 +380,7 @@ uint32 s_fixw(uint32 fltv, uint32 *cc) {
         }
         /* gt 0, fall through */
     }
-    temp2 = (uint32)(fltv >> 24);       /* get exponent */
+    temp2 = (uint32_t)(fltv >> 24);       /* get exponent */
     fltv <<= 8;                         /* move src to upper 3 bytes */
     temp2 -= 64;                        /* take off excess notation */
     temp = temp2;                       /* save val */
@@ -449,12 +449,12 @@ UNFLO:
 
 /* convert from 32 bit integer to 32 bit float */
 /* No overflow (CC1) can be generated */
-uint32 s_fltw(uint32 intv, uint32 *cc) {
-    uint32  CC = 0;
-    uint32  ret;
-    uint32  neg = 0;                    /* zero sign flag */
-    uint32  exp = 0;                    /* exponent */
-    uint32  val = (int32)intv;          /* integer value */
+uint32_t s_fltw(uint32_t intv, uint32_t *cc) {
+    uint32_t  CC = 0;
+    uint32_t  ret;
+    uint32_t  neg = 0;                    /* zero sign flag */
+    uint32_t  exp = 0;                    /* exponent */
+    uint32_t  val = (int32)intv;          /* integer value */
 
     if (intv & 0x80000000) {
         val = NEGATE32(intv);
@@ -498,8 +498,8 @@ uint32 s_fltw(uint32 intv, uint32 *cc) {
 
 /* convert from 64 bit double to 64 bit integer */
 /* set CC1 if overflow/underflow exception */
-t_uint64 s_fixd(t_uint64 dblv, uint32 *cc) {
-    uint32 temp2, CC = 0, neg = 0, sc = 0;
+t_uint64 s_fixd(t_uint64 dblv, uint32_t *cc) {
+    uint32_t temp2, CC = 0, neg = 0, sc = 0;
     t_uint64 dest;
 
     /* neg and CC flags already set to zero */
@@ -514,7 +514,7 @@ t_uint64 s_fixd(t_uint64 dblv, uint32 *cc) {
         /* gt 0, fall through */
     }
 
-    temp2 = (uint32)(dblv >> 56);       /* get exponent */
+    temp2 = (uint32_t)(dblv >> 56);       /* get exponent */
     dblv <<= 8;                         /* move fraction to upper 7 bytes */
     temp2 -= 64;                        /* take off excess notation */
     dest = temp2;                       /* save val */
@@ -580,11 +580,11 @@ DUNFLO:
 
 /* convert from 64 bit integer to 64 bit double */
 /* No overflow (CC1) can be generated */
-t_uint64 s_fltd(t_uint64 intv, uint32 *cc) {
+t_uint64 s_fltd(t_uint64 intv, uint32_t *cc) {
     t_uint64 ret = 0;                   /* zero return val */
-    uint32  neg = 0;                    /* zero sign flag */
-    uint32  CC = 0;                     /* n0 CC's yet */
-    uint32  exp = 0;                    /* exponent */
+    uint32_t  neg = 0;                    /* zero sign flag */
+    uint32_t  CC = 0;                     /* n0 CC's yet */
+    uint32_t  exp = 0;                    /* exponent */
     t_uint64 val = intv;                /* integer value */
 
     if (intv & DMSIGN) {
@@ -656,12 +656,12 @@ t_uint64 s_fltd(t_uint64 intv, uint32 *cc) {
 /* this new version is perfect against the diags, so good */
 /* do new SEL floating add derived from IBM370 code */
 /* Add/Sub single floating point */
-uint32 s_adfw(uint32 reg, uint32 mem, uint32 *cc)
+uint32_t s_adfw(uint32_t reg, uint32_t mem, uint32_t *cc)
 {
-    uint32      res, ret;
+    uint32_t      res, ret;
     char        sign = 0;
     int         er, em, temp;
-    uint32      CC;
+    uint32_t      CC;
 
     /* first we want to make sure the numbers are normalized */
     ret = s_normfw(reg, &CC);           /* get the reg value */
@@ -817,19 +817,19 @@ uint32 s_adfw(uint32 reg, uint32 mem, uint32 *cc)
 }
 
 /* subtract memory floating point number from register floating point number */
-uint32 s_sufw(uint32 reg, uint32 mem, uint32 *cc) {
+uint32_t s_sufw(uint32_t reg, uint32_t mem, uint32_t *cc) {
     return s_adfw(reg, NEGATE32(mem), cc);
 }
 
 /* multiply register floating point number by memory floating point number */
 /* set CC1 if overflow/underflow */
 /* use revised normalization code */
-uint32 s_mpfw(uint32 reg, uint32 mem, uint32 *cc) {
-    uint32      res, ret;
+uint32_t s_mpfw(uint32_t reg, uint32_t mem, uint32_t *cc) {
+    uint32_t      res, ret;
     int         sign = 0;
     int         lsb = 0;
     int         er, em, temp;
-    uint32      CC;
+    uint32_t      CC;
 
     /* first we want to make sure the numbers are normalized */
     ret = s_normfw(reg, &CC);           /* get the reg value */
@@ -953,7 +953,7 @@ uint32 s_mpfw(uint32 reg, uint32 mem, uint32 *cc) {
 
     res &= MMASK;                       /* clear exponent */
 
-    res |= ((((uint32)er) << 24) & EXMASK); /* merge exp and mantissa */
+    res |= ((((uint32_t)er) << 24) & EXMASK); /* merge exp and mantissa */
 
     if (sign == 1)                      /* is result to be negative */
         res = NEGATE32(res);            /* make value negative */
@@ -970,9 +970,9 @@ uint32 s_mpfw(uint32 reg, uint32 mem, uint32 *cc) {
 }
 
 /* divide register float by memory float */
-uint32 s_dvfw(uint32 reg, uint32 mem, uint32 *cc) {
-    uint32 CC = 0, temp, temp2, sign;
-    uint32 expm, expr;
+uint32_t s_dvfw(uint32_t reg, uint32_t mem, uint32_t *cc) {
+    uint32_t CC = 0, temp, temp2, sign;
+    uint32_t expm, expr;
     t_uint64 dtemp;
 
     /* process operator */
@@ -1002,7 +1002,7 @@ uint32 s_dvfw(uint32 reg, uint32 mem, uint32 *cc) {
 
     temp = expr - expm;                 /* subtract exponents */
     dtemp = ((t_uint64)reg) << 32;      /* put reg fraction in upper 32 bits */
-    temp2 = (uint32)(dtemp / mem);      /* divide reg fraction by mem fraction */
+    temp2 = (uint32_t)(dtemp / mem);      /* divide reg fraction by mem fraction */
     temp2 >>= 3;                        /* shift out excess bits */
     temp2 <<= 3;                        /* replace with zero bits */
 
@@ -1107,12 +1107,12 @@ setcc:
 /* this code creates an extra guard digit, so it is more accurate than SEL */
 /* The code was modified to have the same results as SEL, so we will use this one */
 /* set CC1 if overflow/underflow */
-t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32 *cc)
+t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32_t *cc)
 {
     t_uint64    res, ret;
-    uint8       sign = 0;
+    uint8_t       sign = 0;
     int         er, em, temp;
-    uint32      CC;
+    uint32_t      CC;
 
     /* first we want to make sure the numbers are normalized */
     ret = s_normfd(reg, &CC);           /* get the reg value */
@@ -1270,19 +1270,19 @@ t_uint64 s_adfd(t_uint64 reg, t_uint64 mem, uint32 *cc)
 }
 
 /* subtract memory floating point number from register floating point number */
-t_uint64 s_sufd(t_uint64 reg, t_uint64 mem, uint32 *cc) {
+t_uint64 s_sufd(t_uint64 reg, t_uint64 mem, uint32_t *cc) {
     return s_adfd(reg, NEGATE32(mem), cc);
 }
 
 /* multiply register floating point number by memory floating point number */
 /* set CC1 if overflow/underflow */
 /* use revised normalization code */
-t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32 *cc) {
+t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32_t *cc) {
     t_uint64   res, ret;
     int         sign = 0;
     int         lsb = 0;
     int         er, em, temp;
-    uint32      CC;
+    uint32_t      CC;
 
     /* first we want to make sure the numbers are normalized */
     ret = s_normfd(reg, &CC);           /* get the reg value */
@@ -1436,13 +1436,13 @@ t_uint64 s_mpfd(t_uint64 reg, t_uint64 mem, uint32 *cc) {
 /* divide register floating point number by memory floating point number */
 /* set CC1 if overflow/underflow */
 /* use revised normalization code */
-t_uint64 s_dvfd(t_uint64 reg, t_uint64 mem, uint32 *cc) {
+t_uint64 s_dvfd(t_uint64 reg, t_uint64 mem, uint32_t *cc) {
     t_uint64    res, ret;
     int         sign = 0;
     int         sign2 = 0;
     int         lsb = 0;
     int         er, em, temp;
-    uint32      CC;
+    uint32_t      CC;
 
     /* first we want to make sure the numbers are normalized */
     ret = s_normfd(reg, &CC);           /* get the reg value */

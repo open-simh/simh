@@ -40,15 +40,15 @@
 
 t_stat multibus_svc(UNIT *uptr);
 t_stat multibus_reset(DEVICE *dptr);
-uint8 multibus_get_mbyte(uint16 addr);
-void multibus_put_mbyte(uint16 addr, uint8 val);
+uint8_t multibus_get_mbyte(uint16_t addr);
+void multibus_put_mbyte(uint16_t addr, uint8_t val);
 
 /* external function prototypes */
 
 //extern t_stat SBC_reset(DEVICE *dptr);  /* reset the iSBC80/10 emulator */
-extern uint8 isbc064_get_mbyte(uint16 addr);
-extern void isbc064_put_mbyte(uint16 addr, uint8 val);
-extern uint8 isbc464_get_mbyte(uint16 addr);
+extern uint8_t isbc064_get_mbyte(uint16_t addr);
+extern void isbc064_put_mbyte(uint16_t addr, uint8_t val);
+extern uint8_t isbc464_get_mbyte(uint16_t addr);
 
 /* local globals */
 
@@ -58,9 +58,9 @@ static const char* multibus_desc(DEVICE *dptr) {
 
 /* external globals */
 
-extern uint8 xack;                      /* XACK signal */
+extern uint8_t xack;                      /* XACK signal */
 extern int32 int_req;                   /* i8080 INT signal */
-extern uint16 PCX;
+extern uint16_t PCX;
 extern DEVICE isbc064_dev;
 extern DEVICE isbc464_dev;
 
@@ -139,7 +139,7 @@ t_stat multibus_svc(UNIT *uptr)
 
 /*  get a byte from memory */
 
-uint8 multibus_get_mbyte(uint16 addr)
+uint8_t multibus_get_mbyte(uint16_t addr)
 {
     SET_XACK(0);                        /* set no XACK */
     if ((isbc464_dev.flags & DEV_DIS) == 0) { //ROM is enabled
@@ -159,7 +159,7 @@ uint8 multibus_get_mbyte(uint16 addr)
     return 0;
 }
 
-void multibus_put_mbyte(uint16 addr, uint8 val)
+void multibus_put_mbyte(uint16_t addr, uint8_t val)
 {
     SET_XACK(0);                        /* set no XACK */
     if ((isbc064_dev.flags & DEV_DIS) == 0) { //device is enabled

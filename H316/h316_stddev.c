@@ -105,27 +105,27 @@
 #define XOFF            0023
 #define RUBOUT          0377
 
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 PC;
 extern int32 stop_inst;
 extern int32 C, dp, ext, extoff_pending, sc;
 extern int32 dev_int, dev_enb;
 extern UNIT cpu_unit;
 
-uint32 ptr_motion = 0;                                  /* read motion */
-uint32 ptr_stopioe = 0;                                 /* stop on error */
-uint32 ptp_stopioe = 0;
-uint32 ptp_power = 0;                                   /* punch power, time */
+uint32_t ptr_motion = 0;                                  /* read motion */
+uint32_t ptr_stopioe = 0;                                 /* stop on error */
+uint32_t ptp_stopioe = 0;
+uint32_t ptp_power = 0;                                   /* punch power, time */
 int32 ptp_ptime;
-uint32 ttr_stopioe = 0;
-uint32 tty_mode = 0;                                    /* input (0), output (1) */
-uint32 tty_buf = 0;                                     /* tty buffer */
-uint32 tty_ready = 1;                                   /* tty ready */
-uint32 tty_busy = 0;                                    /* tty busy */
-uint32 tty_2nd = 0;                                     /* tty input second state */
-uint32 ttr_xoff_read = 0;
-uint32 ttp_tape_rcvd = 0;
-uint32 ttp_xoff_rcvd = 0;
+uint32_t ttr_stopioe = 0;
+uint32_t tty_mode = 0;                                    /* input (0), output (1) */
+uint32_t tty_buf = 0;                                     /* tty buffer */
+uint32_t tty_ready = 1;                                   /* tty ready */
+uint32_t tty_busy = 0;                                    /* tty busy */
+uint32_t tty_2nd = 0;                                     /* tty input second state */
+uint32_t ttr_xoff_read = 0;
+uint32_t ttp_tape_rcvd = 0;
+uint32_t ttp_xoff_rcvd = 0;
 int32 tty_busy_wait = SERIAL_IN_WAIT;                   /* busy state on input */
 int32 clk_tps = 60;                                     /* ticks per second */
 
@@ -733,7 +733,7 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr)
 {
-uint32 c7b;
+uint32_t c7b;
 UNIT *ruptr = &tty_unit[TTR];
 UNIT *puptr = &tty_unit[TTP];
 t_stat r;
@@ -791,7 +791,7 @@ else return SCPE_OK;
 
 t_stat ttp_write (int32 c)
 {
-uint32 p, c7b;
+uint32_t p, c7b;
 UNIT *puptr = &tty_unit[TTP];
 
 if ((puptr->flags & UNIT_ATT) &&                        /* TTP attached */

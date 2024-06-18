@@ -41,15 +41,15 @@ extern char INTprefix[];
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern t_bool doDirectorFunc(DEVICE *, t_bool);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
-extern void fw_IOunderwayEOP2(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8_t);
+extern void fw_IOunderwayEOP2(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
 extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16_t, uint16_t, uint16_t, const char *);
 
 extern void rebuildPending(void);
 
-extern t_stat checkReset(DEVICE *, uint8);
+extern t_stat checkReset(DEVICE *, uint8_t);
 
 extern t_stat show_addr(FILE *, UNIT *, int32, CONST void *);
 
@@ -61,10 +61,10 @@ extern t_stat set_equipment(UNIT *, int32, CONST char *, void *);
 extern t_stat set_stoponrej(UNIT *, int32, CONST char *, void *);
 extern t_stat clr_stoponrej(UNIT *, int32, CONST char *, void *);
 
-extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern t_bool IOStoreToMem(uint16_t, uint16_t, t_bool);
 
-extern uint16 M[], Areg, IOAreg;
+extern uint16_t M[], Areg, IOAreg;
 
 extern t_bool IOFWinitialized;
 
@@ -87,7 +87,7 @@ t_stat cd_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 /* Constants */
 
 #define CD_NUMWD        (96)            /* words/sector */
-#define CD_NUMBY        (CD_NUMWD * sizeof(uint16))
+#define CD_NUMBY        (CD_NUMWD * sizeof(uint16_t))
 #define CD_NUMSC        (29)            /* sectors/cylinder */
 #define CD_856_2CY      (203)           /* cylinders for 856-2 drive */
 #define CD_856_4CY      (406)           /* cylinders for 856-4 drive */
@@ -122,7 +122,7 @@ t_stat cd_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
 struct cdio_unit {
   char                  name[4];        /* Drive name */
-  uint16                state;          /* Current status of the drive */
+  uint16_t                state;          /* Current status of the drive */
 #define CD_IDLE         0x0000          /* Idle */
 #define CD_SEEK         0x0001          /* Seeking */
 #define CD_WRITE        0x0002          /* Write data */
@@ -131,18 +131,18 @@ struct cdio_unit {
 #define CD_CHECKWORD    0x0005          /* Checkword check (NOOP) */
 #define CD_WRITEADDR    0x0006          /* Write address */
 #define CD_RTZS         0x0007          /* Return to zero seek */
-  uint16                buf[CD_NUMWD];  /* Sector buffer */
-  uint16                maxcylinder;    /* Max cylinder # */
-  uint16                cylinder;       /* Current cylinder */
-  uint16                sector;         /* Current sector */
-  uint8                 surface;        /* Current surface */
-  uint8                 disk;           /* Current physical disk */
-  uint8                 requested;      /* Current requested disk */
+  uint16_t                buf[CD_NUMWD];  /* Sector buffer */
+  uint16_t                maxcylinder;    /* Max cylinder # */
+  uint16_t                cylinder;       /* Current cylinder */
+  uint16_t                sector;         /* Current sector */
+  uint8_t                 surface;        /* Current surface */
+  uint8_t                 disk;           /* Current physical disk */
+  uint8_t                 requested;      /* Current requested disk */
 #define CD_NONE         0xFF
-  uint16                sectorAddr;     /* Current sector address */
+  uint16_t                sectorAddr;     /* Current sector address */
   UNIT                  *ondrive[2];    /* Units which are part of drive */
   UNIT                  *active;        /* Currently active unit */
-  uint16                seekComplete;   /* Drive seek complete mask */
+  uint16_t                seekComplete;   /* Drive seek complete mask */
   t_bool                oncyl;          /* Unit on-cylinder status */
   t_bool                busy;           /* Drive busy status */
 } CDunits[CD_NUMDR];
@@ -161,9 +161,9 @@ t_stat cd_attach(UNIT *, CONST char *);
 t_stat cd_detach(UNIT *);
 
 void CDstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool CDreject(IO_DEVICE *, t_bool, uint8);
-enum IOstatus CDin(IO_DEVICE *, uint8);
-enum IOstatus CDout(IO_DEVICE *, uint8);
+t_bool CDreject(IO_DEVICE *, t_bool, uint8_t);
+enum IOstatus CDin(IO_DEVICE *, uint8_t);
+enum IOstatus CDout(IO_DEVICE *, uint8_t);
 t_bool CDintr(IO_DEVICE *);
 
 /*
@@ -598,10 +598,10 @@ t_bool CDintr(IO_DEVICE *iod)
 /*
  * Load and validate disk address in the A register
  */
-static t_bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16 state)
+static t_bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16_t state)
 {
-  uint16 numcy = ((uptr->flags & UNIT_856_4) != 0) ? CD_856_4CY : CD_856_2CY;
-  uint16 current = iou->cylinder;
+  uint16_t numcy = ((uptr->flags & UNIT_856_4) != 0) ? CD_856_4CY : CD_856_2CY;
+  uint16_t current = iou->cylinder;
 
   /*
    * Abort immediately if the disk address is invalid
@@ -655,9 +655,9 @@ static t_bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16 state)
 /*
  * Set up a disk I/O operation with the A register containing FWA.
  */
-static void StartCDDiskIO(UNIT *uptr, struct cdio_unit *iou, uint16 state)
+static void StartCDDiskIO(UNIT *uptr, struct cdio_unit *iou, uint16_t state)
 {
-  uint16 sector;
+  uint16_t sector;
 
   CDdev.CWA = IOAreg;
 
@@ -718,7 +718,7 @@ void CDDiskIOIncSector(struct cdio_unit *iou)
 static enum cdio_status CDDiskIORead(UNIT *uptr)
 {
   struct cdio_unit *iou = (struct cdio_unit *)uptr->up7;
-  uint32 lba = CDLBA(iou);
+  uint32_t lba = CDLBA(iou);
   int i;
 
   if (iou->cylinder >= iou->maxcylinder)
@@ -732,7 +732,7 @@ static enum cdio_status CDDiskIORead(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * CD_NUMBY, SEEK_SET) ||
-      (sim_fread(iou->buf, sizeof(uint16), CD_NUMWD, uptr->fileref) != CD_NUMWD))
+      (sim_fread(iou->buf, sizeof(uint16_t), CD_NUMWD, uptr->fileref) != CD_NUMWD))
     return CDIO_ADDRERR;
 
   for (i = 0; i < CD_NUMWD; i++) {
@@ -756,7 +756,7 @@ static enum cdio_status CDDiskIORead(UNIT *uptr)
 static enum cdio_status CDDiskIOWrite(UNIT *uptr)
 {
   struct cdio_unit *iou = (struct cdio_unit *)uptr->up7;
-  uint32 lba = CDLBA(iou);
+  uint32_t lba = CDLBA(iou);
   t_bool fill = FALSE;
   int i;
 
@@ -780,7 +780,7 @@ static enum cdio_status CDDiskIOWrite(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * CD_NUMBY, SEEK_SET) ||
-      (sim_fwrite(iou->buf, sizeof(uint16), CD_NUMWD, uptr->fileref) != CD_NUMWD))
+      (sim_fwrite(iou->buf, sizeof(uint16_t), CD_NUMWD, uptr->fileref) != CD_NUMWD))
     return CDIO_ADDRERR;
 
   CDDiskIOIncSector(iou);
@@ -793,7 +793,7 @@ static enum cdio_status CDDiskIOWrite(UNIT *uptr)
 static enum cdio_status CDDiskIOCompare(UNIT *uptr)
 {
   struct cdio_unit *iou = (struct cdio_unit *)uptr->up7;
-  uint32 lba = CDLBA(iou);
+  uint32_t lba = CDLBA(iou);
   int i;
 
   if (iou->cylinder >= iou->maxcylinder)
@@ -807,7 +807,7 @@ static enum cdio_status CDDiskIOCompare(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * CD_NUMBY, SEEK_SET) ||
-      (sim_fread(iou->buf, sizeof(uint16), CD_NUMWD, uptr->fileref) != CD_NUMWD))
+      (sim_fread(iou->buf, sizeof(uint16_t), CD_NUMWD, uptr->fileref) != CD_NUMWD))
     return CDIO_ADDRERR;
 
   for (i = 0; i < CD_NUMWD; i++) {
@@ -828,7 +828,7 @@ static enum cdio_status CDDiskIOCompare(UNIT *uptr)
  * Perform read/write/compare sector operations from within the unit
  * service routine.
  */
-void CDDiskIO(UNIT *uptr, uint16 iotype)
+void CDDiskIO(UNIT *uptr, uint16_t iotype)
 {
   struct cdio_unit *iou = (struct cdio_unit *)uptr->up7;
   const char *error = "Unknown";
@@ -1128,7 +1128,7 @@ t_stat cd_detach(UNIT *uptr)
 
 /* Check if I/O should be rejected */
 
-t_bool CDreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+t_bool CDreject(IO_DEVICE *iod, t_bool output, uint8_t reg)
 {
   if (output) {
     switch (reg) {
@@ -1165,7 +1165,7 @@ t_bool CDreject(IO_DEVICE *iod, t_bool output, uint8 reg)
 
 /* Perform I/O */
 
-enum IOstatus CDin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus CDin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * All input requests other than Clear Controller should be handled by
@@ -1192,7 +1192,7 @@ enum IOstatus CDin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus CDout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus CDout(IO_DEVICE *iod, uint8_t reg)
 {
   UNIT *uptr;
   struct cdio_unit *iou;
@@ -1225,7 +1225,7 @@ enum IOstatus CDout(IO_DEVICE *iod, uint8 reg)
        * Handle select/de-select.
        */
       if ((IOAreg & (IO_1733_USEL | IO_1733_UDSEL)) != 0) {
-        uint16 unit = (IOAreg & IO_1733_USC) >> 9;
+        uint16_t unit = (IOAreg & IO_1733_USC) >> 9;
         struct cdio_unit *iou = &CDunits[unit];
 
         if ((IOAreg & IO_1733_UDSEL) != 0) {
@@ -1360,14 +1360,14 @@ t_stat CDautoload(void)
   UNIT *uptr = &cd_unit[(cd_dev.flags & DEV_FIXED) == 0 ? 0 : 1];
 
   if ((uptr->flags & UNIT_ATT) != 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; i < CD_NUMSC; i++) {
       t_offset offset = i * CD_NUMBY;
       void *buf = &M[i * CD_NUMWD];
 
       if (sim_fseeko(uptr->fileref, offset, SEEK_SET) ||
-          (sim_fread(buf, sizeof(uint16), CD_NUMWD, uptr->fileref) != CD_NUMWD))
+          (sim_fread(buf, sizeof(uint16_t), CD_NUMWD, uptr->fileref) != CD_NUMWD))
         return SCPE_IOERR;
     }
     return SCPE_OK;

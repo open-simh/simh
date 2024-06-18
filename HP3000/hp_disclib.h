@@ -28,7 +28,7 @@
    10-Oct-16    JDB     Moved "hp3000_defs.h" inclusion to "hp_disclib.c"
    13-May-16    JDB     Modified for revised SCP API function parameter types
    24-Mar-16    JDB     Added the DL_BUFFER type to define the disc buffer array
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    27-Jul-15    JDB     First revised release version
    21-Feb-15    JDB     Revised for new controller interface model
    24-Oct-12    JDB     Changed CNTLR_OPCODE to title case to avoid name clash
@@ -50,7 +50,7 @@
    for the file representation to be packed.
 */
 
-typedef uint16              DL_BUFFER;          /* a buffer containing 16-bit disc data words */
+typedef uint16_t              DL_BUFFER;          /* a buffer containing 16-bit disc data words */
 
 
 /* Program limits */
@@ -238,7 +238,7 @@ typedef HP_WORD         CNTLR_IBUS;             /* the interface data bus */
 #define NO_DATA         ((CNTLR_IBUS) 0)        /* no data asserted */
 
 
-typedef uint32          CNTLR_IFN_IBUS;         /* a combined interface function set and data bus value */
+typedef uint32_t          CNTLR_IFN_IBUS;         /* a combined interface function set and data bus value */
 
 
 /* Controller opcodes */
@@ -363,11 +363,11 @@ typedef enum {
 */
 
 typedef struct {
-    uint32       cylinder;                      /* matching cylinder address */
-    uint32       head;                          /* matching head address */
-    uint32       sector;                        /* matching sector address */
+    uint32_t       cylinder;                      /* matching cylinder address */
+    uint32_t       head;                          /* matching head address */
+    uint32_t       sector;                        /* matching sector address */
     CNTLR_OPCODE opcode;                        /* matching controller opcode */
-    uint32       spd;                           /* returned S/P/D flags */
+    uint32_t       spd;                           /* returned S/P/D flags */
     CNTLR_STATUS status;                        /* returned controller status */
     } DIAG_ENTRY;
 
@@ -402,16 +402,16 @@ typedef struct {
     CNTLR_STATUS       status;                  /* controller status */
     FLIP_FLOP          eoc;                     /* end-of-cylinder flag */
     t_bool             verify;                  /* address verification required */
-    uint32             spd_unit;                /* S/P/D flags and unit number */
-    uint32             file_mask;               /* file mask */
-    uint32             cylinder;                /* cylinder address */
-    uint32             head;                    /* head address */
-    uint32             sector;                  /* sector address */
-    uint32             count;                   /* count of words transferred or to verify */
-    uint32             poll_unit;               /* last unit polled for attention */
+    uint32_t             spd_unit;                /* S/P/D flags and unit number */
+    uint32_t             file_mask;               /* file mask */
+    uint32_t             cylinder;                /* cylinder address */
+    uint32_t             head;                    /* head address */
+    uint32_t             sector;                  /* sector address */
+    uint32_t             count;                   /* count of words transferred or to verify */
+    uint32_t             poll_unit;               /* last unit polled for attention */
     DL_BUFFER         *buffer;                  /* data buffer pointer */
-    uint32             index;                   /* data buffer current index */
-    uint32             length;                  /* data buffer valid length */
+    uint32_t             index;                   /* data buffer current index */
+    uint32_t             length;                  /* data buffer valid length */
     DIAG_ENTRY        *dop_base;                /* pointer to the diagnostic override array */
     int32              dop_index;               /* current diagnostic override entry index */
     DELAY_PROPS       *fastptr;                 /* pointer to the FASTTIME delays */

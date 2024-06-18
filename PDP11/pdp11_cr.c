@@ -749,7 +749,7 @@ static t_bool readColumnBinary (    UNIT    *uptr,
 
     for (col = colStart; col <= colEnd; col++) {
         int c1, c2;
-        uint16 i;
+        uint16_t i;
         c1 = fgetc (fp);
         c2 = fgetc (fp);
         uptr->pos = ftell (fp);
@@ -827,7 +827,7 @@ static t_bool readCardASCII (   UNIT    *uptr,
             } while (((col & 07) != 1) && (col <= colEnd));
             break;
         default:
-            hcard[col] = (uint16)codeTbl[c & 0177];
+            hcard[col] = (uint16_t)codeTbl[c & 0177];
             /* check for unrepresentable ASCII characters */
             if (hcard[col] == CR_ER) {
                 cdst |= CDCSR_DATAERR;
@@ -1204,9 +1204,9 @@ when in CD mode, also execute one column of DMA input.
 */
 t_stat cr_svc ( UNIT    *uptr    )
 {
-    uint32    pa;
-    uint8    c;
-    uint16   w;
+    uint32_t    pa;
+    uint8_t    c;
+    uint16_t   w;
     int      n;
 
     /* Blower stopping: set it to OFF and do nothing */
@@ -1388,7 +1388,7 @@ incremented properly.  If this causes problems, I'll fix it.
                  * This was probably an ECO to the CD11.  TOPS-10/20 depend on it, so it's definitely in the CD20.
                  */
                 if (uptr->flags & UNIT_AIECO) {
-                    uint16 z;
+                    uint16_t z;
                     w |= ((ccard[currCol] & 07) << 12);     /* Encode zones 1..7 - same as 'packed' format */
                     z = w & 0774;
                     if ((z & -z) != z)                      /* More than one punch in 1..7 */

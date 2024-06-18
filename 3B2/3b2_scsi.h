@@ -207,28 +207,28 @@
 #define HA_JOB_EXPRESS   1
 #define HA_JOB_FULL      2
 
-typedef uint8 ha_jobtype;
+typedef uint8_t ha_jobtype;
 
 typedef struct {
-    uint32 addr;
-    uint32 len;
+    uint32_t addr;
+    uint32_t len;
 } haddr;
 
 /*
  * SCSI Command Request
  */
 typedef struct {
-    uint8  op;              /* Destructured from the cmd byte array */
-    uint8  tc;
-    uint8  lu;
-    uint32 timeout;
+    uint8_t  op;              /* Destructured from the cmd byte array */
+    uint8_t  tc;
+    uint8_t  lu;
+    uint32_t timeout;
 
-    uint8  dlen;
+    uint8_t  dlen;
     haddr  daddr[48];       /* Support up to 48 transfer addresses */
 
-    uint32 dma_lst;
-    uint16 cmd_len;
-    uint8  cmd[HA_MAX_CMD];
+    uint32_t dma_lst;
+    uint16_t cmd_len;
+    uint8_t  cmd[HA_MAX_CMD];
 } ha_req;
 
 /*
@@ -236,12 +236,12 @@ typedef struct {
  */
 typedef struct {
     ha_jobtype type;         /* Job type */
-    uint8 status;            /* Result Status */
-    uint8 op;                /* Command Opcode */
-    uint8 subdev;            /* XXTTTLLL; T=Target, L=LUN */
-    uint8 ssb;               /* SCSI Status Byte */
-    uint32 addr;             /* Response address */
-    uint32 len;              /* Response length */
+    uint8_t status;            /* Result Status */
+    uint8_t op;                /* Command Opcode */
+    uint8_t subdev;            /* XXTTTLLL; T=Target, L=LUN */
+    uint8_t ssb;               /* SCSI Status Byte */
+    uint32_t addr;             /* Response address */
+    uint32_t len;              /* Response length */
 } ha_resp;
 
 #define    PUMP_NONE      0
@@ -261,10 +261,10 @@ typedef struct {
  * General SCSI HA internal state.
  */
 typedef struct {
-    uint8   slot;             /* Card Backsplane Slot # */
-    uint32  pump_state;
+    uint8_t   slot;             /* Card Backsplane Slot # */
+    uint32_t  pump_state;
     t_bool  frq;              /* Fast Request Queue enabled */
-    uint8   edt[HA_EDT_LEN];  /* Equipped Device Table */
+    uint8_t   edt[HA_EDT_LEN];  /* Equipped Device Table */
     ha_ts   ts[8];            /* Target state */
 } HA_STATE;
 
@@ -277,12 +277,12 @@ t_stat ha_attach(UNIT *uptr, CONST char *cptr);
 t_stat ha_detach(UNIT *uptr);
 
 void ha_fast_queue_check();
-void ha_sysgen(uint8 slot);
-void ha_express(uint8 slot);
-void ha_full(uint8 slot);
+void ha_sysgen(uint8_t slot);
+void ha_express(uint8_t slot);
+void ha_full(uint8_t slot);
 
 /* Fast Completion */
 
-void ha_fcm_express(uint8 target);
+void ha_fcm_express(uint8_t target);
 
 #endif /* _3B2_SCSI_H_ */

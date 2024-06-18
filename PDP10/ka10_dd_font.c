@@ -1842,7 +1842,7 @@ int main (void)
   if (f == NULL)
     return 1;
 
-  fprintf (f, "static uint8 font[128][12] = {\n");
+  fprintf (f, "static uint8_t font[128][12] = {\n");
   
   for (i = 0; i < 128; i++) {
     font = sail7_font[i];

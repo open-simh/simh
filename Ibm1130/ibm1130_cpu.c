@@ -18,7 +18,7 @@
    18-Mar-03 BLK    Fixed bug in divide instruction; didn't work with negative values
    23-Jul-03 BLK    Prevented tti polling in CGI mode
    24-Nov-03 BLK    Fixed carry bit error in subtract and subtract double, found by Bob Flanders
-   20-Oct-04 BLK    Changed "(unsigned int32)" to "(uint32)" to accomodate improved definitions of simh types
+   20-Oct-04 BLK    Changed "(unsigned int32)" to "(uint32_t)" to accomodate improved definitions of simh types
                     Also commented out my echo command as it's now a standard simh command
    27-Nov-05 BLK    Added Arithmetic Factor Register support per Carl Claunch  (GUI only)
    06-Dec-06 BLK    Moved CGI stuff out of ibm1130_cpu.c
@@ -179,9 +179,9 @@ CTAB x_cmds[MAX_EXTRA_COMMANDS];
 #define SIGN_BIT(v)   ((v) & 0x8000)
 #define DWSIGN_BIT(v) ((v) & 0x80000000)
 
-uint16 M[MAXMEMSIZE];               /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
-uint16 ILSW[6] = {0,0,0,0,0,0};     /* interrupt level status words */
-uint16 XR[3] = {0,0,0};             /* IBM 1800 index registers */
+uint16_t M[MAXMEMSIZE];               /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
+uint16_t ILSW[6] = {0,0,0,0,0,0};     /* interrupt level status words */
+uint16_t XR[3] = {0,0,0};             /* IBM 1800 index registers */
 int32 IAR;                          /* instruction address register */
 int32 prev_IAR;                     /* instruction address register at start of current instruction */
 int32 SAR, SBR;                     /* storage address/buffer registers */
@@ -358,7 +358,7 @@ void WriteW (int32 a, int32 d)
  * on the 1800, they're separate registers
  * ------------------------------------------------------------------------ */
 
-static uint16 ReadIndex (int32 tag)
+static uint16_t ReadIndex (int32 tag)
 {
 #ifdef ENABLE_1800_SUPPORT
     if (is_1800)
@@ -1019,7 +1019,7 @@ t_stat sim_instr (void)
                 ACC  = (dst >> 16) & 0xFFFF;
                 EXT  = dst & 0xFFFF;
 
-                C = (uint32) dst < (uint32) src;
+                C = (uint32_t) dst < (uint32_t) src;
                 if (! V)
                     V = DWSIGN_BIT((~src ^ src2) & (src ^ dst));
                 break;
@@ -1043,7 +1043,7 @@ t_stat sim_instr (void)
                 ACC  = (dst >> 16) & 0xFFFF;
                 EXT  = dst & 0xFFFF;
 
-                C = (uint32) src < (uint32) src2;
+                C = (uint32_t) src < (uint32_t) src2;
                 if (! V)
                     V = DWSIGN_BIT((src ^ src2) & (src ^ dst));
                 break;
@@ -1073,7 +1073,7 @@ t_stat sim_instr (void)
                 if (src2 == 0) {
                     V = 1;                          /* divide by zero just sets overflow, ACC & EXT are undefined */
                 }
-                else if ((src2 == -1) && ((uint32)src == 0x80000000)) {
+                else if ((src2 == -1) && ((uint32_t)src == 0x80000000)) {
                     V = 1;                          /* another special case: max negative int / -1 also overflows */
                 }
                 else {
@@ -1140,7 +1140,7 @@ t_stat sim_instr (void)
                         src  = ((ACC << 16) | (EXT & 0xFFFF));
                         src2 = (ReadW(eaddr) << 16) + ReadW(eaddr|1);
                         dst  = src - src2;
-                        C    = (uint32) src < (uint32) src2;
+                        C    = (uint32_t) src < (uint32_t) src2;
 
                         if (dst & 0x80000000)           /* if ACC_EXT <  operand, skip 1 instruction */
                             IAR = IAR+1;
@@ -1373,7 +1373,7 @@ t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 {
     if (addr < MEMSIZE) {
-        M[addr] = (uint16) (val & 0xFFFF);
+        M[addr] = (uint16_t) (val & 0xFFFF);
         return SCPE_OK;
     }
     return SCPE_NXM;

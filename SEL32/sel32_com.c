@@ -46,14 +46,14 @@
 
 struct _com_data
 {
-    uint8   incnt;                          /* char count */
-    uint8   ibuff[120];                     /* Input line buffer */
+    uint8_t   incnt;                          /* char count */
+    uint8_t   ibuff[120];                     /* Input line buffer */
 }
 com_data[COM_LINES];
 
-uint8 com_rbuf[COM_LINES];                  /* rcv buf */
-uint8 com_xbuf[COM_LINES];                  /* xmt buf */
-uint8 com_stat[COM_LINES];                  /* status */
+uint8_t com_rbuf[COM_LINES];                  /* rcv buf */
+uint8_t com_xbuf[COM_LINES];                  /* xmt buf */
+uint8_t com_stat[COM_LINES];                  /* status */
 
 TMLN com_ldsc[COM_LINES] = { 0 };           /* line descrs */
 TMXR com_desc = { COM_LINES, 0, 0, com_ldsc }; /* com descr */
@@ -217,8 +217,8 @@ TMXR com_desc = { COM_LINES, 0, 0, com_ldsc }; /* com descr */
 #define CNT u6
 
 /* forward definitions */
-t_stat      coml_preio(UNIT *uptr, uint16 chan);
-t_stat      coml_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd);
+t_stat      coml_preio(UNIT *uptr, uint16_t chan);
+t_stat      coml_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd);
 t_stat      coml_haltio(UNIT *uptr);
 void        com_ini(UNIT *, t_bool);
 void        coml_ini(UNIT *, t_bool);
@@ -262,8 +262,8 @@ UNIT            com_unit[] = {
 };
 
 DIB             com_dib = {
-    NULL,           /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    NULL,           /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    NULL,           /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    NULL,           /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     NULL,           /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
@@ -274,12 +274,12 @@ DIB             com_dib = {
     com_unit,       /* UNIT* units */                           /* Pointer to units structure */
     com_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    COM_UNITS,      /* uint8 numunits */                        /* number of units defined */
-    0x0f,           /* uint8 mask */                            /* 16 devices - device mask */
-    0x7E00,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    COM_UNITS,      /* uint8_t numunits */                        /* number of units defined */
+    0x0f,           /* uint8_t mask */                            /* 16 devices - device mask */
+    0x7E00,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 REG             com_reg[] = {
@@ -333,8 +333,8 @@ UNIT            coml_unit[] = {
 };
 
 DIB             coml_dib = {
-    coml_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    coml_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    coml_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    coml_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     coml_haltio,    /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
@@ -345,12 +345,12 @@ DIB             coml_dib = {
     coml_unit,      /* UNIT* units */                           /* Pointer to units structure */
     coml_chp,       /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    COM_LINES*2,    /* uint8 numunits */                        /* number of units defined */
-    0x0f,           /* uint8 mask */                            /* 16 devices - device mask */
-    0x7E00,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    COM_LINES*2,    /* uint8_t numunits */                        /* number of units defined */
+    0x0f,           /* uint8_t mask */                            /* 16 devices - device mask */
+    0x7E00,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 REG             coml_reg[] = {
@@ -395,7 +395,7 @@ void coml_ini(UNIT *uptr, t_bool f)
 /* handle rschnlio cmds for coml */
 t_stat  coml_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t  chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & COM_MSK;
 
     sim_debug(DEBUG_EXP, dptr,
@@ -418,7 +418,7 @@ void com_ini(UNIT *uptr, t_bool f)
 /* handle rschnlio cmds for com */
 t_stat  com_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t  chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & COM_MSK;
 
     sim_debug(DEBUG_EXP, dptr,
@@ -428,10 +428,10 @@ t_stat  com_rschnlio(UNIT *uptr) {
 }
 
 /* start a com operation */
-t_stat coml_preio(UNIT *uptr, uint16 chan) {
+t_stat coml_preio(UNIT *uptr, uint16_t chan) {
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
-    uint16      chsa = GET_UADDR(uptr->CMD);    /* get channel/sub-addr */
+    uint16_t      chsa = GET_UADDR(uptr->CMD);    /* get channel/sub-addr */
     UNIT        *ruptr = &dptr->units[unit&7];  /* read uptr */
     UNIT        *wuptr = &dptr->units[(unit&7)+8];  /* write uptr */
 
@@ -455,14 +455,14 @@ t_stat coml_preio(UNIT *uptr, uint16 chan) {
 }
 
 /* called from sel32_chan to start an I/O operation */
-t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
+t_stat  coml_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd)
 {
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
     UNIT        *ruptr = &dptr->units[unit&7];  /* read uptr */
     UNIT        *wuptr = &dptr->units[(unit&7)+8];  /* write uptr */
-    uint16      chsa = (((uptr->CMD & LMASK) >> 16) | (chan << 8));
-    uint8       ch, fcb[3];
+    uint16_t      chsa = (((uptr->CMD & LMASK) >> 16) | (chan << 8));
+    uint8_t       ch, fcb[3];
 
     if ((uptr->CMD & COM_MSK) != 0) {           /* is unit busy */
         return SNS_BSY;                         /* yes, return busy */
@@ -642,7 +642,7 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
             return SNS_CHNEND|SNS_DEVEND|SNS_UNITCHK;   /* good return */
         }
         uptr->ACE &= ~ACE_WAKE;                 /* clear out old wake char */
-        uptr->ACE |= ((uint32)ch << 8);         /* insert special char */
+        uptr->ACE |= ((uint32_t)ch << 8);         /* insert special char */
         ruptr->ACE = uptr->ACE;                 /* set special char in read unit */
         wuptr->ACE = uptr->ACE;                 /* set special char in write unit */
         sim_debug(DEBUG_CMD, dptr,
@@ -695,7 +695,7 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
             /* nothing to read, error */
             return SNS_CHNEND|SNS_DEVEND|SNS_UNITCHK;   /* good return */
         }
-        uptr->ACE = ((uint32)ch)<<24;           /* byte 0 of ACE data */
+        uptr->ACE = ((uint32_t)ch)<<24;           /* byte 0 of ACE data */
         sim_debug(DEBUG_CMD, dptr,
             "coml_startcmd chsa %04x: Cmd %02x ACE byte 0 %02x\n",
             chsa, cmd, ch);
@@ -704,7 +704,7 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
             /* nothing to read, error */
             return SNS_CHNEND|SNS_DEVEND|SNS_UNITCHK;   /* good return */
         }
-        uptr->ACE |= ((uint32)ch)<<16;          /* byte 1 of ACE data */
+        uptr->ACE |= ((uint32_t)ch)<<16;          /* byte 1 of ACE data */
         sim_debug(DEBUG_CMD, dptr,
             "coml_startcmd chsa %04x: Cmd %02x ACE byte 1 %02x\n",
             chsa, cmd, ch);
@@ -713,7 +713,7 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
             /* nothing to read, error */
             return SNS_CHNEND|SNS_DEVEND|SNS_UNITCHK;   /* good return */
         }
-        uptr->ACE |= ((uint32)ch)<<8;           /* byte 2 of ACE data */
+        uptr->ACE |= ((uint32_t)ch)<<8;           /* byte 2 of ACE data */
         uptr->SNS |= SNS_ACEDEF;                /* show ACE defined */
         if (uptr->SNS & SNS_CONN) {
             if (!(uptr->ACE & SNS_MRINGE)) {    /* see if RING enabled */
@@ -798,10 +798,10 @@ t_stat  coml_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 */
 t_stat comc_srv(UNIT *uptr)
 {
-    uint8   ch;
+    uint8_t   ch;
     DEVICE *dptr = get_dev(uptr);
     int32   newln, ln, c;
-    uint16  chsa = GET_UADDR(coml_unit[0].CMD); /* get channel/sub-addr */
+    uint16_t  chsa = GET_UADDR(coml_unit[0].CMD); /* get channel/sub-addr */
 
     /* see if comc attached */
     if ((com_unit[COMC].flags & UNIT_ATT) == 0){    /* attached? */
@@ -810,8 +810,8 @@ t_stat comc_srv(UNIT *uptr)
     /* poll for any input from com lines, units 0-7 */
     newln = tmxr_poll_conn(&com_desc);          /* look for connect */
     if (newln >= 0) {                           /* rcv enb pending? */
-        uint16  chsa = GET_UADDR(coml_unit[newln].CMD); /* get read channel/sub-addr */
-        uint16  wchsa = GET_UADDR(coml_unit[newln+8].CMD); /* get write channel/sub-addr */
+        uint16_t  chsa = GET_UADDR(coml_unit[newln].CMD); /* get read channel/sub-addr */
+        uint16_t  wchsa = GET_UADDR(coml_unit[newln+8].CMD); /* get write channel/sub-addr */
         UNIT    *nuptr = coml_unit+newln;       /* get uptr for coml line */
         UNIT    *wuptr = coml_unit+newln+8;     /* get output uptr for coml line */
         com_ldsc[newln].rcve = 1;               /* enable rcv */
@@ -854,7 +854,7 @@ t_stat comc_srv(UNIT *uptr)
     for (ln = 0; ln < COM_NUMLIN; ln++) {       /* loop thru lines */
         UNIT    *nuptr = coml_unit+ln;          /* get uptr for coml line */
         int     cmd = nuptr->CMD & 0xff;        /* get the active cmd */
-        uint16  chsa = GET_UADDR(nuptr->CMD);   /* get channel/sub-addr */
+        uint16_t  chsa = GET_UADDR(nuptr->CMD);   /* get channel/sub-addr */
 
         if (com_ldsc[ln].conn)                  /* connected? */
             sim_debug(DEBUG_DETAIL, &com_dev,
@@ -939,11 +939,11 @@ t_stat comc_srv(UNIT *uptr)
 t_stat comi_srv(UNIT *uptr)
 {
     DEVICE *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);        /* get channel/sub-addr */
-    uint32  ln = (uptr - coml_unit) & 0x7;      /* use line # 0-7 for 8-15 */
+    uint16_t  chsa = GET_UADDR(uptr->CMD);        /* get channel/sub-addr */
+    uint32_t  ln = (uptr - coml_unit) & 0x7;      /* use line # 0-7 for 8-15 */
     CHANP   *chp = find_chanp_ptr(chsa);        /* find the chanp pointer */
     int     cmd = uptr->CMD & 0xff;             /* get active cmd */
-    uint8   ch, cc;
+    uint8_t   ch, cc;
 
     /* handle NOP and INCH cmds */
     sim_debug(DEBUG_CMD, dptr,
@@ -1073,12 +1073,12 @@ t_stat comi_srv(UNIT *uptr)
 t_stat como_srv(UNIT *uptr)
 {
     DEVICE *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);        /* get channel/sub-addr */
-    uint32  ln = (uptr - coml_unit) & 0x7;      /* use line # 0-7 for 8-15 */
+    uint16_t  chsa = GET_UADDR(uptr->CMD);        /* get channel/sub-addr */
+    uint32_t  ln = (uptr - coml_unit) & 0x7;      /* use line # 0-7 for 8-15 */
     UNIT    *ruptr = &dptr->units[ln&7];        /* read uptr */
-    uint32  done;
+    uint32_t  done;
     int     cmd = uptr->CMD & 0xff;             /* get active cmd */
-    uint8   ch;
+    uint8_t   ch;
 
     sim_debug(DEBUG_CMD, dptr,
         "como_srv entry chsa %04x line %04x cmd %02x conn %x rcve %x xmte %x\n",
@@ -1168,7 +1168,7 @@ doagain:
 
 /* haltxio routine */
 t_stat coml_haltio(UNIT *uptr) {
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t  chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & COM_MSK;
     int     unit = (uptr - coml_unit);          /* unit # 0 is read, 1 is write */
     CHANP   *chp = find_chanp_ptr(chsa);        /* find the chanp pointer */

@@ -32,8 +32,8 @@
    08-Jun-16    JDB     Corrected %d format to %u for unsigned values
    16-May-16    JDB     Fixed interrupt mask setting
    13-May-16    JDB     Modified for revised SCP API function parameter types
-   24-Mar-16    JDB     Changed the buffer element type from uint16 to DL_BUFFER
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   24-Mar-16    JDB     Changed the buffer element type from uint16_t to DL_BUFFER
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    21-Jul-15    JDB     First release version
    15-Jun-15    JDB     Passes the cartridge disc diagnostic (D419A)
    15-Feb-15    JDB     Created

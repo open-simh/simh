@@ -60,15 +60,15 @@
 VID_DISPLAY *vdm1_vptr = NULL;
 t_stat (*vdm1_kb_callback)(SIM_KEY_EVENT *kev) = NULL;
 
-static uint8 vdm1_ram[VDM1_MEM_SIZE];
-static uint8 vdm1_dstat = 0x00;
+static uint8_t vdm1_ram[VDM1_MEM_SIZE];
+static uint8_t vdm1_dstat = 0x00;
 static t_bool vdm1_dirty = TRUE;
 static t_bool vdm1_reverse = FALSE;
 static t_bool vdm1_blink = FALSE;
-static uint16 vdm1_counter = 0;
+static uint16_t vdm1_counter = 0;
 static t_bool vdm1_active = FALSE;
-static uint32 vdm1_surface[VDM1_PIXELS];
-static uint32 vdm1_palette[2];
+static uint32_t vdm1_surface[VDM1_PIXELS];
+static uint32_t vdm1_palette[2];
 
 enum vdm1_switch {VDM1_NONE,
     VDM1_NORMAL, VDM1_REVERSE, VDM1_BLINK, VDM1_NOBLINK,
@@ -79,7 +79,7 @@ static enum vdm1_switch vdm1_ctrl = VDM1_MODE4;
 static enum vdm1_switch vdm1_cursor = VDM1_NOBLINK;
 static enum vdm1_switch vdm1_display = VDM1_NORMAL;
 
-static const uint8 vdm1_charset[128][VDM1_CHAR_YSIZE] =
+static const uint8_t vdm1_charset[128][VDM1_CHAR_YSIZE] =
  {{0x00,0x7f,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x7f,0x00,0x00,0x00},
   {0x00,0x7f,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x00,0x00,0x00},
   {0x00,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x7f,0x00,0x00,0x00},
@@ -213,8 +213,8 @@ static const uint8 vdm1_charset[128][VDM1_CHAR_YSIZE] =
 
 #define DBG_REG         0x0001                          /* registers */
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -230,7 +230,7 @@ static int32 vdm1_mem(int32 addr, int32 rw, int32 data);
 static const char *vdm1_description(DEVICE *dptr);
 static void vdm1_refresh(void);
 static void vdm1_render(void);
-static void vdm1_render_char(uint8 byte, uint8 x, uint8 y);
+static void vdm1_render_char(uint8_t byte, uint8_t x, uint8_t y);
 static t_stat vdm1_set_ctrl(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat vdm1_show_ctrl(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat vdm1_set_cursor(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -474,7 +474,7 @@ static void vdm1_refresh(void) {
  */
 static void vdm1_render(void)
 {
-    uint8 x,y,s,c,c1;
+    uint8_t x,y,s,c,c1;
     int addr = 0;
     t_bool eol_blank = FALSE;
     t_bool eos_blank = FALSE;
@@ -521,9 +521,9 @@ static void vdm1_render(void)
  * rendering each character in a rectangle area in the
  * video surface buffer.
  */
-static void vdm1_render_char(uint8 byte, uint8 x, uint8 y)
+static void vdm1_render_char(uint8_t byte, uint8_t x, uint8_t y)
 {
-    uint8 rx,ry,c;
+    uint8_t rx,ry,c;
     int start,pixel;
 
     start = (x * VDM1_CHAR_XSIZE) + (VDM1_XSIZE * VDM1_CHAR_YSIZE * y);

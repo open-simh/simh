@@ -50,15 +50,15 @@ t_stat dup_set_W3_option (int32 dup, t_bool state);
 t_stat dup_set_W5_option (int32 dup, t_bool state);
 t_stat dup_set_W6_option (int32 dup, t_bool state);
 t_stat dup_set_RCVEN (int32 dup, t_bool state);
-t_stat dup_setup_dup (int32 dup, t_bool enable, t_bool protocol_DDCMP, t_bool crc_inhibit, t_bool halfduplex, uint8 station);
+t_stat dup_setup_dup (int32 dup, t_bool enable, t_bool protocol_DDCMP, t_bool crc_inhibit, t_bool halfduplex, uint8_t station);
 t_stat dup_reset_dup (int32 dup);
 
 int32 dup_csr_to_linenum (int32 CSRPA);
 
 void dup_set_callback_mode (int32 dup, PACKET_DATA_AVAILABLE_CALLBACK receive, PACKET_TRANSMIT_COMPLETE_CALLBACK transmit, MODEM_CHANGE_CALLBACK modem);
 
-t_bool dup_put_msg_bytes (int32 dup, uint8 *bytes, size_t len, t_bool start, t_bool end);
+t_bool dup_put_msg_bytes (int32 dup, uint8_t *bytes, size_t len, t_bool start, t_bool end);
 
-t_stat dup_get_packet (int32 dup, const uint8 **pbuf, uint16 *psize);
+t_stat dup_get_packet (int32 dup, const uint8_t **pbuf, uint16_t *psize);
 
 #endif /* PDP11_DUP_H_ */

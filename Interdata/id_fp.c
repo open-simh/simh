@@ -58,8 +58,8 @@
 struct ufp {                                            /* unpacked fp */
     int32       sign;                                   /* sign */
     int32       exp;                                    /* unbiased exp */
-    uint32      h;                                      /* fr high */
-    uint32      l;                                      /* fr low */
+    uint32_t      h;                                      /* fr high */
+    uint32_t      l;                                      /* fr low */
     };
 
 #define FP_V_SIGN       31                              /* sign */
@@ -112,21 +112,21 @@ struct ufp {                                            /* unpacked fp */
 #define Q_RND(op)       (OP_DPFP (op) == 0)
 #define Q_RND_AS(op)    ((OP_DPFP (op) == 0) && fp_in_hwre)
 
-extern uint32 *R;
-extern uint32 F[8];
+extern uint32_t *R;
+extern uint32_t F[8];
 extern dpr_t D[8];
-extern uint32 fp_in_hwre;
-extern uint32 ReadF (uint32 loc, uint32 rel);
-extern void WriteF (uint32 loc, uint32 dat, uint32 rel);
-void ReadFP2 (struct ufp *fop, uint32 op, uint32 r2, uint32 ea);
-void UnpackFPR (struct ufp *fop, uint32 op, uint32 r1);
+extern uint32_t fp_in_hwre;
+extern uint32_t ReadF (uint32_t loc, uint32_t rel);
+extern void WriteF (uint32_t loc, uint32_t dat, uint32_t rel);
+void ReadFP2 (struct ufp *fop, uint32_t op, uint32_t r2, uint32_t ea);
+void UnpackFPR (struct ufp *fop, uint32_t op, uint32_t r1);
 void NormUFP (struct ufp *fop);
-uint32 StoreFPR (struct ufp *fop, uint32 op, uint32 r1, uint32 rnd);
-uint32 StoreFPX (struct ufp *fop, uint32 op, uint32 r1);
+uint32_t StoreFPR (struct ufp *fop, uint32_t op, uint32_t r1, uint32_t rnd);
+uint32_t StoreFPX (struct ufp *fop, uint32_t op, uint32_t r1);
 
 /* Floating point load */
 
-uint32 f_l (uint32 op, uint32 r1, uint32 r2, uint32 ea)
+uint32_t f_l (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea)
 {
 struct ufp fop2;
 
@@ -136,7 +136,7 @@ return StoreFPR (&fop2, op, r1, 0);                     /* store, chk unflo */
 
 /* Floating point compare */
 
-uint32 f_c (uint32 op, uint32 r1, uint32 r2, uint32 ea)
+uint32_t f_c (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea)
 {
 struct ufp fop1, fop2;
 
@@ -155,10 +155,10 @@ return 0;
 
 /* Floating to integer conversion */
 
-uint32 f_fix (uint32 op, uint32 r1, uint32 r2)          /* 16b */
+uint32_t f_fix (uint32_t op, uint32_t r1, uint32_t r2)          /* 16b */
 {
 struct ufp res;
-uint32 cc;
+uint32_t cc;
 
 UnpackFPR (&res, op, r2);                               /* get op2, norm */
 if ((res.h == 0) || (res.exp < 0x41)) {                 /* result zero? */
@@ -182,10 +182,10 @@ R[r1] = res.h & DMASK16;
 return cc | CC_G;
 }
 
-uint32 f_fix32 (uint32 op, uint32 r1, uint32 r2)        /* 32b */
+uint32_t f_fix32 (uint32_t op, uint32_t r1, uint32_t r2)        /* 32b */
 {
 struct ufp res;
-uint32 cc;
+uint32_t cc;
 
 UnpackFPR (&res, op, r2);                               /* get op2, norm */
 if ((res.h == 0) || (res.exp < 0x41)) {                 /* result zero? */
@@ -212,10 +212,10 @@ return cc | CC_G;
 
 /* Integer to floating conversion */
 
-uint32 f_flt (uint32 op, uint32 r1, uint32 r2)          /* 16b */
+uint32_t f_flt (uint32_t op, uint32_t r1, uint32_t r2)          /* 16b */
 {
 struct ufp res = { 0, 0x44, 0, 0 };                     /* +, 16**4 */
-uint32 cc;
+uint32_t cc;
 
 if (R[r2] == 0)                                         /* zero arg? */
     cc = 0;
@@ -233,10 +233,10 @@ StoreFPR (&res, op, r1, 0);                             /* store result */
 return cc;
 }
 
-uint32 f_flt32 (uint32 op, uint32 r1, uint32 r2)        /* 32b */
+uint32_t f_flt32 (uint32_t op, uint32_t r1, uint32_t r2)        /* 32b */
 {
 struct ufp res = { 0, 0x48, 0, 0 };                     /* +, 16**8 */
-uint32 cc, t;
+uint32_t cc, t;
 
 t = R[r2];                                              /* int op */
 if (t) {                                                /* nonzero arg? */
@@ -257,7 +257,7 @@ return cc;
 
 /* Floating point add/subtract */
 
-uint32 f_as (uint32 op, uint32 r1, uint32 r2, uint32 ea)
+uint32_t f_as (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea)
 {
 struct ufp fop1, fop2, t;
 int32 ediff;
@@ -317,11 +317,11 @@ return StoreFPR (&fop1, op, r1, Q_RND_AS (op));         /* store result */
    - Double precision multiply generates 56b with no guard bits
 */
 
-uint32 f_m (uint32 op, uint32 r1, uint32 r2, uint32 ea)
+uint32_t f_m (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea)
 {
 struct ufp fop1, fop2;
 struct ufp res = { 0, 0, 0, 0 };
-uint32 i;
+uint32_t i;
 
 ReadFP2 (&fop2, op, r2, ea);                            /* get op2, norm */
 UnpackFPR (&fop1, op, r1);                              /* get op1, norm */
@@ -365,7 +365,7 @@ return StoreFPR (&res, op, r1, Q_RND (op));             /* store */
 
 /* Floating point divide - see overflow/underflow notes for multiply */
 
-uint32 f_d (uint32 op, uint32 r1, uint32 r2, uint32 ea)
+uint32_t f_d (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea)
 {
 struct ufp fop1, fop2;
 struct ufp quo = { 0, 0, 0, 0 };
@@ -410,9 +410,9 @@ return StoreFPR (&quo, op, r1, Q_RND (op));             /* store result */
 
 /* Unpack floating point number */
 
-void UnpackFPR (struct ufp *fop, uint32 op, uint32 r1)
+void UnpackFPR (struct ufp *fop, uint32_t op, uint32_t r1)
 {
-uint32 hi;
+uint32_t hi;
 
 if (OP_DPFP (op)) {                                     /* double prec? */
     hi = D[r1 >> 1].h;                                  /* get hi */
@@ -434,9 +434,9 @@ return;
 
 /* Read memory operand */
 
-void ReadFP2 (struct ufp *fop, uint32 op, uint32 r2, uint32 ea)
+void ReadFP2 (struct ufp *fop, uint32_t op, uint32_t r2, uint32_t ea)
 {
-uint32 hi;
+uint32_t hi;
 
 if (OP_TYPE (op) > OP_RR) {                             /* mem ref? */
     hi = ReadF (ea, VR);                                /* get hi */
@@ -481,9 +481,9 @@ return;
 
 /* Round fp number, store, generate condition codes */
 
-uint32 StoreFPR (struct ufp *fop, uint32 op, uint32 r1, uint32 rnd)
+uint32_t StoreFPR (struct ufp *fop, uint32_t op, uint32_t r1, uint32_t rnd)
 {
-uint32 hi, cc;
+uint32_t hi, cc;
 
 if (rnd && (fop->l & FP_ROUND)) {                       /* round? */
     fop->h = fop->h + 1;                                /* add 1 to frac */
@@ -523,9 +523,9 @@ return cc;
 
 /* Generate exception result */
 
-uint32 StoreFPX (struct ufp *fop, uint32 op, uint32 r1)
+uint32_t StoreFPX (struct ufp *fop, uint32_t op, uint32_t r1)
 {
-uint32 cc = CC_V;
+uint32_t cc = CC_V;
 
 if (fop->exp < 0)                                       /* undf? clean 0 */
     fop->h = fop->l = 0;

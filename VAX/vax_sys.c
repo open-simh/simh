@@ -57,13 +57,13 @@
 
 extern REG cpu_reg[];
 
-t_stat fprint_sym_m (FILE *of, uint32 addr, t_value *val);
+t_stat fprint_sym_m (FILE *of, uint32_t addr, t_value *val);
 int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt);
 t_stat parse_char (const char *cptr, t_value *val, int32 lnt);
-t_stat parse_sym_m (const char *cptr, uint32 addr, t_value *val);
-int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val,
+t_stat parse_sym_m (const char *cptr, uint32_t addr, t_value *val);
+int32 parse_brdisp (const char *cptr, uint32_t addr, t_value *val,
     int32 vp, int32 lnt, t_stat *r);
-int32 parse_spec (CONST char *cptr, uint32 addr, t_value *val,
+int32 parse_spec (CONST char *cptr, uint32_t addr, t_value *val,
     int32 vp, int32 disp, t_stat *r);
 CONST char *parse_rnum (CONST char *cptr, int32 *rn);
 int32 parse_sym_qoimm (int32 *lit, t_value *val, int32 vp,
@@ -116,7 +116,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
  */
 
 
-const uint16 drom[NUM_INST][MAX_SPEC + 1] = {
+const uint16_t drom[NUM_INST][MAX_SPEC + 1] = {
 {0             +IG_BASE,  0,      0,      0,      0,      0,      0},    /* HALT */     /* 000-00F */
 {0             +IG_BASE,  0,      0,      0,      0,      0,      0},    /* NOP */
 {0             +IG_BASE,  0,      0,      0,      0,      0,      0},    /* REI */
@@ -746,7 +746,7 @@ const char* regname[] = {
 t_stat fprint_sym (FILE *of, t_addr exta, t_value *val,
     UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 int32 c, k, num, vp, lnt, rdx;
 t_stat r;
 DEVICE *dptr;
@@ -798,7 +798,7 @@ if ((sw & SWMASK ('M')) && (uptr == &cpu_unit)) {       /* inst format? */
 
 vp = 0;                                                 /* init ptr */
 GETNUM (num, lnt);                                      /* get number */
-fprint_val (of, (uint32) num, rdx, lnt * 8, PV_RZRO);
+fprint_val (of, (uint32_t) num, rdx, lnt * 8, PV_RZRO);
 return -(vp - 1);
 }
 
@@ -813,7 +813,7 @@ return -(vp - 1);
                         if < 0, number of extra bytes retired
 */
 
-t_stat fprint_sym_m (FILE *of, uint32 addr, t_value *val)
+t_stat fprint_sym_m (FILE *of, uint32_t addr, t_value *val)
 {
 int32 i, k, vp, inst, numspec;
 int32 num, spec, rn, disp, index;
@@ -978,11 +978,11 @@ return vp;
 
 t_stat parse_sym (CONST char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 int32 k, rdx, lnt, num, vp;
 t_stat r;
 DEVICE *dptr;
-static const uint32 maxv[5] = { 0, 0xFF, 0xFFFF, 0, 0xFFFFFFFF };
+static const uint32_t maxv[5] = { 0, 0xFF, 0xFFFF, 0, 0xFFFFFFFF };
 
 if (uptr == NULL)                                       /* anon = CPU */
     uptr = &cpu_unit;
@@ -1067,7 +1067,7 @@ return -(vp - 1);                                       /* return # chars */
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym_m (const char *cptr, uint32 addr, t_value *val)
+t_stat parse_sym_m (const char *cptr, uint32_t addr, t_value *val)
 {
 int32 i, numspec, disp, opc, vp;
 t_stat r;
@@ -1124,7 +1124,7 @@ return -(vp - 1);
         vp      =       updated output pointer
 */
 
-int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val, int32 vp,
+int32 parse_brdisp (const char *cptr, uint32_t addr, t_value *val, int32 vp,
     int32 lnt, t_stat *r)
 {
 int32 k, dest, num;
@@ -1179,7 +1179,7 @@ return vp;
                             }
 #define SEL_LIM(p,m,u)  ((fl & SP_PLUS)? (p): ((fl & SP_MINUS)? (m): (u)))
 
-int32 parse_spec (CONST char *cptr, uint32 addr, t_value *val, int32 vp, int32 disp, t_stat *r)
+int32 parse_spec (CONST char *cptr, uint32_t addr, t_value *val, int32 vp, int32 disp, t_stat *r)
 {
 int32 i, k, litsize, rn, index;
 int32 num, dispsize, mode;

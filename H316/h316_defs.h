@@ -59,7 +59,7 @@
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
 #define X_AMASK         (MAXMEMSIZE - 1)                /* ext address mask */
 #define NX_AMASK        ((MAXMEMSIZE / 2) - 1)          /* nx address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 
@@ -111,14 +111,14 @@
 /* Device information block */
 
 struct h316_dib {
-    uint32              dev;                            /* device number */
-    uint32              num;                            /* number of slots */
-    uint32              chan;                           /* dma/dmc channel */
-    uint32              chan2;                          /* alternate DMA/DMD channel */
-    uint32              inum;                           /* interrupt number */
-    uint32              inum2;                          /* alternate interrupt */
+    uint32_t              dev;                            /* device number */
+    uint32_t              num;                            /* number of slots */
+    uint32_t              chan;                           /* dma/dmc channel */
+    uint32_t              chan2;                          /* alternate DMA/DMD channel */
+    uint32_t              inum;                           /* interrupt number */
+    uint32_t              inum2;                          /* alternate interrupt */
     int32               (*io) (int32 inst, int32 fnc, int32 dat, int32 dev);
-    uint32              u3;                             /* "user" parameter #1 */
+    uint32_t              u3;                             /* "user" parameter #1 */
 };
 typedef struct h316_dib DIB;
 

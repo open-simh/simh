@@ -93,7 +93,7 @@
     }
 
 #define POP(x)  {                                           \
-    register uint32 y = RAM_PP(SP);                         \
+    register uint32_t y = RAM_PP(SP);                         \
     x = y + (RAM_PP(SP) << 8);                              \
 }
 
@@ -109,7 +109,7 @@
 
 #define CALLC(cond) {                                       \
     if (cond) {                                             \
-        register uint32 adrr = GET_WORD(PC);                \
+        register uint32_t adrr = GET_WORD(PC);                \
         CHECK_BREAK_WORD(SP - 2);                           \
         PUSH(PC + 2);                                       \
         PCQ_ENTRY(PCX);                                     \
@@ -140,10 +140,10 @@ extern int32 sr_dev     (const int32 port, const int32 io, const int32 data);
 extern void install_ALTAIRbootROM(void);
 extern void do_SIMH_sleep(void);
 extern void prepareMemoryAccessMessage(const t_addr loc);
-extern void prepareInstructionMessage(const t_addr loc, const uint32 op);
+extern void prepareInstructionMessage(const t_addr loc, const uint32_t op);
 
 extern t_stat sim_instr_nommu(void);
-extern uint8 MOPT[MAXBANKSIZE];
+extern uint8_t MOPT[MAXBANKSIZE];
 extern t_stat sim_instr_8086(void);
 extern void cpu8086reset(void);
 
@@ -164,7 +164,7 @@ static t_stat cpu_set_nonbanked     (UNIT *uptr, int32 value, CONST char *cptr, 
 static t_stat cpu_set_ramtype       (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_set_chiptype      (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_set_size          (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
-static t_stat set_size              (uint32 size, t_bool unmap);
+static t_stat set_size              (uint32_t size, t_bool unmap);
 static t_stat m68k_set_chiptype     (UNIT * uptr, int32 value, CONST char* cptr, void* desc);
 static t_stat cpu_set_memory        (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_resize_memory     (UNIT *uptr, int32 value, CONST char *cptr, void *desc);
@@ -180,32 +180,32 @@ static t_stat cpu_reset(DEVICE *dptr);
 static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 static t_stat cpu_hex_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag);
 static t_stat sim_instr_mmu(void);
-static uint32 GetBYTE(register uint32 Addr);
-static void PutWORD(register uint32 Addr, const register uint32 Value);
-static void PutBYTE(register uint32 Addr, const register uint32 Value);
+static uint32_t GetBYTE(register uint32_t Addr);
+static void PutWORD(register uint32_t Addr, const register uint32_t Value);
+static void PutBYTE(register uint32_t Addr, const register uint32_t Value);
 static const char* cpu_description(DEVICE *dptr);
 static t_stat cpu_cmd_memory(int32 flag, CONST char *cptr);
 static t_stat cpu_cmd_reg(int32 flag, CONST char *cptr);
-void out(const uint32 Port, const uint32 Value);
-uint32 in(const uint32 Port);
+void out(const uint32_t Port, const uint32_t Value);
+uint32_t in(const uint32_t Port);
 void altairz80_init(void);
 t_stat sim_instr(void);
 t_stat install_bootrom(const int32 bootrom[], const int32 size, const int32 addr, const int32 makeROM);
-uint8 GetBYTEWrapper(const uint32 Addr);
-void PutBYTEWrapper(const uint32 Addr, const uint32 Value);
-uint8 GetByteDMA(const uint32 Addr);
-void PutByteDMA(const uint32 Addr, const uint32 Value);
+uint8_t GetBYTEWrapper(const uint32_t Addr);
+void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
+uint8_t GetByteDMA(const uint32_t Addr);
+void PutByteDMA(const uint32_t Addr, const uint32_t Value);
 int32 getBankSelect(void);
 void setBankSelect(const int32 b);
-uint32 getClockFrequency(void);
-void setClockFrequency(const uint32 Value);
-uint32 getCommon(void);
-uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                        int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+uint32_t getClockFrequency(void);
+void setClockFrequency(const uint32_t Value);
+uint32_t getCommon(void);
+uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                        int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
-void PutBYTEExtended(register uint32 Addr, const register uint32 Value);
-uint32 GetBYTEExtended(register uint32 Addr);
-void cpu_raise_interrupt(uint32 irq);
+void PutBYTEExtended(register uint32_t Addr, const register uint32_t Value);
+uint32_t GetBYTEExtended(register uint32_t Addr);
+void cpu_raise_interrupt(uint32_t irq);
 
 const char* handlerNameForPort(const int32 port);
 
@@ -221,7 +221,7 @@ UNIT cpu_unit = {
     UNIT_CPU_STOPONHALT | UNIT_CPU_MMU, MAXBANKSIZE)
 };
 
-        uint32 PCX              = 0;                /* external view of PC                          */
+        uint32_t PCX              = 0;                /* external view of PC                          */
         int32 AF_S;                                 /* AF register                                  */
         int32 BC_S;                                 /* BC register                                  */
         int32 DE_S;                                 /* DE register                                  */
@@ -253,18 +253,18 @@ UNIT cpu_unit = {
         int32 IP_S;                                 /* IP register (8086)                           */
         int32 FLAGS_S;                              /* flags register (8086)                        */
         int32 SR                = 0;                /* switch register                              */
-        uint32 nmiInterrupt     = 0;                /* Non-maskable Interrupt                       */
-        uint32 vectorInterrupt  = 0;                /* VI0-7 Vector Interrupt bitfield              */
-        uint8 dataBus[MAX_INT_VECTORS];             /* Vector Interrupt data bus value              */
+        uint32_t nmiInterrupt     = 0;                /* Non-maskable Interrupt                       */
+        uint32_t vectorInterrupt  = 0;                /* VI0-7 Vector Interrupt bitfield              */
+        uint8_t dataBus[MAX_INT_VECTORS];             /* Vector Interrupt data bus value              */
 static  int32 bankSelect        = 0;                /* determines selected memory bank              */
-static  uint32 common           = 0xc000;           /* addresses >= 'common' are in common memory   */
-static  uint32 common_low       = 0;                /* Common area is in low memory                 */
-static  uint32 previousCapacity = MAXBANKSIZE;      /* safe for previous memory capacity            */
-static  uint32 clockFrequency   = 0;                /* in kHz, 0 means as fast as possible          */
-static  uint32 sliceLength      = 10;               /* length of time-slice for CPU speed           */
+static  uint32_t common           = 0xc000;           /* addresses >= 'common' are in common memory   */
+static  uint32_t common_low       = 0;                /* Common area is in low memory                 */
+static  uint32_t previousCapacity = MAXBANKSIZE;      /* safe for previous memory capacity            */
+static  uint32_t clockFrequency   = 0;                /* in kHz, 0 means as fast as possible          */
+static  uint32_t sliceLength      = 10;               /* length of time-slice for CPU speed           */
                                                     /* adjustment in milliseconds                   */
-static  uint32 executedTStates  = 0;                /* executed t-states                            */
-static  uint16 pcq[PCQ_SIZE]    = { 0 };            /* PC queue                                     */
+static  uint32_t executedTStates  = 0;                /* executed t-states                            */
+static  uint16_t pcq[PCQ_SIZE]    = { 0 };            /* PC queue                                     */
 static  int32 pcq_p             = 0;                /* PC queue ptr                                 */
 static  REG *pcq_r              = NULL;             /* PC queue reg ptr                             */
 
@@ -272,30 +272,30 @@ static  REG *pcq_r              = NULL;             /* PC queue reg ptr         
 #define HIST_MAX        8192
 
 typedef struct {
-    uint8 valid;
-    uint16 af;
-    uint16 bc;
-    uint16 de;
-    uint16 hl;
+    uint8_t valid;
+    uint16_t af;
+    uint16_t bc;
+    uint16_t de;
+    uint16_t hl;
     t_addr pc;
     t_addr sp;
-    uint16 af1;
-    uint16 bc1;
-    uint16 de1;
-    uint16 hl1;
-    uint16 ix;
-    uint16 iy;
+    uint16_t af1;
+    uint16_t bc1;
+    uint16_t de1;
+    uint16_t hl1;
+    uint16_t ix;
+    uint16_t iy;
     t_value op[INST_MAX_BYTES];
 } insthist_t;
 
-static  uint32 hst_p = 0;                           /* history pointer          */
-static  uint32 hst_lnt = 0;                         /* history length           */
+static  uint32_t hst_p = 0;                           /* history pointer          */
+static  uint32_t hst_lnt = 0;                         /* history length           */
 static  insthist_t *hst = NULL;                     /* instruction history      */
 
-uint32 m68k_registers[M68K_REG_CPU_TYPE + 1];       /* M68K CPU registers       */
-uint32 mmiobase = 0xff0000;                         /* M68K MMIO base address   */
-uint32 mmiosize = 0x10000;                          /* M68K MMIO window size    */
-uint32 m68kvariant = M68K_CPU_TYPE_68000;
+uint32_t m68k_registers[M68K_REG_CPU_TYPE + 1];       /* M68K CPU registers       */
+uint32_t mmiobase = 0xff0000;                         /* M68K MMIO base address   */
+uint32_t mmiosize = 0x10000;                          /* M68K MMIO window size    */
+uint32_t m68kvariant = M68K_CPU_TYPE_68000;
 
 /* data structure for IN/OUT instructions */
 struct idev {
@@ -733,7 +733,7 @@ static int32 ramtype = RAM_TYPE_AZ80;
 
 ChipType chiptype = CHIP_TYPE_8080;
 
-void out(const uint32 Port, const uint32 Value) {
+void out(const uint32_t Port, const uint32_t Value) {
     if ((cpu_dev.dctrl & OUT_MSG) && sim_deb) {
         fprintf(sim_deb, "CPU: " ADDRESS_FORMAT
                 " OUT(port=0x%04x [%5d] %s, value=0x%04x [%5d])\n", PCX, Port, Port, dev_table[Port & 0xff].name, Value, Value);
@@ -747,8 +747,8 @@ void out(const uint32 Port, const uint32 Value) {
     }
 }
 
-uint32 in(const uint32 Port) {
-    uint32 result;
+uint32_t in(const uint32_t Port) {
+    uint32_t result;
     if ((cpu_dev.dctrl & IN_MSG) && sim_deb) {
         fprintf(sim_deb, "CPU: " ADDRESS_FORMAT
             " IN(port=0x%04x [%5d] %s)\n", PCX, Port, Port, dev_table[Port & 0xff].name);
@@ -795,7 +795,7 @@ uint32 in(const uint32 Port) {
 */
 
 /* parityTable[i] = (number of 1's in i is odd) ? 0 : 4, i = 0..255 */
-static const uint8 parityTable[256] = {
+static const uint8_t parityTable[256] = {
     4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,
     0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
     0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
@@ -815,7 +815,7 @@ static const uint8 parityTable[256] = {
 };
 
 /* incTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0) << 4), i = 0..256 */
-static const uint8 incTable[257] = {
+static const uint8_t incTable[257] = {
      80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -835,7 +835,7 @@ static const uint8 incTable[257] = {
 };
 
 /* decTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0xf) << 4) | 2, i = 0..255 */
-static const uint8 decTable[256] = {
+static const uint8_t decTable[256] = {
      66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -855,7 +855,7 @@ static const uint8 decTable[256] = {
 };
 
 /* cbitsTable[i] = (i & 0x10) | ((i >> 8) & 1), i = 0..511 */
-static const uint8 cbitsTable[512] = {
+static const uint8_t cbitsTable[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -892,7 +892,7 @@ static const uint8 cbitsTable[512] = {
 
 /* cbitsDup8Table[i] = (i & 0x10) | ((i >> 8) & 1) | ((i & 0xff) << 8) | (i & 0xa8) |
                         (((i & 0xff) == 0) << 6), i = 0..511 */
-static const uint16 cbitsDup8Table[512] = {
+static const uint16_t cbitsDup8Table[512] = {
     0x0040,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
     0x0808,0x0908,0x0a08,0x0b08,0x0c08,0x0d08,0x0e08,0x0f08,
     0x1010,0x1110,0x1210,0x1310,0x1410,0x1510,0x1610,0x1710,
@@ -960,7 +960,7 @@ static const uint16 cbitsDup8Table[512] = {
 };
 
 /* cbitsDup16Table[i] = (i & 0x10) | ((i >> 8) & 1) | (i & 0x28), i = 0..511 */
-static const uint8 cbitsDup16Table[512] = {
+static const uint8_t cbitsDup16Table[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8,
     16,16,16,16,16,16,16,16,24,24,24,24,24,24,24,24,
     32,32,32,32,32,32,32,32,40,40,40,40,40,40,40,40,
@@ -996,7 +996,7 @@ static const uint8 cbitsDup16Table[512] = {
 };
 
 /* cbits2Table[i] = (i & 0x10) | ((i >> 8) & 1) | 2, i = 0..511 */
-static const uint8 cbits2Table[512] = {
+static const uint8_t cbits2Table[512] = {
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -1032,7 +1032,7 @@ static const uint8 cbits2Table[512] = {
 };
 
 /* rrcaTable[i] = ((i & 1) << 15) | ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1), i = 0..255 */
-static const uint16 rrcaTable[256] = {
+static const uint16_t rrcaTable[256] = {
     0x0000,0x8001,0x0100,0x8101,0x0200,0x8201,0x0300,0x8301,
     0x0400,0x8401,0x0500,0x8501,0x0600,0x8601,0x0700,0x8701,
     0x0808,0x8809,0x0908,0x8909,0x0a08,0x8a09,0x0b08,0x8b09,
@@ -1068,7 +1068,7 @@ static const uint16 rrcaTable[256] = {
 };
 
 /* rraTable[i] = ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1), i = 0..255 */
-static const uint16 rraTable[256] = {
+static const uint16_t rraTable[256] = {
     0x0000,0x0001,0x0100,0x0101,0x0200,0x0201,0x0300,0x0301,
     0x0400,0x0401,0x0500,0x0501,0x0600,0x0601,0x0700,0x0701,
     0x0808,0x0809,0x0908,0x0909,0x0a08,0x0a09,0x0b08,0x0b09,
@@ -1104,7 +1104,7 @@ static const uint16 rraTable[256] = {
 };
 
 /* addTable[i] = ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6), i = 0..511 */
-static const uint16 addTable[512] = {
+static const uint16_t addTable[512] = {
     0x0040,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
     0x0808,0x0908,0x0a08,0x0b08,0x0c08,0x0d08,0x0e08,0x0f08,
     0x1000,0x1100,0x1200,0x1300,0x1400,0x1500,0x1600,0x1700,
@@ -1172,7 +1172,7 @@ static const uint16 addTable[512] = {
 };
 
 /* subTable[i] = ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | 2, i = 0..255 */
-static const uint16 subTable[256] = {
+static const uint16_t subTable[256] = {
     0x0042,0x0102,0x0202,0x0302,0x0402,0x0502,0x0602,0x0702,
     0x080a,0x090a,0x0a0a,0x0b0a,0x0c0a,0x0d0a,0x0e0a,0x0f0a,
     0x1002,0x1102,0x1202,0x1302,0x1402,0x1502,0x1602,0x1702,
@@ -1208,7 +1208,7 @@ static const uint16 subTable[256] = {
 };
 
 /* andTable[i] = (i << 8) | (i & 0xa8) | ((i == 0) << 6) | 0x10 | parityTable[i], i = 0..255 */
-static const uint16 andTable[256] = {
+static const uint16_t andTable[256] = {
     0x0054,0x0110,0x0210,0x0314,0x0410,0x0514,0x0614,0x0710,
     0x0818,0x091c,0x0a1c,0x0b18,0x0c1c,0x0d18,0x0e18,0x0f1c,
     0x1010,0x1114,0x1214,0x1310,0x1414,0x1510,0x1610,0x1714,
@@ -1244,7 +1244,7 @@ static const uint16 andTable[256] = {
 };
 
 /* xororTable[i] = (i << 8) | (i & 0xa8) | ((i == 0) << 6) | parityTable[i], i = 0..255 */
-static const uint16 xororTable[256] = {
+static const uint16_t xororTable[256] = {
     0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,
     0x0808,0x090c,0x0a0c,0x0b08,0x0c0c,0x0d08,0x0e08,0x0f0c,
     0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,
@@ -1280,7 +1280,7 @@ static const uint16 xororTable[256] = {
 };
 
 /* rotateShiftTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i & 0xff], i = 0..255 */
-static const uint8 rotateShiftTable[256] = {
+static const uint8_t rotateShiftTable[256] = {
      68,  0,  0,  4,  0,  4,  4,  0,  8, 12, 12,  8, 12,  8,  8, 12,
       0,  4,  4,  0,  4,  0,  0,  4, 12,  8,  8, 12,  8, 12, 12,  8,
      32, 36, 36, 32, 36, 32, 32, 36, 44, 40, 40, 44, 40, 44, 44, 40,
@@ -1301,7 +1301,7 @@ static const uint8 rotateShiftTable[256] = {
 
 /* incZ80Table[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) |
                         (((i & 0xf) == 0) << 4) | ((i == 0x80) << 2), i = 0..256 */
-static const uint8 incZ80Table[257] = {
+static const uint8_t incZ80Table[257] = {
      80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -1322,7 +1322,7 @@ static const uint8 incZ80Table[257] = {
 
 /* decZ80Table[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) |
                         (((i & 0xf) == 0xf) << 4) | ((i == 0x7f) << 2) | 2, i = 0..255 */
-static const uint8 decZ80Table[256] = {
+static const uint8_t decZ80Table[256] = {
      66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -1342,7 +1342,7 @@ static const uint8 decZ80Table[256] = {
 };
 
 /* cbitsZ80Table[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1), i = 0..511 */
-static const uint8 cbitsZ80Table[512] = {
+static const uint8_t cbitsZ80Table[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -1379,7 +1379,7 @@ static const uint8 cbitsZ80Table[512] = {
 
 /* cbitsZ80DupTable[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) |
                             ((i >> 8) & 1) | (i & 0xa8), i = 0..511 */
-static const uint8 cbitsZ80DupTable[512] = {
+static const uint8_t cbitsZ80DupTable[512] = {
       0,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24,
      32, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -1415,7 +1415,7 @@ static const uint8 cbitsZ80DupTable[512] = {
 };
 
 /* cbits2Z80Table[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2, i = 0..511 */
-static const uint8 cbits2Z80Table[512] = {
+static const uint8_t cbits2Z80Table[512] = {
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -1452,7 +1452,7 @@ static const uint8 cbits2Z80Table[512] = {
 
 /* cbits2Z80DupTable[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2 |
                             (i & 0xa8), i = 0..511 */
-static const uint8 cbits2Z80DupTable[512] = {
+static const uint8_t cbits2Z80DupTable[512] = {
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 10,
      18, 18, 18, 18, 18, 18, 18, 18, 26, 26, 26, 26, 26, 26, 26, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 42,
@@ -1488,7 +1488,7 @@ static const uint8 cbits2Z80DupTable[512] = {
 };
 
 /* negTable[i] = (((i & 0x0f) != 0) << 4) | ((i == 0x80) << 2) | 2 | (i != 0), i = 0..255 */
-static const uint8 negTable[256] = {
+static const uint8_t negTable[256] = {
      2,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
      3,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
      3,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
@@ -1508,7 +1508,7 @@ static const uint8 negTable[256] = {
 };
 
 /* rrdrldTable[i] = (i << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i], i = 0..255 */
-static const uint16 rrdrldTable[256] = {
+static const uint16_t rrdrldTable[256] = {
     0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,
     0x0808,0x090c,0x0a0c,0x0b08,0x0c0c,0x0d08,0x0e08,0x0f0c,
     0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,
@@ -1544,7 +1544,7 @@ static const uint16 rrdrldTable[256] = {
 };
 
 /* cpTable[i] = (i & 0x80) | (((i & 0xff) == 0) << 6), i = 0..255 */
-static const uint8 cpTable[256] = {
+static const uint8_t cpTable[256] = {
      64,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -1569,7 +1569,7 @@ static void altairz80_print_tables(void) {
 */
 /* parityTable */
 /*
-    uint32 i, v;
+    uint32_t i, v;
     for (i = 0; i < 256; i++) {
         v =     ((i & 1)        + ((i & 2) >> 1)    + ((i & 4) >> 2)    + ((i & 8) >> 3) +
                 ((i & 16) >> 4) + ((i & 32) >> 5)   + ((i & 64) >> 6)   + ((i & 128) >> 7)) % 2 ? 0 : 4;
@@ -1581,7 +1581,7 @@ static void altairz80_print_tables(void) {
 */
 /* incTable */
 /*
-    uint32 temp, v;
+    uint32_t temp, v;
     for (temp = 0; temp <= 256; temp++) {
         v = (temp & 0xa8) | (((temp & 0xff) == 0) << 6) | (((temp & 0xf) == 0) << 4);
         sim_printf("%3d,", v);
@@ -1592,7 +1592,7 @@ static void altairz80_print_tables(void) {
 */
 /* decTable */
 /*
-    uint32 temp, v;
+    uint32_t temp, v;
     for (temp = 0; temp < 256; temp++) {
         v = (temp & 0xa8) | (((temp & 0xff) == 0) << 6) | (((temp & 0xf) == 0xf) << 4) | 2;
         sim_printf("%3d,", v);
@@ -1603,7 +1603,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbitsTable */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (cbits & 0x10) | ((cbits >> 8) & 1);
         sim_printf("%2d,", v);
@@ -1614,7 +1614,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbitsDup8Table */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (cbits & 0x10) | ((cbits >> 8) & 1) | ((cbits & 0xff) << 8) | (cbits & 0xa8) | (((cbits & 0xff) == 0) << 6);
         sim_printf("0x%04x,", v);
@@ -1625,7 +1625,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbitsDup16Table */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (cbits & 0x10) | ((cbits >> 8) & 1) | (cbits & 0x28);
         sim_printf("%2d,", v);
@@ -1636,7 +1636,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbits2Table */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (cbits & 0x10) | ((cbits >> 8) & 1) | 2;
         sim_printf("%2d,", v);
@@ -1647,7 +1647,7 @@ static void altairz80_print_tables(void) {
 */
 /* rrcaTable */
 /*
-    uint32 temp, sum, v;
+    uint32_t temp, sum, v;
     for (temp = 0; temp < 256; temp++) {
         sum = temp >> 1;
         v = ((temp & 1) << 15) | (sum << 8) | (sum & 0x28) | (temp & 1);
@@ -1659,7 +1659,7 @@ static void altairz80_print_tables(void) {
 */
 /* rraTable */
 /*
-    uint32 temp, sum, v;
+    uint32_t temp, sum, v;
     for (temp = 0; temp < 256; temp++) {
         sum = temp >> 1;
         v = (sum << 8) | (sum & 0x28) | (temp & 1);
@@ -1671,7 +1671,7 @@ static void altairz80_print_tables(void) {
 */
 /* addTable */
 /*
-    uint32 sum, v;
+    uint32_t sum, v;
     for (sum = 0; sum < 512; sum++) {
         v = ((sum & 0xff) << 8) | (sum & 0xa8) | (((sum & 0xff) == 0) << 6);
         sim_printf("0x%04x,", v);
@@ -1682,7 +1682,7 @@ static void altairz80_print_tables(void) {
 */
 /* subTable */
 /*
-    uint32 sum, v;
+    uint32_t sum, v;
     for (sum = 0; sum < 256; sum++) {
         v = ((sum & 0xff) << 8) | (sum & 0xa8) | (((sum & 0xff) == 0) << 6) | 2;
         sim_printf("0x%04x,", v);
@@ -1693,7 +1693,7 @@ static void altairz80_print_tables(void) {
 */
 /* andTable */
 /*
-    uint32 sum, v;
+    uint32_t sum, v;
     for (sum = 0; sum < 256; sum++) {
         v = (sum << 8) | (sum & 0xa8) | ((sum == 0) << 6) | 0x10 | parityTable[sum];
         sim_printf("0x%04x,", v);
@@ -1704,7 +1704,7 @@ static void altairz80_print_tables(void) {
 */
 /* xororTable */
 /*
-    uint32 sum, v;
+    uint32_t sum, v;
     for (sum = 0; sum < 256; sum++) {
         v = (sum << 8) | (sum & 0xa8) | ((sum == 0) << 6) | parityTable[sum];
         sim_printf("0x%04x,", v);
@@ -1715,7 +1715,7 @@ static void altairz80_print_tables(void) {
 */
 /* rotateShiftTable */
 /*
-    uint32 temp, v;
+    uint32_t temp, v;
     for (temp = 0; temp < 256; temp++) {
         v = (temp & 0xa8) | (((temp & 0xff) == 0) << 6) | PARITY(temp);
         sim_printf("%3d,", v);
@@ -1726,7 +1726,7 @@ static void altairz80_print_tables(void) {
 */
 /* incZ80Table */
 /*
-    uint32 temp, v;
+    uint32_t temp, v;
     for (temp = 0; temp < 256; temp++) {
         v = (temp & 0xa8) | (((temp & 0xff) == 0) << 6) |
             (((temp & 0xf) == 0) << 4) | ((temp == 0x80) << 2);
@@ -1738,7 +1738,7 @@ static void altairz80_print_tables(void) {
 */
 /* decZ80Table */
 /*
-    uint32 temp, v;
+    uint32_t temp, v;
     for (temp = 0; temp < 256; temp++) {
         v = (temp & 0xa8) | (((temp & 0xff) == 0) << 6) |
             (((temp & 0xf) == 0xf) << 4) | ((temp == 0x7f) << 2) | 2;
@@ -1750,7 +1750,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbitsZ80Table */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (cbits & 0x10) | (((cbits >> 6) ^ (cbits >> 5)) & 4) |
             ((cbits >> 8) & 1);
@@ -1762,7 +1762,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbitsZ80DupTable */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (cbits & 0x10) | (((cbits >> 6) ^ (cbits >> 5)) & 4) |
             ((cbits >> 8) & 1) | (cbits & 0xa8);
@@ -1774,7 +1774,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbits2Z80Table */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (((cbits >> 6) ^ (cbits >> 5)) & 4) | (cbits & 0x10) | 2 | ((cbits >> 8) & 1);
         sim_printf("%2d,", v);
@@ -1785,7 +1785,7 @@ static void altairz80_print_tables(void) {
 */
 /* cbits2Z80DupTable */
 /*
-    uint32 cbits, v;
+    uint32_t cbits, v;
     for (cbits = 0; cbits < 512; cbits++) {
         v = (((cbits >> 6) ^ (cbits >> 5)) & 4) | (cbits & 0x10) | 2 | ((cbits >> 8) & 1) |
             (cbits & 0xa8);
@@ -1797,7 +1797,7 @@ static void altairz80_print_tables(void) {
 */
 /* negTable */
 /*
-    uint32 temp, v;
+    uint32_t temp, v;
     for (temp = 0; temp < 256; temp++) {
         v = (((temp & 0x0f) != 0) << 4) | ((temp == 0x80) << 2) | 2 | (temp != 0);
         sim_printf("%2d,", v);
@@ -1808,7 +1808,7 @@ static void altairz80_print_tables(void) {
 */
 /* rrdrldTable */
 /*
-    uint32 acu, v;
+    uint32_t acu, v;
     for (acu = 0; acu < 256; acu++) {
         v = (acu << 8) | (acu & 0xa8) | (((acu & 0xff) == 0) << 6) | parityTable[acu];
         sim_printf("0x%04x,", v);
@@ -1819,7 +1819,7 @@ static void altairz80_print_tables(void) {
 */
 /* cpTable */
 /*
-    uint32 sum, v;
+    uint32_t sum, v;
     for (sum = 0; sum < 256; sum++) {
         v = (sum & 0x80) | (((sum & 0xff) == 0) << 6);
         sim_printf("%3d,", v);
@@ -1837,7 +1837,7 @@ static void altairz80_print_tables(void) {
 #define LOG2PAGESIZE        8
 #define PAGESIZE            (1 << LOG2PAGESIZE)
 
-static uint8 M[MAXMEMORY];   /* RAM which is present (for 8080, Z80 and 8086 */
+static uint8_t M[MAXMEMORY];   /* RAM which is present (for 8080, Z80 and 8086 */
 
 typedef struct { /* Structure to describe a 2^LOG2PAGESIZE byte page of address space */
     /* There are four cases
@@ -1848,8 +1848,8 @@ typedef struct { /* Structure to describe a 2^LOG2PAGESIZE byte page of address 
     FALSE   FALSE       not NULL    M       page is mapped to memory mapped I/O routine
     other combinations are undefined!
     */
-    uint32 isRAM;
-    uint32 isEmpty;
+    uint32_t isRAM;
+    uint32_t isEmpty;
     int32 (*routine)(const int32, const int32, const int32);
     const char *name; /* name of handler routine */
 } MDEV;
@@ -1860,9 +1860,9 @@ static MDEV EMPTY_PAGE  =   {FALSE, TRUE,   NULL, "NONEXIST"};  /* this is non-e
 static MDEV mmu_table[MAXMEMORY >> LOG2PAGESIZE];
 
 /* Memory and I/O Resource Mapping and Unmapping routine. */
-uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                        int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap) {
-    uint32 page, i, addr;
+uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                        int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap) {
+    uint32_t page, i, addr;
     if (resource_type == RESOURCE_TYPE_MEMORY) {
         for (i = 0; i < (size >> LOG2PAGESIZE); i++) {
             addr = (baseaddr & 0xfff00) + (i << LOG2PAGESIZE);
@@ -1910,7 +1910,7 @@ uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
     return 0;
 }
 
-static void PutBYTE(register uint32 Addr, const register uint32 Value) {
+static void PutBYTE(register uint32_t Addr, const register uint32_t Value) {
     MDEV m;
 
     Addr &= ADDRMASK;   /* registers are NOT guaranteed to be always 16-bit values */
@@ -1931,7 +1931,7 @@ static void PutBYTE(register uint32 Addr, const register uint32 Value) {
     }
 }
 
-void PutBYTEExtended(register uint32 Addr, const register uint32 Value) {
+void PutBYTEExtended(register uint32_t Addr, const register uint32_t Value) {
     MDEV m;
 
     Addr &= ADDRMASKEXTENDED;
@@ -1949,12 +1949,12 @@ void PutBYTEExtended(register uint32 Addr, const register uint32 Value) {
     }
 }
 
-static void PutWORD(register uint32 Addr, const register uint32 Value) {
+static void PutWORD(register uint32_t Addr, const register uint32_t Value) {
     PutBYTE(Addr, Value);
     PutBYTE(Addr + 1, Value >> 8);
 }
 
-static uint32 GetBYTE(register uint32 Addr) {
+static uint32_t GetBYTE(register uint32_t Addr) {
     MDEV m;
 
     Addr &= ADDRMASK;   /* registers are NOT guaranteed to be always 16-bit values */
@@ -1974,7 +1974,7 @@ static uint32 GetBYTE(register uint32 Addr) {
     return M[Addr]; /* ROM */
 }
 
-uint32 GetBYTEExtended(register uint32 Addr) {
+uint32_t GetBYTEExtended(register uint32_t Addr) {
     MDEV m;
 
     Addr &= ADDRMASKEXTENDED;
@@ -2000,12 +2000,12 @@ void setBankSelect(const int32 b) {
     bankSelect = b;
 }
 
-uint32 getCommon(void) {
+uint32_t getCommon(void) {
     return common;
 }
 
 /* memory access during a simulation */
-uint8 GetBYTEWrapper(const uint32 Addr) {
+uint8_t GetBYTEWrapper(const uint32_t Addr) {
     if (chiptype == CHIP_TYPE_8086)
         return GetBYTEExtended(Addr);
     else if (chiptype == CHIP_TYPE_M68K)
@@ -2017,7 +2017,7 @@ uint8 GetBYTEWrapper(const uint32 Addr) {
 }
 
 /* memory access during a simulation */
-void PutBYTEWrapper(const uint32 Addr, const uint32 Value) {
+void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value) {
     if (chiptype == CHIP_TYPE_8086)
         PutBYTEExtended(Addr, Value);
     else if (chiptype == CHIP_TYPE_M68K)
@@ -2029,7 +2029,7 @@ void PutBYTEWrapper(const uint32 Addr, const uint32 Value) {
 }
 
 /* DMA memory access during a simulation, suggested by Tony Nicholson */
-uint8 GetByteDMA(const uint32 Addr) {
+uint8_t GetByteDMA(const uint32_t Addr) {
     if (chiptype == CHIP_TYPE_M68K)
         return m68k_cpu_read_byte_raw(Addr);
     else if ((chiptype == CHIP_TYPE_8086) || (cpu_unit.flags & UNIT_CPU_MMU))
@@ -2038,7 +2038,7 @@ uint8 GetByteDMA(const uint32 Addr) {
         return MOPT[Addr & ADDRMASK];
 }
 
-void PutByteDMA(const uint32 Addr, const uint32 Value) {
+void PutByteDMA(const uint32_t Addr, const uint32_t Value) {
     if (chiptype == CHIP_TYPE_M68K)
         m68k_cpu_write_byte_raw(Addr, Value);
     else if ((chiptype == CHIP_TYPE_8086) || (cpu_unit.flags & UNIT_CPU_MMU))
@@ -2128,7 +2128,7 @@ t_stat sim_instr (void) {
             result = (chiptype == CHIP_TYPE_8086) ? sim_instr_8086() : sim_instr_mmu();
         } while (switch_cpu_now == FALSE);
     else {
-        uint32 i;
+        uint32_t i;
         for (i = 0; i < MAXBANKSIZE; i++)
             MOPT[i] = M[i];
         result = sim_instr_nommu();
@@ -2140,11 +2140,11 @@ t_stat sim_instr (void) {
 
 static int32 clockHasChanged = FALSE;
 
-uint32 getClockFrequency(void) {
+uint32_t getClockFrequency(void) {
     return clockFrequency;
 }
 
-void setClockFrequency(const uint32 Value) {
+void setClockFrequency(const uint32_t Value) {
     clockFrequency = Value;
     clockHasChanged = TRUE;
 }
@@ -2153,24 +2153,24 @@ static t_stat sim_instr_mmu (void) {
     extern int32 timerInterrupt;
     extern int32 timerInterruptHandler;
     extern int32 keyboardInterrupt;
-    extern uint32 keyboardInterruptHandler;
+    extern uint32_t keyboardInterruptHandler;
     int32 reason = SCPE_OK;
-    uint32 i;
-    register uint32 specialProcessing;
-    register uint32 AF;
-    register uint32 BC;
-    register uint32 DE;
-    register uint32 HL;
-    register uint32 PC;
-    register uint32 SP;
-    register uint32 IX;
-    register uint32 IY;
-    register uint32 temp = 0;
-    register uint32 acu = 0;
-    register uint32 sum;
-    register uint32 cbits;
-    register uint32 op;
-    register uint32 adr;
+    uint32_t i;
+    register uint32_t specialProcessing;
+    register uint32_t AF;
+    register uint32_t BC;
+    register uint32_t DE;
+    register uint32_t HL;
+    register uint32_t PC;
+    register uint32_t SP;
+    register uint32_t IX;
+    register uint32_t IY;
+    register uint32_t temp = 0;
+    register uint32_t acu = 0;
+    register uint32_t sum;
+    register uint32_t cbits;
+    register uint32_t op;
+    register uint32_t adr;
 
     /*  The clock frequency simulation works as follows:
      For each 8080 or Z80 instruction one can determine the number of t-states
@@ -2190,9 +2190,9 @@ static t_stat sim_instr_mmu (void) {
      3. In case startTime is in the future there is a sleep until startTime
         is equal to the current time.
      */
-    register uint32 tStates;    /* number of t-states executed in the current time-slice */
-    uint32 tStatesInSlice;      /* number of t-states in a 10 mSec time-slice */
-    uint32 startTime, now;
+    register uint32_t tStates;    /* number of t-states executed in the current time-slice */
+    uint32_t tStatesInSlice;      /* number of t-states in a 10 mSec time-slice */
+    uint32_t startTime, now;
     int32 tStateModifier = FALSE;
 
     switch_cpu_now = TRUE;
@@ -2274,8 +2274,8 @@ static t_stat sim_instr_mmu (void) {
             }
 
             if ((IM_S == 1) && vectorInterrupt && (IFF_S & IFF1)) {    /* Z80 Interrupt Mode 1 */
-                uint32 tempVectorInterrupt = vectorInterrupt;
-                uint8 intVector = 0;
+                uint32_t tempVectorInterrupt = vectorInterrupt;
+                uint8_t intVector = 0;
 
                 while ((tempVectorInterrupt & 1) == 0) {
                     tempVectorInterrupt >>= 1;
@@ -2302,8 +2302,8 @@ static t_stat sim_instr_mmu (void) {
                     " INT(mode=1 intVector=%d PC=%04X)\n", PCX, intVector, PC);
             } else if ((IM_S == 2) && vectorInterrupt && (IFF_S & IFF1)) {
                 int32 vector;
-                uint32 tempVectorInterrupt = vectorInterrupt;
-                uint8 intVector = 0;
+                uint32_t tempVectorInterrupt = vectorInterrupt;
+                uint8_t intVector = 0;
 
                 while ((tempVectorInterrupt & 1) == 0) {
                     tempVectorInterrupt >>= 1;
@@ -2366,8 +2366,8 @@ static t_stat sim_instr_mmu (void) {
            NOTE: does not support multi-byte instructions such as CALL
         */
         if ((IM_S == 0) && vectorInterrupt && (IFF_S & IFF1)) {    /* 8080/Z80 Interrupt Mode 0 */
-            uint32 tempVectorInterrupt = vectorInterrupt;
-            uint8 intVector = 0;
+            uint32_t tempVectorInterrupt = vectorInterrupt;
+            uint8_t intVector = 0;
 
             while ((tempVectorInterrupt & 1) == 0) {
                 tempVectorInterrupt >>= 1;
@@ -6375,7 +6375,7 @@ static t_stat sim_instr_mmu (void) {
 
     /* simulation halted */
     PC_S = ((reason == STOP_OPCODE) || (reason == STOP_MEM)) ? PCX : (PC & ADDRMASK);
-    if ((cpu_unit.flags & UNIT_CPU_BANKED) && ((((common_low == 0) && ((uint32)PC_S < common))) || (((common_low == 1) && ((uint32)PC_S >= common)))))
+    if ((cpu_unit.flags & UNIT_CPU_BANKED) && ((((common_low == 0) && ((uint32_t)PC_S < common))) || (((common_low == 1) && ((uint32_t)PC_S >= common)))))
 
         PC_S |= bankSelect << MAXBANKSIZELOG2;
     pcq_r -> qptr = pcq_p;  /* update pc q ptr */
@@ -6475,8 +6475,8 @@ static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs) {
             break;
 
         case CHIP_TYPE_M68K: {
-            const uint32 localPC = m68k_registers[M68K_REG_PC];
-            const uint32 instr = m68k_cpu_read_word(localPC);
+            const uint32_t localPC = m68k_registers[M68K_REG_PC];
+            const uint32_t instr = m68k_cpu_read_word(localPC);
             if (((instr & 0xff00) == 0x6100) || /* BSR  */
                 ((instr & 0xffc0) == 0x4e80)) { /* JSR  */
                 returns[0] = localPC + (1 - fprint_sym (stdnul, localPC, sim_eval,
@@ -6563,7 +6563,7 @@ static t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw) {
 }
 
 typedef struct {
-    uint32 mask;            /* bit mask within CPU status register  */
+    uint32_t mask;            /* bit mask within CPU status register  */
     const char* flagName;   /* string to print if flag is set       */
 } CPUFLAG;
 
@@ -6617,8 +6617,8 @@ const static CPUFLAG cpuflagsM68K[] = {
 };
 
 /* needs to be set for each chiptype < NUM_CHIP_TYPE */
-const static uint32 *flagregister[NUM_CHIP_TYPE] = { (uint32*)&AF_S, (uint32*)&AF_S,
-    (uint32*)&FLAGS_S, &m68k_registers[M68K_REG_SR]};
+const static uint32_t *flagregister[NUM_CHIP_TYPE] = { (uint32_t*)&AF_S, (uint32_t*)&AF_S,
+    (uint32_t*)&FLAGS_S, &m68k_registers[M68K_REG_SR]};
 const static CPUFLAG *cpuflags[NUM_CHIP_TYPE] = { cpuflags8080, cpuflagsZ80,
     cpuflags8086, cpuflagsM68K, };
 
@@ -6650,7 +6650,7 @@ static t_stat chip_show(FILE *st, UNIT *uptr, int32 val, CONST void *desc) {
 }
 
 static t_stat cpu_show(FILE *st, UNIT *uptr, int32 val, CONST void *desc) {
-    uint32 i, maxBanks, first = TRUE;
+    uint32_t i, maxBanks, first = TRUE;
     MDEV m;
     maxBanks = ((cpu_unit.flags & UNIT_CPU_BANKED) ||
                 (chiptype == CHIP_TYPE_8086)) ? MAXBANKS : 1;
@@ -6705,7 +6705,7 @@ static t_stat cpu_show(FILE *st, UNIT *uptr, int32 val, CONST void *desc) {
 }
 
 static void cpu_clear(t_bool unmap) {
-    uint32 i;
+    uint32_t i;
     for (i = 0; i < MAXMEMORY; i++)
         M[i] = 0;
     for (i = 0; i < (MAXMEMORY >> LOG2PAGESIZE); i++)
@@ -7046,8 +7046,8 @@ static t_stat cpu_set_ramtype(UNIT *uptr, int32 value, CONST char *cptr, void *d
 }
 
 /* set memory to 'size' kilo byte */
-static t_stat set_size(uint32 size, t_bool unmap) {
-    uint32 maxsize;
+static t_stat set_size(uint32_t size, t_bool unmap) {
+    uint32_t maxsize;
     if (chiptype == CHIP_TYPE_M68K) {   // ignore for M68K
         if (cpu_unit.flags & UNIT_CPU_VERBOSE)
             sim_printf("Setting memory size to %ikB ignored for M68K.\n", size);
@@ -7077,7 +7077,7 @@ static t_stat cpu_set_size(UNIT *uptr, int32 value, CONST char *cptr, void *desc
 }
 
 static t_stat cpu_set_memory(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     if (cptr == NULL) {
         sim_printf("Memory size must be provided as SET CPU MEMORY=xK\n");
         return SCPE_ARG | SCPE_NOMESSAGE;
@@ -7091,7 +7091,7 @@ static t_stat cpu_set_memory(UNIT *uptr, int32 value, CONST char *cptr, void *de
 }
 
 static t_stat cpu_resize_memory(UNIT *uptr, int32 value, CONST char *cptr, void *desc) {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     if (cptr == NULL) {
         sim_printf("Memory size must be provided as SET CPU RESIZEMEMORY=xK\n");
         return SCPE_ARG | SCPE_NOMESSAGE;
@@ -7117,7 +7117,7 @@ static t_stat m68k_set_chiptype(UNIT* uptr, int32 value, CONST char* cptr, void*
 }
 
 static t_stat cpu_set_hist(UNIT *uptr, int32 val, CONST char *cptr, void *desc) {
-    uint32 i, lnt;
+    uint32_t i, lnt;
     t_stat r;
 
     if ((chiptype >= 0) && (chiptype != CHIP_TYPE_8080) && (chiptype != CHIP_TYPE_Z80)) {
@@ -7147,7 +7147,7 @@ static t_stat cpu_set_hist(UNIT *uptr, int32 val, CONST char *cptr, void *desc) 
     /*
     ** Enable/Resize ring buffer ("SET HISTORY=<n>")
     */
-    lnt = (uint32) get_uint (cptr, 10, HIST_MAX, &r);
+    lnt = (uint32_t) get_uint (cptr, 10, HIST_MAX, &r);
 
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN))) {
         sim_printf("History buffer minimum/maximum size: %d/%d\n", HIST_MIN, HIST_MAX);
@@ -7277,7 +7277,7 @@ static t_stat sim_load_m68k(FILE *fileref, CONST char *cptr, CONST char *fnam, i
     char gbuf[CBUFSIZE];
     int32 i;
     t_addr j, lo, hi;
-    uint32 addr, org, cnt = 0;
+    uint32_t addr, org, cnt = 0;
     CONST char* result;
     if (flag ) {
         result = get_range(NULL, cptr, &lo, &hi, 16, M68K_MAX_RAM, 0);
@@ -7310,7 +7310,7 @@ static t_stat sim_load_m68k(FILE *fileref, CONST char *cptr, CONST char *fnam, i
 
 t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag) {
     int32 i;
-    uint32 addr, cnt = 0, org, pagesModified = 0, makeROM = FALSE;
+    uint32_t addr, cnt = 0, org, pagesModified = 0, makeROM = FALSE;
     t_addr j, lo, hi;
     CONST char *result;
     MDEV m;
@@ -7440,8 +7440,8 @@ static t_stat cpu_hex_load(FILE *fileref, CONST char *cptr, CONST char *fnam, in
     return sim_messagef(SCPE_OK, "%d byte%s loaded at %x.\n", PLURAL(cnt), org);
 }
 
-void cpu_raise_interrupt(uint32 irq) {
-    extern void cpu8086_intr(uint8 intrnum);
+void cpu_raise_interrupt(uint32_t irq) {
+    extern void cpu8086_intr(uint8_t intrnum);
 
     if (chiptype == CHIP_TYPE_8086) {
         cpu8086_intr(irq);
@@ -7535,7 +7535,7 @@ static t_stat cpu_cmd_reg(int32 flag, CONST char *cptr)
             TSTFLAG2(AF_S, S),
             TSTFLAG2(AF_S, P),
             TSTFLAG2(AF_S, H),
-            HIGH_REGISTER(AF_S), (uint16) BC_S, (uint16) DE_S, (uint16) HL_S, (uint16) SP_S, (uint16) PC_S);
+            HIGH_REGISTER(AF_S), (uint16_t) BC_S, (uint16_t) DE_S, (uint16_t) HL_S, (uint16_t) SP_S, (uint16_t) PC_S);
         fprint_sym (stdout, PC_S, op, &cpu_unit, SWMASK ('M'));
     } else {    /* Z80 */
         /*
@@ -7548,11 +7548,11 @@ static t_stat cpu_cmd_reg(int32 flag, CONST char *cptr)
             TSTFLAG2(AF_S, P),
             TSTFLAG2(AF_S, H),
             TSTFLAG2(AF_S, N),
-            HIGH_REGISTER(AF_S), (uint16) BC_S, (uint16) DE_S, (uint16) HL_S, (uint16) SP_S, (uint16) PC_S);
+            HIGH_REGISTER(AF_S), (uint16_t) BC_S, (uint16_t) DE_S, (uint16_t) HL_S, (uint16_t) SP_S, (uint16_t) PC_S);
         fprint_sym (stdout, PC_S, op, &cpu_unit, SWMASK ('M'));
         sim_printf("\n");
         sim_printf("             A'=%02X BC'=%04X DE'=%04X HL'=%04X IX=%04X IY=%04X",
-            HIGH_REGISTER(AF1_S), (uint16) BC1_S, (uint16) DE1_S, (uint16) HL1_S, (uint16) IX_S, (uint16) IY_S);
+            HIGH_REGISTER(AF1_S), (uint16_t) BC1_S, (uint16_t) DE1_S, (uint16_t) HL1_S, (uint16_t) IX_S, (uint16_t) IY_S);
     }
 
     sim_printf("\n");

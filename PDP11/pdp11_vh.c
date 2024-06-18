@@ -388,52 +388,52 @@ BITFIELD vh_tbuffct_bits[] = {
 #define LOOP_H3101      (2) /* p.2-13 DHQ manual */
 /* Local storage */
 
-static uint16   vh_csr[VH_MUXES]    = { 0 };    /* CSRs */
-static uint16   vh_timer[VH_MUXES]  = { 1 };    /* controller timeout */
-static uint16   vh_mcount[VH_MUXES] = { 0 };
+static uint16_t   vh_csr[VH_MUXES]    = { 0 };    /* CSRs */
+static uint16_t   vh_timer[VH_MUXES]  = { 1 };    /* controller timeout */
+static uint16_t   vh_mcount[VH_MUXES] = { 0 };
 static int32    vh_timeo[VH_MUXES]  = { 0 };
-static uint32   vh_ovrrun[VH_MUXES] = { 0 };    /* line overrun bits */
+static uint32_t   vh_ovrrun[VH_MUXES] = { 0 };    /* line overrun bits */
 /* XOFF'd channels, one bit/channel */
-static uint32   vh_stall[VH_MUXES]  = { 0 };
-static uint16   vh_loop[VH_MUXES]   = { 0 };    /* loopback status */
+static uint32_t   vh_stall[VH_MUXES]  = { 0 };
+static uint16_t   vh_loop[VH_MUXES]   = { 0 };    /* loopback status */
 
 /* One bit per controller: */
-static uint32   vh_rxi = 0; /* rcv interrupts */
-static uint32   vh_txi = 0; /* xmt interrupts */
-static uint32   vh_crit = 0;/* FIFO.CRIT */
+static uint32_t   vh_rxi = 0; /* rcv interrupts */
+static uint32_t   vh_txi = 0; /* xmt interrupts */
+static uint32_t   vh_crit = 0;/* FIFO.CRIT */
 
-static uint32   vh_wait = 50;                   /* input polling adjustment */
+static uint32_t   vh_wait = 50;                   /* input polling adjustment */
 
 static const int32 bitmask[4] = { 037, 077, 0177, 0377 };
 
 /* RX FIFO state */
 
 static int32    rbuf_idx[VH_MUXES]      = { 0 };/* index into vh_rbuf */
-static uint32   vh_rbuf[VH_MUXES][FIFO_SIZE]    = { { 0 } };
+static uint32_t   vh_rbuf[VH_MUXES][FIFO_SIZE]    = { { 0 } };
 
 /* TXQ state */
 
 #define TXQ_SIZE    (16)
 static int32    txq_idx[VH_MUXES]       = { 0 };
-static uint32   vh_txq[VH_MUXES][TXQ_SIZE]  = { { 0 } };
+static uint32_t   vh_txq[VH_MUXES][TXQ_SIZE]  = { { 0 } };
 
 /* Need to extend the TMLN structure */
 
 typedef struct {
     TMLN    *tmln;
-    uint16  lpr;        /* line parameters */
-    uint16  lnctrl;     /* line control */
-    uint16  lstat;      /* line modem status */
-    uint16  tbuffct;    /* remaining character count */
-    uint16  tbuf1;
-    uint16  tbuf2;
-    uint16  txchar;     /* single character I/O */
+    uint16_t  lpr;        /* line parameters */
+    uint16_t  lnctrl;     /* line control */
+    uint16_t  lstat;      /* line modem status */
+    uint16_t  tbuffct;    /* remaining character count */
+    uint16_t  tbuf1;
+    uint16_t  tbuf2;
+    uint16_t  txchar;     /* single character I/O */
 #define TX_FIFO_SIZE 64
-    uint16  txfifo[TX_FIFO_SIZE];/* transmit FIFO - circular */
+    uint16_t  txfifo[TX_FIFO_SIZE];/* transmit FIFO - circular */
 
-    uint16  txfifo_idx; /* Extraction index */
-    uint16  txfifo_cnt; /* Count of FIFO entries  */
-    uint16  txstate;    /* transmit state */
+    uint16_t  txfifo_idx; /* Extraction index */
+    uint16_t  txfifo_cnt; /* Count of FIFO entries  */
+    uint16_t  txstate;    /* transmit state */
 #define TXS_IDLE        0
 #define TXS_PIO_START   1
 #define TXS_PIO_PENDING 2
@@ -955,12 +955,12 @@ static t_stat vh_putc ( int32   vh,
 
 static void vh_getc (   int32   vh  )
 {
-    uint32  i, c;
+    uint32_t  i, c;
     TMLX    *lp;
     int32   modem_incoming_bits;
-    uint16  new_lstat;
+    uint16_t  new_lstat;
 
-    for (i = 0; i < (uint32)VH_LINES; i++) {
+    for (i = 0; i < (uint32_t)VH_LINES; i++) {
         if (rbuf_idx[vh] >= (FIFO_ALARM-1)) /* close to fifo capacity? */
             continue;                       /* don't bother checking for data */
         lp = &vh_parm[(vh * VH_LINES) + i];
@@ -1082,7 +1082,7 @@ static t_stat vh_rd (   int32   *data,
 
     sim_debug(DBG_RREG, &vh_dev, "vh_rd(vh=%d, PA=0x%08X [%s], access=%d, data=0x%X) ", vh, PA, 
               ((vh_unit[vh].flags & UNIT_MODEDHU) ? vh_rd_dhu_regs : vh_rd_dhv_regs)[(PA >> 1) & 07], access, *data);
-    sim_debug_bits(DBG_RREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)(*data), (uint32)(*data), TRUE);
+    sim_debug_bits(DBG_RREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32_t)(*data), (uint32_t)(*data), TRUE);
 
     return (SCPE_OK);
 }
@@ -1093,7 +1093,7 @@ static t_stat vh_wr (   int32   ldata,
 {
     int32   vh = ((PA - vh_dib.ba) >> 4), line;
     TMLX    *lp;
-    uint16  data = (uint16)ldata;
+    uint16_t  data = (uint16_t)ldata;
     static BITFIELD* bitdefs[] = {vh_csr_bits, vh_rbuf_bits, vh_lpr_bits, vh_stat_bits,
                                   vh_lnctrl_bits, vh_tbuffad1_bits, vh_tbuffad1_bits, vh_tbuffct_bits};
 
@@ -1102,7 +1102,7 @@ static t_stat vh_wr (   int32   ldata,
 
     sim_debug(DBG_WREG, &vh_dev, "vh_wr(vh=%d, PA=0x%08X [%s], access=%d, data=0x%X) ", vh, PA, 
               ((vh_unit[vh].flags & UNIT_MODEDHU) ? vh_wr_dhu_regs : vh_wr_dhv_regs)[(PA >> 1) & 07], access, data);
-    sim_debug_bits(DBG_WREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), TRUE);
+    sim_debug_bits(DBG_WREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32_t)((PA & 1) ? data<<8 : data), (uint32_t)((PA & 1) ? data<<8 : data), TRUE);
 
     switch ((PA >> 1) & 7) {   
     case 0:     /* CSR, but no read-modify-write */
@@ -1141,7 +1141,7 @@ static t_stat vh_wr (   int32   ldata,
         else if (((vh_csr[vh] & CSR_TXIE) == 0) &&
               (txq_idx[vh] != 0))
             vh_set_txint (vh);
-        vh_csr[vh] = (vh_csr[vh] & ~((uint16) CSR_RW)) | (data & (uint16) CSR_RW);
+        vh_csr[vh] = (vh_csr[vh] & ~((uint16_t) CSR_RW)) | (data & (uint16_t) CSR_RW);
         break;
     case 1:     /* TXCHAR/RXTIMER */
         if (CSR_GETCHAN (vh_csr[vh]) >= VH_LINES)
@@ -1383,7 +1383,7 @@ static void doDMA ( int32   vh,
             int32   chan    )
 {
     int32   line, status;
-    uint32  pa;
+    uint32_t  pa;
     TMLX    *lp;
 
     line = (vh * VH_LINES) + chan;
@@ -1395,7 +1395,7 @@ static void doDMA ( int32   vh,
         pa |= (lp->tbuf2 & TB2_M_TBUFFAD) << 16;
         status = 0;
         while (tmxr_txdone_ln (lp->tmln) && (lp->tbuffct > 0)) {
-            uint8   buf;
+            uint8_t   buf;
             if (lp->lnctrl & LNCTRL_TX_ABORT) {
                 lp->tbuf2 &= ~TB2_TX_DMA_START;
                 q_tx_report (lp, 0);

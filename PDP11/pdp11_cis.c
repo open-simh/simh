@@ -166,8 +166,8 @@
 #define MAXDVAL         429496730                       /* 2^32 / 10 */
 
 typedef struct {
-    uint32              sign;
-    uint32              val[DSTRLNT];
+    uint32_t              sign;
+    uint32_t              val[DSTRLNT];
     } DSTR;
 
 static DSTR Dstr0 = { 0, {0, 0, 0, 0} };
@@ -183,8 +183,8 @@ void SubDstr (DSTR *src1, DSTR *src2, DSTR *dst);
 int32 CmpDstr (DSTR *src1, DSTR *src2);
 int32 TestDstr (DSTR *dsrc);
 int32 LntDstr (DSTR *dsrc, int32 nz);
-uint32 NibbleLshift (DSTR *dsrc, int32 sc);
-uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin);
+uint32_t NibbleLshift (DSTR *dsrc, int32 sc);
+uint32_t NibbleRshift (DSTR *dsrc, int32 sc, uint32_t cin);
 int32 WordLshift (DSTR *dsrc, int32 sc);
 void WordRshift (DSTR *dsrc, int32 sc);
 void CreateTable (DSTR *dsrc, DSTR mtable[10]);
@@ -334,7 +334,7 @@ int32 match, limit, mvlnt, shift;
 int32 spc, ldivd, ldivr;
 int32 arg[6];                                           /* operands */
 int32 old_PC;
-uint32 nc, digit, result;
+uint32_t nc, digit, result;
 t_stat st;
 static DSTR accum, src1, src2, dst;
 static DSTR mptable[10];
@@ -1244,8 +1244,8 @@ return TestDstr (src);                                  /* clean -0 */
 void WriteDstr (int32 *dscr, DSTR *dst, int32 flag)
 {
 int32 c, i, limit, end, type, lnt;
-uint32 mask;
-static uint32 masktab[8] = {
+uint32_t mask;
+static uint32_t masktab[8] = {
     0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000,
     0xFFF00000, 0xFF000000, 0xF0000000, 0x00000000
     };
@@ -1340,7 +1340,7 @@ return;
 int32 AddDstr (DSTR *s1, DSTR *s2, DSTR *ds, int32 cy)
 {
 int32 i;
-uint32 sm1, sm2, tm1, tm2, tm3, tm4;
+uint32_t sm1, sm2, tm1, tm2, tm3, tm4;
 
 for (i = 0; i < DSTRLNT; i++) {                         /* loop low to high */
     tm1 = s1->val[i] ^ (s2->val[i] + cy);               /* xor operands */
@@ -1515,7 +1515,7 @@ return c;
         cin     =       carry in
 */
 
-uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin)
+uint32_t NibbleRshift (DSTR *dsrc, int32 sc, uint32_t cin)
 {
 int32 i, s, nc;
 
@@ -1538,10 +1538,10 @@ return 0;
         sc      =       shift count
 */
 
-uint32 NibbleLshift (DSTR *dsrc, int32 sc)
+uint32_t NibbleLshift (DSTR *dsrc, int32 sc)
 {
 int32 i, s;
-uint32 nc, cin;
+uint32_t nc, cin;
 
 cin = 0;
 if ((s = sc * 4)) {

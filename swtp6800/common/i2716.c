@@ -124,7 +124,7 @@ t_stat i2716_attach (UNIT *uptr, CONST char *cptr)
     j = 0;                              /* load EPROM file */
     c = fgetc(fp);
     while (c != EOF) {
-        *((uint8 *)(uptr->filebuf) + j++) = c & 0xFF;
+        *((uint8_t *)(uptr->filebuf) + j++) = c & 0xFF;
         c = fgetc(fp);
         if (j > 2048) {
             printf("\tImage is too large - Load truncated!!!\n");
@@ -148,7 +148,7 @@ t_stat i2716_reset (DEVICE *dptr)
         uptr->u3 = 2048 * i;
         base = get_base();
         if (uptr->filebuf == NULL) {    /* no buffer allocated */
-            uptr->filebuf = calloc(2048, sizeof(uint8)); /* allocate EPROM buffer */
+            uptr->filebuf = calloc(2048, sizeof(uint8_t)); /* allocate EPROM buffer */
             if (uptr->filebuf == NULL) {
                 return SCPE_MEM;
             }
@@ -179,7 +179,7 @@ int32 i2716_get_mbyte(int32 offset)
             if (uptr->filebuf == NULL) {
                 return 0xFF;
             } else {
-                val = *((uint8 *)(uptr->filebuf) + (offset - org));
+                val = *((uint8_t *)(uptr->filebuf) + (offset - org));
                 return (val & 0xFF);
             }
         }

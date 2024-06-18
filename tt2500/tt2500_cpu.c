@@ -38,29 +38,29 @@
 #define DBG_INT         0020
 
 /* CPU state. */
-static uint16 PC;
-static uint16 IR;
+static uint16_t PC;
+static uint16_t IR;
 static int ROM = 1;
 int C, V, N, Z;
-static uint16 IM = 0;
-static uint16 STACK[16];
-static uint16 SP = 0;
-static uint16 R[64];
-static uint16 RES, FLAGS, INTS, STARS;
-static uint16 new_XR;
+static uint16_t IM = 0;
+static uint16_t STACK[16];
+static uint16_t SP = 0;
+static uint16_t R[64];
+static uint16_t RES, FLAGS, INTS, STARS;
+static uint16_t new_XR;
 
 static int halt;
 
 typedef struct {
-  uint16 PC;
-  uint16 IR;
-  uint16 MA;
-  uint16 MB;
-  uint16 AC;
-  uint16 L;
+  uint16_t PC;
+  uint16_t IR;
+  uint16_t MA;
+  uint16_t MB;
+  uint16_t AC;
+  uint16_t L;
 } HISTORY;
 static HISTORY *history = NULL;
-static uint32 history_i, history_m, history_n;
+static uint32_t history_i, history_m, history_n;
 
 /* Function declaration. */
 static t_stat cpu_set_hist (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -133,7 +133,7 @@ DEVICE cpu_dev = {
   NULL, NULL, NULL, NULL, NULL, NULL
 };
 
-static uint16 crm_read (uint16 addr)
+static uint16_t crm_read (uint16_t addr)
 {
   if (ROM && addr < 32)
     return tt2500_rom[addr];
@@ -142,7 +142,7 @@ static uint16 crm_read (uint16 addr)
   return CRM[addr]; 
 }
 
-static uint16 bus_read (uint16 reg)
+static uint16_t bus_read (uint16_t reg)
 {
   if ((reg & 060) == 020) {
     RES = dev_tab[reg]->read (reg);
@@ -153,22 +153,22 @@ static uint16 bus_read (uint16 reg)
   return RES;
 }
 
-static uint16 cpu_rot (uint16 data, uint16 n)
+static uint16_t cpu_rot (uint16_t data, uint16_t n)
 {
   return (data >> n) + (data << (16 - n));
 }
 
-static uint16 cpu_ars (uint16 data, uint16 n)
+static uint16_t cpu_ars (uint16_t data, uint16_t n)
 {
-  uint32 sign = 0;
+  uint32_t sign = 0;
   if (data & 0100000)
     sign = 0177777 << 16;
   return (data >> n) + (sign >> n);
 }
 
-uint16 cpu_alu (uint16 insn, uint16 op, uint16 adata, uint16 bdata)
+uint16_t cpu_alu (uint16_t insn, uint16_t op, uint16_t adata, uint16_t bdata)
 {
-  uint32 result;
+  uint32_t result;
 
   V = 0;
 
@@ -212,7 +212,7 @@ uint16 cpu_alu (uint16 insn, uint16 op, uint16 adata, uint16 bdata)
   return result;
 }
 
-static uint16 mem_read (uint16 address)
+static uint16_t mem_read (uint16_t address)
 {
   if ((address & 0170000) == 0170000 && (DSR & DSR_TVON) == 0)
     return FONT[address - 0170000];
@@ -220,22 +220,22 @@ static uint16 mem_read (uint16 address)
     return MEM[address];
 }
 
-static void mem_write (uint16 address, uint16 data)
+static void mem_write (uint16_t address, uint16_t data)
 {
   if ((address & 0170000) == 0170000 && (DSR & DSR_TVON) == 0)
-    FONT[address - 0170000] = (uint8)data;
+    FONT[address - 0170000] = (uint8_t)data;
   else
     MEM[address] = data;
 }
 
-static void cpu_reg_op (uint16 insn)
+static void cpu_reg_op (uint16_t insn)
 {
-  uint16 a = (insn >> 6) & 7;
-  uint16 b = insn & 7;
-  uint16 alu_op;
-  uint16 adata;
-  uint16 bdata;
-  uint16 result;
+  uint16_t a = (insn >> 6) & 7;
+  uint16_t b = insn & 7;
+  uint16_t alu_op;
+  uint16_t adata;
+  uint16_t bdata;
+  uint16_t result;
 
   if (IM != 0) {
     adata = IR;
@@ -311,7 +311,7 @@ static void cpu_reg_op (uint16 insn)
   RES = result;
 }
 
-static void cpu_jump (uint16 insn, int push)
+static void cpu_jump (uint16_t insn, int push)
 {
   if (push) {
     STACK[SP] = PC;
@@ -321,10 +321,10 @@ static void cpu_jump (uint16 insn, int push)
   PC = insn & 07777;
 }
 
-static void cpu_dis (uint16 insn)
+static void cpu_dis (uint16_t insn)
 {
-  uint16 data;
-  uint16 mask;
+  uint16_t data;
+  uint16_t mask;
 
   switch (insn & 01400) {
   case 00000:
@@ -355,7 +355,7 @@ static void cpu_popj (void)
   sim_debug (DBG_STATE, &cpu_dev, "PC <= %04o <= STACK[%02o]\n", PC, SP);
 }
 
-static void bus_write (uint16 reg, uint16 data)
+static void bus_write (uint16_t reg, uint16_t data)
 {
   switch (reg) {
   case 012: PC = data & 07777; break;
@@ -375,11 +375,11 @@ static void bus_write (uint16 reg, uint16 data)
   }
 }
 
-static void cpu_bus (uint16 insn)
+static void cpu_bus (uint16_t insn)
 {
-  uint16 a = (insn >> 6) & 7;
-  uint16 b = insn & 077;
-  uint16 bb = insn & 01000;
+  uint16_t a = (insn >> 6) & 7;
+  uint16_t b = insn & 077;
+  uint16_t bb = insn & 01000;
 
   if ((insn & 0176000) == 0072000) {
     cpu_dis (insn);
@@ -406,9 +406,9 @@ static void cpu_bus (uint16 insn)
   }
 }
 
-static void cpu_branch (uint16 insn)
+static void cpu_branch (uint16_t insn)
 {
-  uint16 target = insn & 03777;
+  uint16_t target = insn & 03777;
   int jump = 0;
 
   switch (insn & 070000) {
@@ -550,7 +550,7 @@ static t_stat
 cpu_set_hist (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
   t_stat r;
-  uint32 x;
+  uint32_t x;
 
   if (cptr == NULL)
     return SCPE_ARG;
@@ -573,7 +573,7 @@ static t_stat
 cpu_show_hist (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
   t_value insn;
-  uint32 i, j;
+  uint32_t i, j;
 
   fprintf (st, "PC____ IR____\n");
 
@@ -658,7 +658,7 @@ cpu_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-static const char *flag_name (uint16 flag)
+static const char *flag_name (uint16_t flag)
 {
   switch (flag) {
   case FLAG_KB: return "KB";
@@ -672,7 +672,7 @@ static const char *flag_name (uint16 flag)
   }
 }
 
-void flag_on (uint16 flag)
+void flag_on (uint16_t flag)
 {
   sim_debug (DBG_INT, &cpu_dev, "Flag on %03o (%s)\n", flag, flag_name (flag));
   FLAGS |= flag & 017;
@@ -682,7 +682,7 @@ void flag_on (uint16 flag)
   STARS |= flag & 017;
 }
 
-void flag_off (uint16 flag)
+void flag_off (uint16_t flag)
 {
   sim_debug (DBG_INT, &cpu_dev, "Flag off %03o (%s)\n",
              flag, flag_name (flag));

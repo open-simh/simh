@@ -41,8 +41,8 @@
 
 #define MCSR2_OF        0x41
 
-uint32 mcsr_1[MCTL_NUM];
-uint32 mcsr_2[MCTL_NUM];
+uint32_t mcsr_1[MCTL_NUM];
+uint32_t mcsr_2[MCTL_NUM];
 
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);

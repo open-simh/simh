@@ -410,7 +410,7 @@ uptr->CYL = GET_CYL (rp_da, uptr->flags);               /* on cylinder */
 pa = rp_ma & AMASK;                                     /* get mem addr */
 da = GET_DA (rp_da, uptr->flags) * RP_NUMWD;            /* get disk addr */
 wc = 01000000 - rp_wc;                                  /* get true wc */
-if (((uint32) (pa + wc)) > MEMSIZE) {                   /* memory overrun? */
+if (((uint32_t) (pa + wc)) > MEMSIZE) {                   /* memory overrun? */
     nexm = 1;                                           /* set nexm flag */
     wc = MEMSIZE - pa;                                  /* limit xfer */
     }

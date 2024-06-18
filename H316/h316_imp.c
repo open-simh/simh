@@ -50,11 +50,11 @@
 #include "h316_imp.h"                   // ARPAnet IMP/TIP definitions
 
 // Locals ...
-uint16 imp_station  = IMP_STATION;      // IMP number (or address)
-uint16 imp_ismlc    = 0;                // 1 for MLC (not yet implemented!)
+uint16_t imp_station  = IMP_STATION;      // IMP number (or address)
+uint16_t imp_ismlc    = 0;                // 1 for MLC (not yet implemented!)
 
 // Externals from other parts of simh ...
-extern uint16 dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
+extern uint16_t dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
 extern int32 PC;                        // current PC (for debug messages)
 extern int32 stop_inst;                 // needed by IOBADFNC()
 
@@ -181,7 +181,7 @@ t_stat imp_show_station (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 // Set the station number ...
 t_stat imp_set_station (UNIT *uptr, int32 val, CONST char *cptr, void *dp)
 {
-  uint32 newnum;  t_stat sts;
+  uint32_t newnum;  t_stat sts;
   if (cptr == NULL) return SCPE_ARG;
   newnum = get_uint (cptr, 10, 9999, &sts);
   if (newnum == 0) return SCPE_ARG;

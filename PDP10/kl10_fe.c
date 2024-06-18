@@ -182,8 +182,8 @@
 #endif
 
 extern int32 tmxr_poll;
-t_stat dte_devio(uint32 dev, uint64 *data);
-t_addr dte_devirq(uint32 dev, t_addr addr);
+t_stat dte_devio(uint32_t dev, uint64 *data);
+t_addr dte_devirq(uint32_t dev, t_addr addr);
 void   dte_second(UNIT *uptr);
 void   dte_primary(UNIT *uptr);
 #if KL_ITS
@@ -193,7 +193,7 @@ void   dte_transfer(UNIT *uptr);
 void   dte_function(UNIT *uptr);
 void   dte_input();
 int    dte_start(UNIT *uptr);
-int    dte_queue(int func, int dev, int dcnt, uint16 *data);
+int    dte_queue(int func, int dev, int dcnt, uint16_t *data);
 t_stat dtei_svc (UNIT *uptr);
 t_stat dte_svc (UNIT *uptr);
 t_stat dteo_svc (UNIT *uptr);
@@ -221,21 +221,21 @@ CONST char *pri_name[] = { "(0)", "EM2EI", "EM2TI", "EMSTR", "EMLNC", "EMRDS", "
 #define STATUS            u3
 #define CNT               u4
 
-extern uint32  eb_ptr;
+extern uint32_t  eb_ptr;
 static int32   rtc_tps = 60;
-uint16         rtc_tick;
-uint16         rtc_wait = 0;
+uint16_t         rtc_tick;
+uint16_t         rtc_wait = 0;
 
 struct _dte_queue {
     int         dptr;      /* Pointer to working item */
-    uint16      cnt;       /* Number of bytes in packet */
-    uint16      func;      /* Function code */
-    uint16      dev;       /* Dev code */
-    uint16      spare;     /* Dev code */
-    uint16      dcnt;      /* Data count */
-    uint16      data[258]; /* Data packet */
-    uint16      sdev;      /* Secondary device code */
-    uint16      sz;        /* Byte size */
+    uint16_t      cnt;       /* Number of bytes in packet */
+    uint16_t      func;      /* Function code */
+    uint16_t      dev;       /* Dev code */
+    uint16_t      spare;     /* Dev code */
+    uint16_t      dcnt;      /* Data count */
+    uint16_t      data[258]; /* Data packet */
+    uint16_t      sdev;      /* Secondary device code */
+    uint16_t      sz;        /* Byte size */
 } dte_in[16], dte_out[16];
 
 int32 dte_in_ptr;
@@ -362,9 +362,9 @@ char            lp20_buffer[134 * 3];
 #define LP20_RAM_PI   00400      /* Paper Instruction */
 #define LP20_RAM_CHR  00377      /* Character translation */
 
-uint16          lp20_vfu[256];
-uint16          lp20_ram[256];
-uint16          lp20_dvfu[] = {   /* Default VFU */
+uint16_t          lp20_vfu[256];
+uint16_t          lp20_ram[256];
+uint16_t          lp20_dvfu[] = {   /* Default VFU */
     /* 66 line page with 6 line margin */
     00377,    /* Line   0     8  7  6  5  4  3  2  1 */
     00220,    /* Line   1     8        5             */
@@ -450,8 +450,8 @@ UNIT lp20_unit = {
 
 REG lp20_reg[] = {
    {BRDATA(BUFFER, lp20_buffer, 16, 8, sizeof(lp20_buffer)), REG_HRO},
-   {BRDATA(VFU, lp20_vfu, 16, 16, (sizeof(lp20_vfu)/sizeof(uint16))), REG_HRO},
-   {BRDATA(RAM, lp20_ram, 16, 16, (sizeof(lp20_ram)/sizeof(uint16))), REG_HRO},
+   {BRDATA(VFU, lp20_vfu, 16, 16, (sizeof(lp20_vfu)/sizeof(uint16_t))), REG_HRO},
+   {BRDATA(RAM, lp20_ram, 16, 16, (sizeof(lp20_ram)/sizeof(uint16_t))), REG_HRO},
    {SAVEDATA(QUEUE, lp20_queue) },
     { NULL }
 };
@@ -560,15 +560,15 @@ DEVICE tty_dev = {
 #endif
 
 
-t_stat dte_devio(uint32 dev, uint64 *data) {
-     uint32     res;
+t_stat dte_devio(uint32_t dev, uint64 *data) {
+     uint32_t     res;
      switch(dev & 3) {
      case CONI:
         *data = (uint64)(dte_unit[0].STATUS) & RMASK;
-        sim_debug(DEBUG_CONI, &dte_dev, "CTY %03o CONI %06o\n", dev, (uint32)*data);
+        sim_debug(DEBUG_CONI, &dte_dev, "CTY %03o CONI %06o\n", dev, (uint32_t)*data);
         break;
      case CONO:
-         res = (uint32)(*data & RMASK);
+         res = (uint32_t)(*data & RMASK);
          clr_interrupt(dev);
          if (res & DTE_PIENB) {
              dte_unit[0].STATUS &= ~(DTE_PIA|DTE_PIE);
@@ -594,15 +594,15 @@ t_stat dte_devio(uint32 dev, uint64 *data) {
          if (dte_unit[0].STATUS & (DTE_10DB|DTE_11DN|DTE_10DN|DTE_11ER|DTE_10ER))
              set_interrupt(dev, dte_unit[0].STATUS);
          sim_debug(DEBUG_CONO, &dte_dev, "CTY %03o CONO %06o %06o\n", dev,
-                      (uint32)*data, PC);
+                      (uint32_t)*data, PC);
          break;
      case DATAI:
          sim_debug(DEBUG_DATAIO, &dte_dev, "CTY %03o DATAI %06o\n", dev,
-                      (uint32)*data);
+                      (uint32_t)*data);
          break;
     case DATAO:
          sim_debug(DEBUG_DATAIO, &dte_dev, "CTY %03o DATAO %06o\n", dev,
-                      (uint32)*data);
+                      (uint32_t)*data);
          if (*data == 01365) {
              dte_unit[0].STATUS |= DTE_SEC|DTE_10ER;
              dte_unit[0].STATUS &= ~(DTE_10DB|DTE_IND|DTE_11DB);
@@ -618,7 +618,7 @@ t_stat dte_devio(uint32 dev, uint64 *data) {
 
 /* Handle KL style interrupt vectors */
 t_addr
-dte_devirq(uint32 dev, t_addr addr) {
+dte_devirq(uint32_t dev, t_addr addr) {
     return 0142;
 }
 
@@ -643,7 +643,7 @@ t_stat dte_svc (UNIT *uptr)
 void dte_second(UNIT *uptr) {
     uint64   word;
     int32    ch;
-    uint32   base = 0;
+    uint32_t   base = 0;
 
 #if KI_22BIT
 #if KL_ITS
@@ -749,7 +749,7 @@ enter_pri:
               dte_unit[3].STATUS &= ~SEC_CLK;
               break;
          case SEC_CLKWT:
-              rtc_wait = (uint16)(M[SEC_DTT11 + base] & 0177777);
+              rtc_wait = (uint16_t)(M[SEC_DTT11 + base] & 0177777);
               /* Fall Through */
 
          case SEC_CLKON:
@@ -777,7 +777,7 @@ enter_pri:
 void dte_its(UNIT *uptr) {
      uint64     word;
      char       ch;
-     uint16     data;
+     uint16_t     data;
      int        cnt;
      int        ln;
 
@@ -855,7 +855,7 @@ void dte_primary(UNIT *uptr) {
     int      s;
     int      cnt;
     struct   _dte_queue *in;
-    uint16   data1, *dp;
+    uint16_t   data1, *dp;
 
     if ((uptr->STATUS & DTE_11DB) == 0)
         return;
@@ -870,7 +870,7 @@ void dte_primary(UNIT *uptr) {
     clr_interrupt(DTE_DEVNUM);
     /* Check status word to see if valid */
     if (Mem_examine_word(0, dte_et11_off + PRI_CMTW_STS, &word)) {
-         uint32   base;
+         uint32_t   base;
 error:
          base = 0;
 #if KI_22BIT
@@ -907,7 +907,7 @@ error:
         if (Mem_examine_word(0, dte_et11_off + PRI_CMTW_CNT, &iword))
             goto error;
         sim_debug(DEBUG_EXP, &dte_dev, "DTE: count: %012llo\n", iword);
-        in->dcnt = (uint16)(iword & 0177777);
+        in->dcnt = (uint16_t)(iword & 0177777);
         /* Read in data */
         dp = &in->data[0];
         for (cnt = in->dcnt; cnt > 0; cnt --) {
@@ -985,7 +985,7 @@ error:
 void
 dte_function(UNIT *uptr)
 {
-    uint16    data1[32];
+    uint16_t    data1[32];
     int32     ch;
     struct _dte_queue *cmd;
     int       func;
@@ -1283,7 +1283,7 @@ cty:
                if (dev == PRI_EMLPT) {
                    int ln = lp20_unit.LPCNT;
                    while (cmd->dptr < cmd->dcnt) {
-                        uint16 d = cmd->data[cmd->dptr++];
+                        uint16_t d = cmd->data[cmd->dptr++];
                         if (d == (0357 << 8))
                             lp20_vfu[ln++] = 010000; /* Signal end of page */
                         else
@@ -1424,10 +1424,10 @@ cty:
  * Send to 10 when requested.
  */
 void dte_transfer(UNIT *uptr) {
-    uint16   cnt;
-    uint16   scnt;
+    uint16_t   cnt;
+    uint16_t   scnt;
     struct   _dte_queue *out;
-    uint16   *dp;
+    uint16_t   *dp;
 
     /* Check if Queue empty */
     if (dte_out_res == dte_out_ptr)
@@ -1479,7 +1479,7 @@ void dte_transfer(UNIT *uptr) {
            goto error;
        cnt -= 2;
        if (out->func & PRI_IND_FLG) {
-           uint16 dwrd = out->dcnt;
+           uint16_t dwrd = out->dcnt;
            sim_debug(DEBUG_DATA, &dte_dev, "DTE: Indirect %o %o\n", cnt,
                               out->dcnt);
            dwrd |= (out->sdev << 8);
@@ -1511,8 +1511,8 @@ error:
 void
 dte_input()
 {
-    uint16  data1;
-    uint16  dataq[32];
+    uint16_t  data1;
+    uint16_t  dataq[32];
     int     n;
     int     ln;
     int     save_ptr;
@@ -1682,9 +1682,9 @@ dte_input()
  * Queue up a packet to send to 10.
  */
 int
-dte_queue(int func, int dev, int dcnt, uint16 *data)
+dte_queue(int func, int dev, int dcnt, uint16_t *data)
 {
-    uint16   *dp;
+    uint16_t   *dp;
     struct   _dte_queue *out;
 
     /* Check if room in queue for this packet. */
@@ -1762,7 +1762,7 @@ error:
 t_stat dtei_svc (UNIT *uptr)
 {
     int32    ch;
-    uint32   base = 0;
+    uint32_t   base = 0;
     UNIT     *optr = &dte_unit[0];
 
 #if KI_22BIT
@@ -1842,7 +1842,7 @@ dtertc_srv(UNIT * uptr)
             rtc_wait--;
         } else {
             UNIT     *optr = &dte_unit[0];
-            uint32   base = 0;
+            uint32_t   base = 0;
 #if KI_22BIT
             base = eb_ptr;
 #endif
@@ -2033,8 +2033,8 @@ lp20_output(UNIT *uptr, char c) {
 t_stat lp20_svc (UNIT *uptr)
 {
     char    ch;
-    uint16  ram_ch;
-    uint16  data1[5];
+    uint16_t  ram_ch;
+    uint16_t  data1[5];
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_OK;

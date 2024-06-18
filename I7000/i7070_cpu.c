@@ -86,8 +86,8 @@
 struct InstHistory
 {
     t_int64             op;
-    uint32              ic;
-    uint32              ea;
+    uint32_t              ic;
+    uint32_t              ea;
     t_int64             before;
     t_int64             after;
 };
@@ -117,15 +117,15 @@ t_uint64            M[MAXMEMSIZE] = { PSIGN };  /* memory */
 t_uint64            AC[4];                      /* registers */
 t_uint64            inds;                       /* Error indicators */
 t_uint64            diaglatch;                  /* Diagnostic latches */
-uint16              timer;                      /* Timer register */
-uint32              IC;                         /* program counter */
-uint16              timer_clock;                /* Timer clock */
-uint8               SW = 0;                     /* Sense switch */
-uint8               emode;                      /* Extended address mode */
-uint16              pri_latchs[10];             /* Priority latchs */
-uint32              pri_mask = 0xFFFFFF;        /* Priority masks */
-uint8               pri_enb = 1;                /* Enable priority procs */
-uint8               lpr_chan9[NUM_CHAN];        /* Line printer on channel 9 */
+uint16_t              timer;                      /* Timer register */
+uint32_t              IC;                         /* program counter */
+uint16_t              timer_clock;                /* Timer clock */
+uint8_t               SW = 0;                     /* Sense switch */
+uint8_t               emode;                      /* Extended address mode */
+uint16_t              pri_latchs[10];             /* Priority latchs */
+uint32_t              pri_mask = 0xFFFFFF;        /* Priority masks */
+uint8_t               pri_enb = 1;                /* Enable priority procs */
+uint8_t               lpr_chan9[NUM_CHAN];        /* Line printer on channel 9 */
 int                 cycle_time = 20;            /* Cycle time of 12us */
 
 /* History information */
@@ -187,7 +187,7 @@ DEVICE              cpu_dev = {
     NULL, NULL, &cpu_help, NULL, NULL, &cpu_description
 };
 
-uint32  dscale[4][16] = {
+uint32_t  dscale[4][16] = {
     {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 0,0,0,0,0,0},
     {0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 0,0,0,0,0,0},
     {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 0,0,0,0,0,0},
@@ -222,7 +222,7 @@ t_uint64 dmask[11] = {
 #define sdigit(d, v) ((((t_uint64)v) & 0xFLL) << ((d) * 4))
 #define mdigit(d)    (0xFLL << ((d) * 4))
 
-t_uint64 ReadP(uint32 addr) {
+t_uint64 ReadP(uint32_t addr) {
     sim_interval -= (CPU_MODEL == 0x0)? 2: 1;
     if (emode) {
         if (addr > MAXMEMSIZE) {
@@ -248,7 +248,7 @@ t_uint64 ReadP(uint32 addr) {
     return 0LL;
 }
 
-void WriteP(uint32 addr, t_uint64 value) {
+void WriteP(uint32_t addr, t_uint64 value) {
     sim_interval -= (CPU_MODEL == 0x0)? 2: 1;
     if (emode) {
         if (addr > MAXMEMSIZE) {
@@ -278,19 +278,19 @@ sim_instr(void)
     t_stat              reason;
     t_uint64            temp;
     t_uint64            MBR;
-    uint16              opcode = 0;
-    uint32              MA = 0;
-    uint32              utmp;   /* Unsigned temp */
+    uint16_t              opcode = 0;
+    uint32_t              MA = 0;
+    uint32_t              utmp;   /* Unsigned temp */
     int                 tmp;    /* Signed temp */
-    uint8               f = 0;
-    uint8               stopnext;
-    uint8               IX = 0;
-    uint8               f1 = 0;
-    uint8               f2 = 0;
-    uint8               op2 = 0;
+    uint8_t               f = 0;
+    uint8_t               stopnext;
+    uint8_t               IX = 0;
+    uint8_t               f1 = 0;
+    uint8_t               f2 = 0;
+    uint8_t               op2 = 0;
     int                 iowait = 0;     /* Wait for IO to start */
     int                 chwait = 0;     /* Wait for channel to be inactive */
-    uint8               sign;
+    uint8_t               sign;
     int                 instr_count = 0; /* Number of instructions to execute */
 
     if (sim_step != 0) {
@@ -560,7 +560,7 @@ sim_instr(void)
                      temp &= ldmask[f2-f1+1];
                      /* Compute final sign */
                      if ((opcode & 0x10f) == (OP_AAS1 & 0x10f)) {
-                          sign = (uint8)(utmp & 0xf);
+                          sign = (uint8_t)(utmp & 0xf);
                      } else if (sign & 0xc) {
                           sign = ASIGN >> 40;
                      } else if (sign & 2) {
@@ -679,7 +679,7 @@ sim_instr(void)
                 case OP_M:
                      /* Multiplicand in AC[3] */
                      AC[1] = AC[2] = 0;
-                     sign = (uint8)(((MBR & SMASK) >> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK) >> 40) & 0xf);
                      MBR = (rdmask[f1] & MBR) >> ((9 - f2) * 4);
                      sign = (((AC[3] & SMASK) >> 40) != sign) ? 6 : 9;
                      /* Multiply MBR * AC[3] result to AC[1],AC[2] <low> */
@@ -714,7 +714,7 @@ sim_instr(void)
                 case OP_D:
                      /* dividend AC[1],AC[2] */
                      /* divisor in MBR */
-                     sign = (uint8)(((MBR & SMASK) >> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK) >> 40) & 0xf);
                      AC[3] = (rdmask[f1] & MBR) >> ((9 - f2) * 4);
                      if (AC[3] == 0) {
                         AC[3] |= ((t_uint64)sign) << 40;
@@ -1536,7 +1536,7 @@ sim_instr(void)
                          hst[hst_p].before = MBR;
                      }
                      temp = dec_bin_idx(MBR);
-                     sign = (uint8)(((MBR & SMASK)>> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK)>> 40) & 0xf);
                      MBR &= DMASK;
                      switch(sign) {
                      case 0x6:  /* + -  tc b add */
@@ -1553,7 +1553,7 @@ sim_instr(void)
                           break;
                      }
                      MBR |= ((t_uint64)sign) << 40;
-                     upd_idx(&MBR, (uint32)temp);
+                     upd_idx(&MBR, (uint32_t)temp);
                      WriteP(IX, MBR);
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].after = MBR;
@@ -1567,7 +1567,7 @@ sim_instr(void)
                      }
                      temp = 0;
                      upd_idx(&temp, MA);
-                     sign = (uint8)(((MBR & SMASK)>> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK)>> 40) & 0xf);
                      MBR &= DMASK;
                      switch(sign) {
                      default:
@@ -1760,7 +1760,7 @@ sim_instr(void)
                      temp = M[IX];
                      utmp = dec_bin_idx(temp);
                      do {
-                       uint32 dst, limit;
+                       uint32_t dst, limit;
                        MBR = ReadP(MA++);       /* Grab next RDW */
                        get_rdw(MBR, &dst, &limit);
                        while(dst <= limit) {
@@ -1779,7 +1779,7 @@ sim_instr(void)
                      temp = M[IX];
                      utmp = dec_bin_idx(temp);
                      do {
-                          uint32 src, limit;
+                          uint32_t src, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &src, &limit);
                           while(src <= limit) {
@@ -1800,7 +1800,7 @@ sim_instr(void)
                      temp = M[IX];
                      utmp = dec_bin_idx(temp);
                      do {
-                          uint32 dst, limit;
+                          uint32_t dst, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &dst, &limit);
                           while(dst <= limit) {
@@ -1855,7 +1855,7 @@ sim_instr(void)
                         temp = M[IX];
                         utmp = dec_bin_idx(temp);
                         do {
-                          uint32 src, limit;
+                          uint32_t src, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &src, &limit);
                           while(src <= limit) {
@@ -1893,7 +1893,7 @@ sim_instr(void)
                         temp = M[98];
                         utmp = dec_bin_idx(temp);
                         do {
-                          uint32 src, limit;
+                          uint32_t src, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &src, &limit);
                           while(src <= limit) {
@@ -2540,7 +2540,7 @@ void div_step(t_uint64 b) {
 }
 
 /* Convert a binary number to BCD */
-void bin_dec(t_uint64 *a, uint32 b, int s, int l) {
+void bin_dec(t_uint64 *a, uint32_t b, int s, int l) {
   s *= 4;
   l *= 4;
   l += s;
@@ -2553,8 +2553,8 @@ void bin_dec(t_uint64 *a, uint32 b, int s, int l) {
 }
 
 /* Convert index to binary */
-uint32 dec_bin_idx(t_uint64 a) {
-    uint32      v = (a >> 16) & 0xf;
+uint32_t dec_bin_idx(t_uint64 a) {
+    uint32_t      v = (a >> 16) & 0xf;
     v += dscale[0][(a >> 20) & 0xf];
     v += dscale[1][(a >> 24) & 0xf];
     v += dscale[2][(a >> 28) & 0xf];
@@ -2563,8 +2563,8 @@ uint32 dec_bin_idx(t_uint64 a) {
     return v;
 }
 
-uint32 dec_bin_lim(t_uint64 a, uint32 b) {
-    uint32      v = a & 0xf;
+uint32_t dec_bin_lim(t_uint64 a, uint32_t b) {
+    uint32_t      v = a & 0xf;
     v += dscale[0][(a >> 4) & 0xf];
     v += dscale[1][(a >> 8) & 0xf];
     v += dscale[2][(a >> 12) & 0xf];
@@ -2576,13 +2576,13 @@ uint32 dec_bin_lim(t_uint64 a, uint32 b) {
 }
 
 /* Extract information from a RDW */
-int get_rdw(t_uint64 a, uint32 *base, uint32 *limit) {
+int get_rdw(t_uint64 a, uint32_t *base, uint32_t *limit) {
     *base = dec_bin_idx(a);
     *limit = dec_bin_lim(a, *base);
     return (a >> 40);
 }
 
-void upd_idx(t_uint64 *a, uint32 b) {
+void upd_idx(t_uint64 *a, uint32_t b) {
     bin_dec(a, b, 4, (emode)?5:4);
 }
 
@@ -2853,7 +2853,7 @@ t_stat
 cpu_set_size(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 {
     t_uint64            mc = 0;
-    uint32              i;
+    uint32_t              i;
     int32               v;
 
     v = val >> UNIT_V_MSIZE;

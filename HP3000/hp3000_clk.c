@@ -359,10 +359,10 @@ static HP_WORD control_word;                    /* control word */
 static HP_WORD status_word;                     /* status word */
 static HP_WORD count_register;                  /* counter register */
 static HP_WORD limit_register;                  /* limit register */
-static uint32  rate;                            /* clock rate */
-static uint32  prescaler;                       /* clock rate prescaler */
+static uint32_t  rate;                            /* clock rate */
+static uint32_t  prescaler;                       /* clock rate prescaler */
 
-static uint32 increment     = 1;                /* count register increment */
+static uint32_t increment     = 1;                /* count register increment */
 static t_bool coschedulable = FALSE;            /* TRUE if the clock can be coscheduled with PCLK */
 static t_bool coscheduled   = FALSE;            /* TRUE if the clock is coscheduled with PCLK */
 

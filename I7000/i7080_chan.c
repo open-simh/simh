@@ -53,18 +53,18 @@
 
 #include "i7080_defs.h"
 
-extern uint16       iotraps;
-extern uint8        iocheck;
+extern uint16_t       iotraps;
+extern uint8_t        iocheck;
 extern UNIT         cpu_unit;
-extern uint16       IC;
-extern uint8        AC[6 * 512];
+extern uint16_t       IC;
+extern uint8_t        AC[6 * 512];
 extern int          chwait;
-extern uint16       selreg;
-extern uint16       selreg2;
-extern uint16       flags;
-extern uint32       MAC2;
-extern uint16       irqflags;
-extern uint8        ioflags[6200/8];
+extern uint16_t       selreg;
+extern uint16_t       selreg2;
+extern uint16_t       flags;
+extern uint32_t       MAC2;
+extern uint16_t       irqflags;
+extern uint8_t        ioflags[6200/8];
 
 #define UNIT_V_MOD      (UNIT_V_UF + 4)
 #define UNIT_V_HS       (UNIT_V_MOD + 1)
@@ -88,14 +88,14 @@ const char      *chan_description (DEVICE *dptr);
    chan_mod     Channel modifiers list
 */
 
-uint32              caddr[NUM_CHAN];            /* Channel memory address */
-uint8               bcnt[NUM_CHAN];             /* Channel character count */
-uint16              cmd[NUM_CHAN];              /* Current command */
-uint16              irqdev[NUM_CHAN];           /* Device to generate interupts
+uint32_t              caddr[NUM_CHAN];            /* Channel memory address */
+uint8_t               bcnt[NUM_CHAN];             /* Channel character count */
+uint16_t              cmd[NUM_CHAN];              /* Current command */
+uint16_t              irqdev[NUM_CHAN];           /* Device to generate interupts
                                                    for channel */
-uint32              assembly[NUM_CHAN];         /* Assembly register */
-uint32              chan_flags[NUM_CHAN];       /* Unit status */
-extern uint8        inquiry;
+uint32_t              assembly[NUM_CHAN];         /* Assembly register */
+uint32_t              chan_flags[NUM_CHAN];       /* Unit status */
+extern uint8_t        inquiry;
 
 
 #define READ_WRD        1
@@ -199,7 +199,7 @@ chan_reset(DEVICE * dptr)
 
 /* Map device to channel */
 int
-chan_mapdev(uint16 dev) {
+chan_mapdev(uint16_t dev) {
 
     switch((dev >> 8) & 0xff) {
     case 0x02: return 1 + ((dev >> 4) & 0xf);   /* Map tapes to 20-23 */
@@ -253,7 +253,7 @@ chan_boot(int32 unit_num, DEVICE * dptr)
 }
 
 t_stat
-chan_issue_cmd(uint16 chan, uint16 dcmd, uint16 dev) {
+chan_issue_cmd(uint16_t chan, uint16_t dcmd, uint16_t dev) {
     DEVICE            **dptr;
     DIB                *dibp;
     unsigned int        j;
@@ -359,10 +359,10 @@ int chan_zero_reccnt(int chan) {
 }
 
 /* Return next channel data address, advance address by 5 if channel */
-uint32  chan_next_addr(int chan) {
-    uint32      unit = 0;
-    uint32      s_unit = 0;
-    uint32      addr = 0;
+uint32_t  chan_next_addr(int chan) {
+    uint32_t      unit = 0;
+    uint32_t      s_unit = 0;
+    uint32_t      addr = 0;
     switch(CHAN_G_TYPE(chan_unit[chan].flags)) {
     case CHAN_754:
     case CHAN_UREC:
@@ -388,7 +388,7 @@ chan_proc()
     int                 chan;
     int                 cmask;
     int                 unit;
-    uint32              addr;
+    uint32_t              addr;
 
     /* Scan channels looking for work */
     for (chan = 0; chan < NUM_CHAN; chan++) {
@@ -771,7 +771,7 @@ void chan_clear_attn_inq(int chan) {
 
 /* Issue a command to a channel */
 int
-chan_cmd(uint16 dev, uint16 dcmd, uint32 addr)
+chan_cmd(uint16_t dev, uint16_t dcmd, uint32_t addr)
 {
     int                 chan;
     int                 unit;
@@ -910,7 +910,7 @@ chan_cmd(uint16 dev, uint16 dcmd, uint32 addr)
         chan_flags[chan] &= ~(CHS_EOF|CHS_ERR|CHS_ATTN);
     /* Activate channel if select raised */
     if (r == SCPE_OK && chan_flags[chan] & DEV_SEL) {
-        uint32    t_unit;
+        uint32_t    t_unit;
         chan_flags[chan] |= STA_ACTIVE;
         irqdev[chan] = dev;
         irqflags &= ~(1 << chan);
@@ -1028,11 +1028,11 @@ chan_read(int chan, t_uint64 * data, int flags)
  * Write a char to the assembly register.
  */
 int
-chan_write_char(int chan, uint8 * data, int flags)
+chan_write_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch = *data;
+    uint8_t       ch = *data;
     int         unit;
-    uint16      msk;
+    uint16_t      msk;
 
     /* Based on channel type get next character */
     switch(CHAN_G_TYPE(chan_unit[chan].flags)) {
@@ -1121,11 +1121,11 @@ chan_write_char(int chan, uint8 * data, int flags)
  * Read next char from assembly register.
  */
 int
-chan_read_char(int chan, uint8 * data, int flags)
+chan_read_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch;
+    uint8_t       ch;
     int         unit;
-    uint16      msk;
+    uint16_t      msk;
 
     /* Check if he write out last data */
     if ((chan_flags[chan] & STA_ACTIVE) == 0)
@@ -1231,7 +1231,7 @@ chan_read_char(int chan, uint8 * data, int flags)
 
 
 void
-chan9_set_error(int chan, uint32 mask)
+chan9_set_error(int chan, uint32_t mask)
 {
     if (chan_flags[chan] & mask)
         return;

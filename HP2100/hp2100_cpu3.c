@@ -182,11 +182,11 @@ static const OP_PAT op_ffp_e [32] = {                   /* patterns for 2100/M/E
   OP_N,    OP_N,    OP_N,    OP_N                       /*  ---    ---    ---    ---  */
   };
 
-t_stat cpu_ffp (uint32 intrq)
+t_stat cpu_ffp (uint32_t intrq)
 {
 OP fpop;
 OPS op, op2;
-uint32 entry;
+uint32_t entry;
 HP_WORD j, sa, sb, sc, da, dc, ra, MA;
 int32 expon;
 t_stat reason = SCPE_OK;
@@ -659,7 +659,7 @@ t_stat cpu_dbi (HP_WORD IR)
 {
 OP din;
 OPS op;
-uint32 entry, t;
+uint32_t entry, t;
 t_stat reason = SCPE_OK;
 
 entry = IR & 017;                                       /* mask to entry point */
@@ -701,17 +701,17 @@ switch (entry) {                                        /* decode IR<3:0> */
             if (O)
                 t = D32_SMAX;                           /* if overflow, rtn max pos */
             else
-                t = (uint32) (t64 & D32_MASK);          /* else lower 32 bits of result */
+                t = (uint32_t) (t64 & D32_MASK);          /* else lower 32 bits of result */
 
 #else                                                   /* int64 support unavailable */
 
-            uint32 sign, xu, yu, rh, rl;
+            uint32_t sign, xu, yu, rh, rl;
 
             sign = ((int32) op[0].dword < 0) ^          /* save sign of result */
                    ((int32) op[1].dword < 0);
 
-            xu = (uint32) abs ((int32) op[0].dword);    /* make operands pos */
-            yu = (uint32) abs ((int32) op[1].dword);
+            xu = (uint32_t) abs ((int32) op[0].dword);    /* make operands pos */
+            yu = (uint32_t) abs ((int32) op[1].dword);
 
             if ((xu & 0xFFFF0000) == 0 &&               /* 16 x 16 multiply? */
                 (yu & 0xFFFF0000) == 0) {
@@ -769,7 +769,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         if (O)
             t = D32_SMAX;                               /* rtn max pos for ovf */
         else
-            t = (uint32) (INT32 (op[0].dword) /         /* else return quotient */
+            t = (uint32_t) (INT32 (op[0].dword) /         /* else return quotient */
                           INT32 (op[1].dword));
         break;
 

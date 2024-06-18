@@ -98,7 +98,7 @@ crt_reset (DEVICE *dptr)
 }
 
 void
-crt_point (uint16 x, uint16 y)
+crt_point (uint16_t x, uint16_t y)
 {
   sim_debug (DBG, &crt_dev, "Point %d,%d\n", x, y);
 #ifdef USE_DISPLAY
@@ -109,7 +109,7 @@ crt_point (uint16 x, uint16 y)
 }
 
 void
-crt_line (uint16 x1, uint16 y1, uint16 x2, uint16 y2)
+crt_line (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
   sim_debug (DBG, &crt_dev, "Line %d,%d - %d,%d\n", x1, y1, x2, y2);
 #ifdef USE_DISPLAY

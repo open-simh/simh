@@ -44,7 +44,7 @@
 #define META   01000
 
 static t_stat      stk_svc (UNIT *uptr);
-static t_stat      stk_devio(uint32 dev, uint64 *data);
+static t_stat      stk_devio(uint32_t dev, uint64 *data);
 static t_stat      stk_reset (DEVICE *dptr);
 static const char  *stk_description (DEVICE *dptr);
 
@@ -361,7 +361,7 @@ static t_stat stk_svc (UNIT *uptr)
     return c;
 }
 
-t_stat stk_devio(uint32 dev, uint64 *data)
+t_stat stk_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONO:

@@ -32,9 +32,9 @@
    02-Aug-18    JDB     Moved UIG dispatcher to hp2100_cpu0.c
                         Moved FP and IOP dispatchers from hp2100_cpu2.c
    25-Jul-18    JDB     Use cpu_configuration instead of cpu_unit.flags for tests
-   07-Sep-17    JDB     Removed unnecessary "uint16" casts
+   07-Sep-17    JDB     Removed unnecessary "uint16_t" casts
    01-Aug-17    JDB     Changed TIMER and RRR 16 to test for undefined stops
-   07-Jul-17    JDB     Changed "iotrap" from uint32 to t_bool
+   07-Jul-17    JDB     Changed "iotrap" from uint32_t to t_bool
    26-Jun-17    JDB     Replaced SEXT with SEXT16
    22-Apr-17    JDB     Improved the EAU shift/rotate instructions
    21-Mar-17    JDB     Fixed UIG 1 comment regarding 2000 IOP and F-Series
@@ -177,7 +177,7 @@ t_stat cpu_eau (void)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint32 rs, qs, v1, v2, operand, fill, mask, shift;
+uint32_t rs, qs, v1, v2, operand, fill, mask, shift;
 int32 sop1, sop2;
 
 if (!(cpu_configuration & CPU_EAU))                     /* if the EAU is not installed */
@@ -448,7 +448,7 @@ t_stat cpu_fp (void)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint32 entry;
+uint32_t entry;
 
 entry = (IR >> 4) & 017;                                /* mask to entry point */
 
@@ -572,12 +572,12 @@ static const OP_PAT op_iop[16] = {
   OP_N,    OP_N,    OP_N,    OP_N                       /* SAVE    ---    ---    ---  */
   };
 
-t_stat cpu_iop (uint32 intrq)
+t_stat cpu_iop (uint32_t intrq)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint8 byte;
-uint32 entry, i;
+uint8_t byte;
+uint32_t entry, i;
 HP_WORD hp, tp, t, wc, MA;
 
 if (cpu_configuration & CPU_2100) {                     /* 2100 IOP? */

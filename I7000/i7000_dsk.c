@@ -102,7 +102,7 @@
 
 #define MAXTRACK        6020    /* Max size per track */
 
-uint32              dsk_cmd(UNIT *, uint16, uint16);
+uint32_t              dsk_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              dsk_srv(UNIT *);
 t_stat              dsk_boot(int32, DEVICE *);
 void                dsk_ini(UNIT *, t_bool);
@@ -121,40 +121,40 @@ const char          *dsk_description (DEVICE *dptr);
 
 int                 disk_rblock(UNIT * uptr, int track);
 int                 disk_wblock(UNIT * uptr);
-void                disk_posterr(UNIT * uptr, uint32 error);
-void                disk_cmderr(UNIT * uptr, uint32 error);
+void                disk_posterr(UNIT * uptr, uint32_t error);
+void                disk_cmderr(UNIT * uptr, uint32_t error);
 int                 disk_cmd(UNIT * uptr);
-int                 disk_write(UNIT * uptr, uint8 data, int chan,
+int                 disk_write(UNIT * uptr, uint8_t data, int chan,
                                int eor);
-int                 disk_read(UNIT * uptr, uint8 * data, int chan);
+int                 disk_read(UNIT * uptr, uint8_t * data, int chan);
 int                 disk_format(UNIT * uptr, FILE * f, int cyl,
                                 UNIT * base);
-int                 bcd_to_track(uint32 addr);
+int                 bcd_to_track(uint32_t addr);
 
 /* Data buffer for track */
-uint8               dbuffer[NUM_DEVS_DSK * 4][MAXTRACK];
+uint8_t               dbuffer[NUM_DEVS_DSK * 4][MAXTRACK];
 
 /* Format buffer for cylinder */
-uint8               fbuffer[NUM_DEVS_DSK * 4][MAXTRACK / 4];
+uint8_t               fbuffer[NUM_DEVS_DSK * 4][MAXTRACK / 4];
 
 /* Currently loaded format record */
-uint16              fmt_cyl[NUM_DEVS_DSK * 4];
+uint16_t              fmt_cyl[NUM_DEVS_DSK * 4];
 
 /* Currently read in track in buffer */
-uint16              dtrack[NUM_DEVS_DSK * 4];
+uint16_t              dtrack[NUM_DEVS_DSK * 4];
 
 /* Arm position */
-uint16              arm_cyl[NUM_DEVS_DSK * 4];
-uint32              sense[NUM_CHAN * 2];
-uint32              sense_unit[NUM_CHAN * 2];
-uint8               cmd_buffer[NUM_CHAN];       /* Command buffer per channel */
-uint8               cmd_mod[NUM_CHAN];          /* Command module per channel */
-uint32              cmd_option[NUM_CHAN];       /* Command option per channel */
-uint16              cmd_count[NUM_CHAN];        /* Number of chars recieved */
+uint16_t              arm_cyl[NUM_DEVS_DSK * 4];
+uint32_t              sense[NUM_CHAN * 2];
+uint32_t              sense_unit[NUM_CHAN * 2];
+uint8_t               cmd_buffer[NUM_CHAN];       /* Command buffer per channel */
+uint8_t               cmd_mod[NUM_CHAN];          /* Command module per channel */
+uint32_t              cmd_option[NUM_CHAN];       /* Command option per channel */
+uint16_t              cmd_count[NUM_CHAN];        /* Number of chars recieved */
 
 #ifdef I7010
-extern uint8        chan_seek_done[NUM_CHAN];   /* Seek finished flag */
-extern uint8        chan_io_status[NUM_CHAN];   /* Channel status flags */
+extern uint8_t        chan_seek_done[NUM_CHAN];   /* Seek finished flag */
+extern uint8_t        chan_io_status[NUM_CHAN];   /* Channel status flags */
 #endif
 
 /* Macro to help build the disk size table */
@@ -295,7 +295,7 @@ DEVICE              dsk_dev = {
     NULL, NULL, &dsk_help, NULL, NULL, &dsk_description
 };
 
-uint32 dsk_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t dsk_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 u = (uptr->u3 >> 8) & 0xf;
     int                chan = UNIT_G_CHAN(dsk_unit[u].flags);
@@ -335,7 +335,7 @@ t_stat dsk_srv(UNIT * uptr)
     int                 u = (uptr->u3 >> 8) & 0xf;
     struct disk_t      *dsk = &disk_type[uptr->u4];
     UNIT               *base = &dsk_unit[u];
-    uint8               ch = 0;
+    uint8_t               ch = 0;
     int                 eor = 0;
 
     chan = UNIT_G_CHAN(base->flags);
@@ -535,7 +535,7 @@ t_stat dsk_srv(UNIT * uptr)
 
 /* Post a error on a given unit. */
 void
-disk_posterr(UNIT * uptr, uint32 error)
+disk_posterr(UNIT * uptr, uint32_t error)
 {
     int                 chan;
     int                 schan;
@@ -570,7 +570,7 @@ disk_posterr(UNIT * uptr, uint32 error)
 
 /* Post error for command that could not be completed */
 void
-disk_cmderr(UNIT * uptr, uint32 error)
+disk_cmderr(UNIT * uptr, uint32_t error)
 {
     int                 chan;
     int                 schan;
@@ -607,7 +607,7 @@ disk_cmderr(UNIT * uptr, uint32 error)
 int
 disk_cmd(UNIT * uptr)
 {
-    uint8               ch;
+    uint8_t               ch;
     UNIT               *base;
     UNIT               *up;
     int                 chan;
@@ -1085,12 +1085,12 @@ disk_wblock(UNIT * uptr)
 int
 disk_format(UNIT * uptr, FILE * f, int cyl, UNIT * base)
 {
-    uint8               tbuffer[MAXTRACK];
+    uint8_t               tbuffer[MAXTRACK];
     struct disk_t      *dsk = &disk_type[uptr->u4];
     int                 i, j;
     int                 out = 0;
     int                 u = uptr - dsk_unit;
-    uint8               ch;
+    uint8_t               ch;
     int                 offset;
 
     f = base->fileref;
@@ -1198,7 +1198,7 @@ disk_format(UNIT * uptr, FILE * f, int cyl, UNIT * base)
 
     /* Now grab every four characters and place them in next format location */
     for (j = i = 0; j < out; i++) {
-        uint8               temp;
+        uint8_t               temp;
 
         temp = (tbuffer[j++] & 03);
         temp |= (tbuffer[j++] & 03) << 2;
@@ -1222,13 +1222,13 @@ disk_format(UNIT * uptr, FILE * f, int cyl, UNIT * base)
 
 /* Handle writing of one character to disk */
 int
-disk_write(UNIT * uptr, uint8 data, int chan, int eor)
+disk_write(UNIT * uptr, uint8_t data, int chan, int eor)
 {
     int                 u = uptr - dsk_unit;
     UNIT               *base = (u > NUM_DEVS_DSK) ? &uptr[-NUM_DEVS_DSK] : uptr;
     int                 skip = 1;
     int                 flag = -1;
-    uint8               cmd;
+    uint8_t               cmd;
     int                 schan;
 
     schan = (chan * 2) + ((base->flags & UNIT_SELECT) ? 1 : 0);
@@ -1245,8 +1245,8 @@ disk_write(UNIT * uptr, uint8 data, int chan, int eor)
 
         /* Verify that the home address matches */
         if (cmd != DVHA && cmd != DVSR) {
-            uint16      t = cmd_option[chan] & 01717;
-            uint16      ha;
+            uint16_t      t = cmd_option[chan] & 01717;
+            uint16_t      ha;
             ha = (077 & dbuffer[u][0]) << 6;
             ha |= 077 & dbuffer[u][1];
             /* Mask out bits we ignore */
@@ -1277,7 +1277,7 @@ disk_write(UNIT * uptr, uint8 data, int chan, int eor)
         flag &= 03;
         switch (uptr->u5 & DSKSTA_CMSK) {
         case DWRF:              /* Format */
-            if ((uint32)uptr->u6 > disk_type[uptr->u4].bpt) {
+            if ((uint32_t)uptr->u6 > disk_type[uptr->u4].bpt) {
                 return 1;
             }
             if (uptr->u5 & DSKSTA_CHECK) {
@@ -1345,8 +1345,8 @@ disk_write(UNIT * uptr, uint8 data, int chan, int eor)
                 disk_posterr(uptr, PROG_NOREC);
                 return -1;
             } else if (flag == FMT_HDR) {
-                uint8               ch;
-                uint32              match = 0;
+                uint8_t               ch;
+                uint32_t              match = 0;
                 int                 i;
 
                 for (i = 0; i < 4 && flag == FMT_HDR; i++) {
@@ -1402,13 +1402,13 @@ disk_write(UNIT * uptr, uint8 data, int chan, int eor)
 
 /* Handle reading of one character to disk */
 int
-disk_read(UNIT * uptr, uint8 * data, int chan)
+disk_read(UNIT * uptr, uint8_t * data, int chan)
 {
     int                 u = uptr - dsk_unit;
     UNIT               *base = (u > NUM_DEVS_DSK) ? &uptr[-NUM_DEVS_DSK] : uptr;
     int                 skip = 1;
     int                 flag;
-    uint8               cmd;
+    uint8_t               cmd;
     int                 schan;
 
     schan = (chan * 2) + ((base->flags & UNIT_SELECT) ? 1 : 0);
@@ -1422,8 +1422,8 @@ disk_read(UNIT * uptr, uint8 * data, int chan)
 
         /* Verify that the home address matches */
         if (cmd != DVHA && cmd != DVSR) {
-            uint16      t = cmd_option[chan] & 01717;
-            uint16              ha;
+            uint16_t      t = cmd_option[chan] & 01717;
+            uint16_t              ha;
             ha = (077 & dbuffer[u][0]) << 6;
             ha |= 077 & dbuffer[u][1];
             /* Mask out bits we ignore */
@@ -1513,8 +1513,8 @@ disk_read(UNIT * uptr, uint8 * data, int chan)
                 disk_posterr(uptr, PROG_NOREC);
                 return -1;
             } else if (flag == FMT_HDR) {
-                uint8               ch;
-                uint32              match = 0;
+                uint8_t               ch;
+                uint32_t              match = 0;
                 int                 i;
 
                 for (i = 0; i < 4 && flag == FMT_HDR; i++) {
@@ -1592,7 +1592,7 @@ disk_read(UNIT * uptr, uint8 * data, int chan)
 
 /* Convert BCD track address to binary address */
 int
-bcd_to_track(uint32 addr)
+bcd_to_track(uint32_t addr)
 {
     int                 trk = 0;
     int                 i;
@@ -1613,7 +1613,7 @@ dsk_boot(int unit_num, DEVICE * dptr)
     int                 sel = (uptr->flags & UNIT_SELECT) ? 1 : 0;
     int                 dev = uptr->u3 & 0xff;
     int                 msk = (chan / 2) | ((chan & 1) << 11);
-    extern uint16       IC;
+    extern uint16_t       IC;
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_UNATT;      /* attached? */

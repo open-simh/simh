@@ -96,7 +96,7 @@
 #define UNIT_V_CONS     (UNIT_V_UF + 1)                 /* input from console */
 #define UNIT_CONS       (1 << UNIT_V_CONS)
 
-extern uint8 M[];
+extern uint8_t M[];
 extern int32 ind[64], ssa, iochk;
 extern int32 conv_old;
 
@@ -117,7 +117,7 @@ t_stat cdr_read_file (char *buf, int32 sz);
 t_stat cdr_read_cons (char *buf, int32 sz);
 t_stat cdr_chg_cons (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 int32 bcd2asc (int32 c, UNIT *uptr);
-char colbin_to_bcd (uint32 cb);
+char colbin_to_bcd (uint32_t cb);
 
 extern void inq_puts (const char *cptr);
 
@@ -574,9 +574,9 @@ static const char row_val[12] = {
     003, 002, 001, 020, 040, 060
     };
 
-char colbin_to_bcd (uint32 cb)
+char colbin_to_bcd (uint32_t cb)
 {
-uint32 i;
+uint32_t i;
 char bcd;
 
 for (i = 0, bcd = 0; i < 12; i++) {                     /* 'sum' rows */

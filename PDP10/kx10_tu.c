@@ -159,11 +159,11 @@
 #define CPOS          u5
 #define DATAPTR       u6
 
-uint8         tu_buf[NUM_DEVS_TU][TU_NUMFR];
+uint8_t         tu_buf[NUM_DEVS_TU][TU_NUMFR];
 static uint64 tu_boot_buffer;
 
-int           tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data);
-int           tu_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data);
+int           tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data);
+int           tu_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data);
 void          tu_rst(DEVICE *dptr);
 t_stat        tu_srv(UNIT *);
 t_stat        tu_boot(int32, DEVICE *);
@@ -275,9 +275,9 @@ DEVICE *tu_devs[] = {
 };
 
 int
-tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
+tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
     int            ctlr = GET_CNTRL_RH(dptr->units[0].flags);
-    uint16        *regs = &rhc->regs[0];
+    uint16_t        *regs = &rhc->regs[0];
     int            unit = regs[TUTC] & 07;
     UNIT          *uptr = &dptr->units[unit];
     int            i;
@@ -415,11 +415,11 @@ tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
 }
 
 int
-tu_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data) {
-    uint16        *regs = &rhc->regs[0];
+tu_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data) {
+    uint16_t        *regs = &rhc->regs[0];
     int            unit = regs[TUTC] & 07;
     UNIT          *uptr = &dptr->units[unit];
-    uint32         temp = 0;
+    uint32_t         temp = 0;
     int            i;
 
     if (rhc->drive != 0 && reg != 4)   /* Only one unit at 0 */
@@ -498,7 +498,7 @@ void tu_error(UNIT * uptr, t_stat r)
     int           ctlr = GET_CNTRL_RH(uptr->flags);
     DEVICE       *dptr = tu_devs[ctlr];
     struct rh_if *rhc = &tu_rh[ctlr];
-    uint16        *regs = &rhc->regs[0];
+    uint16_t        *regs = &rhc->regs[0];
 
     switch (r) {
     case MTSE_OK:            /* no error */
@@ -550,11 +550,11 @@ t_stat tu_srv(UNIT * uptr)
     int           ctlr = GET_CNTRL_RH(uptr->flags);
     int           unit;
     struct rh_if *rhc;
-    uint16        *regs;
+    uint16_t        *regs;
     DEVICE       *dptr;
     t_stat        r;
     t_mtrlnt      reclen;
-    uint8         ch;
+    uint8_t         ch;
     int           cc;
     int           cc_max;
 
@@ -671,7 +671,7 @@ t_stat tu_srv(UNIT * uptr)
              }
              return SCPE_OK;
          }
-         if ((uint32)uptr->DATAPTR < uptr->hwmark) {
+         if ((uint32_t)uptr->DATAPTR < uptr->hwmark) {
              regs[TUDC]++;
              if (regs[TUDC] == 0)
                 regs[TUTC] &= ~TC_FCS;
@@ -687,7 +687,7 @@ t_stat tu_srv(UNIT * uptr)
                  uptr->CPOS = 0;
                  if (GET_FNC(uptr->CMD) == FNC_READ && rh_write(rhc) == 0) {
                      tu_error(uptr, MTSE_OK);
-                     if ((uint32)uptr->DATAPTR == uptr->hwmark)
+                     if ((uint32_t)uptr->DATAPTR == uptr->hwmark)
                          (void)rh_blkend(rhc);
                      rh_finish_op(rhc, 0);
                      return SCPE_OK;
@@ -847,7 +847,7 @@ t_stat
 tu_reset(DEVICE * dptr)
 {
     struct rh_if *rhc = &tu_rh[0];
-    uint16        *regs = &rhc->regs[0];
+    uint16_t        *regs = &rhc->regs[0];
 
     rh_reset(dptr, &tu_rh[0]);
     regs[TUER1] = 0;
@@ -877,10 +877,10 @@ tu_boot(int32 unit_num, DEVICE * dptr)
     UNIT           *uptr = &dptr->units[unit_num];
     int             ctlr = GET_CNTRL_RH(uptr->flags);
     struct rh_if   *rhc = &tu_rh[ctlr];
-    uint16         *regs = &rhc->regs[0];
+    uint16_t         *regs = &rhc->regs[0];
     t_mtrlnt        reclen;
     t_stat          r;
-    uint32          addr;
+    uint32_t          addr;
     int             wc;
 
     if ((uptr->flags & UNIT_ATT) == 0)
@@ -931,7 +931,7 @@ tu_boot(int32 unit_num, DEVICE * dptr)
     while (wc != 0) {
         wc = (wc + 1) & RMASK;
         addr = (addr + 1) & RMASK;
-        if ((uint32)uptr->DATAPTR >= uptr->hwmark) {
+        if ((uint32_t)uptr->DATAPTR >= uptr->hwmark) {
             r = sim_tape_rdrecf(uptr, &tu_buf[0][0], &reclen, TU_NUMFR);
             if (r != SCPE_OK)
                 return r;

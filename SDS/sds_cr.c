@@ -55,17 +55,17 @@
 #define CARD_RDY(u)       (sim_card_input_hopper_count(u) > 0 || \
 sim_card_eof(u) == 1)
 
-extern  uint32 xfr_req;
+extern  uint32_t xfr_req;
 extern  int32 stop_invins, stop_invdev, stop_inviop;
-extern  uint8 chan_cpw[NUM_CHAN];       /* char per word */
-extern  uint8 chan_cnt[NUM_CHAN];       /* char count */
+extern  uint8_t chan_cpw[NUM_CHAN];       /* char per word */
+extern  uint8_t chan_cnt[NUM_CHAN];       /* char count */
 
 int32   cr_bptr = 0;                    /* buf ptr */
 int32   cr_blnt = 0;                    /* buf length */
 int32   cr_chr = 0;                     /* char no.*/
 int32   cr_inst = 0;                    /* saved instr */
 int32   cr_eor  = 0;                    /* end of record */
-uint16  cr_buffer[80];                  /* card record */
+uint16_t  cr_buffer[80];                  /* card record */
 
 DSPT    cr_tplt[] = {{1,0},{0,0}};      /* template */
 
@@ -74,7 +74,7 @@ t_stat  cr_boot(int32, DEVICE *);
 t_stat  cr_reset(DEVICE *);
 t_stat  cr_attach(UNIT *, CONST char *);
 t_stat  cr_detach(UNIT *);
-t_stat  cr_devio(uint32 fnc, uint32 inst, uint32 *dat);
+t_stat  cr_devio(uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat  cr_show_cap (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat  cr_readrec (UNIT *uptr);
 void    cr_set_err (UNIT *uptr);
@@ -117,8 +117,8 @@ DEVICE  cr_dev = {
 /* Returns the SDS Internal style BCD of the
  hollerith code or 0x7f if error
  */
-uint8 hol_to_sdsbcd(uint16 hol) {
-    uint8 bcd;
+uint8_t hol_to_sdsbcd(uint16_t hol) {
+    uint8_t bcd;
     
     /* Convert 10,11,12 rows */
     switch (hol & 0xe00) {
@@ -168,7 +168,7 @@ uint8 hol_to_sdsbcd(uint16 hol) {
 }
 
 /* device i/o routine   */
-t_stat cr_devio (uint32 fnc, uint32 inst, uint32 *dat) {
+t_stat cr_devio (uint32_t fnc, uint32_t inst, uint32_t *dat) {
     UNIT *uptr = &cr_unit;                                   /* get unit ptr */
     int32 new_ch;
     int32 t;
@@ -356,7 +356,7 @@ t_stat cr_attach (UNIT *uptr, CONST char *cptr) {
 
 /* Boot routine - simulate FILL console command */
 t_stat cr_boot (int32 unitno, DEVICE *dptr) {
-    extern uint32 P, M[];
+    extern uint32_t P, M[];
     
     cr_reset(dptr);
     M[0] = 077777771;       /* -7B */

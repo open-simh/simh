@@ -81,28 +81,28 @@
 #define STA_MASK        (STA_ERR|STA_EOF|STA_BSY|STA_EOM)
 #define SET_EX          (STA_ERR|STA_EOF|STA_NMTN)
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint8 mtxb[MT_MAXFR];                                   /* xfer buffer */
-uint32 mt_bptr = 0;                                     /* pointer */
-uint32 mt_blnt = 0;                                     /* length */
-uint32 mt_sta = 0;                                      /* status byte */
-uint32 mt_db = 0;                                       /* data buffer */
-uint32 mt_xfr = 0;                                      /* data xfr in prog */
-uint32 mt_arm[MT_NUMDR] = { 0 };                        /* intr armed */
+uint8_t mtxb[MT_MAXFR];                                   /* xfer buffer */
+uint32_t mt_bptr = 0;                                     /* pointer */
+uint32_t mt_blnt = 0;                                     /* length */
+uint32_t mt_sta = 0;                                      /* status byte */
+uint32_t mt_db = 0;                                       /* data buffer */
+uint32_t mt_xfr = 0;                                      /* data xfr in prog */
+uint32_t mt_arm[MT_NUMDR] = { 0 };                        /* intr armed */
 int32 mt_wtime = 10;                                    /* byte latency */
 int32 mt_rtime = 1000;                                  /* record latency */
 int32 mt_stopioe = 1;                                   /* stop on error */
-uint8 mt_tplte[] = { 0, o_MT0, o_MT0*2, o_MT0*3, TPL_END };
+uint8_t mt_tplte[] = { 0, o_MT0, o_MT0*2, o_MT0*3, TPL_END };
 
-static const uint8 bad_cmd[64] = {
+static const uint8_t bad_cmd[64] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1
     };
 
-uint32 mt (uint32 dev, uint32 op, uint32 dat);
+uint32_t mt (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat mt_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
 t_stat mt_attach (UNIT *uptr, CONST char *cptr);
@@ -175,10 +175,10 @@ DEVICE mt_dev = {
 
 /* Magtape: IO routine */
 
-uint32 mt (uint32 dev, uint32 op, uint32 dat)
+uint32_t mt (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 i, f, t;
-uint32 u = (dev - mt_dib.dno) / o_MT0;
+uint32_t i, f, t;
+uint32_t u = (dev - mt_dib.dno) / o_MT0;
 UNIT *uptr = mt_dev.units + u;
 
 switch (op) {                                           /* case IO op */
@@ -265,9 +265,9 @@ return 0;
 
 t_stat mt_svc (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 int32 u = uptr - mt_dev.units;
-uint32 dev = mt_dib.dno + (u * o_MT0);
+uint32_t dev = mt_dib.dno + (u * o_MT0);
 t_mtrlnt tbc;
 t_bool passed_eot;
 t_stat st, r = SCPE_OK;
@@ -465,7 +465,7 @@ return SCPE_OK;
 
 t_stat mt_reset (DEVICE *dptr)
 {
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 mt_bptr = mt_blnt = 0;                                  /* clr buf */
@@ -521,9 +521,9 @@ return SCPE_OK;
 /* Bootstrap routine */
 
 #define BOOT_START      0x50
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8_t))
 
-static uint8 boot_rom[] = {
+static uint8_t boot_rom[] = {
     0xD5, 0x00, 0x00, 0xCF,                             /* ST:  AL CF */
     0x43, 0x00, 0x00, 0x80                              /*      BR 80 */
     };
@@ -531,7 +531,7 @@ static uint8 boot_rom[] = {
 t_stat mt_boot (int32 unitno, DEVICE *dptr)
 {
 extern DIB sch_dib;
-uint32 sch_dev;
+uint32_t sch_dev;
 
 if (decrom[0xD5] & dec_flgs)                            /* AL defined? */
     return SCPE_NOFNC;

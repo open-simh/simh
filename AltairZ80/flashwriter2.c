@@ -47,8 +47,8 @@
 
 extern int32 sio0s(const int32 port, const int32 io, const int32 data);
 extern int32 sio0d(const int32 port, const int32 io, const int32 data);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 static char ansibuf[32];
 
@@ -59,23 +59,23 @@ static char ansibuf[32];
 
 typedef struct {
     UNIT  *uptr;            /* UNIT pointer */
-    uint8 cur_FL_Row;       /* Current Flashwriter Row */
-    uint8 cur_FL_Col;       /* Current Flashwriter Column */
-    uint8 FL_Row;
-    uint8 FL_Col;
-    uint8 reversevideo;     /* Flag set if reverse video is currently on */
-    uint8 M[FW2_CAPACITY];  /* FlashWriter 2K Video Memory */
+    uint8_t cur_FL_Row;       /* Current Flashwriter Row */
+    uint8_t cur_FL_Col;       /* Current Flashwriter Column */
+    uint8_t FL_Row;
+    uint8_t FL_Col;
+    uint8_t reversevideo;     /* Flag set if reverse video is currently on */
+    uint8_t M[FW2_CAPACITY];  /* FlashWriter 2K Video Memory */
 } FW2_INFO;
 
 static FW2_INFO *fw2_info[FW2_MAX_BOARDS];
-static uint8 port_map[FW2_MAX_BOARDS] = { 0x11, 0x15, 0x17, 0x19 };
+static uint8_t port_map[FW2_MAX_BOARDS] = { 0x11, 0x15, 0x17, 0x19 };
 
 static int32 fw2dev(const int32 Addr, const int32 rw, const int32 data);
 static t_stat fw2_attach(UNIT *uptr, CONST char *cptr);
 static t_stat fw2_detach(UNIT *uptr);
-static uint8 FW2_Read(const uint32 Addr);
-static uint8 FW2_Write(const uint32 Addr, uint8 cData);
-static t_stat get_base_address(const char *cptr, uint32 *baseaddr);
+static uint8_t FW2_Read(const uint32_t Addr);
+static uint8_t FW2_Write(const uint32_t Addr, uint8_t cData);
+static t_stat get_base_address(const char *cptr, uint32_t *baseaddr);
 static const char* fw2_description(DEVICE *dptr);
 
 static UNIT fw2_unit[] = {
@@ -115,7 +115,7 @@ static t_stat fw2_attach(UNIT *uptr, CONST char *cptr)
 {
     t_stat r;
     unsigned int i = 0;
-    uint32 baseaddr;
+    uint32_t baseaddr;
     char *tptr;
 
     r = get_base_address(cptr, &baseaddr);
@@ -174,7 +174,7 @@ static t_stat fw2_attach(UNIT *uptr, CONST char *cptr)
 /* Detach routine */
 static t_stat fw2_detach(UNIT *uptr)
 {
-    uint8 i;
+    uint8_t i;
 
     DBG_PRINT(("%s\n", __FUNCTION__));
 
@@ -202,9 +202,9 @@ static t_stat fw2_detach(UNIT *uptr)
     return SCPE_OK;
 }
 
-static t_stat get_base_address(const char *cptr, uint32 *baseaddr)
+static t_stat get_base_address(const char *cptr, uint32_t *baseaddr)
 {
-    uint32 b;
+    uint32_t b;
 
     if (sscanf(cptr, "%x", &b) != 1) return SCPE_ARG;
 
@@ -233,15 +233,15 @@ static int32 fw2dev(const int32 Addr, const int32 rw, const int32 data)
 }
 
 
-static uint8 FW2_Write(const uint32 Addr, uint8 Value)
+static uint8_t FW2_Write(const uint32_t Addr, uint8_t Value)
 {
     FW2_INFO *fw2 = NULL;
-    uint8 FL_Row;
-    uint8 FL_Col;
-    uint32 baseaddr = 0;
-    uint8 i;
-    uint8 outchar;
-    uint8 port;
+    uint8_t FL_Row;
+    uint8_t FL_Col;
+    uint32_t baseaddr = 0;
+    uint8_t i;
+    uint8_t outchar;
+    uint8_t port;
 
     for(i = 0; i < FW2_MAX_BOARDS; i++) {
         if(fw2_info[i] != NULL) {
@@ -309,10 +309,10 @@ static uint8 FW2_Write(const uint32 Addr, uint8 Value)
 }
 
 
-static uint8 FW2_Read(const uint32 Addr)
+static uint8_t FW2_Read(const uint32_t Addr)
 {
-    uint32 baseaddr = 0;
-    uint8 i;
+    uint32_t baseaddr = 0;
+    uint8_t i;
 
     for(i = 0; i < FW2_MAX_BOARDS; i++) {
         if(fw2_info[i] != NULL) {

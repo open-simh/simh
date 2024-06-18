@@ -37,7 +37,7 @@
 
 #include "i1401_defs.h"
 
-extern uint8 M[];
+extern uint8_t M[];
 extern int32 iochk, ind[64];
 extern t_bool conv_old;
 

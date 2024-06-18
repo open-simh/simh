@@ -56,56 +56,56 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat cpu_show_size (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
 /* some forwards */
-static t_stat Raise(uint16 err);
-static uint16 Pop();
-static void Push(uint16 val);
+static t_stat Raise(uint16_t err);
+static uint16_t Pop();
+static void Push(uint16_t val);
 static int16 PopS();
 static void PushS(int16 val);
-static uint16 createMSCW(uint16 ptbl, uint8 procno, uint16 stat, uint8 segno, uint16 osegb);
-static uint16 enque(uint16 qhead, uint16 qtask); /* return new qhead */
-static uint16 deque(uint16 qhead, uint16 *qtask); /* return tail of queue */
-static t_stat DoSIGNAL(uint16 sem);
-static uint16 Get(t_addr addr);
-static void Put(t_addr addr, uint16 val);
-static uint16 GetSIB(uint8 segno);
+static uint16_t createMSCW(uint16_t ptbl, uint8_t procno, uint16_t stat, uint8_t segno, uint16_t osegb);
+static uint16_t enque(uint16_t qhead, uint16_t qtask); /* return new qhead */
+static uint16_t deque(uint16_t qhead, uint16_t *qtask); /* return tail of queue */
+static t_stat DoSIGNAL(uint16_t sem);
+static uint16_t Get(t_addr addr);
+static void Put(t_addr addr, uint16_t val);
+static uint16_t GetSIB(uint8_t segno);
 static t_stat cpu_set_flag(UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat cpu_set_noflag(UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 
-static t_stat ssr_read(t_addr ioaddr, uint16 *data);
-static t_stat ssr_write(t_addr ioaddr, uint16 data);
-static t_stat ses_read(t_addr ioaddr, uint16 *data);
-static t_stat cpu_readserial(t_addr dummy, uint16 *data);
-static t_stat rom_baseread(t_addr dummy, uint16 *data);
-static t_stat rom_ignore(t_addr ea, uint16 data);
+static t_stat ssr_read(t_addr ioaddr, uint16_t *data);
+static t_stat ssr_write(t_addr ioaddr, uint16_t data);
+static t_stat ses_read(t_addr ioaddr, uint16_t *data);
+static t_stat cpu_readserial(t_addr dummy, uint16_t *data);
+static t_stat rom_baseread(t_addr dummy, uint16_t *data);
+static t_stat rom_ignore(t_addr ea, uint16_t data);
 
 /* the CPU registers */
-uint16 reg_ipc; /* point to current instruction within reg_segb segment */
-uint16 reg_sp;
-uint16 reg_splow;
-uint16 reg_spupr;
-uint16 reg_mp;
-uint16 reg_bp;
-uint16 reg_segb; /* point to current code segment */
-uint16 reg_ctp;
-uint16 reg_rq;
-uint16 reg_ssv;
-uint16 reg_lm;
-uint16 reg_lsv;
-uint32 reg_intpending;
-uint32 reg_intlatch;
-uint16 reg_ssr = 0; /* system status register */
-uint16 reg_ses = 0; /* system environment switch */
-uint16 reg_cpuserial = 0; /* CPU serial number */
+uint16_t reg_ipc; /* point to current instruction within reg_segb segment */
+uint16_t reg_sp;
+uint16_t reg_splow;
+uint16_t reg_spupr;
+uint16_t reg_mp;
+uint16_t reg_bp;
+uint16_t reg_segb; /* point to current code segment */
+uint16_t reg_ctp;
+uint16_t reg_rq;
+uint16_t reg_ssv;
+uint16_t reg_lm;
+uint16_t reg_lsv;
+uint32_t reg_intpending;
+uint32_t reg_intlatch;
+uint16_t reg_ssr = 0; /* system status register */
+uint16_t reg_ses = 0; /* system environment switch */
+uint16_t reg_cpuserial = 0; /* CPU serial number */
 
 /* PC address of currently executed instruction */
 t_addr PCX;
 
-uint16 reg_fc68 = 0;    /* location of HDT boot ROM */
-uint16 reg_romsize = 0; /* size of HDT boot ROM */
+uint16_t reg_fc68 = 0;    /* location of HDT boot ROM */
+uint16_t reg_romsize = 0; /* size of HDT boot ROM */
 
 /* possible hack to enforce DMA being initialized to 0x2000 (word address)
  * the boot code from Don Maslin's PDQ-3 floppy implies it is run from 0x2000 */
-uint32 reg_dmabase = 0x2000; 
+uint32_t reg_dmabase = 0x2000; 
 
 UNIT cpu_unit = { UDATA (NULL, UNIT_FIX+UNIT_BINK, MEMSIZE) };
 REG cpu_reg[] = {
@@ -198,15 +198,15 @@ DEVICE cpu_dev = {
 };
 
 /* return start address of proctbl of current code segment */
-static uint16 GetPtbl() {
-  uint16 ptbl;
+static uint16_t GetPtbl() {
+  uint16_t ptbl;
   Read(reg_segb, 0, &ptbl, DBG_NONE);
   return reg_segb + ptbl;
 }
 
 /* return segment base of segment */
-static uint16 GetSegbase(uint8 segno) {
-  uint16 data, sib;
+static uint16_t GetSegbase(uint8_t segno) {
+  uint16_t data, sib;
   sib = GetSIB(segno);
   Read(sib,OFF_SEGBASE, &data, DBG_NONE);
   return data;
@@ -215,26 +215,26 @@ static uint16 GetSegbase(uint8 segno) {
 /* get segment# from code segment:
  * this is the first byte of the proctbl at the end of the code segment 
  *(the second byte is the proc count) */
-static uint8 GetSegno() {
-  uint16 data;
-  uint16 ptbl = GetPtbl();
+static uint8_t GetSegno() {
+  uint16_t data;
+  uint16_t ptbl = GetPtbl();
   ReadB(ptbl, 0, &data, DBG_NONE); /* get first byte from proctbl */
-  return (uint8)data;
+  return (uint8_t)data;
 }
 
 /* set SEGB and return address of proc tbl (optimization for segb + segb[0] ) */
-static uint16 SetSEGB(uint8 segno) {
+static uint16_t SetSEGB(uint8_t segno) {
   /* obtain pointer to SIB for segno */
-  uint16 sib = GetSIB(segno); 
+  uint16_t sib = GetSIB(segno); 
 
   /* set SEGB and get pointer to proc tbl */
   Read(sib, OFF_SEGBASE, &reg_segb, DBG_NONE);
   return GetPtbl();
 }
 
-static void AdjustRefCount(uint8 segno, int incr) {
-  uint16 sib = GetSIB(segno);
-  uint16 ref = Get(sib + OFF_SEGREFS);
+static void AdjustRefCount(uint8_t segno, int incr) {
+  uint16_t sib = GetSIB(segno);
+  uint16_t ref = Get(sib + OFF_SEGREFS);
   Put(sib + OFF_SEGREFS,  ref + incr);
   //sim_printf("ref(%x) %s = %d\n",segno,incr>0 ? "increment":"decrement", ref+incr);  
 }
@@ -260,7 +260,7 @@ static void restore_from_tib() {
 }
 
 /* initialize registers for boot */
-void cpu_setRegs(uint16 newctp, uint16 newssv, uint16 newrq) 
+void cpu_setRegs(uint16_t newctp, uint16_t newssv, uint16_t newrq) 
 {
   reg_ctp = newctp;
   reg_ssv = newssv;
@@ -274,7 +274,7 @@ void cpu_setRegs(uint16 newctp, uint16 newssv, uint16 newrq)
 
 /* this is a dummy routine to ignore invalid writes to the ROM 
  * which occur during context switch from HDT to boot loader */
-static t_stat rom_ignore(t_addr ea, uint16 data) {
+static t_stat rom_ignore(t_addr ea, uint16_t data) {
   return SCPE_OK;
 }
 
@@ -309,7 +309,7 @@ static t_stat rom_ignore(t_addr ea, uint16 data) {
  */
 t_stat cpu_boot(int32 unitnum, DEVICE *dptr) {
   t_stat rc;
-  uint16 ctp, ssv, rq;
+  uint16_t ctp, ssv, rq;
 //  sim_printf("BOOT CPU\n");
   cpu_reset(dptr);
   dbg_init();
@@ -330,8 +330,8 @@ t_stat cpu_boot(int32 unitnum, DEVICE *dptr) {
 }
 
 void cpu_finishAutoload() {
-  uint16 ssv, rq, sbase;
-  uint16 ctp = reg_dmabase;
+  uint16_t ssv, rq, sbase;
+  uint16_t ctp = reg_dmabase;
   Read(ctp, OFF_SIBS, &ssv, DBG_NONE);
   Read(ctp, OFF_WAITQ, &rq, DBG_NONE);
   cpu_setRegs(ctp, ssv, rq);
@@ -364,7 +364,7 @@ t_stat cpu_reset (DEVICE *dptr) {
 
 /* Memory examine */
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw) {
-  uint16 data;
+  uint16_t data;
   t_addr off = ADDR_OFF(addr);
   t_addr seg = ADDR_SEG(addr);
   if (seg==0) seg = NIL;
@@ -410,12 +410,12 @@ t_stat cpu_buserror() {
   return cpu_raiseInt(INT_BERR);
 }
 
-static t_stat ssr_read(t_addr ioaddr, uint16 *data) {
+static t_stat ssr_read(t_addr ioaddr, uint16_t *data) {
   *data = reg_ssr & ~(SSR_PRNT|SSR_BIT3);
   return SCPE_OK;
 }
 
-static t_stat ssr_write(t_addr ioaddr, uint16 data) {
+static t_stat ssr_write(t_addr ioaddr, uint16_t data) {
   if (isbitset(data,SSR_BERR)) {
     clrbit(reg_ssr,SSR_BERR);
     sim_debug(DBG_CPU_INT2, &cpu_dev, DBG_PCFORMAT1 "Clear BERR\n", DBG_PC);
@@ -448,20 +448,20 @@ static t_stat ssr_write(t_addr ioaddr, uint16 data) {
   return SCPE_OK;
 }
 
-static t_stat ses_read(t_addr ioaddr, uint16 *data)
+static t_stat ses_read(t_addr ioaddr, uint16_t *data)
 {
   *data = reg_ses;
 //  sim_printf("ses is %x\n",reg_ses);
   return SCPE_OK;
 }
 
-static t_stat cpu_readserial(t_addr dummy, uint16 *data)
+static t_stat cpu_readserial(t_addr dummy, uint16_t *data)
 {
   *data = reg_cpuserial;
   return SCPE_OK;
 }
 
-static t_stat rom_baseread(t_addr dummy, uint16 *data)
+static t_stat rom_baseread(t_addr dummy, uint16_t *data)
 {
   *data = reg_fc68;
   return SCPE_OK;
@@ -470,7 +470,7 @@ static t_stat rom_baseread(t_addr dummy, uint16 *data)
 /*************************************************************************************
  * Interrupt handling
  ************************************************************************************/
-static uint16 int_vectors[32] = {
+static uint16_t int_vectors[32] = {
   0x0002, /* INT_BERR */
   0x0006, /* INT_PWRF */
   0x000a, /* INT_DMAFD */
@@ -488,7 +488,7 @@ t_bool cpu_isIntEnabled() {
 
 /* latch interrupts */
 void cpu_assertInt(int level, t_bool tf) {
-  uint16 bit = 1 << level;
+  uint16_t bit = 1 << level;
   if (tf)
     setbit(reg_intlatch, bit);
   else
@@ -510,7 +510,7 @@ t_stat cpu_raiseInt(int level) {
 }
 
 static void cpu_ackInt(int level) {
-  uint16 bit = 1<<level;
+  uint16_t bit = 1<<level;
   clrbit(reg_intpending, bit);
 
   /* disable SSR_INTEN */
@@ -520,7 +520,7 @@ static void cpu_ackInt(int level) {
   clrbit(reg_ssr, SSR_INTEN);
 }
 
-t_stat cpu_setIntVec(uint16 vec, int level) {
+t_stat cpu_setIntVec(uint16_t vec, int level) {
   if (level <0 || level >31) return SCPE_ARG;
   int_vectors[level] = vec;
   return SCPE_OK;
@@ -528,7 +528,7 @@ t_stat cpu_setIntVec(uint16 vec, int level) {
 
 static int getIntLevel() {
   int i;
-  uint32 bit = 1;
+  uint32_t bit = 1;
   for (i=0; i<31; i++) {
     if (reg_intpending & bit) return i;
     bit <<= 1;
@@ -538,7 +538,7 @@ static int getIntLevel() {
 
 static t_stat cpu_processInt() {
   int level = getIntLevel(); /* obtain highest pending interupt */
-  uint16 vector, sem;
+  uint16_t vector, sem;
   t_stat rc;
   
   if (level == -1) return SCPE_OK; /* don't signal: spurious interrupt */
@@ -563,13 +563,13 @@ static t_stat cpu_processInt() {
  * instruction interpreter
  ************************************************************************************/
 
-static uint8 UB() {
-  uint16 val;
+static uint8_t UB() {
+  uint16_t val;
   ReadB(reg_segb, reg_ipc++, &val, DBG_CPU_FETCH);
   return val & 0xff;
 }
-static uint16 W() {
-  uint16 high, data;
+static uint16_t W() {
+  uint16_t high, data;
   if (ReadB(reg_segb, reg_ipc++, &data, DBG_CPU_FETCH) != SCPE_OK)
     return data;
   if (ReadB(reg_segb, reg_ipc++, &high, DBG_CPU_FETCH) != SCPE_OK)
@@ -577,17 +577,17 @@ static uint16 W() {
   data |= (high << 8);
   return data;
 }
-static uint16 DB() {
+static uint16_t DB() {
   return UB();
 }
-static uint16 SB() {
-  uint16 data;
+static uint16_t SB() {
+  uint16_t data;
   ReadB(reg_segb, reg_ipc++, &data, DBG_CPU_FETCH);
   if (data & 0x80) data |= 0xff80;
   return data;
 }
-static uint16 B() {
-  uint16 high, data;
+static uint16_t B() {
+  uint16_t high, data;
   if (ReadB(reg_segb, reg_ipc++, &high, DBG_CPU_FETCH) != SCPE_OK)
     return high;
   if (high & 0x80) {
@@ -598,54 +598,54 @@ static uint16 B() {
   } else
     return high;
 }
-static void Put(t_addr addr, uint16 val) {
+static void Put(t_addr addr, uint16_t val) {
   Write(0, addr, val, DBG_CPU_WRITE);
 }
-static uint16 Get(t_addr addr) {
-  uint16 val;
+static uint16_t Get(t_addr addr) {
+  uint16_t val;
   Read(0, addr, &val, DBG_CPU_READ);
   return val;
 }
 
-static void Putb(t_addr base, t_addr idx, uint16 val) {
+static void Putb(t_addr base, t_addr idx, uint16_t val) {
   WriteB(base, idx, val, DBG_CPU_WRITE);
 }
 
-static uint8 Getb(t_addr addr,t_addr idx) {
-  uint16 val;
+static uint8_t Getb(t_addr addr,t_addr idx) {
+  uint16_t val;
   ReadB(addr, idx, &val, DBG_CPU_READ);
   return val & 0xff;
 }
 
-static uint16 TraverseMSstat(uint16 db) {
+static uint16_t TraverseMSstat(uint16_t db) {
   int i;
-  uint16 lm = reg_mp;
+  uint16_t lm = reg_mp;
   for(i=1; i<=db; i++) lm = Get(lm + OFF_MSSTAT);
   return lm;
 }
 
-static uint16 Tos() {
-  uint16 val;
+static uint16_t Tos() {
+  uint16_t val;
   if (reg_sp >= reg_spupr) { Raise(PASERROR_STKOVFL); return 0; }
   Read(0,reg_sp,&val, DBG_CPU_PICK);
   return val;
 }
 
-static uint16 Pick(int i) {
-  uint16 val;
+static uint16_t Pick(int i) {
+  uint16_t val;
   if ((reg_sp+i) >= reg_spupr) { Raise(PASERROR_STKOVFL); return 0; }
   Read(0,reg_sp+i,&val, DBG_CPU_PICK);
   return val;
 }
 
-static uint16 Pop() {
-  uint16 val;
+static uint16_t Pop() {
+  uint16_t val;
   if ((reg_sp+1) > reg_spupr) { Raise(PASERROR_STKOVFL); return 0; }
   Read(0,reg_sp++,&val, DBG_CPU_POP);
   return val;
 }
 
-static void Push(uint16 val) {
+static void Push(uint16_t val) {
   if (reg_sp < reg_splow) Raise(PASERROR_STKOVFL);
   else
     Write(0,--reg_sp,val,DBG_CPU_PUSH);
@@ -656,7 +656,7 @@ static int16 PopS() {
 }
 
 static void PushS(int16 val) {
-  Push((uint16)val);
+  Push((uint16_t)val);
 }
 
 static float PopF() {
@@ -678,7 +678,7 @@ static void PushF(float f) {
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
-static uint16 masks[] = {
+static uint16_t masks[] = {
 0x0000,
 0x0001, 0x0003, 0x0007, 0x000f,
 0x001f, 0x003f, 0x007f, 0x00ff,
@@ -688,22 +688,22 @@ static uint16 masks[] = {
 /* to produce a mask for a bit field <start:nbits>, 
  * e.g. <3:5> 0000000011111000 == 0x00f8
  */
-static uint16 GetMask(int lowbit,int nbits) {
+static uint16_t GetMask(int lowbit,int nbits) {
   return masks[nbits] << lowbit;
 }
 
 /* get address of SIB entry of segment */
-static uint16 GetSIB(uint8 segno) {
+static uint16_t GetSIB(uint8_t segno) {
   return segno < 128 ?
     Get(reg_ssv + segno) :
     Get(Get(reg_ctp + OFF_SIBS) + segno - 128);
 }
 
 /* do a CXG instruction into segment SEGNO to procedure procno */
-static void DoCXG(uint8 segno, uint8 procno) {
-  uint16 ptbl;
-  uint8 osegno = (uint8)GetSegno(); /* obtain segment of caller to be set into MSCW */
-  uint16 osegb = reg_segb;
+static void DoCXG(uint8_t segno, uint8_t procno) {
+  uint16_t ptbl;
+  uint8_t osegno = (uint8_t)GetSegno(); /* obtain segment of caller to be set into MSCW */
+  uint16_t osegb = reg_segb;
   
 //  sim_printf("CXG: seg=%d proc=%d, osegno=%d\n",segno,procno,osegno);
   ptbl = SetSEGB(segno); /* get ptbl of new segment */
@@ -714,7 +714,7 @@ static void DoCXG(uint8 segno, uint8 procno) {
   sim_interval--;
 }
 
-static t_stat Raise(uint16 err) {
+static t_stat Raise(uint16_t err) {
 
   /* HALT on Pascal Exception? */
   if (Q_PASEXC) return STOP_PASEXC;
@@ -738,13 +738,13 @@ static int GetBit(t_addr base, int bitno)
 {
   int wnum = bitno / WORD_SZ;
   int bnum = bitno % WORD_SZ;
-  uint16 bitmask = 1 << bnum;
+  uint16_t bitmask = 1 << bnum;
   return (Get(base + wnum) & bitmask) ? 1 : 0;
 }
 
-static uint16 createMSCW(uint16 ptbl, uint8 procno, uint16 stat, uint8 segno, uint16 osegb) {
-  uint16 procstart = Get(ptbl - procno); /* word index into segment */
-  uint16 datasz = Get(reg_segb + procstart); /* word index */
+static uint16_t createMSCW(uint16_t ptbl, uint8_t procno, uint16_t stat, uint8_t segno, uint16_t osegb) {
+  uint16_t procstart = Get(ptbl - procno); /* word index into segment */
+  uint16_t datasz = Get(reg_segb + procstart); /* word index */
   dbg_segtrack(reg_segb);
 //  sim_printf("createMSCW: ptbl=%x procno=%d stat=%x segno=%x\n",ptbl,procno,stat,segno);
   
@@ -765,13 +765,13 @@ static uint16 createMSCW(uint16 ptbl, uint8 procno, uint16 stat, uint8 segno, ui
 }
 
 /* for context switching */
-//uint16 qtask = NIL;
+//uint16_t qtask = NIL;
 
 /* put qtask into priority queue */
-static uint16 enque(uint16 qhead, uint16 qtask) {
-  uint16 t1 = qhead;
-  uint16 t2 = NIL;
-  uint8 qtaskprio = Getb(qtask+OFFB_PRIOR,0);
+static uint16_t enque(uint16_t qhead, uint16_t qtask) {
+  uint16_t t1 = qhead;
+  uint16_t t2 = NIL;
+  uint8_t qtaskprio = Getb(qtask+OFFB_PRIOR,0);
   sim_debug(DBG_CPU_CONC3, &cpu_dev, DBG_PCFORMAT0 "Enque: qhead=$%04x qtask=$%04x\n", DBG_PC, qhead, qtask);
   while (t1 != NIL) { /* loop until end of queue found */
     if (Getb(t1+OFFB_PRIOR,0) < qtaskprio) break; /* exit loop if priority less than qitem */
@@ -789,7 +789,7 @@ static uint16 enque(uint16 qhead, uint16 qtask) {
 
 /* perform a task switch. If no task ready to run, wait for an interrupt */
 static t_stat taskswitch6() {
-  uint16 vector, sem;
+  uint16_t vector, sem;
   int level, kbdc;
   t_stat rc = SCPE_OK;
 //  int kbdc;
@@ -835,21 +835,21 @@ static t_stat taskswitch5() {
   return rc;
 }
 
-static uint16 deque(uint16 qhead, uint16* qtask) {
-  uint16 newhead;
+static uint16_t deque(uint16_t qhead, uint16_t* qtask) {
+  uint16_t newhead;
   *qtask = qhead; /* store first element of queue */
   newhead = Get(qhead+OFF_QLINK); /* discard first element from queue, and return new qhead address */
   sim_debug(DBG_CPU_CONC3, &cpu_dev, DBG_PCFORMAT0 "Dequeue: qtask=$%04x newhead=$%04x\n",DBG_PC,*qtask,newhead);
   return newhead;
 }
 
-static t_stat DoSIGNAL(uint16 sem) {
+static t_stat DoSIGNAL(uint16_t sem) {
   t_stat rc = SCPE_OK;
-  uint16 qtask, qhead;
-  uint16 wqaddr = sem + OFF_SEMWAITQ; /* address of wait queue */
+  uint16_t qtask, qhead;
+  uint16_t wqaddr = sem + OFF_SEMWAITQ; /* address of wait queue */
   
-  uint16 count = Get(sem+OFF_SEMCOUNT); /* get count value from semaphore*/
-  uint16 wait = Get(wqaddr); /* get top of wait queue */
+  uint16_t count = Get(sem+OFF_SEMCOUNT); /* get count value from semaphore*/
+  uint16_t wait = Get(wqaddr); /* get top of wait queue */
   
   sim_debug(DBG_CPU_CONC2, &cpu_dev, DBG_PCFORMAT0 "SIGNAL: Sem=$%x(count=%d wait=$%x)\n",
             DBG_PC,sem,count,wait);
@@ -889,12 +889,12 @@ static t_stat DoSIGNAL(uint16 sem) {
   return rc;
 }
 
-static t_stat DoWAIT(uint16 sem) {
-  uint16 qhead; 
-  uint16 wqaddr = sem + OFF_SEMWAITQ;
+static t_stat DoWAIT(uint16_t sem) {
+  uint16_t qhead; 
+  uint16_t wqaddr = sem + OFF_SEMWAITQ;
   t_stat rc;
 
-  uint16 count = Get(sem + OFF_SEMCOUNT); /* get count of semaphore */
+  uint16_t count = Get(sem + OFF_SEMCOUNT); /* get count of semaphore */
   sim_debug(DBG_CPU_CONC, &cpu_dev, DBG_PCFORMAT1 "WAIT: Sem=$%04x(count=%d)\n",DBG_PC,sem, count);
   if (count == 0) {
 //    sim_debug(DBG_CPU_CONC3, &cpu_dev, DBG_PCFORMAT0 "WAIT: Semaphore %x has count 0: do a task switch\n",DBG_PC,sem);
@@ -916,21 +916,21 @@ static t_stat DoWAIT(uint16 sem) {
   return SCPE_OK;
 }
 
-static uint8 HiByte(uint16 reg) {
+static uint8_t HiByte(uint16_t reg) {
   return (reg>>8) & 0xff;
 }
 
-static uint8 LoByte(uint16 reg) {
+static uint8_t LoByte(uint16_t reg) {
   return reg & 0xff;
 }
 
 static t_stat DoInstr(void) {
   t_stat rc = SCPE_OK;
-  uint16 opcode, db, b, src, dst, inx, len0, len1, hi,lo;
-  uint16 t1, t2, t3, t4, t5, min1, max1, ptbl, osegb;
+  uint16_t opcode, db, b, src, dst, inx, len0, len1, hi,lo;
+  uint16_t t1, t2, t3, t4, t5, min1, max1, ptbl, osegb;
   int16 ts1, ts2, w;
-  uint8 ub1, ub2;
-  uint8 segno, osegno, procno;
+  uint8_t ub1, ub2;
+  uint8_t segno, osegno, procno;
   float tf1, tf2;
   int i;
 

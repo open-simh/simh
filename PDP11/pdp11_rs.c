@@ -157,12 +157,12 @@
    drive type.  
 */
 
-uint16 rscs1[RS_NUMDR] = { 0 };                         /* control/status 1 */
-uint16 rsda[RS_NUMDR] = { 0 };                          /* track/sector */
-uint16 rsds[RS_NUMDR] = { 0 };                          /* drive status */
-uint16 rser[RS_NUMDR] = { 0 };                          /* error status */
-uint16 rsmr[RS_NUMDR] = { 0 };                          /* maint register */
-uint8 rswlk[RS_NUMDR] = { 0 };                          /* wlk switches */
+uint16_t rscs1[RS_NUMDR] = { 0 };                         /* control/status 1 */
+uint16_t rsda[RS_NUMDR] = { 0 };                          /* track/sector */
+uint16_t rsds[RS_NUMDR] = { 0 };                          /* drive status */
+uint16_t rser[RS_NUMDR] = { 0 };                          /* error status */
+uint16_t rsmr[RS_NUMDR] = { 0 };                          /* maint register */
+uint8_t rswlk[RS_NUMDR] = { 0 };                          /* wlk switches */
 int32 rs_stopioe = 1;                                   /* stop on error */
 int32 rs_wait = 10;                                     /* rotate time */
 static const char *rs_fname[CS1_N_FNC] = {
@@ -179,9 +179,9 @@ t_stat rs_reset (DEVICE *dptr);
 t_stat rs_attach (UNIT *uptr, CONST char *cptr);
 t_stat rs_detach (UNIT *uptr);
 t_stat rs_boot (int32 unitno, DEVICE *dptr);
-void rs_set_er (uint16 flg, int32 drv);
+void rs_set_er (uint16_t flg, int32 drv);
 void rs_clr_as (int32 mask);
-void rs_update_ds (uint16 flg, int32 drv);
+void rs_update_ds (uint16_t flg, int32 drv);
 t_stat rs_go (int32 drv);
 t_stat rs_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 int32 rs_abort (void);
@@ -270,7 +270,7 @@ DEVICE rs_dev = {
 
 t_stat rs_mbrd (int32 *data, int32 ofs, int32 drv)
 {
-uint32 val, dtype, i;
+uint32_t val, dtype, i;
 UNIT *uptr;
 
 rs_update_ds (0, drv);                                  /* update ds */
@@ -354,7 +354,7 @@ switch (ofs) {                                          /* decode PA<5:1> */
         break;  
 
     case RS_DA_OF:                                      /* RSDA */
-        rsda[drv] = (uint16) data;
+        rsda[drv] = (uint16_t) data;
         break;
 
     case RS_AS_OF:                                      /* RSAS */
@@ -362,7 +362,7 @@ switch (ofs) {                                          /* decode PA<5:1> */
         break;
 
     case RS_MR_OF:                                      /* RSMR */
-        rsmr[drv] = (uint16) data;
+        rsmr[drv] = (uint16_t) data;
         break;
 
     case RS_ER_OF:                                      /* RSER */
@@ -453,7 +453,7 @@ t_stat rs_svc (UNIT *uptr)
 {
 int32 i, fnc, dtype, drv;
 int32 wc, abc, awc, mbc, da;
-uint16 *fbuf = (uint16 *)uptr->filebuf;
+uint16_t *fbuf = (uint16_t *)uptr->filebuf;
 
 dtype = GET_DTYPE (uptr->flags);                        /* get drive type */
 drv = (int32) (uptr - rs_dev.units);                    /* get drv number */
@@ -516,7 +516,7 @@ switch (fnc) {                                          /* case on function */
         da = da + wc + (RS_NUMWD (dtype) - 1);
         if (da >= RS_SIZE (dtype))
             rsds[drv] = rsds[drv] | DS_LST;
-        rsda[drv] = (uint16)(da / RS_NUMWD (dtype));
+        rsda[drv] = (uint16_t)(da / RS_NUMWD (dtype));
         mba_set_don (rs_dib.ba);                        /* set done */
         rs_update_ds (0, drv);                          /* update ds */
         break;
@@ -530,7 +530,7 @@ return SCPE_OK;
 
 /* Set drive error */
 
-void rs_set_er (uint16 flag, int32 drv)
+void rs_set_er (uint16_t flag, int32 drv)
 {
 rser[drv] = rser[drv] | flag;
 rsds[drv] = rsds[drv] | DS_ATA;
@@ -542,7 +542,7 @@ return;
 
 void rs_clr_as (int32 mask)
 {
-uint32 i, as;
+uint32_t i, as;
 
 for (i = as = 0; i < RS_NUMDR; i++) {
     if (mask & (AS_U0 << i))
@@ -556,7 +556,7 @@ return;
 
 /* Drive status update */
 
-void rs_update_ds (uint16 flag, int32 drv)
+void rs_update_ds (uint16_t flag, int32 drv)
 {
 if (flag & DS_ATA)
     mba_upd_ata (rs_dib.ba, 1);
@@ -663,9 +663,9 @@ return SCPE_OK;
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042123,                        /* "SD" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit, r0 */

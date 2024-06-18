@@ -282,12 +282,12 @@ static const HP_WORD ptemiss = 0176000u;
 /* VMA local utility routine declarations */
 
 static t_stat cpu_vma_loc   (OPS op);
-static t_bool cpu_vma_ptevl (uint32 pagid, uint32* physpg);
-static t_stat cpu_vma_fault (uint32 x, uint32 y, int32 mapr, uint32 ptepg, uint32 ptr, uint32 faultpc);
-static t_bool cpu_vma_mapte (uint32* ptepg);
-static t_stat cpu_vma_lbp   (uint32 ptr, uint32 aoffset, uint32 faultpc);
-static t_stat cpu_vma_pmap  (uint32 umapr, uint32 pagid);
-static t_stat cpu_vma_ijmar (OPSIZE ij, uint32 dtbl, uint32 atbl, uint32* dimret);
+static t_bool cpu_vma_ptevl (uint32_t pagid, uint32_t* physpg);
+static t_stat cpu_vma_fault (uint32_t x, uint32_t y, int32 mapr, uint32_t ptepg, uint32_t ptr, uint32_t faultpc);
+static t_bool cpu_vma_mapte (uint32_t* ptepg);
+static t_stat cpu_vma_lbp   (uint32_t ptr, uint32_t aoffset, uint32_t faultpc);
+static t_stat cpu_vma_pmap  (uint32_t umapr, uint32_t pagid);
+static t_stat cpu_vma_ijmar (OPSIZE ij, uint32_t dtbl, uint32_t atbl, uint32_t* dimret);
 
 
 
@@ -363,10 +363,10 @@ t_stat reason = SCPE_OK;
 OPS op;
 OP_PAT pattern;
 HP_WORD t16;
-uint32 entry,t32,ndim;
-uint32 dtbl,atbl;                                       /* descriptor table ptr, actual args ptr */
+uint32_t entry,t32,ndim;
+uint32_t dtbl,atbl;                                       /* descriptor table ptr, actual args ptr */
 OP dop0,dop1;
-uint32 pcsave = (PR+1) & LA_MASK;                       /* save P to check for redo in imap/jmap */
+uint32_t pcsave = (PR+1) & LA_MASK;                       /* save P to check for redo in imap/jmap */
 
 entry = IR & 017;                                       /* mask to entry point */
 pattern = op_vma[entry];                                /* get operand pattern */
@@ -515,7 +515,7 @@ return reason;
 
 static t_stat cpu_vma_loc(OPS op)
 {
-uint32  lstpg,fstpg,rotsz,lgpg,relpg,relbp,matloc,ptnpg,physpg,cnt,pgs,umapr;
+uint32_t  lstpg,fstpg,rotsz,lgpg,relpg,relbp,matloc,ptnpg,physpg,cnt,pgs,umapr;
 HP_WORD eqt,mls,pnod;
 
 eqt = ReadU (xeqt);                                     /* get ID segment */
@@ -609,12 +609,12 @@ return SCPE_OK;
    return TRUE if suit match, physpg = physical page
                 or page=0 -> last+1 page
 */
-static t_bool cpu_vma_ptevl(uint32 pagid,uint32* physpg)
+static t_bool cpu_vma_ptevl(uint32_t pagid,uint32_t* physpg)
 {
-uint32 suit;
-uint32 pteidx = pagid & 0001777;                        /* build index */
-uint32 reqst  = pagid & SUITMASK;                       /* required suit */
-uint32 pteval = ReadW(page31 | pteidx);                 /* get PTE entry */
+uint32_t suit;
+uint32_t pteidx = pagid & 0001777;                        /* build index */
+uint32_t reqst  = pagid & SUITMASK;                       /* required suit */
+uint32_t pteval = ReadW(page31 | pteidx);                 /* get PTE entry */
 *physpg = pteval & 0001777;                             /* store physical page number */
 suit = pteval & SUITMASK;                               /* suit number seen */
 if (pteval == NILPAGE) return FALSE;                    /* NIL value in PTE */
@@ -624,10 +624,10 @@ return suit == reqst || !*physpg;                       /* good page or last+1 *
 
 /* handle page fault */
 
-static t_stat cpu_vma_fault(uint32 x,uint32 y,int32 mapr,uint32 ptepg,uint32 ptr,uint32 faultpc)
+static t_stat cpu_vma_fault(uint32_t x,uint32_t y,int32 mapr,uint32_t ptepg,uint32_t ptr,uint32_t faultpc)
 {
-uint32 pre = ReadU (xi);                                /* get program preamble */
-uint32 ema = ReadU (pre + 2);                           /* get address of $EMA$/$VMA$ */
+uint32_t pre = ReadU (xi);                                /* get program preamble */
+uint32_t ema = ReadU (pre + 2);                           /* get address of $EMA$/$VMA$ */
 WriteU (ema, faultpc);                                  /* write addr of fault instr */
 XR = x;                                                 /* X = faulting page */
 YR = y;                                                 /* Y = faulting address for page */
@@ -657,17 +657,17 @@ return SCPE_OK;
 
 /* map in PTE into last page, return false, if page fault */
 
-static t_bool cpu_vma_mapte(uint32* ptepg)
+static t_bool cpu_vma_mapte(uint32_t* ptepg)
 {
-uint32 idext,idext2;
-uint32 dispatch = ReadU (vswp) & 01777;                 /* get fresh dispatch flag */
+uint32_t idext,idext2;
+uint32_t dispatch = ReadU (vswp) & 01777;                 /* get fresh dispatch flag */
 t_bool swapflag = TRUE;
 
 if (dispatch == 0) {                                    /* not yet set */
     idext = ReadU (idx);                                /* go into ID segment extent */
     if (idext == 0) {                                   /* is ema/vma program? */
         swapflag = FALSE;                               /* no, so mark PTE as invalid */
-        *ptepg = (uint32) -1;                           /*   and return an invalid page number */
+        *ptepg = (uint32_t) -1;                           /*   and return an invalid page number */
         }
 
     else {                                              /* is an EMA/VMA program */
@@ -718,12 +718,12 @@ return swapflag;                                        /* true for valid PTE */
        Ths simulator follows the microcode in reproducing this bug.
 */
 
-static t_stat cpu_vma_lbp(uint32 ptr,uint32 aoffset,uint32 faultpc)
+static t_stat cpu_vma_lbp(uint32_t ptr,uint32_t aoffset,uint32_t faultpc)
 {
-uint32 pagid,offset,pgidx,ptepg;
+uint32_t pagid,offset,pgidx,ptepg;
 HP_WORD p30,p31,suit;
 t_stat reason = SCPE_OK;
-uint32 faultab = ptr;                                   /* remember A,B for page fault */
+uint32_t faultab = ptr;                                   /* remember A,B for page fault */
 ptr += aoffset;                                         /* add the offset e.g. for .LPX */
 
 tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  virtual address %011o\n",
@@ -822,10 +822,10 @@ return SCPE_OK;
             MAPPED READ/WRITE PROTECTED ON A GOOD P+2 RETURN.
 */
 
-static t_stat cpu_vma_pmap(uint32 umapr, uint32 pagid)
+static t_stat cpu_vma_pmap(uint32_t umapr, uint32_t pagid)
 {
-uint32 physpg, ptr, pgpte;
-uint32 mapnm = umapr & 0x7fff;                          /* strip off bit 15 */
+uint32_t physpg, ptr, pgpte;
+uint32_t mapnm = umapr & 0x7fff;                          /* strip off bit 15 */
 
 if (mapnm > 31) {                                       /* check for invalid map register */
     AR = 80;                                            /* error: corrupt EMA/VMA system */
@@ -911,13 +911,13 @@ return SCPE_OK;
        memory accesses).
 */
 
-static t_stat cpu_vma_ijmar(OPSIZE ij, uint32 dtbl, uint32 atbl, uint32* dimret)
+static t_stat cpu_vma_ijmar(OPSIZE ij, uint32_t dtbl, uint32_t atbl, uint32_t* dimret)
 {
 t_stat reason = SCPE_OK;
-uint32 ndim,i,j,value,ws;
+uint32_t ndim,i,j,value,ws;
 int32 accu,ax,dx;
 OP din;
-uint32 opsz = (ij == in_d ? 2 : 1);
+uint32_t opsz = (ij == in_d ? 2 : 1);
 
 ndim = ReadW(dtbl++);                                   /* get #dimensions itself */
 

@@ -33,13 +33,13 @@
 #include <string.h>
 #include "cdc1700_defs.h"
 
-extern uint16 Areg, Mreg, Preg, Qreg, RelBase;
-extern uint16 LoadFromMem(uint16);
-extern uint8 P[];
+extern uint16_t Areg, Mreg, Preg, Qreg, RelBase;
+extern uint16_t LoadFromMem(uint16_t);
+extern uint8_t P[];
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
-extern t_stat disEffectiveAddr(uint16, uint16, uint16 *, uint16 *);
-extern uint16 doADDinternal(uint16, uint16);
+extern t_stat disEffectiveAddr(uint16_t, uint16_t, uint16_t *, uint16_t *);
+extern uint16_t doADDinternal(uint16_t, uint16_t);
 
 const char *opName[] = {
   "???", "JMP", "MUI", "DVI", "STQ", "RTJ", "STA", "SPA",
@@ -134,17 +134,17 @@ const char *enhFldName[] = {
  *      # of words consumed by the instruction
  */
 
-int disassem(char *buf, uint16 addr, t_bool dbg, t_bool targ, t_bool exec)
+int disassem(char *buf, uint16_t addr, t_bool dbg, t_bool targ, t_bool exec)
 {
   int consumed = 1;
   char prot = ISPROTECTED(addr) ? 'P' : ' ';
   char optional[8], optional2[8], temp[8], decoded[64], enhInstr[8];
   const char *mode, *spc, *shift, *inter, *dest;
-  uint16 instr = LoadFromMem(addr);
-  uint16 instr2, enhMode;
-  uint16 delta = instr & OPC_ADDRMASK;
-  uint8 more = 0, isconst = 0, enhRB;
-  uint16 t;
+  uint16_t instr = LoadFromMem(addr);
+  uint16_t instr2, enhMode;
+  uint16_t delta = instr & OPC_ADDRMASK;
+  uint8_t more = 0, isconst = 0, enhRB;
+  uint16_t t;
   t_bool enhValid = FALSE, enhChar = FALSE;
 
   strcpy(optional, "    ");
@@ -420,7 +420,7 @@ int disassem(char *buf, uint16 addr, t_bool dbg, t_bool targ, t_bool exec)
                 case OPC_SPB:
                   if ((instr & OPC_DRPMBZ) == 0) {
                     char reg = enhRegChar[(instr & OPC_DRPRA) >> 5];
-                    uint8 sk = instr & OPC_DRPSK;
+                    uint8_t sk = instr & OPC_DRPSK;
 
                     sprintf(decoded, "D%cP     $%1X", reg, sk);
                     break;
@@ -463,7 +463,7 @@ int disassem(char *buf, uint16 addr, t_bool dbg, t_bool targ, t_bool exec)
 
           case INSTR_ENHANCED:
             if (delta != 0) {
-              uint8 miscFN = instr & OPC_MISCF3;
+              uint8_t miscFN = instr & OPC_MISCF3;
               char reg = enhRegChar[(instr & OPC_MISCRA) >> 5];
 
               targ = FALSE;
@@ -507,7 +507,7 @@ int disassem(char *buf, uint16 addr, t_bool dbg, t_bool targ, t_bool exec)
               {
                 char reg = enhSkipReg[(instr & OPC_ENHSKIPREG) >> 6];
                 char type = enhSkipType[(instr & OPC_ENHSKIPTY) >> 4];
-                uint8 sk = instr & OPC_ENHSKIPCNT;
+                uint8_t sk = instr & OPC_ENHSKIPCNT;
 
                 sprintf(decoded, "S%c%c     $%1X", reg, type, sk);
               }
@@ -560,7 +560,7 @@ int disassem(char *buf, uint16 addr, t_bool dbg, t_bool targ, t_bool exec)
   if (targ) {
     const char *rel = "";
     t_bool indJmp = FALSE;
-    uint16 taddr, taddr2,  base;
+    uint16_t taddr, taddr2,  base;
 
     switch (instr & OPC_MASK) {
       case OPC_ADQ:

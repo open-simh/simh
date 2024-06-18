@@ -116,31 +116,31 @@
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint16 sectsize;    /* sector size, not including pre/postamble */
-    uint16 nsectors;    /* number of sectors/track */
-    uint16 nheads;      /* number of heads */
-    uint16 ntracks;     /* number of tracks */
-    uint16 res_tracks;  /* Number of reserved tracks on drive. */
-    uint16 track;       /* Current Track */
+    uint16_t sectsize;    /* sector size, not including pre/postamble */
+    uint16_t nsectors;    /* number of sectors/track */
+    uint16_t nheads;      /* number of heads */
+    uint16_t ntracks;     /* number of tracks */
+    uint16_t res_tracks;  /* Number of reserved tracks on drive. */
+    uint16_t track;       /* Current Track */
 
-    uint16 cur_sect;    /* current starting sector of transfer */
-    uint16 cur_track;   /* Current Track */
-    uint16 xfr_nsects;  /* Number of sectors to transfer */
-    uint8 ready;        /* Is drive ready? */
+    uint16_t cur_sect;    /* current starting sector of transfer */
+    uint16_t cur_track;   /* Current Track */
+    uint16_t xfr_nsects;  /* Number of sectors to transfer */
+    uint8_t ready;        /* Is drive ready? */
 } DISK3_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8   sel_drive;  /* Currently selected drive */
-    uint8   mode;       /* mode (0xFF=absolute, 0x00=logical) */
-    uint8   retries;    /* Number of retries to attempt */
-    uint8   ndrives;    /* Number of drives attached to the controller */
+    uint8_t   sel_drive;  /* Currently selected drive */
+    uint8_t   mode;       /* mode (0xFF=absolute, 0x00=logical) */
+    uint8_t   retries;    /* Number of retries to attempt */
+    uint8_t   ndrives;    /* Number of drives attached to the controller */
 
-    uint32  link_addr;  /* Link Address for next IOPB */
-    uint32  dma_addr;   /* DMA Address for the current IOPB */
+    uint32_t  link_addr;  /* Link Address for next IOPB */
+    uint32_t  dma_addr;   /* DMA Address for the current IOPB */
 
     DISK3_DRIVE_INFO drive[DISK3_MAX_DRIVES];
-    uint8   iopb[16];
+    uint8_t   iopb[16];
 } DISK3_INFO;
 
 static DISK3_INFO disk3_info_data = { { 0x0, 0, 0x90, 2 } };
@@ -165,17 +165,17 @@ static int32 nheads       = C20MB_NHEADS;
 static int32 nsectors     = C20MB_NSECTORS;
 static int32 sectsize     = C20MB_SECTSIZE;
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index(UNIT *uptr);
-extern void raise_ss1_interrupt(uint8 intnum);
+extern void raise_ss1_interrupt(uint8_t intnum);
 
 /* These are needed for DMA. */
-extern void PutByteDMA(const uint32 Addr, const uint32 Value);
-extern uint8 GetByteDMA(const uint32 Addr);
+extern void PutByteDMA(const uint32_t Addr, const uint32_t Value);
+extern uint8_t GetByteDMA(const uint32_t Addr);
 
 #define UNIT_V_DISK3_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
 #define UNIT_DISK3_VERBOSE      (1 << UNIT_V_DISK3_VERBOSE)
@@ -189,8 +189,8 @@ static const char* disk3_description(DEVICE *dptr);
 
 static int32 disk3dev(const int32 port, const int32 io, const int32 data);
 
-/* static uint8 DISK3_Read(const uint32 Addr); */
-static uint8 DISK3_Write(const uint32 Addr, uint8 cData);
+/* static uint8_t DISK3_Read(const uint32_t Addr); */
+static uint8_t DISK3_Write(const uint32_t Addr, uint8_t cData);
 
 static UNIT disk3_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, DISK3_CAPACITY) },
@@ -396,12 +396,12 @@ static int32 disk3dev(const int32 port, const int32 io, const int32 data)
     }
 }
 
-static uint8 DISK3_Write(const uint32 Addr, uint8 cData)
+static uint8_t DISK3_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint32 next_link;
-    uint8 result = DISK3_STATUS_COMPLETE;
-    uint8 i;
-    uint8 cmd;
+    uint32_t next_link;
+    uint8_t result = DISK3_STATUS_COMPLETE;
+    uint8_t i;
+    uint8_t cmd;
 
     DISK3_DRIVE_INFO *pDrive;
 
@@ -459,7 +459,7 @@ static uint8 DISK3_Write(const uint32 Addr, uint8 cData)
                 break;
             case DISK3_CODE_SPECIFY:
                 {
-                    uint8 specify_data[22];
+                    uint8_t specify_data[22];
                     sim_debug(CMD_MSG, &disk3_dev, "DISK3[%d]: " ADDRESS_FORMAT
                               " SPECIFY\n", disk3_info->sel_drive, PCX);
 
@@ -512,11 +512,11 @@ static uint8 DISK3_Write(const uint32 Addr, uint8 cData)
             }
             case DISK3_CODE_READWRITE:
             {
-                uint32 track_len;
-                uint32 xfr_len;
-                uint32 file_offset;
-                uint32 xfr_count = 0;
-                uint8 *dataBuffer;
+                uint32_t track_len;
+                uint32_t xfr_len;
+                uint32_t file_offset;
+                uint32_t xfr_count = 0;
+                uint8_t *dataBuffer;
                 size_t rtn;
 
                 if(disk3_info->mode == DISK3_MODE_ABS) {
@@ -535,7 +535,7 @@ static uint8 DISK3_Write(const uint32 Addr, uint8 cData)
 
                 xfr_len = pDrive->xfr_nsects * pDrive->sectsize;
 
-                dataBuffer = (uint8 *)malloc(xfr_len);
+                dataBuffer = (uint8_t *)malloc(xfr_len);
 
                 if (dataBuffer == NULL) {
                     sim_printf("%s: memory allocation failure.\n", sim_uname(pDrive->uptr));
@@ -601,9 +601,9 @@ static uint8 DISK3_Write(const uint32 Addr, uint8 cData)
                 }
             case DISK3_CODE_FORMAT:
             {
-                uint32 data_len;
-                uint32 file_offset;
-                uint8 *fmtBuffer;
+                uint32_t data_len;
+                uint32_t file_offset;
+                uint8_t *fmtBuffer;
 
                 data_len = pDrive->nsectors * pDrive->sectsize;
 
@@ -619,7 +619,7 @@ static uint8 DISK3_Write(const uint32 Addr, uint8 cData)
                 file_offset = (pDrive->track * (pDrive->nheads) * data_len); /* Calculate offset based on current track */
                 file_offset += (disk3_info->iopb[DISK3_IOPB_ARG3] * data_len);
 
-                fmtBuffer = (uint8 *)malloc(data_len);
+                fmtBuffer = (uint8_t *)malloc(data_len);
 
                 if (fmtBuffer == NULL) {
                     sim_printf("%s: memory allocation failure.\n", sim_uname(pDrive->uptr));

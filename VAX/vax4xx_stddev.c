@@ -40,8 +40,8 @@
 #define CLK_DELAY       5000                            /* 100 Hz */
 #define TMXR_MULT       1                               /* 100 Hz */
 
-uint32 *rom = NULL;                                     /* boot ROM */
-uint32 *nvr = NULL;                                     /* non-volatile mem */
+uint32_t *rom = NULL;                                     /* boot ROM */
+uint32_t *nvr = NULL;                                     /* non-volatile mem */
 int32 clk_csr = 0;                                      /* control/status */
 int32 clk_tps = 100;                                    /* ticks/second */
 int32 tmr_int = 0;                                      /* interrupt */
@@ -221,7 +221,7 @@ return;
 
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -235,13 +235,13 @@ return SCPE_OK;
 
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= ROMSIZE)
     return SCPE_NXM;
-rom[addr >> 2] = (uint32) val;
+rom[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -250,7 +250,7 @@ return SCPE_OK;
 t_stat rom_reset (DEVICE *dptr)
 {
 if (rom == NULL)
-    rom = (uint32 *) calloc (ROMSIZE >> 2, sizeof (uint32));
+    rom = (uint32_t *) calloc (ROMSIZE >> 2, sizeof (uint32_t));
 if (rom == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -311,7 +311,7 @@ else {
 
 t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -325,13 +325,13 @@ return SCPE_OK;
 
 t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NVRSIZE)
     return SCPE_NXM;
-nvr[addr >> 2] = (uint32) val;
+nvr[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -340,7 +340,7 @@ return SCPE_OK;
 t_stat nvr_reset (DEVICE *dptr)
 {
 if (nvr == NULL) {
-    nvr = (uint32 *) calloc (NVRSIZE >> 2, sizeof (uint32));
+    nvr = (uint32_t *) calloc (NVRSIZE >> 2, sizeof (uint32_t));
     nvr_unit.filebuf = nvr;
     }
 if (nvr == NULL)
@@ -370,7 +370,7 @@ r = attach_unit (uptr, cptr);
 if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     wtc_set_valid ();
     }
 return r;
@@ -403,12 +403,12 @@ return "non-volatile memory";
 
 int32 or_rd (int32 pa)
 {
-uint32 off = (pa - ORBASE);                             /* offset from start of option roms */
-uint32 rn = ((off >> 18) & 0x3);                        /* rom number (0 - 3) */
+uint32_t off = (pa - ORBASE);                             /* offset from start of option roms */
+uint32_t rn = ((off >> 18) & 0x3);                        /* rom number (0 - 3) */
 UNIT *uptr = &or_dev.units[rn];                         /* get unit */
-uint8 *opr = (uint8*) uptr->filebuf;
+uint8_t *opr = (uint8_t*) uptr->filebuf;
 int32 data = 0;
-uint32 rg;
+uint32_t rg;
 
 if ((uptr->flags & UNIT_ATT) && (opr != NULL)) {
     switch (opr[0]) {                                    /* number of ROM chips */
@@ -451,7 +451,7 @@ fprintf (st, "which option boards are present.\n");
 return SCPE_OK;
 }
 
-t_stat or_map (uint32 index, uint8 *rom, t_addr size)
+t_stat or_map (uint32_t index, uint8_t *rom, t_addr size)
 {
 UNIT *uptr = &or_unit[index];
 uptr->filebuf = (void *)rom;
@@ -460,7 +460,7 @@ uptr->flags |= UNIT_ATT;
 return SCPE_OK;
 }
 
-t_stat or_unmap (uint32 index)
+t_stat or_unmap (uint32_t index)
 {
 UNIT *uptr = &or_unit[index];
 uptr->filebuf = NULL;
@@ -537,22 +537,22 @@ return "100hz clock tick";
 
 /* Dummy I/O space functions */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32 ReadIO (uint32_t pa, int32 lnt)
 {
 return 0;
 }
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32 val, int32 lnt)
 {
 return;
 }
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32 ReadIOU (uint32_t pa, int32 lnt)
 {
 return 0;
 }
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32 val, int32 lnt)
 {
 return;
 }

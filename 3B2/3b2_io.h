@@ -176,36 +176,36 @@
 
 typedef struct {
     t_bool populated;                    /* Populated?                       */
-    uint16 id;                           /* CIO identifier                   */
+    uint16_t id;                           /* CIO identifier                   */
     char   name[CIO_NAME_LEN];           /* Device name                      */
-    void   (*exp_handler)(uint8 slot);   /* Handler for express jobs         */
-    void   (*full_handler)(uint8 slot);  /* Handler for full jobs            */
-    void   (*sysgen)(uint8 slot);        /* Sysgen routine (optional)        */
-    void   (*reset_handler)(uint8 slot); /* RESET request handler (optional) */
-    uint32 rqp;                          /* Request Queue Pointer            */
-    uint32 cqp;                          /* Completion Queue Pointer         */
-    uint8  rqs;                          /* Request queue size               */
-    uint8  cqs;                          /* Completion queue size            */
-    uint8  ivec;                         /* Interrupt Vector                 */
-    uint8  no_rque;                      /* Number of request queues         */
-    uint8  ipl;                          /* IPL that this card uses          */
-    uint8  sysgen_s;                     /* Sysgen state                     */
-    uint8  seqbit;                       /* Squence Bit                      */
-    uint8  op;                           /* Last received opcode             */
+    void   (*exp_handler)(uint8_t slot);   /* Handler for express jobs         */
+    void   (*full_handler)(uint8_t slot);  /* Handler for full jobs            */
+    void   (*sysgen)(uint8_t slot);        /* Sysgen routine (optional)        */
+    void   (*reset_handler)(uint8_t slot); /* RESET request handler (optional) */
+    uint32_t rqp;                          /* Request Queue Pointer            */
+    uint32_t cqp;                          /* Completion Queue Pointer         */
+    uint8_t  rqs;                          /* Request queue size               */
+    uint8_t  cqs;                          /* Completion queue size            */
+    uint8_t  ivec;                         /* Interrupt Vector                 */
+    uint8_t  no_rque;                      /* Number of request queues         */
+    uint8_t  ipl;                          /* IPL that this card uses          */
+    uint8_t  sysgen_s;                     /* Sysgen state                     */
+    uint8_t  seqbit;                       /* Squence Bit                      */
+    uint8_t  op;                           /* Last received opcode             */
 } CIO_STATE;
 
 typedef struct {
-    uint16 byte_count;
-    uint8  subdevice;
-    uint8  opcode;
-    uint32 address;
+    uint16_t byte_count;
+    uint8_t  subdevice;
+    uint8_t  opcode;
+    uint32_t address;
 } cio_entry;
 
 typedef struct {
-    uint32      low;
-    uint32      high;
-    uint32      (*read)(uint32 pa, size_t size);
-    void        (*write)(uint32 pa, uint32 val, size_t size);
+    uint32_t      low;
+    uint32_t      high;
+    uint32_t      (*read)(uint32_t pa, size_t size);
+    void        (*write)(uint32_t pa, uint32_t val, size_t size);
 } iolink;
 
 /* Example pump structure
@@ -225,47 +225,47 @@ typedef struct {
  */
 
 typedef struct {
-    uint16 dev;
-    uint16 min;
-    uint16 cmdcode;
-    uint16 options;
-    uint32 bufaddr;
-    uint32 ioaddr;
-    uint32 size;
-    uint32 numbrd;
-    uint32 retcode;
+    uint16_t dev;
+    uint16_t min;
+    uint16_t cmdcode;
+    uint16_t options;
+    uint32_t bufaddr;
+    uint32_t ioaddr;
+    uint32_t size;
+    uint32_t numbrd;
+    uint32_t retcode;
 } pump;
 
 t_stat cio_reset(DEVICE *dptr);
 t_stat cio_svc(UNIT *uptr);
 
-t_stat cio_install(uint16 id,
+t_stat cio_install(uint16_t id,
                    CONST char *name,
-                   uint8 ipl,
-                   void (*exp_handler)(uint8 slot),
-                   void (*full_handler)(uint8 slot),
-                   void (*sysgen)(uint8 slot),
-                   void (*reset_handler)(uint8 slot),
-                   uint8 *slot);
-void cio_remove(uint8 slot);
-void cio_remove_all(uint16 id);
-uint32 cio_crc32_shift(uint32 crc, uint8 data);
-void cio_cexpress(uint8 slot, uint32 esize, cio_entry *cqe, uint8 *app_data);
-void cio_cqueue(uint8 slot, uint8 cmd_stat, uint32 esize, cio_entry *cqe, uint8 *app_data);
-t_bool cio_cqueue_avail(uint8 slot, uint32 esize);
-void cio_rexpress(uint8 slot, uint32 esize, cio_entry *rqe, uint8 *app_data);
-t_stat cio_rqueue(uint8 slot, uint32 qnum, uint32 esize, cio_entry *rqe, uint8 *app_data);
-t_bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize);
-uint16 cio_r_lp(uint8 slot, uint32 qnum, uint32 esize);
-uint16 cio_r_ulp(uint8 slot, uint32 qnum, uint32 esize);
-uint16 cio_c_lp(uint8 slot, uint32 esize);
-uint16 cio_c_ulp(uint8 slot, uint32 esize);
-void cio_sysgen(uint8 slot);
+                   uint8_t ipl,
+                   void (*exp_handler)(uint8_t slot),
+                   void (*full_handler)(uint8_t slot),
+                   void (*sysgen)(uint8_t slot),
+                   void (*reset_handler)(uint8_t slot),
+                   uint8_t *slot);
+void cio_remove(uint8_t slot);
+void cio_remove_all(uint16_t id);
+uint32_t cio_crc32_shift(uint32_t crc, uint8_t data);
+void cio_cexpress(uint8_t slot, uint32_t esize, cio_entry *cqe, uint8_t *app_data);
+void cio_cqueue(uint8_t slot, uint8_t cmd_stat, uint32_t esize, cio_entry *cqe, uint8_t *app_data);
+t_bool cio_cqueue_avail(uint8_t slot, uint32_t esize);
+void cio_rexpress(uint8_t slot, uint32_t esize, cio_entry *rqe, uint8_t *app_data);
+t_stat cio_rqueue(uint8_t slot, uint32_t qnum, uint32_t esize, cio_entry *rqe, uint8_t *app_data);
+t_bool cio_rqueue_avail(uint8_t slot, uint32_t qnum, uint32_t esize);
+uint16_t cio_r_lp(uint8_t slot, uint32_t qnum, uint32_t esize);
+uint16_t cio_r_ulp(uint8_t slot, uint32_t qnum, uint32_t esize);
+uint16_t cio_c_lp(uint8_t slot, uint32_t esize);
+uint16_t cio_c_ulp(uint8_t slot, uint32_t esize);
+void cio_sysgen(uint8_t slot);
 
-uint32 io_read(uint32 pa, size_t size);
-void io_write(uint32 pa, uint32 val, size_t size);
+uint32_t io_read(uint32_t pa, size_t size);
+void io_write(uint32_t pa, uint32_t val, size_t size);
 
-extern uint16 cio_int_req;
+extern uint16_t cio_int_req;
 extern CIO_STATE cio[CIO_SLOTS];
 
 #endif

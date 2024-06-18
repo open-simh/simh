@@ -40,7 +40,7 @@
    24-Aug-16    JDB     Fixed the UNIT_CPU_MODEL test macro
    23-Aug-16    JDB     Added the MOD (module control) register
    12-Jul-16    JDB     Renamed "loading" EXEC_STATE to "waiting"
-   21-Mar-16    JDB     Changed cpu_ccb_table type from uint16 to HP_WORD
+   21-Mar-16    JDB     Changed cpu_ccb_table type from uint16_t to HP_WORD
    14-Feb-16    JDB     First release version
    11-Dec-12    JDB     Created
 
@@ -333,7 +333,7 @@ typedef enum {
 #define trap_SysHalt_LOCK_EI        TO_DWORD (23, trap_System_Halt)
 #define trap_SysHalt_Trace_1        TO_DWORD (33, trap_System_Halt)
 
-#define PARAM(i)            (uint32)     UPPER_WORD (i)
+#define PARAM(i)            (uint32_t)     UPPER_WORD (i)
 #define TRAP(i)             (TRAP_CLASS) LOWER_WORD (i)
 
 #define MICRO_ABORT(t)      longjmp (cpu_save_env, (t))
@@ -1070,7 +1070,7 @@ extern DEVICE cpu_dev;                          /* Central Processing Unit */
 extern jmp_buf     cpu_save_env;                /* saved environment for microcode aborts */
 extern POWER_STATE cpu_power_state;             /* power supply state */
 extern EXEC_STATE  cpu_micro_state;             /* micromachine execution state */
-extern uint32      cpu_stop_flags;              /* set of simulation stop flags */
+extern uint32_t      cpu_stop_flags;              /* set of simulation stop flags */
 extern t_bool      cpu_base_changed;            /* TRUE if any base register has been changed */
 extern UNIT        cpu_unit [];                 /* CPU unit array (needed for memory size) */
 
@@ -1087,11 +1087,11 @@ extern void cpu_pop        (void);
 extern void cpu_queue_up   (void);
 extern void cpu_queue_down (void);
 extern void cpu_flush      (void);
-extern void cpu_adjust_sr  (uint32 target);
+extern void cpu_adjust_sr  (uint32_t target);
 extern void cpu_mark_stack (void);
 
 extern void   cpu_ea      (HP_WORD mode_disp, ACCESS_CLASS *class, HP_WORD *offset, BYTE_SELECTOR *selector);
-extern uint32 cpu_byte_ea (ACCESS_CLASS class, uint32 byte_offset, uint32 block_length);
+extern uint32_t cpu_byte_ea (ACCESS_CLASS class, uint32_t byte_offset, uint32_t block_length);
 
 extern void cpu_setup_irq_handler  (IRQ_CLASS class, HP_WORD parameter);
 extern void cpu_setup_ics_irq      (IRQ_CLASS class, TRAP_CLASS trap);

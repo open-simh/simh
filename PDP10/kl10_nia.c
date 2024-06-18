@@ -198,7 +198,7 @@
 #define NIA_CNT_RS8   053           /* Reserved for ucode */
 #define NIA_CNT_LEN   054           /* # of counters */
 
-typedef uint32 in_addr_T;
+typedef uint32_t in_addr_T;
 
 #define ETHTYPE_ARP 0x0806
 #define ETHTYPE_IP  0x0800
@@ -207,7 +207,7 @@ PACKED_BEGIN
 struct nia_eth_hdr {
     ETH_MAC    dest;
     ETH_MAC    src;
-    uint16     type;
+    uint16_t     type;
 } PACKED_END;
 
 /*
@@ -215,17 +215,17 @@ struct nia_eth_hdr {
  */
 PACKED_BEGIN
 struct ip {
-    uint8           ip_v_hl;            /* version,header length */
-    uint8           ip_tos;             /* type of service */
-    uint16          ip_len;             /* total length */
-    uint16          ip_id;              /* identification */
-    uint16          ip_off;             /* fragment offset field */
+    uint8_t           ip_v_hl;            /* version,header length */
+    uint8_t           ip_tos;             /* type of service */
+    uint16_t          ip_len;             /* total length */
+    uint16_t          ip_id;              /* identification */
+    uint16_t          ip_off;             /* fragment offset field */
 #define IP_DF 0x4000                    /* don't fragment flag */
 #define IP_MF 0x2000                    /* more fragments flag */
 #define IP_OFFMASK 0x1fff               /* mask for fragmenting bits */
-    uint8           ip_ttl;             /* time to live */
-    uint8           ip_p;               /* protocol */
-    uint16          ip_sum;             /* checksum */
+    uint8_t           ip_ttl;             /* time to live */
+    uint8_t           ip_p;               /* protocol */
+    uint16_t          ip_sum;             /* checksum */
     in_addr_T       ip_src;
     in_addr_T       ip_dst;             /* source and dest address */
 } PACKED_END;
@@ -233,46 +233,46 @@ struct ip {
 #define TCP_PROTO  6
 PACKED_BEGIN
 struct tcp {
-    uint16          tcp_sport;          /* Source port */
-    uint16          tcp_dport;          /* Destination port */
-    uint32          seq;                /* Sequence number */
-    uint32          ack;                /* Ack number */
-    uint16          flags;              /* Flags */
+    uint16_t          tcp_sport;          /* Source port */
+    uint16_t          tcp_dport;          /* Destination port */
+    uint32_t          seq;                /* Sequence number */
+    uint32_t          ack;                /* Ack number */
+    uint16_t          flags;              /* Flags */
 #define TCP_FL_FIN  0x01
 #define TCP_FL_SYN  0x02
 #define TCP_FL_RST  0x04
 #define TCP_FL_PSH  0x08
 #define TCP_FL_ACK  0x10
 #define TCP_FL_URG  0x20
-    uint16          window;             /* Window size */
-    uint16          chksum;             /* packet checksum */
-    uint16          urgent;             /* Urgent pointer */
+    uint16_t          window;             /* Window size */
+    uint16_t          chksum;             /* packet checksum */
+    uint16_t          urgent;             /* Urgent pointer */
 } PACKED_END;
 
 #define UDP_PROTO 17
 PACKED_BEGIN
 struct udp {
-    uint16          udp_sport;          /* Source port */
-    uint16          udp_dport;          /* Destination port */
-    uint16          len;                /* Length */
-    uint16          chksum;             /* packet checksum */
+    uint16_t          udp_sport;          /* Source port */
+    uint16_t          udp_dport;          /* Destination port */
+    uint16_t          len;                /* Length */
+    uint16_t          chksum;             /* packet checksum */
 } PACKED_END;
 
 PACKED_BEGIN
 struct udp_hdr {
     in_addr_T       ip_src;
     in_addr_T       ip_dst;             /* source and dest address */
-    uint8           zero;
-    uint8           proto;              /* Protocol */
-    uint16          hlen;               /* Length of header and data */
+    uint8_t           zero;
+    uint8_t           proto;              /* Protocol */
+    uint16_t          hlen;               /* Length of header and data */
 } PACKED_END;
 
 #define ICMP_PROTO 1
 PACKED_BEGIN
 struct icmp {
-    uint8           type;               /* Type of packet */
-    uint8           code;               /* Code */
-    uint16          chksum;             /* packet checksum */
+    uint8_t           type;               /* Type of packet */
+    uint8_t           code;               /* Code */
+    uint16_t          chksum;             /* packet checksum */
 } PACKED_END;
 
 PACKED_BEGIN
@@ -288,16 +288,16 @@ struct ip_hdr {
 PACKED_BEGIN
 struct arp_hdr {
     struct nia_eth_hdr  ethhdr;
-    uint16              hwtype;
-    uint16              protocol;
-    uint8               hwlen;
-    uint8               protolen;
-    uint16              opcode;
+    uint16_t              hwtype;
+    uint16_t              protocol;
+    uint8_t               hwlen;
+    uint8_t               protolen;
+    uint16_t              opcode;
     ETH_MAC             shwaddr;
     in_addr_T           sipaddr;
     ETH_MAC             dhwaddr;
     in_addr_T           dipaddr;
-    uint8               padding[18];
+    uint8_t               padding[18];
 } PACKED_END;
 
 struct nia_device {
@@ -310,7 +310,7 @@ struct nia_device {
     ETH_PACK          snd_buff;                /* Buffer for sending packet */
     t_addr            cmd_entry;               /* Pointer to current command entry */
     t_addr            cmd_rply;                /* Pointer to reply entry */
-    uint8             cmd_status;              /* Status feild of current command */
+    uint8_t             cmd_status;              /* Status feild of current command */
     t_addr            rec_entry;               /* Pointer to current recieve entry */
     t_addr            pcb;                     /* Address of PCB */
     t_addr            rcb;                     /* Read count buffer address */
@@ -325,7 +325,7 @@ struct nia_device {
     uint64            pcnt[NIA_CNT_LEN];       /* Counters */
 
     int               ptt_n;                   /* Number of Protocol entries */
-    uint16            ptt_proto[17];           /* Protocol for entry */
+    uint16_t            ptt_proto[17];           /* Protocol for entry */
     t_addr            ptt_head[17];            /* Head of protocol queue */
     int               macs_n;                  /* Number of multi-cast addresses */
     ETH_MAC           macs[20];                /* Watched Multi-cast addresses */
@@ -335,7 +335,7 @@ struct nia_device {
     int               rar;
     uint64            ebuf;
     uint64            status;                  /* Status of device. */
-    uint32            uver[4];                 /* Version information */
+    uint32_t            uver[4];                 /* Version information */
     int               r_pkt;                   /* Packet pending */
     int               poll;                    /* Need to poll receiver */
 } nia_data;
@@ -345,7 +345,7 @@ extern int32 tmxr_poll;
 
 static CONST ETH_MAC broadcast_ethaddr = {0xff,0xff,0xff,0xff,0xff,0xff};
 
-t_stat         nia_devio(uint32 dev, uint64 *data);
+t_stat         nia_devio(uint32_t dev, uint64 *data);
 void           nia_start();
 void           nia_stop();
 void           nia_enable();
@@ -423,7 +423,7 @@ DEVICE nia_dev = {
     NULL, NULL, &nia_help, NULL, NULL, &nia_description
 };
 
-t_stat nia_devio(uint32 dev, uint64 *data)
+t_stat nia_devio(uint32_t dev, uint64 *data)
 {
     DEVICE *dptr = &nia_dev;
     UNIT   *uptr = nia_cmd_uptr;
@@ -469,7 +469,7 @@ t_stat nia_devio(uint32 dev, uint64 *data)
         if (nia_data.status & (NIA_CPE|NIA_RQA))
             set_interrupt(NIA_DEVNUM, nia_data.status & NIA_PIA);
         sim_debug(DEBUG_CONO, dptr, "NIA %03o CONO %06o PC=%06o %012llo\n", dev,
-                 (uint32)(*data & RMASK), PC, nia_data.status);
+                 (uint32_t)(*data & RMASK), PC, nia_data.status);
         break;
     case CONI:
         *data = nia_data.status|NIA_PPT|NIA_PID;
@@ -481,14 +481,14 @@ t_stat nia_devio(uint32 dev, uint64 *data)
             nia_data.ebuf = *data;
         } else {
             if (*data & NIA_LRA) {
-                nia_data.rar = (uint32)((*data & NIA_RAR) >> 22);
+                nia_data.rar = (uint32_t)((*data & NIA_RAR) >> 22);
                 sim_debug(DEBUG_DETAIL, dptr, "NIA %03o set RAR=%o\n",
                  dev, nia_data.rar);
             } else {
                 if (nia_data.rar >= 0274 && nia_data.rar <= 0277)
-                   nia_data.uver[nia_data.rar - 0274] = (uint32)(*data & RMASK);
+                   nia_data.uver[nia_data.rar - 0274] = (uint32_t)(*data & RMASK);
                 sim_debug(DEBUG_DETAIL, dptr, "NIA %03o set data=%o %06o\n",
-                 dev, nia_data.rar, (uint32)(*data & RMASK));
+                 dev, nia_data.rar, (uint32_t)(*data & RMASK));
             }
         }
         sim_debug(DEBUG_DATAIO, dptr, "NIA %03o DATO %012llo PC=%o\n",
@@ -649,16 +649,16 @@ void nia_cpy_mac(uint64 word1, uint64 word2, ETH_MAC *mac)
 /*
  * Copy memory to a packet.
  */
-uint8 *nia_cpy_to(t_addr addr, uint8 *data, int len)
+uint8_t *nia_cpy_to(t_addr addr, uint8_t *data, int len)
 {
     uint64    word;
     /* Copy full words */
     while (len > 3) {
         word = M[addr++];
-        *data++ = (uint8)((word >> 28) & 0xff);
-        *data++ = (uint8)((word >> 20) & 0xff);
-        *data++ = (uint8)((word >> 12) & 0xff);
-        *data++ = (uint8)((word >> 4) & 0xff);
+        *data++ = (uint8_t)((word >> 28) & 0xff);
+        *data++ = (uint8_t)((word >> 20) & 0xff);
+        *data++ = (uint8_t)((word >> 12) & 0xff);
+        *data++ = (uint8_t)((word >> 4) & 0xff);
          len -= 4;
     }
     /* Grab last partial word */
@@ -666,16 +666,16 @@ uint8 *nia_cpy_to(t_addr addr, uint8 *data, int len)
         word = M[addr++];
         switch (len) {
         case 3:
-                *data++ = (uint8)((word >> 28) & 0xff);
-                *data++ = (uint8)((word >> 20) & 0xff);
-                *data++ = (uint8)((word >> 12) & 0xff);
+                *data++ = (uint8_t)((word >> 28) & 0xff);
+                *data++ = (uint8_t)((word >> 20) & 0xff);
+                *data++ = (uint8_t)((word >> 12) & 0xff);
                 break;
         case 2:
-                *data++ = (uint8)((word >> 28) & 0xff);
-                *data++ = (uint8)((word >> 20) & 0xff);
+                *data++ = (uint8_t)((word >> 28) & 0xff);
+                *data++ = (uint8_t)((word >> 20) & 0xff);
                 break;
         case 1:
-                *data++ = (uint8)((word >> 28) & 0xff);
+                *data++ = (uint8_t)((word >> 28) & 0xff);
                 break;
         }
     }
@@ -685,7 +685,7 @@ uint8 *nia_cpy_to(t_addr addr, uint8 *data, int len)
 /*
  * Copy a packet to memory.
  */
-uint8 *nia_cpy_from(t_addr addr, uint8 *data, int len)
+uint8_t *nia_cpy_from(t_addr addr, uint8_t *data, int len)
 {
     uint64    word;
 
@@ -877,9 +877,9 @@ void nia_load_ptt()
         sim_debug(DEBUG_DETAIL, &nia_dev, "NIA load ptt%d: %012llo %012llo\n",
               n,  word1, word2);
         if (word1 & SMASK) {
-           uint16 type;
-           type = (uint16)(word1 >> 12) & 0xff;
-           type |= (uint16)(word1 << 4) & 0xff00;
+           uint16_t type;
+           type = (uint16_t)(word1 >> 12) & 0xff;
+           type |= (uint16_t)(word1 << 4) & 0xff00;
            nia_data.ptt_proto[n] = type;
            nia_data.ptt_head[n] = (t_addr)(word2 &AMASK) - 1;
            n++;
@@ -944,7 +944,7 @@ void nia_packet_debug(struct nia_device *nia, const char *action,
     struct udp         *udp;
     struct tcp         *tcp;
     struct icmp        *icmp;
-    uint8              *payload;
+    uint8_t              *payload;
     struct in_addr     ipaddr;
     size_t             len;
     int                flag;
@@ -955,7 +955,7 @@ void nia_packet_debug(struct nia_device *nia, const char *action,
     char               flags[64];
     static struct tcp_flag_bits {
         const char *name;
-        uint16      bitmask;
+        uint16_t      bitmask;
         } bits[] = {
             {"FIN", TCP_FL_FIN},
             {"SYN", TCP_FL_SYN},
@@ -1035,7 +1035,7 @@ void nia_packet_debug(struct nia_device *nia, const char *action,
         return;
     }
     if (ntohs(eth->type) != ETHTYPE_IP) {
-        payload = (uint8 *)&packet->msg[sizeof(struct nia_eth_hdr)];
+        payload = (uint8_t *)&packet->msg[sizeof(struct nia_eth_hdr)];
         len = packet->len - sizeof(struct nia_eth_hdr);
         sim_data_trace(&nia_dev, nia_unit, payload, "", len, "", DEBUG_DATA);
         return;
@@ -1046,7 +1046,7 @@ void nia_packet_debug(struct nia_device *nia, const char *action,
     strlcpy(src_ip, ipv4_inet_ntoa(ipaddr), sizeof(src_ip));
     memcpy(&ipaddr, &ip->ip_dst, sizeof(ipaddr));
     strlcpy(dst_ip, ipv4_inet_ntoa(ipaddr), sizeof(dst_ip));
-    payload = (uint8 *)&packet->msg[sizeof(struct nia_eth_hdr) + (ip->ip_v_hl & 0xf) * 4];
+    payload = (uint8_t *)&packet->msg[sizeof(struct nia_eth_hdr) + (ip->ip_v_hl & 0xf) * 4];
     switch (ip->ip_p) {
         case UDP_PROTO:
             udp = (struct udp *)payload;
@@ -1098,9 +1098,9 @@ int nia_send_pkt(uint64 cmd)
 {
     uint64    word1, word2;
     struct    nia_eth_hdr  *hdr = (struct nia_eth_hdr *)(&nia_data.snd_buff.msg[0]);
-    uint8     *data = &nia_data.snd_buff.msg[sizeof(struct nia_eth_hdr)];
+    uint8_t     *data = &nia_data.snd_buff.msg[sizeof(struct nia_eth_hdr)];
     ETH_MAC   dest;
-    uint16    type;
+    uint16_t    type;
     int       len;
     int       blen;
 
@@ -1129,8 +1129,8 @@ int nia_send_pkt(uint64 cmd)
         nia_error(EBSERR);
         return 0;
     }
-    type = (uint16)(word1 >> 12) & 0xff;
-    type |= (uint16)(word1 << 4) & 0xff00;
+    type = (uint16_t)(word1 >> 12) & 0xff;
+    type |= (uint16_t)(word1 << 4) & 0xff00;
     hdr->type = htons(type);
 
     /* Load destination address */
@@ -1206,7 +1206,7 @@ int nia_send_pkt(uint64 cmd)
 t_stat nia_cmd_srv(UNIT * uptr)
 {
     uint64    word1, word2;
-    uint32    cmd;
+    uint32_t    cmd;
     int       len, i;
     int       err;
 
@@ -1244,9 +1244,9 @@ t_stat nia_cmd_srv(UNIT * uptr)
         nia_error(EBSERR);
         return SCPE_OK;
     }
-    cmd = (uint32)(word1 >> 12);
+    cmd = (uint32_t)(word1 >> 12);
     /* Save initial status */
-    nia_data.cmd_status = ((uint8)(cmd >> 16)) & 0xff;
+    nia_data.cmd_status = ((uint8_t)(cmd >> 16)) & 0xff;
     sim_debug(DEBUG_DETAIL, &nia_dev, "NIA cmd: %08x\n", cmd);
     cmd &= 0xffff;
     len = 5;
@@ -1371,13 +1371,13 @@ int
 nia_rec_pkt()
 {
     struct nia_eth_hdr  *hdr;
-    uint16              type;
+    uint16_t              type;
     int                 i;
     int                 len;
     t_addr              queue;
     t_addr              bsd;
     uint64              word;
-    uint8               *data;
+    uint8_t               *data;
 
     /* See if we have received packet to process */
     if (nia_data.rec_entry != 0) {
@@ -1436,9 +1436,9 @@ nia_rec_pkt()
         return 0;
     }
     (void)nia_cpy_from(nia_data.rec_entry + 5,
-                         (uint8 *)&hdr->dest, sizeof(ETH_MAC));
+                         (uint8_t *)&hdr->dest, sizeof(ETH_MAC));
     (void)nia_cpy_from(nia_data.rec_entry + 7,
-                         (uint8 *)&hdr->src, sizeof(ETH_MAC));
+                         (uint8_t *)&hdr->src, sizeof(ETH_MAC));
     word = (uint64)(((type & 0xff00) >> 4) |
                            ((type & 0xff) << 12));
     if (Mem_write_word(nia_data.rec_entry + 9, &word, 0)) {
@@ -1490,7 +1490,7 @@ nia_rec_pkt()
 t_stat nia_eth_srv(UNIT * uptr)
 {
     struct nia_eth_hdr  *hdr;
-    uint16              type;
+    uint16_t              type;
 
     if (nia_data.poll)
         sim_clock_coschedule(uptr, 1000);             /* continue poll */

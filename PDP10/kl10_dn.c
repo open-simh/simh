@@ -175,15 +175,15 @@
 
 
 extern int32 tmxr_poll;
-t_stat dn_devio(uint32 dev, uint64 *data);
-t_addr dn_devirq(uint32 dev, t_addr addr);
+t_stat dn_devio(uint32_t dev, uint64 *data);
+t_addr dn_devirq(uint32_t dev, t_addr addr);
 void   dn_second(UNIT *uptr);
 void   dn_primary(UNIT *uptr);
 void   dn_transfer(UNIT *uptr);
 void   dn_function(UNIT *uptr);
 void   dn_input();
 int    dn_start(UNIT *uptr);
-int    dn_queue(int func, int dev, int dcnt, uint16 *data);
+int    dn_queue(int func, int dev, int dcnt, uint16_t *data);
 t_stat dni_svc (UNIT *uptr);
 t_stat dn_svc (UNIT *uptr);
 t_stat dno_svc (UNIT *uptr);
@@ -200,18 +200,18 @@ extern CONST char *pri_name[];
 #define STATUS            u3
 #define CNT               u4
 
-extern uint32  eb_ptr;
+extern uint32_t  eb_ptr;
 
 struct _dn_queue {
     int         dptr;      /* Pointer to working item */
-    uint16      cnt;       /* Number of bytes in packet */
-    uint16      func;      /* Function code */
-    uint16      dev;       /* Dev code */
-    uint16      spare;     /* Dev code */
-    uint16      dcnt;      /* Data count */
-    uint16      data[258]; /* Data packet */
-    uint16      sdev;      /* Secondary device code */
-    uint16      sz;        /* Byte size */
+    uint16_t      cnt;       /* Number of bytes in packet */
+    uint16_t      func;      /* Function code */
+    uint16_t      dev;       /* Dev code */
+    uint16_t      spare;     /* Dev code */
+    uint16_t      dcnt;      /* Data count */
+    uint16_t      data[258]; /* Data packet */
+    uint16_t      sdev;      /* Secondary device code */
+    uint16_t      sz;        /* Byte size */
 } dn_in[32], dn_out[32];
 
 int32 dn_in_ptr;
@@ -282,16 +282,16 @@ DEVICE dn_dev = {
     };
 
 
-t_stat dn_devio(uint32 dev, uint64 *data) {
-     uint32     res;
+t_stat dn_devio(uint32_t dev, uint64 *data) {
+     uint32_t     res;
      switch(dev & 3) {
      case CONI:
         *data = (uint64)(dn_unit[0].STATUS) & RMASK;
         *data |= DTE_RM;    /* Restricted mode */
-        sim_debug(DEBUG_CONI, &dn_dev, "DN %03o CONI %06o\n", dev, (uint32)*data);
+        sim_debug(DEBUG_CONI, &dn_dev, "DN %03o CONI %06o\n", dev, (uint32_t)*data);
         break;
      case CONO:
-         res = (uint32)(*data & RMASK);
+         res = (uint32_t)(*data & RMASK);
          clr_interrupt(dev);
          if (res & DTE_PIENB) {
              dn_unit[0].STATUS &= ~(DTE_PIA|DTE_PIE);
@@ -318,15 +318,15 @@ t_stat dn_devio(uint32 dev, uint64 *data) {
          if (dn_unit[0].STATUS & (DTE_10DB|DTE_11DN|DTE_10DN|DTE_11ER|DTE_10ER))
              set_interrupt(dev, dn_unit[0].STATUS);
          sim_debug(DEBUG_CONO, &dn_dev, "DN %03o CONO %06o %06o\n", dev,
-                      (uint32)*data, PC);
+                      (uint32_t)*data, PC);
          break;
      case DATAI:
          sim_debug(DEBUG_DATAIO, &dn_dev, "DN %03o DATAI %06o\n", dev,
-                      (uint32)*data);
+                      (uint32_t)*data);
          break;
     case DATAO:
          sim_debug(DEBUG_DATAIO, &dn_dev, "DN %03o DATAO %06o\n", dev,
-                      (uint32)*data);
+                      (uint32_t)*data);
          if (*data == 01365) {
              dn_unit[0].STATUS |= DTE_10ER;
              dn_unit[0].STATUS &= ~(DTE_10DB|DTE_IND|DTE_11DB);
@@ -342,7 +342,7 @@ t_stat dn_devio(uint32 dev, uint64 *data) {
 
 /* Handle KL style interrupt vectors */
 t_addr
-dn_devirq(uint32 dev, t_addr addr) {
+dn_devirq(uint32_t dev, t_addr addr) {
     return 0152;
 }
 
@@ -366,7 +366,7 @@ t_stat dn_svc (UNIT *uptr)
 void dn_second(UNIT *uptr) {
     uint64   word;
     int32    ch;
-    uint32   base = 0;
+    uint32_t   base = 0;
 int i;
 
 #if KI_22BIT
@@ -484,7 +484,7 @@ void dn_primary(UNIT *uptr) {
     int      s;
     int      cnt;
     struct   _dn_queue *in;
-    uint16   data1, *dp;
+    uint16_t   data1, *dp;
 int i;
 
     if ((uptr->STATUS & DTE_11DB) == 0)
@@ -521,7 +521,7 @@ for (i = 0; i <200; i++) {
 }
     /* Check status word to see if valid */
     if (Mem_examine_word(1, dn_et11_off + PRI_CMTW_STS, &word)) {
-         uint32   base;
+         uint32_t   base;
 error:
          base = 0;
 #if KI_22BIT
@@ -574,7 +574,7 @@ error:
         if (Mem_examine_word(1, dn_et11_off + PRI_CMTW_CNT, &iword))
             goto error;
         sim_debug(DEBUG_EXP, &dn_dev, "DTE: count: %012llo\n", iword);
-        in->dcnt = (uint16)(iword & 0177777);
+        in->dcnt = (uint16_t)(iword & 0177777);
         /* Read in data */
         dp = &in->data[0];
         for (cnt = in->dcnt; cnt > 0; cnt --) {
@@ -652,7 +652,7 @@ error:
 void
 dn_function(UNIT *uptr)
 {
-    uint16    data1[32];
+    uint16_t    data1[32];
     int32     ch;
     struct _dn_queue *cmd;
     int       func;
@@ -810,10 +810,10 @@ cty:
  * Send to 10 when requested.
  */
 void dn_transfer(UNIT *uptr) {
-    uint16   cnt;
-    uint16   scnt;
+    uint16_t   cnt;
+    uint16_t   scnt;
     struct   _dn_queue *out;
-    uint16   *dp;
+    uint16_t   *dp;
 int i;
 
 
@@ -875,7 +875,7 @@ uint64 word;
            goto error;
        cnt -= 2;
        if (out->func & PRI_IND_FLG) {
-           uint16 dwrd = out->dcnt;
+           uint16_t dwrd = out->dcnt;
            sim_debug(DEBUG_DATA, &dn_dev, "DTE: Indirect %o %o\n", cnt,
                               out->dcnt);
            dwrd |= (out->sdev << 8);
@@ -907,8 +907,8 @@ error:
 void
 dn_input()
 {
-    uint16  data1;
-    uint16  dataq[32];
+    uint16_t  data1;
+    uint16_t  dataq[32];
     int     n;
     int     ln;
     int     save_ptr;
@@ -946,9 +946,9 @@ dn_input()
  * Queue up a packet to send to 10.
  */
 int
-dn_queue(int func, int dev, int dcnt, uint16 *data)
+dn_queue(int func, int dev, int dcnt, uint16_t *data)
 {
-    uint16   *dp;
+    uint16_t   *dp;
     struct   _dn_queue *out;
 
     /* Check if room in queue for this packet. */
@@ -1035,7 +1035,7 @@ for (i = 0; i <200; i++) {
 t_stat dni_svc (UNIT *uptr)
 {
     int32    ch;
-    uint32   base = 0;
+    uint32_t   base = 0;
     UNIT     *optr = &dn_unit[0];
 
 #if KI_22BIT

@@ -310,9 +310,9 @@ t_stat load_dmp (FILE *fileref)
 {
    char    buffer[100];
    char    *p;
-   uint32  addr = 074;
+   uint32_t  addr = 074;
    uint64  data;
-   uint32  high = 0;
+   uint32_t  high = 0;
 
    while (fgets(&buffer[0], 80, fileref) != 0) {
       data = 0;
@@ -321,7 +321,7 @@ t_stat load_dmp (FILE *fileref)
           for (; *p >= '0' && *p <= '7'; p++)
               data = (data << 3) + *p - '0';
           if (addr == 0135 && data != 0)
-             high = (uint32)(data & RMASK);
+             high = (uint32_t)(data & RMASK);
           if (high != 0 && high == addr) {
              addr = 0400000;
              high = 0;
@@ -510,7 +510,7 @@ t_stat load_rim (FILE *fileref)
 {
     uint64        count, cksm, data;
     t_bool        its_rim;
-    uint32        pa;
+    uint32_t        pa;
     int32         op, i, ldrc;
 
     data = getrimw (fileref);                           /* get first word */
@@ -541,10 +541,10 @@ t_stat load_rim (FILE *fileref)
                 if (its_rim) {                          /* ITS RIM? */
                     cksm = (((cksm << 1) | (cksm >> 35))) & FMASK;
                                                         /* add to rotated cksm */
-                    pa = ((uint32) count) & RMASK;      /* store */
+                    pa = ((uint32_t) count) & RMASK;      /* store */
                 }
                 else {                                  /* RIM10B */
-                    pa = ((uint32) count + 1) & RMASK;  /* store */
+                    pa = ((uint32_t) count + 1) & RMASK;  /* store */
                 }
                 cksm = (cksm + data) & FMASK;           /* add to cksm */
                 M[pa] = data;
@@ -559,7 +559,7 @@ t_stat load_rim (FILE *fileref)
             op = GET_OP (count);                        /* not IOWD */
             if (op != OP_JRST)                          /* JRST? */
                 return SCPE_FMT;
-            PC = (uint32) count & RMASK;                /* set PC */
+            PC = (uint32_t) count & RMASK;                /* set PC */
             break;
         }                                               /* end else */
     }                                                   /* end for */
@@ -607,14 +607,14 @@ int get_word(FILE *fileref, uint64 *word, int ftype)
 t_stat load_sav (FILE *fileref, int ftype)
 {
     uint64 data;
-    uint32 pa;
+    uint32_t pa;
     int32 wc;
 
     for ( ;; ) {                                        /* loop */
         if (get_word(fileref, &data, ftype))
             return SCPE_OK;
         wc = (int32)(data >> 18);
-        pa = (uint32) (data & RMASK);
+        pa = (uint32_t) (data & RMASK);
         if (wc == (OP_JRST << 9)) {
             sim_printf("Start addr=%06o\n", pa);
             PC = pa;
@@ -665,7 +665,7 @@ t_stat load_exe (FILE *fileref, int ftype)
     uint64 data, dirbuf[DIRSIZ], pagbuf[PAG_SIZE], entbuf[2];
     int32 ndir, entvec, i, j, k, cont, bsz, bty, rpt, wc;
     int32 fpage, mpage;
-    uint32 ma;
+    uint32_t ma;
 
     ndir = entvec = 0;                                  /* no dir, entvec */
     cont = 1;

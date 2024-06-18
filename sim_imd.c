@@ -43,15 +43,15 @@
 #include "sim_defs.h"
 #include "sim_imd.h"
 
-static t_stat commentParse(DISK_INFO *myDisk, uint8 comment[], uint32 buffLen);
-static t_stat diskParse(DISK_INFO *myDisk, uint32 isVerbose);
+static t_stat commentParse(DISK_INFO *myDisk, uint8_t comment[], uint32_t buffLen);
+static t_stat diskParse(DISK_INFO *myDisk, uint32_t isVerbose);
 static t_stat diskFormat(DISK_INFO *myDisk);
 
 /* Open an existing IMD disk image.  It will be opened and parsed, and after this
  * call, will be ready for sector read/write. The result is the corresponding
  * DISK_INFO or NULL if an error occurred.
  */
-DISK_INFO *diskOpenEx(FILE *fileref, uint32 isVerbose, DEVICE *device, uint32 debugmask, uint32 verbosedebugmask)
+DISK_INFO *diskOpenEx(FILE *fileref, uint32_t isVerbose, DEVICE *device, uint32_t debugmask, uint32_t verbosedebugmask)
 {
     DISK_INFO *myDisk = NULL;
 
@@ -74,7 +74,7 @@ DISK_INFO *diskOpenEx(FILE *fileref, uint32 isVerbose, DEVICE *device, uint32 de
     return myDisk;
 }
 
-DISK_INFO *diskOpen(FILE *fileref, uint32 isVerbose)
+DISK_INFO *diskOpen(FILE *fileref, uint32_t isVerbose)
 {
     return diskOpenEx(fileref, isVerbose, NULL, 0, 0);
 }
@@ -87,19 +87,19 @@ DISK_INFO *diskOpen(FILE *fileref, uint32 isVerbose)
  * be extracted from the IMD file, but the file position will still be advanced
  * to the end of the comment.
  */
-static t_stat commentParse(DISK_INFO *myDisk, uint8 comment[], uint32 buffLen)
+static t_stat commentParse(DISK_INFO *myDisk, uint8_t comment[], uint32_t buffLen)
 {
-    uint8 cData;
-    uint32 commentLen = 0;
+    uint8_t cData;
+    uint32_t commentLen = 0;
 
     /* rewind to the beginning of the file. */
     rewind(myDisk->file);
-    cData = (uint8)fgetc(myDisk->file);
+    cData = (uint8_t)fgetc(myDisk->file);
     while ((!feof(myDisk->file)) && (cData != 0x1a)) {
         if ((comment != NULL) && (commentLen < buffLen)) {
             comment[commentLen++] = cData;
         }
-        cData = (uint8)fgetc(myDisk->file);
+        cData = (uint8_t)fgetc(myDisk->file);
     }
     if (comment != NULL) {
         if (commentLen == buffLen)
@@ -109,25 +109,25 @@ static t_stat commentParse(DISK_INFO *myDisk, uint8 comment[], uint32 buffLen)
     return SCPE_OK;
 }
 
-static uint32 headerOk(IMD_HEADER imd) {
+static uint32_t headerOk(IMD_HEADER imd) {
     return (imd.cyl < MAX_CYL) && (imd.head < MAX_HEAD);
 }
 
 /* Parse an IMD image.  This sets up sim_imd to be able to do sector read/write and
  * track write.
  */
-static t_stat diskParse(DISK_INFO *myDisk, uint32 isVerbose)
+static t_stat diskParse(DISK_INFO *myDisk, uint32_t isVerbose)
 {
-    uint8 comment[256];
-    uint8 sectorMap[256];
-    uint8 sectorHeadMap[256];
-    uint8 sectorCylMap[256];
-    uint32 sectorSize, sectorHeadwithFlags, sectRecordType;
+    uint8_t comment[256];
+    uint8_t sectorMap[256];
+    uint8_t sectorHeadMap[256];
+    uint8_t sectorCylMap[256];
+    uint32_t sectorSize, sectorHeadwithFlags, sectRecordType;
     size_t hdrBytes;
-    uint32 i;
-    uint8 start_sect;
+    uint32_t i;
+    uint8_t start_sect;
 
-    uint32 TotalSectorCount = 0;
+    uint32_t TotalSectorCount = 0;
     IMD_HEADER imd;
 
     if(myDisk == NULL) {
@@ -292,7 +292,7 @@ static t_stat diskParse(DISK_INFO *myDisk, uint32 isVerbose)
                         myDisk->track[imd.cyl][imd.head].sectorOffsetMap[sectorMap[i]-start_sect] = ftell(myDisk->file);
                         myDisk->flags |= FD_FLAG_WRITELOCK; /* Write-protect the disk if any sectors are compressed. */
                         if (1) {
-                            uint8 cdata = (uint8)fgetc(myDisk->file);
+                            uint8_t cdata = (uint8_t)fgetc(myDisk->file);
 
                             sim_debug(myDisk->debugmask, myDisk->device, "Compressed Data = 0x%02x", cdata);
                             }
@@ -317,7 +317,7 @@ static t_stat diskParse(DISK_INFO *myDisk, uint32 isVerbose)
     sim_debug(myDisk->debugmask, myDisk->device, "Processed %d sectors\n", TotalSectorCount);
 
     for(i=0;i<myDisk->ntracks;i++) {
-        uint8 j;
+        uint8_t j;
         sim_debug(myDisk->verbosedebugmask, myDisk->device, "Track %3d: ", i);
         for(j=0;j<myDisk->track[i >> 1][i & 1].nsects;j++) {
             sim_debug(myDisk->verbosedebugmask, myDisk->device, "0x%05x ", myDisk->track[i >> 1][i & 1].sectorOffsetMap[j]);
@@ -361,7 +361,7 @@ t_stat diskCreate(FILE *fileref, const char *ctlr_comment)
     char *comment;
     char *curptr;
     char *result;
-    uint8 answer;
+    uint8_t answer;
     size_t len;
     size_t remaining;
 
@@ -371,7 +371,7 @@ t_stat diskCreate(FILE *fileref, const char *ctlr_comment)
 
     if(sim_fsize(fileref) != 0) {
         sim_printf("SIM_IMD: Disk image already has data, do you want to overwrite it? ");
-        answer = (uint8)getchar();
+        answer = (uint8_t)getchar();
 
         if((answer != 'y') && (answer != 'Y')) {
             return (SCPE_OPENERR);
@@ -437,9 +437,9 @@ t_stat diskCreate(FILE *fileref, const char *ctlr_comment)
 
 static t_stat diskFormat(DISK_INFO *myDisk)
 {
-    uint8 i;
-    uint8 sector_map[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
-    uint32 flags;
+    uint8_t i;
+    uint8_t sector_map[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
+    uint32_t flags;
 
     sim_printf("SIM_IMD: Formatting disk in IBM 3740 SS/SD Format.\n");
 
@@ -457,7 +457,7 @@ static t_stat diskFormat(DISK_INFO *myDisk)
     return SCPE_OK;
 }
 
-uint32 imdGetSides(DISK_INFO *myDisk)
+uint32_t imdGetSides(DISK_INFO *myDisk)
 {
     if(myDisk != NULL) {
         return(myDisk->nsides);
@@ -466,7 +466,7 @@ uint32 imdGetSides(DISK_INFO *myDisk)
     return (0);
 }
 
-uint32 imdIsWriteLocked(DISK_INFO *myDisk)
+uint32_t imdIsWriteLocked(DISK_INFO *myDisk)
 {
     if(myDisk != NULL) {
         return((myDisk->flags & FD_FLAG_WRITELOCK) ? 1 : 0);
@@ -477,8 +477,8 @@ uint32 imdIsWriteLocked(DISK_INFO *myDisk)
 
 /* Check that the given track/sector exists on the disk */
 t_stat sectSeek(DISK_INFO *myDisk,
-             uint32 Cyl,
-             uint32 Head)
+             uint32_t Cyl,
+             uint32_t Head)
 {
     if(Cyl >= myDisk->ntracks) {
         return(SCPE_IOERR);
@@ -498,17 +498,17 @@ t_stat sectSeek(DISK_INFO *myDisk,
 
 /* Read a sector from an IMD image. */
 t_stat sectRead(DISK_INFO *myDisk,
-             uint32 Cyl,
-             uint32 Head,
-             uint32 Sector,
-             uint8 *buf,
-             uint32 buflen,
-             uint32 *flags,
-             uint32 *readlen)
+             uint32_t Cyl,
+             uint32_t Head,
+             uint32_t Sector,
+             uint8_t *buf,
+             uint32_t buflen,
+             uint32_t *flags,
+             uint32_t *readlen)
 {
-    uint32 sectorFileOffset;
-    uint8 sectRecordType;
-    uint8 start_sect;
+    uint32_t sectorFileOffset;
+    uint8_t sectRecordType;
+    uint8_t start_sect;
     *readlen = 0;
     *flags = 0;
 
@@ -543,7 +543,7 @@ t_stat sectRead(DISK_INFO *myDisk,
 
     (void)sim_fseek(myDisk->file, sectorFileOffset-1, SEEK_SET);
 
-    sectRecordType = (uint8)fgetc(myDisk->file);
+    sectRecordType = (uint8_t)fgetc(myDisk->file);
     switch(sectRecordType) {
         case SECT_RECORD_UNAVAILABLE:   /* Data could not be read from the original media */
             *flags |= IMD_DISK_IO_ERROR_GENERAL;
@@ -593,17 +593,17 @@ t_stat sectRead(DISK_INFO *myDisk,
 
 /* Write a sector to an IMD image. */
 t_stat sectWrite(DISK_INFO *myDisk,
-              uint32 Cyl,
-              uint32 Head,
-              uint32 Sector,
-              uint8 *buf,
-              uint32 buflen,
-              uint32 *flags,
-              uint32 *writelen)
+              uint32_t Cyl,
+              uint32_t Head,
+              uint32_t Sector,
+              uint8_t *buf,
+              uint32_t buflen,
+              uint32_t *flags,
+              uint32_t *writelen)
 {
-    uint32 sectorFileOffset;
-    uint8 sectRecordType;
-    uint8 start_sect;
+    uint32_t sectorFileOffset;
+    uint8_t sectRecordType;
+    uint8_t start_sect;
     *writelen = 0;
 
     sim_debug(myDisk->debugmask, myDisk->device, "Writing C:%d/H:%d/S:%d, len=%d\n", Cyl, Head, Sector, buflen);
@@ -687,22 +687,22 @@ t_stat sectWrite(DISK_INFO *myDisk,
  * OASIS-80 v5.6 "INITDISK A (FORMAT,HEAD 2)" - DSDD 8"
  */
 t_stat trackWrite(DISK_INFO *myDisk,
-               uint32 Cyl,
-               uint32 Head,
-               uint32 numSectors,
-               uint32 sectorLen,
-               uint8 *sectorMap,
-               uint8 mode,
-               uint8 fillbyte,
-               uint32 *flags)
+               uint32_t Cyl,
+               uint32_t Head,
+               uint32_t numSectors,
+               uint32_t sectorLen,
+               uint8_t *sectorMap,
+               uint8_t mode,
+               uint8_t fillbyte,
+               uint32_t *flags)
 {
     FILE *fileref;
     IMD_HEADER track_header = { 0 };
-    uint8 *sectorData;
+    uint8_t *sectorData;
     t_addr comment;
     unsigned long i;
     unsigned long dataLen;
-    uint8 sectsize = 0;
+    uint8_t sectsize = 0;
 
     *flags = 0;
 
@@ -772,7 +772,7 @@ t_stat trackWrite(DISK_INFO *myDisk,
      * data with the fillbyte.
      */
     dataLen = sectorLen + 1;
-    sectorData = (uint8 *)malloc(dataLen);
+    sectorData = (uint8_t *)malloc(dataLen);
 
     if (sectorData == NULL) {
         sim_printf("%s: %s(): memory allocation failure.\n", __FILE__, __FUNCTION__);

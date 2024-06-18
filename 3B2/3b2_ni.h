@@ -128,8 +128,8 @@
  * with a completion queue event.
  */
 typedef struct {
-    uint32 addr;                   /* address of job's buffer */
-    uint8  slot;                   /* slot number of the job  */
+    uint32_t addr;                   /* address of job's buffer */
+    uint8_t  slot;                   /* slot number of the job  */
 } ni_rec_job;
 
 #define NI_CACHE_LEN 4
@@ -149,32 +149,32 @@ typedef struct {
  * request buffer. The last entry has its "last" bit set to non-zero.
  */
 typedef struct {
-    uint32 addr;  /* Physical address of the buffer in system RAM */
-    uint16 size;  /* Length of the buffer */
-    uint16 last;  /* Is this the last entry in the list? */
+    uint32_t addr;  /* Physical address of the buffer in system RAM */
+    uint16_t size;  /* Length of the buffer */
+    uint16_t last;  /* Is this the last entry in the list? */
 } ni_prot_info;
 
 typedef struct {
-    uint32 rq_taken;
-    uint32 tx_fail;
-    uint32 rx_dropped;
-    uint32 rx_pkt;
-    uint32 tx_pkt;
-    uint32 rx_bytes;
-    uint32 tx_bytes;
+    uint32_t rq_taken;
+    uint32_t tx_fail;
+    uint32_t rx_dropped;
+    uint32_t rx_pkt;
+    uint32_t tx_pkt;
+    uint32_t rx_bytes;
+    uint32_t tx_bytes;
 } ni_stat_info;
 
 typedef struct {
-    uint8           slot;
+    uint8_t           slot;
     t_bool          enabled;
-    uint32          crc;
-    uint32          poll_rate;
+    uint32_t          crc;
+    uint32_t          poll_rate;
     char            mac_str[MAC_SIZE_CHARS];
-    uint8           mac_bytes[MAC_SIZE_BYTES];
+    uint8_t           mac_bytes[MAC_SIZE_BYTES];
     ni_job_cache    job_cache[2];
     ni_prot_info    prot;
     ni_stat_info    stats;
-    uint8           fcf_seq;
+    uint8_t           fcf_seq;
     ETH_DEV*        eth;
     ETH_PACK        rd_buf;
     ETH_PACK        wr_buf;
@@ -193,18 +193,18 @@ t_stat ni_attach(UNIT *uptr, CONST char *cptr);
 t_stat ni_detach(UNIT *uptr);
 t_stat ni_setmac(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat ni_showmac(FILE* st, UNIT *uptr, int32 val, CONST void *desc);
-t_stat ni_try_job(uint8 slot);
+t_stat ni_try_job(uint8_t slot);
 t_stat ni_show_stats(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat ni_set_stats(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat ni_show_poll(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat ni_show_filters(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 const char *ni_description(DEVICE *dptr);
 t_stat ni_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void ni_cio_reset(uint8 slot);
+void ni_cio_reset(uint8_t slot);
 void ni_process_packet();
-void ni_int_ack(uint8 slot);
-void ni_sysgen(uint8 slot);
-void ni_express(uint8 slot);
-void ni_full(uint8 slot);
+void ni_int_ack(uint8_t slot);
+void ni_sysgen(uint8_t slot);
+void ni_express(uint8_t slot);
+void ni_full(uint8_t slot);
 
 #endif /* _3B2_NI_H_ */

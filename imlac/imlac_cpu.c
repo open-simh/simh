@@ -40,36 +40,36 @@
 #define ROM_PTR         3
 
 /* CPU state. */
-static uint16 PC;
-static uint16 AC;
-static uint16 L;
-static uint16 DS;
-static uint16 IR;
-static uint16 MA;
-static uint16 MB;
+static uint16_t PC;
+static uint16_t AC;
+static uint16_t L;
+static uint16_t DS;
+static uint16_t IR;
+static uint16_t MA;
+static uint16_t MB;
 static int ion_delay = 0;
 
 /* IRQ state. */
-static uint16 ARM = 0177777;
-static uint16 FLAGS = FLAG_SYNC | FLAG_TTY_T;
-static uint16 ION;
+static uint16_t ARM = 0177777;
+static uint16_t FLAGS = FLAG_SYNC | FLAG_TTY_T;
+static uint16_t ION;
 
 /* ROM state. */
 static int rom_type = ROM_NONE;
 
 static t_stat stop_reason;
-uint16 memmask = 017777;
+uint16_t memmask = 017777;
 
 typedef struct {
-  uint16 PC;
-  uint16 IR;
-  uint16 MA;
-  uint16 MB;
-  uint16 AC;
-  uint16 L;
+  uint16_t PC;
+  uint16_t IR;
+  uint16_t MA;
+  uint16_t MB;
+  uint16_t AC;
+  uint16_t L;
 } HISTORY;
 static HISTORY *history = NULL;
-static uint32 history_i, history_m, history_n;
+static uint32_t history_i, history_m, history_n;
 
 /* Function declaration. */
 static t_stat cpu_set_hist (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -77,7 +77,7 @@ static t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32 sw);
 static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32 sw);
 static t_stat cpu_reset (DEVICE *dptr);
-static uint16 irq_iot (uint16, uint16);
+static uint16_t irq_iot (uint16_t, uint16_t);
 static t_stat rom_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat rom_show_type (FILE *st, UNIT *up, int32 v, CONST void *dp);
 
@@ -167,7 +167,7 @@ static void pcinc (int flag)
     PC = (PC + 1) & memmask;
 }
 
-static void memaddr (uint16 addr)
+static void memaddr (uint16_t addr)
 {
   MA = addr & memmask;
 }
@@ -188,7 +188,7 @@ static void memwr (void)
   }
 }
 
-static void cpu_class1 (uint16 insn)
+static void cpu_class1 (uint16_t insn)
 {
   if (insn & 0000001) /* T1: CLA */
     AC = 0;
@@ -229,10 +229,10 @@ static void cpu_rar (int n)
   }
 }
 
-static void cpu_class2 (uint16 insn)
+static void cpu_class2 (uint16_t insn)
 {
   int n = insn & 3;
-  uint32 x;
+  uint32_t x;
 
   if (insn & 0000100) /* DON */
     dp_on (1);
@@ -257,7 +257,7 @@ static void cpu_class2 (uint16 insn)
   }
 }
 
-static void cpu_class3 (uint16 insn)
+static void cpu_class3 (uint16_t insn)
 {
   int skip = 0;
 
@@ -286,7 +286,7 @@ static void cpu_class3 (uint16 insn)
   pcinc (skip);
 }
 
-static void cpu_iot (uint16 insn)
+static void cpu_iot (uint16_t insn)
 {
   SUBDEV *dev = dev_tab[(insn >> 3) & 077];
   if (dev == NULL) {
@@ -296,7 +296,7 @@ static void cpu_iot (uint16 insn)
   AC = dev->iot (insn, AC);
 }
 
-static void cpu_opr (uint16 insn)
+static void cpu_opr (uint16_t insn)
 {
   switch (insn & 0177000) {
   case 0000000:
@@ -322,8 +322,8 @@ static void cpu_opr (uint16 insn)
 static void
 cpu_insn (void)
 {
-  uint32 t32;
-  uint16 tmp;
+  uint32_t t32;
+  uint16_t tmp;
 
   /* Fetch cycle. */
   memaddr (PC);
@@ -492,7 +492,7 @@ static t_stat
 cpu_set_hist (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
   t_stat r;
-  uint32 x;
+  uint32_t x;
 
   if (cptr == NULL)
     return SCPE_ARG;
@@ -515,7 +515,7 @@ static t_stat
 cpu_show_hist (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
   t_value insn;
-  uint32 i, j;
+  uint32_t i, j;
 
   fprintf (st, "PC____ IR____ MA____ MB____ AC____ L\n");
 
@@ -582,27 +582,27 @@ cpu_reset (DEVICE *dptr)
 }
 
 void
-flag_on (uint16 flag)
+flag_on (uint16_t flag)
 {
   FLAGS |= flag;
   sim_debug (DBG_IRQ, &irq_dev, "Flag on %06o -> %06o\n", flag, FLAGS);
 }
 
 void
-flag_off (uint16 flag)
+flag_off (uint16_t flag)
 {
   FLAGS &= ~flag;
   sim_debug (DBG_IRQ, &irq_dev, "Flag off %06o -> %06o\n", flag, FLAGS);
 }
 
-uint16
-flag_check (uint16 flag)
+uint16_t
+flag_check (uint16_t flag)
 {
   return FLAGS & flag;
 }
 
-static uint16
-irq_iot (uint16 insn, uint16 AC)
+static uint16_t
+irq_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0101) { /* RDI */
     AC |= FLAGS;
@@ -622,7 +622,7 @@ irq_iot (uint16 insn, uint16 AC)
 }
 
 void
-rom_data (uint16 *data)
+rom_data (uint16_t *data)
 {
   int i;
   for (i = 0; i < 040; i++)

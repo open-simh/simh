@@ -41,14 +41,14 @@
 
 /* function prototypes */
 
-t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy);
+t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 t_stat RAM_clr(void);
 t_stat RAM_reset (DEVICE *dptr);
 t_stat RAM_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat RAM_set_base(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat RAM_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-uint8 RAM_get_mbyte(uint16 addr);
-void RAM_put_mbyte(uint16 addr, uint8 val);
+uint8_t RAM_get_mbyte(uint16_t addr);
+void RAM_put_mbyte(uint16_t addr, uint8_t val);
 
 /* external function prototypes */
 
@@ -116,11 +116,11 @@ DEVICE RAM_dev = {
 
 // RAM configuration
 
-t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy)
+t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy)
 {
     RAM_unit.capac = size;              /* set RAM size */
     RAM_unit.u3 = base;                 /* set RAM base */
-    RAM_unit.filebuf = (uint8 *)calloc(size, sizeof(uint8));
+    RAM_unit.filebuf = (uint8_t *)calloc(size, sizeof(uint8_t));
     if (RAM_unit.filebuf == NULL) {
         sim_printf ("    RAM: Calloc error\n");
         return SCPE_MEM;
@@ -149,7 +149,7 @@ t_stat RAM_reset (DEVICE *dptr)
 
 t_stat RAM_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     
     if (cptr == NULL)
         return SCPE_ARG;
@@ -172,7 +172,7 @@ t_stat RAM_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat RAM_set_base(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     
     if (cptr == NULL)
         return SCPE_ARG;
@@ -205,19 +205,19 @@ t_stat RAM_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 
 /*  get a byte from memory */
 
-uint8 RAM_get_mbyte(uint16 addr)
+uint8_t RAM_get_mbyte(uint16_t addr)
 {
-    uint8 val;
+    uint8_t val;
 
-    val = *((uint8 *)RAM_unit.filebuf + (addr - RAM_unit.u3));
+    val = *((uint8_t *)RAM_unit.filebuf + (addr - RAM_unit.u3));
     return (val & BYTEMASK);
 }
 
 /*  put a byte into memory */
 
-void RAM_put_mbyte(uint16 addr, uint8 val)
+void RAM_put_mbyte(uint16_t addr, uint8_t val)
 {
-    *((uint8 *)RAM_unit.filebuf + (addr - RAM_unit.u3)) = val & BYTEMASK;
+    *((uint8_t *)RAM_unit.filebuf + (addr - RAM_unit.u3)) = val & BYTEMASK;
     return;
 }
 

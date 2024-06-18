@@ -30,7 +30,7 @@
    10-Oct-16    JDB     Moved ACCESS_CLASS definition here from hp3000_cpu.h
    03-Sep-16    JDB     Added the STOP_POWER and STOP_ARSINH codes
    13-May-16    JDB     Modified for revised SCP API function parameter types
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    19-Mar-16    JDB     Added UNDEFs for the additional register macros
    04-Feb-16    JDB     First release version
    11-Dec-12    JDB     Created
@@ -348,9 +348,9 @@
 
 #define USEC_PER_EVENT      2.57                /* average CPU instruction time in microseconds */
 
-#define uS(t)               (uint32) ((t) > USEC_PER_EVENT ? (t) / USEC_PER_EVENT + 0.5 : 1)
-#define mS(t)               (uint32) (((t) * 1000.0)    / USEC_PER_EVENT + 0.5)
-#define S(t)                (uint32) (((t) * 1000000.0) / USEC_PER_EVENT + 0.5)
+#define uS(t)               (uint32_t) ((t) > USEC_PER_EVENT ? (t) / USEC_PER_EVENT + 0.5 : 1)
+#define mS(t)               (uint32_t) (((t) * 1000.0)    / USEC_PER_EVENT + 0.5)
+#define S(t)                (uint32_t) (((t) * 1000000.0) / USEC_PER_EVENT + 0.5)
 
 
 /* Architectural constants.
@@ -375,14 +375,14 @@
        Using 16-bit operands omits the masking required for 32-bit values.  For
        example, the code generated for the following operations is as follows:
 
-         uint16 a, b, c;
+         uint16_t a, b, c;
          a = b + c & 0xFFFF;
 
             movzwl  _b, %eax
             addw    _c, %ax
             movw    %ax, _a
 
-         uint32 x, y, z;
+         uint32_t x, y, z;
          x = y + z & 0xFFFF;
 
             movl    _z, %eax
@@ -395,11 +395,11 @@
        This time outweighs the additional 32-bit AND instruction, which executes
        in 1 clock cycle.
 
-       On an Intel Core 2 Duo processor, defining HP_WORD as uint16 causes the
+       On an Intel Core 2 Duo processor, defining HP_WORD as uint16_t causes the
        HP 3000 memory diagnostic to run about 10% slower.
 */
 
-typedef uint32              HP_WORD;                    /* HP 16-bit data word representation */
+typedef uint32_t              HP_WORD;                    /* HP 16-bit data word representation */
 
 #define R_MASK              0177777u                    /* 16-bit register mask */
 
@@ -441,7 +441,7 @@ typedef uint32              HP_WORD;                    /* HP 16-bit data word r
 #define D64_SMIN            01000000000000000000000uL   /* 64-bit signed minimum value */
 #define D64_SIGN            01000000000000000000000uL   /* 64-bit sign */
 
-#define S16_OVFL_MASK       ((uint32) D16_UMAX << D16_WIDTH | \
+#define S16_OVFL_MASK       ((uint32_t) D16_UMAX << D16_WIDTH | \
                               D16_SIGN)                 /* 16-bit signed overflow mask */
 
 #define S32_OVFL_MASK       ((t_uint64) D32_UMAX << D32_WIDTH | \
@@ -486,7 +486,7 @@ typedef uint32              HP_WORD;                    /* HP 16-bit data word r
        In the few cases where it is not, explicit masking is required.
 */
 
-#define TO_PA(b,o)          (((uint32) (b) & BA_MASK) << LA_WIDTH | (uint32) (o))
+#define TO_PA(b,o)          (((uint32_t) (b) & BA_MASK) << LA_WIDTH | (uint32_t) (o))
 #define TO_BANK(p)          ((p) >> LA_WIDTH & BA_MASK)
 #define TO_OFFSET(p)        ((p) & LA_MASK)
 
@@ -555,7 +555,7 @@ typedef enum {
 /* Portable conversions.
 
    SIMH is written with the assumption that the defined-size types (e.g.,
-   uint16) are at least the required number of bits but may be larger.
+   uint16_t) are at least the required number of bits but may be larger.
    Conversions that otherwise would make inherent size assumptions must instead
    be coded explicitly.  For example, doing:
 
@@ -571,8 +571,8 @@ typedef enum {
      - NEG16  -- int8 negated
      - NEG16  -- int16 negated
      - NEG32  -- int32 negated
-     - INT16  -- uint16 to int16
-     - INT32  -- uint32 to int32
+     - INT16  -- uint16_t to int16
+     - INT32  -- uint32_t to int32
 
 
    Implementation notes:
@@ -620,8 +620,8 @@ typedef enum {
     lower                                       /* lower byte selected */
     } BYTE_SELECTOR;
 
-#define UPPER_BYTE(w)       (uint8)   ((w) >> D8_WIDTH & D8_MASK)
-#define LOWER_BYTE(w)       (uint8)   ((w) &  D8_MASK)
+#define UPPER_BYTE(w)       (uint8_t)   ((w) >> D8_WIDTH & D8_MASK)
+#define LOWER_BYTE(w)       (uint8_t)   ((w) &  D8_MASK)
 #define TO_WORD(u,l)        (HP_WORD) (((u) & D8_MASK) << D8_WIDTH | (l) & D8_MASK)
 
 #define REPLACE_UPPER(w,b)  ((w) & D8_MASK | ((b) & D8_MASK) << D8_WIDTH)
@@ -633,7 +633,7 @@ typedef enum {
 #define UPPER_WORD(d)       (HP_WORD) ((d) >> D16_WIDTH & D16_MASK)
 #define LOWER_WORD(d)       (HP_WORD) ((d) &  D16_MASK)
 
-#define TO_DWORD(u,l)       ((uint32) (u) << D16_WIDTH | (l))
+#define TO_DWORD(u,l)       ((uint32_t) (u) << D16_WIDTH | (l))
 
 
 /* Flip-flops */
@@ -672,9 +672,9 @@ typedef enum {                                  /* trailing separator */
 typedef const char *const BITSET_NAME;          /* a bit name string pointer */
 
 typedef struct {                                /* bit set format descriptor */
-    uint32            name_count;               /*   count of bit names */
+    uint32_t            name_count;               /*   count of bit names */
     BITSET_NAME       *names;                   /*   pointer to an array of bit names */
-    uint32            offset;                   /*   offset from LSB to first bit */
+    uint32_t            offset;                   /*   offset from LSB to first bit */
     BITSET_DIRECTION  direction;                /*   direction of interpretation */
     BITSET_ALTERNATE  alternate;                /*   alternate interpretations presence */
     BITSET_BAR        bar;                      /*   trailing separator choice */
@@ -710,14 +710,14 @@ extern t_stat hp_show_dib (FILE *st,   UNIT  *uptr, int32      code,  CONST void
 
 /* System interface global utility routines */
 
-extern t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32 radix, int32  switches);
-extern uint32 fprint_edit (FILE *ofile, t_value *val, uint32 radix, uint32 byte_address);
+extern t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32_t radix, int32  switches);
+extern uint32_t fprint_edit (FILE *ofile, t_value *val, uint32_t radix, uint32_t byte_address);
 
-extern const char *fmt_status (uint32 status);
-extern const char *fmt_char   (uint32 charval);
-extern const char *fmt_bitset (uint32 bitset, const BITSET_FORMAT bitfmt);
+extern const char *fmt_status (uint32_t status);
+extern const char *fmt_char   (uint32_t charval);
+extern const char *fmt_bitset (uint32_t bitset, const BITSET_FORMAT bitfmt);
 
-extern void   hp_debug           (DEVICE *dptr, uint32 flag, ...);
+extern void   hp_debug           (DEVICE *dptr, uint32_t flag, ...);
 extern t_bool hp_device_conflict (void);
 
 extern void hp_one_time_init (void);    /* One time initialization activities now called in cpu_reset() */

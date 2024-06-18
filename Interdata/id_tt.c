@@ -52,15 +52,15 @@
 #define CMD_V_FDPX      4                               /* full/half duplex */
 #define CMD_V_RD        2                               /* read/write */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 extern int32 lfc_poll;
 
-uint32 tt_sta = STA_BSY;                                /* status */
-uint32 tt_fdpx = 1;                                     /* tt mode */
-uint32 tt_rd = 1, tt_chp = 0;                           /* tt state */
-uint32 tt_arm = 0;                                      /* int arm */
+uint32_t tt_sta = STA_BSY;                                /* status */
+uint32_t tt_fdpx = 1;                                     /* tt mode */
+uint32_t tt_rd = 1, tt_chp = 0;                           /* tt state */
+uint32_t tt_arm = 0;                                      /* int arm */
 
-uint32 tt (uint32 dev, uint32 op, uint32 dat);
+uint32_t tt (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tt_reset (DEVICE *dptr);
@@ -127,9 +127,9 @@ DEVICE tt_dev = {
 
 /* Terminal: IO routine */
 
-uint32 tt (uint32 dev, uint32 op, uint32 dat)
+uint32_t tt (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 old_rd, t;
+uint32_t old_rd, t;
 
 switch (op) {                                           /* case IO op */
 

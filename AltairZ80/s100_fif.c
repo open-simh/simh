@@ -46,12 +46,12 @@ static const char* fif_description(DEVICE *dptr);
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
-extern void  PutBYTEWrapper(const uint32 Addr, const uint32 Value);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
+extern void  PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
 
-extern uint32 PCX;
+extern uint32_t PCX;
 
 /* global data on status */
 
@@ -169,7 +169,7 @@ static t_stat fif_reset(DEVICE *dptr)
 
 typedef struct desc_t
 {
-    uint8
+    uint8_t
         cmd_unit,   /* (cmd << 4) | unit : 1 = A: */
         result,     /* result: 0 == busy, 1 = normal completion, */
         nn,         /* number of secs ? */
@@ -187,16 +187,16 @@ enum {NONE, WRITE_SEC, READ_SEC, FMT_TRACK};
 #define SPT         26
 #define UMASK       0xf
 
-static uint8 blanksec[SEC_SZ];
+static uint8_t blanksec[SEC_SZ];
 /*                      0 1 2 3 4 5 6 7 8 9 a b c d e f */
-static const uint8 utrans[] = {0,1,2,0,3,0,0,0,4,0,0,0,0,0,0,0};
+static const uint8_t utrans[] = {0,1,2,0,3,0,0,0,4,0,0,0,0,0,0,0};
 
 /**************************************************
 
     Translate an IMSAI FIF disk request into an access into the harddrive file
 
 */
-static int DoDiskOperation(desc_t *dsc, uint8 val)
+static int DoDiskOperation(desc_t *dsc, uint8_t val)
 {
     int32   current_disk_flags;
     int     kt,
@@ -309,9 +309,9 @@ static int DoDiskOperation(desc_t *dsc, uint8 val)
     Copy the disk descriptor from target RAM
 
 */
-static void getdesc(uint16 addr) {
-    uint32 x;
-    uint8 *p1 = (uint8*)&mydesc;
+static void getdesc(uint16_t addr) {
+    uint32_t x;
+    uint8_t *p1 = (uint8_t*)&mydesc;
 
     for (x = 0; x < sizeof(mydesc); x++) {
         *p1++ = GetBYTEWrapper(addr++);
@@ -327,7 +327,7 @@ static int32 fif_io(const int32 port, const int32 io, const int32 data) {
 
     static int32    fdstate = 0;    /* chan 0xfd state */
     static int32    desc;
-    static uint16   fdAdr[16];      /* disk descriptor address in 8080/z80 RAM */
+    static uint16_t   fdAdr[16];      /* disk descriptor address in 8080/z80 RAM */
 
     /* cmd | desc# */
     /*    cmd == 0x00 do operation */
@@ -347,7 +347,7 @@ static int32 fif_io(const int32 port, const int32 io, const int32 data) {
             else { /* do what descriptor says */
                 getdesc(fdAdr[desc]);
                 PutBYTEWrapper(fdAdr[desc] + 1,
-                    (uint8)DoDiskOperation(&mydesc, (uint8)data));
+                    (uint8_t)DoDiskOperation(&mydesc, (uint8_t)data));
             }
             break;
 

@@ -194,7 +194,7 @@
 #define DBG_RD          0x0004                          /* disk reads */
 #define DBG_WR          0x0008                          /* disk writes */
 
-uint16 *rbxb = NULL;                                     /* xfer buffer */
+uint16_t *rbxb = NULL;                                     /* xfer buffer */
 int32 rbcs = 0;                                         /* control/status */
 int32 rbba = 0;                                         /* memory address */
 int32 rbbc = 0;                                         /* bytes count */
@@ -439,8 +439,8 @@ t_stat rb_svc (UNIT *uptr)
 int32 curr, newc, swait;
 int32 err, wc, maxwc, t;
 int32 i, func, da, awc;
-uint32 ma;
-uint16 comp;
+uint32_t ma;
+uint16_t comp;
 
 func = GET_FUNC (rbcs);                                 /* get function */
 if (func == RBCS_GSTA) {                                /* get status */
@@ -494,7 +494,7 @@ if (func == RBCS_SEEK) {                                /* seek? */
     if (uptr->SIP == 0) {
         sim_debug(DBG_CMD, &rb_dev, "Seek, CYL=%d, TRK=%d, SECT=%d\n", GET_CYL(rbda), GET_TRACK(rbda), GET_SECT(rbda));
         uptr->SIP = 1;
-        if ((uint32)rbda == 0xFFFFFFFF) swait = rb_swait;
+        if ((uint32_t)rbda == 0xFFFFFFFF) swait = rb_swait;
         else {
             curr = GET_CYL (uptr->TRK);                     /* current cylinder */
             newc = GET_CYL (rbda);                          /* offset */
@@ -535,7 +535,7 @@ err = sim_fseek (uptr->fileref, da * sizeof (int16), SEEK_SET);
 
 if ((func >= RBCS_READ) && (err == 0)) {                /* read (no hdr)? */
     sim_debug(DBG_CMD, &rb_dev, "Read, CYL=%d, TRK=%d, SECT=%d, WC=%d, DA=%d\n", GET_CYL(rbda), GET_TRACK(rbda), GET_SECT(rbda), wc, da);
-    i = sim_fread (rbxb, sizeof (uint16), wc, uptr->fileref);
+    i = sim_fread (rbxb, sizeof (uint16_t), wc, uptr->fileref);
     err = ferror (uptr->fileref);
     for ( ; i < wc; i++)                                /* fill buffer */
         rbxb[i] = 0;
@@ -555,14 +555,14 @@ if ((func == RBCS_WRITE) && (err == 0)) {               /* write? */
         awc = (wc + (RB_NUMWD(uptr) - 1)) & ~(RB_NUMWD(uptr) - 1);  /* clr to */
         for (i = wc; i < awc; i++)                      /* end of blk */
             rbxb[i] = 0;
-        sim_fwrite (rbxb, sizeof (uint16), awc, uptr->fileref);
+        sim_fwrite (rbxb, sizeof (uint16_t), awc, uptr->fileref);
         err = ferror (uptr->fileref);
         }
     }                                                   /* end write */
 
 if ((func == RBCS_WCHK) && (err == 0)) {                /* write check? */
     sim_debug(DBG_CMD, &rb_dev, "WCheck, CYL=%d, TRK=%d, SECT=%d, WC=%d, DA=%d\n", GET_CYL(rbda), GET_TRACK(rbda), GET_SECT(rbda), wc, da);
-    i = sim_fread (rbxb, sizeof (uint16), wc, uptr->fileref);
+    i = sim_fread (rbxb, sizeof (uint16_t), wc, uptr->fileref);
     err = ferror (uptr->fileref);
     for ( ; i < wc; i++)                                /* fill buffer */
         rbxb[i] = 0;
@@ -628,7 +628,7 @@ for (i = 0; i < RB_NUMDR; i++) {
     uptr->SIP = 0;
     }
 if (rbxb == NULL)
-    rbxb = (uint16 *) calloc (RB_MAXFR, sizeof (uint16));
+    rbxb = (uint16_t *) calloc (RB_MAXFR, sizeof (uint16_t));
 if (rbxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -643,7 +643,7 @@ return "RB730 disk controller";
 
 t_stat rb_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 p;
+uint32_t p;
 t_stat r;
 
 uptr->capac = (uptr->flags & UNIT_RB80)? RB80_SIZE: RB02_SIZE;

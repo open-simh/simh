@@ -188,13 +188,13 @@ static int32 dqc_obuf = 0;                      /* cch buffers */
 static int32 dqd_xfer = 0;                      /* xfer in prog */
 static int32 dqd_wval = 0;                      /* write data valid */
 static int32 dq_ptr = 0;                        /* buffer ptr */
-static uint8 dqc_rarc = 0;                      /* RAR cylinder */
-static uint8 dqc_rarh = 0;                      /* RAR head */
-static uint8 dqc_rars = 0;                      /* RAR sector */
-static uint8 dqc_ucyl[DQ_NUMDRV] = { 0 };       /* unit cylinder */
-static uint8 dqc_uhed[DQ_NUMDRV] = { 0 };       /* unit head */
-static uint16 dqc_sta[DQ_NUMDRV] = { 0 };       /* unit status */
-static uint16 dqxb[DQ_NUMWD];                   /* sector buffer */
+static uint8_t dqc_rarc = 0;                      /* RAR cylinder */
+static uint8_t dqc_rarh = 0;                      /* RAR head */
+static uint8_t dqc_rars = 0;                      /* RAR sector */
+static uint8_t dqc_ucyl[DQ_NUMDRV] = { 0 };       /* unit cylinder */
+static uint8_t dqc_uhed[DQ_NUMDRV] = { 0 };       /* unit head */
+static uint16_t dqc_sta[DQ_NUMDRV] = { 0 };       /* unit status */
+static uint16_t dqxb[DQ_NUMWD];                   /* sector buffer */
 
 /* Interface local SCP support routines */
 
@@ -988,7 +988,7 @@ switch (uptr->FNC) {                                    /* case function */
                 break;
                 }
             }
-        dqxb[dq_ptr++] = dqd_wval ? (uint16) dqd_obuf : 0;  /* store word/fill */
+        dqxb[dq_ptr++] = dqd_wval ? (uint16_t) dqd_obuf : 0;  /* store word/fill */
         dqd_wval = 0;                                       /* clr data valid */
         if (dq_ptr >= DQ_NUMWD) {                           /* buffer full? */
             da = GETDA (dqc_rarc, dqc_rarh, dqc_rars);      /* calc disk addr */
@@ -1086,7 +1086,7 @@ t_stat dqc_attach (UNIT *uptr, CONST char *cptr)
 {
 t_stat      result;
 t_addr      offset;
-const uint8 zero = 0;
+const uint8_t zero = 0;
 
 result = attach_unit (uptr, cptr);                      /* attach the drive */
 
@@ -1338,7 +1338,7 @@ t_stat dqc_boot (int32 unitno, DEVICE *dptr)
 {
 static const HP_WORD dq_preserved = 0000070u;               /* S-register bits 5-3 are preserved */
 static const HP_WORD dq_standard  = 0020000u;               /* S-register bit 13 set for a standard boot */
-uint32 start;
+uint32_t start;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (dq_loaders, unitno,            /*   then copy the boot loader to memory */

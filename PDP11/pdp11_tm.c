@@ -154,7 +154,7 @@
 
 #define RDL_CLK         0100000                         /* 10 Khz clock */
 
-uint8 *tmxb = NULL;                                     /* xfer buffer */
+uint8_t *tmxb = NULL;                                     /* xfer buffer */
 int32 tm_sta = 0;                                       /* status register */
 int32 tm_cmd = 0;                                       /* command register */
 int32 tm_ca = 0;                                        /* current address */
@@ -398,7 +398,7 @@ return;
 t_stat tm_svc (UNIT *uptr)
 {
 int32 f, t, u;
-uint32 xma;
+uint32_t xma;
 t_mtrlnt tbc, cbc;
 t_stat st, r = SCPE_OK;
 
@@ -599,7 +599,7 @@ for (u = 0; u < TM_NUMDR; u++) {                        /* loop thru units */
     else uptr->USTAT = 0;
     }
 if (tmxb == NULL)
-    tmxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    tmxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (tmxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -669,7 +669,7 @@ return SCPE_OK;
 #define BOOT1_LEN       (sizeof (boot1_rom) / sizeof (int16))
 #define BOOT2_LEN       (sizeof (boot2_rom) / sizeof (int16))
 
-static const uint16 boot1_rom[] = {
+static const uint16_t boot1_rom[] = {
     0046524,                        /* boot_start: "TM" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit_num, r0 */
@@ -689,7 +689,7 @@ static const uint16 boot1_rom[] = {
     0005007                         /* clr r7 */
     };
 
-static const uint16 boot2_rom[] = {
+static const uint16_t boot2_rom[] = {
     0046524,                        /* boot_start: "TM" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit_num, r0 */
@@ -728,7 +728,7 @@ else {
     for (i = 0; i < BOOT2_LEN; i++)
         WrMemW (BOOT_START + (2 * i), boot2_rom[i]);
     }
-WrMemW (BOOT_UNIT, (uint16)unitno);
+WrMemW (BOOT_UNIT, (uint16_t)unitno);
 WrMemW (BOOT_CSR, (tm_dib.ba & DMASK) + 06);
 cpu_set_boot (BOOT_ENTRY);
 return SCPE_OK;

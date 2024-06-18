@@ -39,10 +39,10 @@
 
 t_stat port_svc(UNIT *uptr);
 t_stat port_reset(DEVICE *dptr);
-uint8 nulldev(t_bool io, uint8 port, uint8 devnum);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+uint8_t nulldev(t_bool io, uint8_t port, uint8_t devnum);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
 void clr_dev();
-uint8 unreg_dev(uint16 port);
+uint8_t unreg_dev(uint16_t port);
 
 /* external function prototypes */
 
@@ -56,8 +56,8 @@ static const char* port_desc(DEVICE *dptr) {
 
 /* external globals */
 
-extern uint8 xack;                      /* XACK signal */
-extern uint16 PCX;
+extern uint8_t xack;                      /* XACK signal */
+extern uint16_t PCX;
 
 /* multibus Standard SIMH Device Data Structures */
 
@@ -136,10 +136,10 @@ device addresses, if a device is plugged to a port it's routine
 address is here, 'nulldev' means no device has been registered.
 */
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum); 
-    uint16 port;
-    uint16 devnum;
-    uint8 dummy;
+    uint8_t (*routine)(t_bool io, uint8_t data, uint8_t devnum); 
+    uint16_t port;
+    uint16_t devnum;
+    uint8_t dummy;
 };
 
 struct idev dev_table[256] = {
@@ -209,15 +209,15 @@ struct idev dev_table[256] = {
 {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}          /* 0FCH */
 };
 
-uint8 nulldev(t_bool io, uint8 data, uint8 devnum)
+uint8_t nulldev(t_bool io, uint8_t data, uint8_t devnum)
 {
     SET_XACK(0);                        //clear xack
 //    return 0xff;                        /* multibus has active high pullups and inversion */
     return 0;                           //corrects "illegal disk at port X8H" error in ISIS
 }
 
-uint8 reg_dev(uint8 (*routine)(t_bool io, uint8 data, uint8 devnum),
-    uint16 port, uint16 devnum, uint8 dummy)
+uint8_t reg_dev(uint8_t (*routine)(t_bool io, uint8_t data, uint8_t devnum),
+    uint16_t port, uint16_t devnum, uint8_t dummy)
 {
     if (dev_table[port].routine != &nulldev) { /* port already assigned */
         if (dev_table[port].routine != routine)
@@ -238,7 +238,7 @@ void clr_dev()
         unreg_dev(i);
 }
 
-uint8 unreg_dev(uint16 port)
+uint8_t unreg_dev(uint16_t port)
 {
     if (dev_table[port].routine == &nulldev) { /* port already free */
         ;//sim_printf("    I/O Port %02X is already free\n", port);

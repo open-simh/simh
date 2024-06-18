@@ -110,7 +110,7 @@
 
 /* register definitions */
 /* channel A */
-uint8   wr0a = 0,                       /* command register */
+uint8_t   wr0a = 0,                       /* command register */
         wr1a = 0,                       /* enable register */
         wr2a = 0,                       /* mode register */
         wr3a = 0,                       /* configuration register 1 */
@@ -122,7 +122,7 @@ uint8   wr0a = 0,                       /* command register */
         rr1a = 0,                       /* error register */
         rr2a = 0;                       /* read interrupt vector */
 /* channel B */
-uint8   wr0b = 0,                       /* command register */
+uint8_t   wr0b = 0,                       /* command register */
         wr1b = 0,                       /* enable register */
         wr2b = 0,                       /* CH B interrups vector */
         wr3b = 0,                       /* configuration register 1 */

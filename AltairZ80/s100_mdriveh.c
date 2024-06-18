@@ -55,19 +55,19 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32 dma_addr;    /* DMA Transfer Address */
+    uint32_t dma_addr;    /* DMA Transfer Address */
     UNIT uptr[MDRIVEH_MAX_DRIVES];
-    uint8 *storage[MDRIVEH_MAX_DRIVES];
+    uint8_t *storage[MDRIVEH_MAX_DRIVES];
 } MDRIVEH_INFO;
 
 static MDRIVEH_INFO mdriveh_info_data = { { 0x0, 0, 0xC6, 2 } };
 static MDRIVEH_INFO *mdriveh_info = &mdriveh_info_data;
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 #define UNIT_V_MDRIVEH_WLK      (UNIT_V_UF + 0) /* write locked                             */
 #define UNIT_MDRIVEH_WLK        (1 << UNIT_V_MDRIVEH_WLK)
@@ -78,8 +78,8 @@ extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_typ
 
 static t_stat mdriveh_reset(DEVICE *mdriveh_dev);
 static int32 mdrivehdev(const int32 port, const int32 io, const int32 data);
-static uint8 MDRIVEH_Read(const uint32 Addr);
-static uint8 MDRIVEH_Write(const uint32 Addr, uint8 cData);
+static uint8_t MDRIVEH_Read(const uint32_t Addr);
+static uint8_t MDRIVEH_Write(const uint32_t Addr, uint8_t cData);
 static const char* mdriveh_description(DEVICE *dptr);
 
 static UNIT mdriveh_unit[] = {
@@ -143,7 +143,7 @@ DEVICE mdriveh_dev = {
 /* Reset routine */
 static t_stat mdriveh_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) { /* Disconnect ROM and I/O Ports */
@@ -171,7 +171,7 @@ static t_stat mdriveh_reset(DEVICE *dptr)
             }
         } else {
             if(mdriveh_info->storage[i] == NULL) {
-                mdriveh_info->storage[i] = (uint8 *)calloc(1, 524288);
+                mdriveh_info->storage[i] = (uint8_t *)calloc(1, 524288);
             }
             if (dptr->units[i].flags & UNIT_MDRIVEH_VERBOSE)
                 sim_printf("MDRIVEH: Unit %d enabled, 512K at 0x%p\n", i, mdriveh_info->storage[i]);
@@ -195,11 +195,11 @@ static int32 mdrivehdev(const int32 port, const int32 io, const int32 data)
 #define MDRIVEH_DATA    0   /* R=Drive Status Register / W=DMA Address Register */
 #define MDRIVEH_ADDR    1   /* R=Unused / W=Motor Control Register */
 
-static uint8 MDRIVEH_Read(const uint32 Addr)
+static uint8_t MDRIVEH_Read(const uint32_t Addr)
 {
-    uint8 cData;
-    uint8 unit;
-    uint32 offset;
+    uint8_t cData;
+    uint8_t unit;
+    uint32_t offset;
 
     cData = 0xFF;   /* default is High-Z Data */
 
@@ -226,11 +226,11 @@ static uint8 MDRIVEH_Read(const uint32 Addr)
     return (cData);
 }
 
-static uint8 MDRIVEH_Write(const uint32 Addr, uint8 cData)
+static uint8_t MDRIVEH_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint8 result = 0;
-    uint8 unit;
-    uint32 offset;
+    uint8_t result = 0;
+    uint8_t unit;
+    uint32_t offset;
 
     switch(Addr & 0x1) {
         case MDRIVEH_ADDR:

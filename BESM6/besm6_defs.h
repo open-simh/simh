@@ -133,14 +133,14 @@ extern t_value memory [MEMSIZE];
 extern t_value pult [11][8];
 extern unsigned pult_packet_switch; /* selector of hardwired programs */
 
-extern uint32 PC, RAU, RUU;
-extern uint32 M[NREGS];
+extern uint32_t PC, RAU, RUU;
+extern uint32_t M[NREGS];
 extern t_value BRZ[8], RP[8], GRP, MGRP;
-extern uint32 PRP, MPRP;
+extern uint32_t PRP, MPRP;
 extern t_value ACC, RMR;
-extern uint32 BAZ[8], TABST, RZ;
-extern uint32 READY; /* read by ext 4031 */
-extern uint32 READY2; /* read by ext 4102 */
+extern uint32_t BAZ[8], TABST, RZ;
+extern uint32_t READY; /* read by ext 4031 */
+extern uint32_t READY2; /* read by ext 4102 */
 extern DEVICE cpu_dev, drum_dev, mmu_dev;
 extern DEVICE md_dev[8];
 extern DEVICE clock_dev;
@@ -324,72 +324,72 @@ extern int odd_parity(unsigned char);
 /*
  * Выполнение обращения к барабану.
  */
-void drum (int ctlr, uint32 cmd);
+void drum (int ctlr, uint32_t cmd);
 int drum_errors (void);
 
 /*
  * Обращение к дискам.
  */
-void disk_io (int ctlr, uint32 cmd);
-void disk_ctl (int ctlr, uint32 cmd);
+void disk_io (int ctlr, uint32_t cmd);
+void disk_ctl (int ctlr, uint32_t cmd);
 int disk_state (int ctlr);
 int disk_errors (void);
 
 /*
  * Magnetic tapes.
  */
-void mg_io (int ctlr, uint32 cmd);
-void mg_ctl (int ctlr, uint32 cmd);
+void mg_io (int ctlr, uint32_t cmd);
+void mg_ctl (int ctlr, uint32_t cmd);
 int mg_state (int ctlr);
-void mg_format(uint32 cmd);
+void mg_format(uint32_t cmd);
 int mg_errors (void);
 
 /*
  * Печать на АЦПУ.
  */
-void printer_control (int num, uint32 cmd);
-void printer_hammer (int num, int pos, uint32 mask);
+void printer_control (int num, uint32_t cmd);
+void printer_hammer (int num, int pos, uint32_t mask);
 
 /*
  * Терминалы (телетайпы, видеотоны, "Консулы").
  */
-void tty_send (uint32 mask);
+void tty_send (uint32_t mask);
 int tty_query (void);
 void vt_print (void);
 void tt_print (void);
 void vt_receive (void);
-void consul_print (int num, uint32 cmd);
-uint32 consul_read (int num);
+void consul_print (int num, uint32_t cmd);
+uint32_t consul_read (int num);
 int vt_is_idle (void);
 
 /*
  * Ввод с перфоленты.
  */
-void fs_control (int num, uint32 cmd);
+void fs_control (int num, uint32_t cmd);
 int fs_read (int num);
 
 /*
  * Punchtape output.
  */
-void pl_control (int num, uint32 cmd);
+void pl_control (int num, uint32_t cmd);
 
 /*
  * Punchcard input.
  */
-void vu_control (int num, uint32 cmd);
+void vu_control (int num, uint32_t cmd);
 int vu_read (int num);
 
 /*
  * Вывод на перфокарты.
  */
-void pi_control (int num, uint32 cmd);
-void pi_write (int num, uint32 cmd);
+void pi_control (int num, uint32_t cmd);
+void pi_write (int num, uint32_t cmd);
 int pi_read (int num);
 
 /*
  * Отладочная выдача.
  */
-void besm6_fprint_cmd (FILE *of, uint32 cmd);
+void besm6_fprint_cmd (FILE *of, uint32_t cmd);
 void besm6_log (const char *fmt, ...);
 void besm6_log_cont (const char *fmt, ...);
 void besm6_debug (const char *fmt, ...);
@@ -482,6 +482,6 @@ t_value besm6_unpack (t_value val, t_value mask);
 #define PRP_CONS2_DONE    000000400             /* 9 */
 
 /* Номер блока ОЗУ или номер страницы, вызвавших прерывание */
-extern uint32 iintr_data;
+extern uint32_t iintr_data;
 
 #endif

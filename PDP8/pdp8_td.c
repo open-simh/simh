@@ -188,7 +188,7 @@ int32 td_qlctr = 0;                                     /* quad line ctr */
 int32 td_ltime = 20;                                    /* interline time */
 int32 td_dctime = 40000;                                /* decel time */
 int32 td_stopoffr = 0;
-static uint8 tdb_mtk[DT_NUMDR][D18_LPERB];              /* mark track bits */
+static uint8_t tdb_mtk[DT_NUMDR][D18_LPERB];              /* mark track bits */
 
 int32 td77 (int32 IR, int32 AC);
 t_stat td_svc (UNIT *uptr);
@@ -207,7 +207,7 @@ int32 td_set_mtk (int32 code, int32 u, int32 k);
 t_stat td_show_pos (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 const char *td_description (DEVICE *dptr);
 
-extern uint16 M[];
+extern uint16_t M[];
 
 /* TD data structures
 
@@ -410,7 +410,7 @@ return FALSE;
 
 t_bool td_setpos (UNIT *uptr)
 {
-uint32 new_time, ut, ulin, udelt;
+uint32_t new_time, ut, ulin, udelt;
 int32 delta = 0;
 
 new_time = sim_grtime ();                               /* current time */
@@ -425,19 +425,19 @@ switch (uptr->STATE & ~STA_DIR) {                       /* case on motion */
         break;
 
     case STA_DEC:                                       /* slowing */
-        ulin = ut / (uint32) td_ltime;
+        ulin = ut / (uint32_t) td_ltime;
         udelt = td_dctime / td_ltime;
         delta = ((ulin * udelt * 2) - (ulin * ulin)) / (2 * udelt);
         break;
 
     case STA_ACC:                                       /* accelerating */
-        ulin = ut / (uint32) td_ltime;
+        ulin = ut / (uint32_t) td_ltime;
         udelt = (td_dctime - (td_dctime >> 2)) / td_ltime;
         delta = (ulin * ulin) / (2 * udelt);
         break;
 
     case STA_UTS:                                       /* at speed */
-        delta = ut / (uint32) td_ltime;
+        delta = ut / (uint32_t) td_ltime;
         break;
         }
 
@@ -502,7 +502,7 @@ switch (mot) {                                          /* case on motion */
         else uptr->pos = uptr->pos + 1;
         uptr->LASTT = sim_grtime ();                    /* save time */
         if (((int32) uptr->pos < 0) ||                  /* off reel? */
-           (uptr->pos >= (((uint32) DTU_FWDEZ (uptr)) + DT_EZLIN))) {
+           (uptr->pos >= (((uint32_t) DTU_FWDEZ (uptr)) + DT_EZLIN))) {
             detach_unit (uptr);
             return IORETURN (td_stopoffr, STOP_DTOFF);
             }
@@ -537,7 +537,7 @@ if (uptr->pos < (DT_EZLIN - DT_BFLIN))                  /* rev end zone? */
     mtkb = MTK_BIT (MTK_REV_END, uptr->pos);
 else if (uptr->pos < DT_EZLIN)                          /* rev buffer? */
     mtkb = MTK_BIT (MTK_INTER, uptr->pos);
-else if (uptr->pos < ((uint32) DTU_FWDEZ (uptr))) {     /* data zone? */
+else if (uptr->pos < ((uint32_t) DTU_FWDEZ (uptr))) {     /* data zone? */
     int32 blkno = DT_LIN2BL (uptr->pos, uptr);          /* block # */
     int32 lineno = DT_LIN2OF (uptr->pos, uptr);         /* line # within block */
     if (lineno < DT_HTLIN) {                            /* header? */
@@ -557,7 +557,7 @@ else if (uptr->pos < ((uint32) DTU_FWDEZ (uptr))) {     /* data zone? */
                            (DTU_LPERB (uptr) - DT_HTLIN));
     mtkb = tdb_mtk[unum][lineno];
     }
-else if (uptr->pos < (((uint32) DTU_FWDEZ (uptr)) + DT_BFLIN))
+else if (uptr->pos < (((uint32_t) DTU_FWDEZ (uptr)) + DT_BFLIN))
     mtkb = MTK_BIT (MTK_INTER, uptr->pos);              /* fwd buffer? */
 else mtkb = MTK_BIT (MTK_FWD_END, uptr->pos);           /* fwd end zone */
 
@@ -645,7 +645,7 @@ switch (line) {
 int32 td_read (UNIT *uptr, int32 blk, int32 line)
 {
 int16 *fbuf = (int16 *) uptr->filebuf;                  /* buffer */
-uint32 ba = blk * DTU_BSIZE (uptr);                     /* block base */
+uint32_t ba = blk * DTU_BSIZE (uptr);                     /* block base */
 int32 nibp = 3 * (DT_WSIZE - 1 - (line % DT_WSIZE));    /* nibble pos */
 
 ba = ba + (line / DT_WSIZE);                            /* block addr */
@@ -657,7 +657,7 @@ return (fbuf[ba] >> nibp) & 07;                         /* get data nibble */
 void td_write (UNIT *uptr, int32 blk, int32 line, int32 dat)
 {
 int16 *fbuf = (int16 *) uptr->filebuf;                  /* buffer */
-uint32 ba = blk * DTU_BSIZE (uptr);                     /* block base */
+uint32_t ba = blk * DTU_BSIZE (uptr);                     /* block base */
 int32 nibp = 3 * (DT_WSIZE - 1 - (line % DT_WSIZE));    /* nibble pos */
 
 ba = ba + (line / DT_WSIZE);                            /* block addr */
@@ -713,7 +713,7 @@ return SCPE_OK;
 #define BOOT_START      07300
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     01312,                      /* ST,  TAD L4MT        ;=2000, reverse */
     04312,                      /*      JMS L4MT        ; rev lk for 022 */
     04312,                      /*      JMS L4MT        ; fwd lk for 031 */
@@ -769,12 +769,12 @@ return SCPE_OK;
 
 t_stat td_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 pdp18b[D18_NBSIZE];
-uint16 pdp11b[D18_NBSIZE], *fbuf;
+uint32_t pdp18b[D18_NBSIZE];
+uint16_t pdp11b[D18_NBSIZE], *fbuf;
 int32 i, k, mtkpb;
 int32 u = uptr - td_dev.units;
 t_stat r;
-uint32 ba, sz;
+uint32_t ba, sz;
 
 r = attach_unit (uptr, cptr);                           /* attach */
 if (r != SCPE_OK)                                       /* fail? */
@@ -799,7 +799,7 @@ if (uptr->filebuf == NULL) {                            /* can't alloc? */
     detach_unit (uptr);
     return SCPE_MEM;
     }
-fbuf = (uint16 *) uptr->filebuf;                        /* file buffer */
+fbuf = (uint16_t *) uptr->filebuf;                        /* file buffer */
 sim_printf ("%s%d: ", sim_dname (&td_dev), u);
 if (uptr->flags & UNIT_8FMT)
     sim_printf ("12b format");
@@ -809,16 +809,16 @@ else sim_printf ("18b/36b format");
 sim_printf (", buffering file in memory\n");
 uptr->io_flush = td_flush;
 if (uptr->flags & UNIT_8FMT)                            /* 12b? */
-    uptr->hwmark = fxread (uptr->filebuf, sizeof (uint16),
+    uptr->hwmark = fxread (uptr->filebuf, sizeof (uint16_t),
             uptr->capac, uptr->fileref);
 else {                                                  /* 16b/18b */
     for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
         if (uptr->flags & UNIT_11FMT) {
-            k = fxread (pdp11b, sizeof (uint16), D18_NBSIZE, uptr->fileref);
+            k = fxread (pdp11b, sizeof (uint16_t), D18_NBSIZE, uptr->fileref);
             for (i = 0; i < k; i++)
                 pdp18b[i] = pdp11b[i];
             }
-        else k = fxread (pdp18b, sizeof (uint32), D18_NBSIZE, uptr->fileref);
+        else k = fxread (pdp18b, sizeof (uint32_t), D18_NBSIZE, uptr->fileref);
         if (k == 0)
             break;
         for ( ; k < D18_NBSIZE; k++)
@@ -863,34 +863,34 @@ return SCPE_OK;
 
 void td_flush (UNIT* uptr)
 {
-uint32 pdp18b[D18_NBSIZE];
-uint16 pdp11b[D18_NBSIZE], *fbuf;
+uint32_t pdp18b[D18_NBSIZE];
+uint16_t pdp11b[D18_NBSIZE], *fbuf;
 int32 i, k;
-uint32 ba;
+uint32_t ba;
 
 if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any data? */
     sim_printf ("%s: writing buffer to file: %s\n", sim_uname (uptr), uptr->filename);
     rewind (uptr->fileref);                             /* start of file */
-    fbuf = (uint16 *) uptr->filebuf;                    /* file buffer */
+    fbuf = (uint16_t *) uptr->filebuf;                    /* file buffer */
     if (uptr->flags & UNIT_8FMT)                        /* PDP8? */
-        fxwrite (uptr->filebuf, sizeof (uint16),        /* write file */
+        fxwrite (uptr->filebuf, sizeof (uint16_t),        /* write file */
             uptr->hwmark, uptr->fileref);
     else {                                              /* 16b/18b */
         for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru buf */
             for (k = 0; k < D18_NBSIZE; k = k + 2) {
-                pdp18b[k] = ((uint32) (fbuf[ba] & 07777) << 6) |
-                    ((uint32) (fbuf[ba + 1] >> 6) & 077);
-                pdp18b[k + 1] = ((uint32) (fbuf[ba + 1] & 077) << 12) |
-                    ((uint32) (fbuf[ba + 2] & 07777));
+                pdp18b[k] = ((uint32_t) (fbuf[ba] & 07777) << 6) |
+                    ((uint32_t) (fbuf[ba + 1] >> 6) & 077);
+                pdp18b[k + 1] = ((uint32_t) (fbuf[ba + 1] & 077) << 12) |
+                    ((uint32_t) (fbuf[ba + 2] & 07777));
                 ba = ba + 3;
                 }                                       /* end loop blk */
             if (uptr->flags & UNIT_11FMT) {             /* 16b? */
                 for (i = 0; i < D18_NBSIZE; i++)
                     pdp11b[i] = pdp18b[i];
-                fxwrite (pdp11b, sizeof (uint16),
+                fxwrite (pdp11b, sizeof (uint16_t),
                     D18_NBSIZE, uptr->fileref);
                 }
-            else fxwrite (pdp18b, sizeof (uint32),
+            else fxwrite (pdp18b, sizeof (uint32_t),
                 D18_NBSIZE, uptr->fileref);
             }                                           /* end loop buf */
         }                                               /* end else */
@@ -936,7 +936,7 @@ t_stat td_show_pos (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 if ((uptr->flags & UNIT_ATT) == 0) return SCPE_UNATT;
 if (uptr->pos < DT_EZLIN)                               /* rev end zone? */
     fprintf (st, "Reverse end zone\n");
-else if (uptr->pos < ((uint32) DTU_FWDEZ (uptr))) {     /* data zone? */
+else if (uptr->pos < ((uint32_t) DTU_FWDEZ (uptr))) {     /* data zone? */
     int32 blkno = DT_LIN2BL (uptr->pos, uptr);          /* block # */
     int32 lineno = DT_LIN2OF (uptr->pos, uptr);         /* line # within block */
     fprintf (st, "Block %d, line %d, ", blkno, lineno);

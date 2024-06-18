@@ -88,7 +88,7 @@
 #include "i7094_defs.h"
 
 extern t_uint64 *M;
-extern uint32 PC;
+extern uint32_t PC;
 
 t_stat
 binloader (FILE *fd, const char *file, int loadpt)
@@ -181,7 +181,7 @@ binloader (FILE *fd, const char *file, int loadpt)
             transfer = TRUE;
             /* fall through */
         case ABSENTRY_TAG:
-            PC = (uint32) ldata & AMASK;
+            PC = (uint32_t) ldata & AMASK;
 #ifdef DEBUGLOADER
             fprintf (lfd, "   PC = %05o\n", PC);
 #endif
@@ -194,7 +194,7 @@ binloader (FILE *fd, const char *file, int loadpt)
             /* fall through */
         case RELENTRY_TAG:
             ldata = (ldata + loadaddr) & AMASK;
-            PC = (uint32) ldata & AMASK;
+            PC = (uint32_t) ldata & AMASK;
 #ifdef DEBUGLOADER
             fprintf (lfd, "   PC = %05o\n", PC);
 #endif

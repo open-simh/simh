@@ -327,7 +327,7 @@ struct drvtyp drv_tab[] = {
     4   post read/write events
  */
 
-extern uint16 M[];
+extern uint16_t M[];
 extern UNIT cpu_unit;
 extern int32 int_req, dev_busy, dev_done, dev_disable;
 extern int32 saved_PC, SR, AMASK;
@@ -797,9 +797,9 @@ t_stat dkp_svc (UNIT *uptr)
 int32 sa, bda;
 int32 dx, pa, u;
 int32 dtype, err, newsect, newsurf;
-uint32 awc;
+uint32_t awc;
 t_stat rval;
-static uint16 tbuf[DKP_NUMWD];                          /* transfer buffer */
+static uint16_t tbuf[DKP_NUMWD];                          /* transfer buffer */
 
 
 rval  = SCPE_OK;
@@ -901,11 +901,11 @@ do  {
         }
     sa = GET_SA (uptr->CYL, GET_SURF (dkp_ussc, dtype),
          GET_SECT (dkp_ussc, dtype), dtype);            /* get disk block */
-    bda = sa * DKP_NUMWD * sizeof(uint16) ;             /* to words, bytes */
+    bda = sa * DKP_NUMWD * sizeof(uint16_t) ;             /* to words, bytes */
     err = fseek (uptr->fileref, bda, SEEK_SET);         /* position drive */
 
     if (uptr->FUNC == FCCY_READ) {                      /* read? */
-            awc = fxread (tbuf, sizeof(uint16), DKP_NUMWD, uptr->fileref);
+            awc = fxread (tbuf, sizeof(uint16_t), DKP_NUMWD, uptr->fileref);
             for ( ; awc < DKP_NUMWD; awc++) tbuf[awc] = 0;
             if ((err = ferror (uptr->fileref)))
                 break;
@@ -999,7 +999,7 @@ if ((r != SCPE_OK) || !(uptr->flags & UNIT_AUTO))
 if ((p = sim_fsize (uptr->fileref)) == 0)               /* get file size */
     return SCPE_OK;
 for (i = 0; drv_tab[i].sect != 0; i++) {
-    if (p <= (drv_tab[i].size * (int32) sizeof (uint16))) {
+    if (p <= (drv_tab[i].size * (int32) sizeof (uint16_t))) {
         uptr->flags = (uptr->flags & ~UNIT_DTYPE) | (i << UNIT_V_DTYPE);
         uptr->capac = drv_tab[i].size;
         return SCPE_OK;
@@ -1086,7 +1086,7 @@ t_stat dkp_boot (int32 unitno, DEVICE *dptr)
 size_t i;
 
 for (i = 0; i < BOOT_LEN; i++)
-    M[BOOT_START + i] = (uint16) boot_rom[i];
+    M[BOOT_START + i] = (uint16_t) boot_rom[i];
 saved_PC = BOOT_START;
 SR = 0100000 + DEV_DKP;
 return SCPE_OK;

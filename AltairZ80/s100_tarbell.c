@@ -45,17 +45,17 @@
 #define DBG_PRINT(args)
 #endif
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 /* These are needed for DMA. */
-extern void PutByteDMA(const uint32 addr, const uint32 val);
-extern uint8 GetByteDMA(const uint32 addr);
+extern void PutByteDMA(const uint32_t addr, const uint32_t val);
+extern uint8_t GetByteDMA(const uint32_t addr);
 
 #define TARBELL_MAX_ADAPTERS      1
 #define TARBELL_MAX_DRIVES        4
@@ -87,34 +87,34 @@ extern uint8 GetByteDMA(const uint32 addr);
 #define TARBELL_DMASIZE     16
 
 /* Tarbell PROM is 32 bytes */
-static uint8 tarbell_prom[TARBELL_PROM_SIZE] = {
+static uint8_t tarbell_prom[TARBELL_PROM_SIZE] = {
     0xdb, 0xfc, 0xaf, 0x6f, 0x67, 0x3c, 0xd3, 0xfa,
     0x3e, 0x8c, 0xd3, 0xf8, 0xdb, 0xfc, 0xb7, 0xf2,
     0x19, 0x00, 0xdb, 0xfb, 0x77, 0x23, 0xc3, 0x0c,
     0x00, 0xdb, 0xf8, 0xb7, 0xca, 0x7d, 0x00, 0x76
 };
 
-static uint8 tarbell_ram[TARBELL_RAM_SIZE];
+static uint8_t tarbell_ram[TARBELL_RAM_SIZE];
 
 /*
 ** Western Digital FD17XX Registers and Interface Controls
 */
 typedef struct {
-    uint8   track;          /* Track Register */
-    uint8   sector;         /* Sector Register */
-    uint8   command;        /* Command Register */
-    uint8   status;         /* Status Register */
-    uint8   data;           /* Data Register */
-    uint8   intrq;          /* Interrupt Request */
+    uint8_t   track;          /* Track Register */
+    uint8_t   sector;         /* Sector Register */
+    uint8_t   command;        /* Command Register */
+    uint8_t   status;         /* Status Register */
+    uint8_t   data;           /* Data Register */
+    uint8_t   intrq;          /* Interrupt Request */
     int8    stepDir;        /* Last Step Direction */
-    uint32  dataCount;      /* Number of data bytes transferred from controller for current sector/address */
-    uint32  trkCount;       /* Number of data bytes transferred from controller for current track */
-    uint8   readActive;     /* Read Active */
-    uint8   readTrkActive;  /* Read Track Active */
-    uint8   writeActive;    /* Write Active */
-    uint8   writeTrkActive; /* Write Track Active */
-    uint8   dataAddrMrk;    /* Data Addr Mark Flag */
-    uint8   addrActive;     /* Address Active */
+    uint32_t  dataCount;      /* Number of data bytes transferred from controller for current sector/address */
+    uint32_t  trkCount;       /* Number of data bytes transferred from controller for current track */
+    uint8_t   readActive;     /* Read Active */
+    uint8_t   readTrkActive;  /* Read Track Active */
+    uint8_t   writeActive;    /* Write Active */
+    uint8_t   writeTrkActive; /* Write Track Active */
+    uint8_t   dataAddrMrk;    /* Data Addr Mark Flag */
+    uint8_t   addrActive;     /* Address Active */
 } FD17XX_REG;
 
 #define FD17XX_STAT_NOTREADY   0x80
@@ -134,18 +134,18 @@ typedef struct {
 
 typedef struct {
     PNP_INFO  pnp;            /* Plug and Play */
-    uint32    dma_base;       /* DMA base I/O address */
-    uint32    dma_size;       /* DMA I/O size */
-    uint32    ddEnabled;      /* 0=SD,1=DD */
-    uint32    headTimeout;    /* Head unload timer value */
-    uint8     promEnabled;    /* PROM is enabled */
-    uint8     writeProtect;   /* Write Protect is enabled */
-    uint8     currentDrive;   /* currently selected drive */
-    uint8     secsPerTrack;   /* sectors per track */
-    uint16    bytesPerTrack;  /* bytes per track */
-    uint8     headLoaded[TARBELL_MAX_DRIVES];     /* Head Loaded */
-    uint8     doubleDensity[TARBELL_MAX_DRIVES];  /* true if double density */
-    uint8     side[TARBELL_MAX_DRIVES];           /* side 0 or side 1 */
+    uint32_t    dma_base;       /* DMA base I/O address */
+    uint32_t    dma_size;       /* DMA I/O size */
+    uint32_t    ddEnabled;      /* 0=SD,1=DD */
+    uint32_t    headTimeout;    /* Head unload timer value */
+    uint8_t     promEnabled;    /* PROM is enabled */
+    uint8_t     writeProtect;   /* Write Protect is enabled */
+    uint8_t     currentDrive;   /* currently selected drive */
+    uint8_t     secsPerTrack;   /* sectors per track */
+    uint16_t    bytesPerTrack;  /* bytes per track */
+    uint8_t     headLoaded[TARBELL_MAX_DRIVES];     /* Head Loaded */
+    uint8_t     doubleDensity[TARBELL_MAX_DRIVES];  /* true if double density */
+    uint8_t     side[TARBELL_MAX_DRIVES];           /* side 0 or side 1 */
     FD17XX_REG FD17XX;        /* FD17XX Registers and Data */
     UNIT *uptr[TARBELL_MAX_DRIVES];
 } TARBELL_INFO;
@@ -156,7 +156,7 @@ static TARBELL_INFO tarbell_info_data = {
 
 static TARBELL_INFO *tarbell_info = &tarbell_info_data;
 
-static uint8 sdata[TARBELL_SECTOR_LEN];
+static uint8_t sdata[TARBELL_SECTOR_LEN];
 
 /* Tarbell Registers */
 #define TARBELL_REG_STATUS         0x00
@@ -232,15 +232,15 @@ static t_stat tarbell_set_prom(UNIT *uptr, int32 val, CONST char *cptr, void *de
 static t_stat tarbell_show_prom(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat tarbell_set_model(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat tarbell_show_model(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-static uint32 secs_per_track(uint8 track);
-static uint32 bytes_per_track(uint8 track);
-static uint32 calculate_tarbell_sec_offset(uint8 track, uint8 sector);
-static void TARBELL_HeadLoad(UNIT *uptr, FD17XX_REG *pFD17XX, uint8 load);
-static uint8 TARBELL_Read(uint32 Addr);
-static uint8 TARBELL_Write(uint32 Addr, int32 data);
-static uint8 TARBELL_Command(UNIT *uptr, FD17XX_REG *pFD17XX, int32 data);
-static uint32 TARBELL_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer);
-static uint32 TARBELL_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer);
+static uint32_t secs_per_track(uint8_t track);
+static uint32_t bytes_per_track(uint8_t track);
+static uint32_t calculate_tarbell_sec_offset(uint8_t track, uint8_t sector);
+static void TARBELL_HeadLoad(UNIT *uptr, FD17XX_REG *pFD17XX, uint8_t load);
+static uint8_t TARBELL_Read(uint32_t Addr);
+static uint8_t TARBELL_Write(uint32_t Addr, int32 data);
+static uint8_t TARBELL_Command(UNIT *uptr, FD17XX_REG *pFD17XX, int32 data);
+static uint32_t TARBELL_ReadSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer);
+static uint32_t TARBELL_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer);
 static const char* tarbell_description(DEVICE *dptr);
 static void showdata(int32 isRead);
 
@@ -368,7 +368,7 @@ DEVICE tarbell_dev = {
 /* Reset routine */
 static t_stat tarbell_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
     TARBELL_INFO *pInfo = (TARBELL_INFO *)dptr->ctxt;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
@@ -542,7 +542,7 @@ static t_stat tarbell_detach(UNIT *uptr)
 
 static t_stat tarbell_set_dmabase(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL || !(tarbell_info->ddEnabled)) {
@@ -675,7 +675,7 @@ static void showdata(int32 isRead) {
     sim_debug(RD_DATA_DETAIL_MSG|WR_DATA_DETAIL_MSG, &tarbell_dev, "\n");
 }
 
-static uint32 secs_per_track(uint8 track)
+static uint32_t secs_per_track(uint8_t track)
 {
     /* Track 0 / side 0 is always single density */
     int32 secs = (tarbell_info->doubleDensity[tarbell_info->currentDrive] &&
@@ -686,7 +686,7 @@ static uint32 secs_per_track(uint8 track)
     return secs;
 }
 
-static uint32 bytes_per_track(uint8 track)
+static uint32_t bytes_per_track(uint8_t track)
 {
     int32 bytes;
     int32 dd;
@@ -704,10 +704,10 @@ static uint32 bytes_per_track(uint8 track)
     return bytes;
 }
 
-static uint32 calculate_tarbell_sec_offset(uint8 track, uint8 sector)
+static uint32_t calculate_tarbell_sec_offset(uint8_t track, uint8_t sector)
 {
-    uint32 offset;
-    uint8 ds = tarbell_info->side[tarbell_info->currentDrive];
+    uint32_t offset;
+    uint8_t ds = tarbell_info->side[tarbell_info->currentDrive];
 
     /*
     ** Side 0: tracks 0-76
@@ -737,7 +737,7 @@ static uint32 calculate_tarbell_sec_offset(uint8 track, uint8 sector)
     return (offset);
 }
 
-static void TARBELL_HeadLoad(UNIT *uptr, FD17XX_REG *pFD17XX, uint8 load)
+static void TARBELL_HeadLoad(UNIT *uptr, FD17XX_REG *pFD17XX, uint8_t load)
 {
     /*
     ** If no disk has been attached, uptr will be NULL - return
@@ -762,10 +762,10 @@ static void TARBELL_HeadLoad(UNIT *uptr, FD17XX_REG *pFD17XX, uint8 load)
     tarbell_info->headLoaded[tarbell_info->currentDrive] = load;
 }
 
-static uint8 TARBELL_Read(uint32 Addr)
+static uint8_t TARBELL_Read(uint32_t Addr)
 {
-    uint8 cData;
-    uint8 driveNum;
+    uint8_t cData;
+    uint8_t driveNum;
     FD17XX_REG *pFD17XX;
     UNIT *uptr;
 
@@ -858,10 +858,10 @@ static uint8 TARBELL_Read(uint32 Addr)
     return (cData);
 }
 
-static uint8 TARBELL_Write(uint32 Addr, int32 Data)
+static uint8_t TARBELL_Write(uint32_t Addr, int32 Data)
 {
-    uint8 cData;
-    uint8 driveNum;
+    uint8_t cData;
+    uint8_t driveNum;
     int32 rtn;
     UNIT *uptr;
     FD17XX_REG *pFD17XX;
@@ -1011,10 +1011,10 @@ static uint8 TARBELL_Write(uint32 Addr, int32 Data)
     return(cData);
 }
 
-static uint32 TARBELL_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer)
+static uint32_t TARBELL_ReadSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 sec_offset;
-    uint32 rtn = 0;
+    uint32_t sec_offset;
+    uint32_t rtn = 0;
 
     if (uptr->fileref == NULL) {
         sim_debug(ERROR_MSG, &tarbell_dev, TARBELL_SNAME ": READSEC uptr.fileref is NULL!\n");
@@ -1036,10 +1036,10 @@ static uint32 TARBELL_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *b
 }
 
 
-static uint32 TARBELL_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer)
+static uint32_t TARBELL_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 sec_offset;
-    uint32 rtn = 0;
+    uint32_t sec_offset;
+    uint32_t rtn = 0;
 
     if (uptr->fileref == NULL) {
         sim_debug(ERROR_MSG, &tarbell_dev, TARBELL_SNAME ": READSEC uptr.fileref is NULL!\n");
@@ -1061,11 +1061,11 @@ static uint32 TARBELL_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *
 }
 
 
-static uint8 TARBELL_Command(UNIT *uptr, FD17XX_REG *pFD17XX, int32 Data)
+static uint8_t TARBELL_Command(UNIT *uptr, FD17XX_REG *pFD17XX, int32 Data)
 {
-    uint8 cData;
-    uint8 newTrack;
-    uint8 statusUpdate;
+    uint8_t cData;
+    uint8_t newTrack;
+    uint8_t statusUpdate;
     int32 rtn;
 
     cData = 0;

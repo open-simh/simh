@@ -61,10 +61,10 @@
 
 #define VTOC_BLOCK    0
 
-static uint8   int_slot;            /* Interrupting card ID   */
-static uint8   int_subdev;          /* Interrupting subdevice */
+static uint8_t   int_slot;            /* Interrupting card ID   */
+static uint8_t   int_subdev;          /* Interrupting subdevice */
 static t_bool  ctc_conf = FALSE;    /* Has a CTC card been configured? */
-static uint32  ctc_crc;             /* CRC32 of downloaded memory */
+static uint32_t  ctc_crc;             /* CRC32 of downloaded memory */
 
 struct partition vtoc_table[VTOC_PART] = {
     { 2, 0, 5272,  8928  },   /* 00 */
@@ -138,7 +138,7 @@ DEVICE ctc_dev = {
     NULL,                           /* device description */
 };
 
-static void cio_irq(uint8 slot, uint8 dev, int32 delay)
+static void cio_irq(uint8_t slot, uint8_t dev, int32 delay)
 {
     int_slot = slot;
     int_subdev = dev & 0x3f;
@@ -148,16 +148,16 @@ static void cio_irq(uint8 slot, uint8 dev, int32 delay)
 /*
  * Write a VTOC and pdinfo to the tape file
  */
-static t_stat ctc_write_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32 maxpass)
+static t_stat ctc_write_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32_t maxpass)
 {
-    uint8 buf[PD_BYTES];
-    uint32 wr, offset;
+    uint8_t buf[PD_BYTES];
+    uint32_t wr, offset;
 
     memcpy(buf, vtoc, sizeof(struct vtoc));
     offset = sizeof(struct vtoc);
     memcpy(buf + offset, pdinfo, sizeof(struct pdinfo));
     offset += sizeof(struct pdinfo);
-    memcpy(buf + offset, &maxpass, sizeof(uint32));
+    memcpy(buf + offset, &maxpass, sizeof(uint32_t));
 
     return sim_disk_wrsect(&ctc_unit, VTOC_BLOCK, buf, &wr, 1);
 }
@@ -165,10 +165,10 @@ static t_stat ctc_write_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32 ma
 /*
  * Load a VTOC and pdinfo from the tape file
  */
-static t_stat ctc_read_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32 *maxpass)
+static t_stat ctc_read_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32_t *maxpass)
 {
-    uint8 buf[PD_BYTES];
-    uint32 wr, offset;
+    uint8_t buf[PD_BYTES];
+    uint32_t wr, offset;
     t_stat result;
 
     result = sim_disk_rdsect(&ctc_unit, VTOC_BLOCK, buf, &wr, 1);
@@ -181,7 +181,7 @@ static t_stat ctc_read_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32 *ma
     offset = sizeof(struct vtoc);
     memcpy(pdinfo, buf + offset, sizeof(struct pdinfo));
     offset += sizeof(struct pdinfo);
-    memcpy(maxpass, buf + offset, sizeof(uint32));
+    memcpy(maxpass, buf + offset, sizeof(uint32_t));
 
     return result;
 }
@@ -189,16 +189,16 @@ static t_stat ctc_read_vtoc(struct vtoc *vtoc, struct pdinfo *pdinfo, uint32 *ma
 /*
  * Update the host's in-memory copy of the VTOC and pdinfo
  */
-static void ctc_update_vtoc(uint32 maxpass,
-                            uint32 vtoc_addr, uint32 pdinfo_addr,
+static void ctc_update_vtoc(uint32_t maxpass,
+                            uint32_t vtoc_addr, uint32_t pdinfo_addr,
                             struct vtoc *vtoc, struct pdinfo *pdinfo)
 {
-    uint32 i;
+    uint32_t i;
 
     pwrite_w(vtoc_addr + 12, VTOC_VALID, BUS_PER);
     pwrite_w(vtoc_addr + 16, vtoc->version, BUS_PER);
     for (i = 0; i < 8; i++) {
-        pwrite_b(vtoc_addr + 20 + i, (uint8)(vtoc->volume[i]), BUS_PER);
+        pwrite_b(vtoc_addr + 20 + i, (uint8_t)(vtoc->volume[i]), BUS_PER);
     }
     pwrite_h(vtoc_addr + 28, vtoc->sectorsz, BUS_PER);
     pwrite_h(vtoc_addr + 30, vtoc->nparts, BUS_PER);
@@ -248,14 +248,14 @@ static void ctc_update_vtoc(uint32 maxpass,
  * expects response parameters to be placed in specific fields of the
  * Completion Queue entry. It can be confusing to follow.
  */
-static void ctc_cmd(uint8 slot,
-                    cio_entry *rqe, uint8 *rapp_data,
-                    cio_entry *cqe, uint8 *capp_data)
+static void ctc_cmd(uint8_t slot,
+                    cio_entry *rqe, uint8_t *rapp_data,
+                    cio_entry *cqe, uint8_t *capp_data)
 {
-    uint32 vtoc_addr, pdinfo_addr, ctjob_addr;
-    uint32 maxpass, blkno, delay, last_byte;
-    uint8  dev, c;
-    uint8  sec_buf[VTOC_SECSZ];
+    uint32_t vtoc_addr, pdinfo_addr, ctjob_addr;
+    uint32_t maxpass, blkno, delay, last_byte;
+    uint8_t  dev, c;
+    uint8_t  sec_buf[VTOC_SECSZ];
     int32  b, i, j;
     int32 block_count, read_bytes, remainder, dest;
     t_seccnt secrw = 0;
@@ -263,7 +263,7 @@ static void ctc_cmd(uint8 slot,
     struct pdinfo pdinfo = {0};
     t_stat result;
 
-    uint32 lba;   /* Logical Block Address */
+    uint32_t lba;   /* Logical Block Address */
 
     maxpass = 0;
     dev = rqe->subdevice & 1;  /* Tape or Floppy device */
@@ -565,7 +565,7 @@ static void ctc_cmd(uint8 slot,
         /* Now step over each block, and start reading from the
          * necessary location. */
         for (b = 0; b < block_count; b++) {
-            uint32 start_byte;
+            uint32_t start_byte;
             /* Add some read time to the read time counter */
             ctc_state[dev].time += 10;
             start_byte = ctc_state[dev].bytnum % VTOC_SECSZ;
@@ -581,7 +581,7 @@ static void ctc_cmd(uint8 slot,
                     read_bytes = VTOC_SECSZ - start_byte;
                 }
                 for (j = 0; j < read_bytes; j++) {
-                    uint32 offset;
+                    uint32_t offset;
                     /* Drain the buffer */
                     if (b == 0 && (j + start_byte) < VTOC_SECSZ) {
                         /* This is a partial read of the first block,
@@ -628,10 +628,10 @@ static void ctc_cmd(uint8 slot,
     cio_irq(slot, rqe->subdevice, delay);
 }
 
-void ctc_sysgen(uint8 slot)
+void ctc_sysgen(uint8_t slot)
 {
     cio_entry cqe = {0};
-    uint8 rapp_data[12] = {0};
+    uint8_t rapp_data[12] = {0};
 
     ctc_crc = 0;
 
@@ -652,11 +652,11 @@ void ctc_sysgen(uint8 slot)
     sim_activate_after(&ctc_unit, DELAY_SYSGEN);
 }
 
-void ctc_express(uint8 slot)
+void ctc_express(uint8_t slot)
 {
     cio_entry rqe, cqe;
-    uint8 rapp_data[12] = {0};
-    uint8 capp_data[8] = {0};
+    uint8_t rapp_data[12] = {0};
+    uint8_t capp_data[8] = {0};
 
     sim_debug(TRACE_DBG, &ctc_dev, "[ctc_express] Handling Express Request\n");
 
@@ -666,11 +666,11 @@ void ctc_express(uint8 slot)
     cio_cexpress(slot, CTQCESIZE, &cqe, capp_data);
 }
 
-void ctc_full(uint8 slot)
+void ctc_full(uint8_t slot)
 {
     cio_entry rqe, cqe;
-    uint8 rapp_data[12] = {0};
-    uint8 capp_data[8] = {0};
+    uint8_t rapp_data[12] = {0};
+    uint8_t capp_data[8] = {0};
 
     sim_debug(TRACE_DBG, &ctc_dev, "[ctc_full] Handling Full Request\n");
 
@@ -683,7 +683,7 @@ void ctc_full(uint8 slot)
 
 t_stat ctc_reset(DEVICE *dptr)
 {
-    uint8 slot;
+    uint8_t slot;
     t_stat r;
 
     ctc_crc = 0;
@@ -711,7 +711,7 @@ t_stat ctc_reset(DEVICE *dptr)
 
 t_stat ctc_svc(UNIT *uptr)
 {
-    uint16 lp, ulp;
+    uint16_t lp, ulp;
 
     if (cio[int_slot].ivec > 0) {
         sim_debug(TRACE_DBG, &ctc_dev,

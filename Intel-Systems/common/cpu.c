@@ -43,26 +43,26 @@ int onetime = 0;
 /* external function prototypes */
 
 extern t_stat monitor_reset (DEVICE *dptr);
-extern t_stat monitor_cfg(uint16 base, uint16 devnum, uint8 dummy);
+extern t_stat monitor_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 extern t_stat fp_reset (DEVICE *dptr);
-extern t_stat fp_cfg(uint16 base, uint16 devnum, uint8 dummy);
+extern t_stat fp_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 extern t_stat i8080_reset (DEVICE *dptr);   /* reset the 8080 emulator */
-extern uint8 EPROM_get_mbyte(uint16 addr, uint8 devnum);
-extern uint8 multibus_get_mbyte(uint16 addr);
-extern void multibus_put_mbyte(uint16 addr, uint8 val);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
-extern t_stat i3214_cfg(uint16 base, uint16 devnum, uint8 dummy);
+extern uint8_t EPROM_get_mbyte(uint16_t addr, uint8_t devnum);
+extern uint8_t multibus_get_mbyte(uint16_t addr);
+extern void multibus_put_mbyte(uint16_t addr, uint8_t val);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
+extern t_stat i3214_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 
 // external globals
 
-extern uint8 monitor_boot;
+extern uint8_t monitor_boot;
 extern DEVICE i8080_dev;
-extern uint8 i3214_mask;
-extern uint8 EPROM_enable;
-extern uint8 i3214_cnt;
-extern uint8 i3214_ram[16];
-extern uint8 BUS_OVERRIDE;
+extern uint8_t i3214_mask;
+extern uint8_t EPROM_enable;
+extern uint8_t i3214_cnt;
+extern uint8_t i3214_ram[16];
+extern uint8_t BUS_OVERRIDE;
 
 t_stat SBC_config(void)
 {

@@ -44,14 +44,14 @@
    03-Aug-16    JDB     Improved "fmt_char" and "fmt_bitset" to allow multiple calls
    15-Jul-16    JDB     Fixed the word count display for SIO read/write orders
    14-Jul-16    JDB     Improved the cold dump invocation
-   21-Jun-16    JDB     Changed fprint_instruction mask type from t_value to uint32
+   21-Jun-16    JDB     Changed fprint_instruction mask type from t_value to uint32_t
    08-Jun-16    JDB     Corrected %d format to %u for unsigned values
    16-May-16    JDB     Prefix in fprint_instruction is now a pointer-to-constant
    13-May-16    JDB     Modified for revised SCP API function parameter types
    20-Apr-16    JDB     Added implementation notes to "fmt_bitset"
    14-Apr-16    JDB     Fixed INTMASK setting and display
    24-Mar-16    JDB     Added the LP device
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    23-Nov-15    JDB     First release version
    11-Dec-12    JDB     Created
 
@@ -985,11 +985,11 @@ static t_stat hp_brk_cmd   (int32 arg, CONST char *buf);
 
 /* System interface local utility routines */
 
-static t_stat fprint_value       (FILE *ofile, t_value val,  uint32 radix, uint32 width, uint32 format);
-static t_stat fprint_order       (FILE *ofile, t_value *val, uint32 radix);
-static t_stat fprint_subop       (FILE *ofile, t_value *val, uint32 radix, t_addr addr, int32 switches);
+static t_stat fprint_value       (FILE *ofile, t_value val,  uint32_t radix, uint32_t width, uint32_t format);
+static t_stat fprint_order       (FILE *ofile, t_value *val, uint32_t radix);
+static t_stat fprint_subop       (FILE *ofile, t_value *val, uint32_t radix, t_addr addr, int32 switches);
 static t_stat fprint_instruction (FILE *ofile, const OP_TABLE ops, t_value *val,
-                                  uint32 mask, uint32 shift, uint32 radix);
+                                  uint32_t mask, uint32_t shift, uint32_t radix);
 
 static t_stat parse_cpu          (CONST char *cptr, t_addr address, UNIT *uptr, t_value *value, int32 switches);
 
@@ -1331,7 +1331,7 @@ return SCPE_ARG;                                        /* return an error if ca
 t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
 int32  formats, modes;
-uint32 radix;
+uint32_t radix;
 
 if ((sw & (SIM_SW_REG | ALL_SWITCHES)) == SIM_SW_REG)   /* if we are formatting a register without overrides */
     if (addr & REG_A)                                   /*   then if the default format is character */
@@ -1384,7 +1384,7 @@ else if (modes == E_SWITCH)                             /* otherwise if an EDIT 
     return fprint_subop (ofile, val, radix, addr, sw);  /*   then format and print it */
 
 else if (modes == T_SWITCH) {                           /* otherwise if status display is requested */
-    fputs (fmt_status ((uint32) val [0]), ofile);       /*   then format the status flags and condition code */
+    fputs (fmt_status ((uint32_t) val [0]), ofile);       /*   then format the status flags and condition code */
     fputc (' ', ofile);                                 /*     and add a separator */
 
     if (fprint_value (ofile, STATUS_CS (val [0]),       /* if the code segment number */
@@ -1556,7 +1556,7 @@ else                                                    /* otherwise a value is 
                               DEVNO_MAX, &status);
 
             if (status == SCPE_OK)                      /* if it is valid */
-                dibptr->device_number = (uint32) value; /*   then save it in the DIB */
+                dibptr->device_number = (uint32_t) value; /*   then save it in the DIB */
             break;
 
         case VAL_INTMASK:                                   /* INTMASK=0-15/E/D */
@@ -1580,7 +1580,7 @@ else                                                    /* otherwise a value is 
                               INTPRI_MAX, &status);
 
             if (status == SCPE_OK)                              /* if it is valid */
-                dibptr->interrupt_priority = (uint32) value;    /*   then save it in the DIB */
+                dibptr->interrupt_priority = (uint32_t) value;    /*   then save it in the DIB */
             break;
 
         case VAL_SRNO:                                          /* SRNO=0-15 */
@@ -1592,7 +1592,7 @@ else                                                    /* otherwise a value is 
                                   SRNO_MAX, &status);
 
                 if (status == SCPE_OK)                                  /* if it is valid */
-                    dibptr->service_request_number = (uint32) value;    /*   then save it in the DIB */
+                    dibptr->service_request_number = (uint32_t) value;    /*   then save it in the DIB */
                 }
             break;
 
@@ -1633,7 +1633,7 @@ return status;                                          /* return the validation
 t_stat hp_show_dib (FILE *st, UNIT *uptr, int32 code, CONST void *desc)
 {
 const DIB *const dibptr = (const DIB *) desc;           /* a pointer to the associated DIB */
-uint32           mask, value;
+uint32_t           mask, value;
 
 switch (code) {                                         /* display the requested value */
 
@@ -1719,7 +1719,7 @@ return SCPE_OK;                                         /* return the display re
        printing the left stack opcode is not used.
 */
 
-t_stat fprint_cpu (FILE *ofile, t_value *val, uint32 radix, int32 switches)
+t_stat fprint_cpu (FILE *ofile, t_value *val, uint32_t radix, int32 switches)
 {
 const char *dashes = "----,";
 t_stat status = SCPE_OK;
@@ -1873,10 +1873,10 @@ return status;                                              /* return the consum
           else \
               b = UPPER_BYTE (*val)
 
-uint32 fprint_edit (FILE *ofile, t_value *val, uint32 radix, uint32 byte_address)
+uint32_t fprint_edit (FILE *ofile, t_value *val, uint32_t radix, uint32_t byte_address)
 {
-uint8   byte, opcode, operand;
-uint32  word_address, byte_count, disp_radix;
+uint8_t   byte, opcode, operand;
+uint32_t  word_address, byte_count, disp_radix;
 t_value eval_array [2];
 
 if (radix == 0)                                         /* if the supplied radix is defaulted */
@@ -1935,7 +1935,7 @@ switch (opcode) {                                       /* dispatch by the exten
                       D8_WIDTH, PV_LEFT);
 
         fputc (',', ofile);                             /* add a separator */
-        fputs (fmt_char ((uint32) byte), ofile);        /*   and print the insertion character */
+        fputs (fmt_char ((uint32_t) byte), ofile);        /*   and print the insertion character */
         break;
 
 
@@ -1996,7 +1996,7 @@ switch (opcode) {                                       /* dispatch by the exten
 
     case 014:                                               /* ICP  - insert character punctuation */
     case 015:                                               /* ICPS - insert character punctuation suppressed */
-        fputs (fmt_char ((uint32) (operand + ' ')), ofile); /* print the punctuation character */
+        fputs (fmt_char ((uint32_t) (operand + ' ')), ofile); /* print the punctuation character */
         break;
 
 
@@ -2027,29 +2027,29 @@ switch (opcode) {                                       /* dispatch by the exten
         GET_BYTE (byte);                                /* get the fill character */
         byte_count = byte_count + 1;                    /*   and count it */
 
-        fputs (fmt_char ((uint32) byte), ofile);        /* print the fill character */
+        fputs (fmt_char ((uint32_t) byte), ofile);        /* print the fill character */
         break;
 
     case 025:                                           /* SFLC - set float character */
         GET_BYTE (byte);                                /* get the float character */
         byte_count = byte_count + 1;                    /*   and count it */
 
-        fputs (fmt_char ((uint32) (UPPER_HALF (byte) + ' ')), ofile);   /* print the positive float character */
+        fputs (fmt_char ((uint32_t) (UPPER_HALF (byte) + ' ')), ofile);   /* print the positive float character */
         fputc (',', ofile);                                             /*   and a separator */
-        fputs (fmt_char ((uint32) (LOWER_HALF (byte) + ' ')), ofile);   /*     and the negative float character */
+        fputs (fmt_char ((uint32_t) (LOWER_HALF (byte) + ' ')), ofile);   /*     and the negative float character */
         break;
 
 
     case 026:                                           /* DFLC - define float character */
         GET_BYTE (byte);                                /* get the float character */
 
-        fputs (fmt_char ((uint32) byte), ofile);        /* print the positive float character */
+        fputs (fmt_char ((uint32_t) byte), ofile);        /* print the positive float character */
 
         GET_BYTE (byte);                                /* get the float character */
         byte_count = byte_count + 2;                    /*   and count both characters */
 
         fputc (',', ofile);                             /* print a separator */
-        fputs (fmt_char ((uint32) byte), ofile);        /*   and the negative float character */
+        fputs (fmt_char ((uint32_t) byte), ofile);        /*   and the negative float character */
         break;
 
 
@@ -2098,12 +2098,12 @@ return byte_count;                                      /* return the number of 
    the invalid value, "CC?" is used.
 */
 
-const char *fmt_status (uint32 status)
+const char *fmt_status (uint32_t status)
 {
 static const char conditions [] = "GLE?";
 static const char flags [] = "m i t r o c CCx";
 static char formatted [sizeof flags];
-uint32 index;
+uint32_t index;
 
 strcpy (formatted, flags);                              /* copy the initial flags template */
 
@@ -2154,7 +2154,7 @@ return formatted;                                       /* return a pointer to t
        or more strings from the earliest calls will be overwritten.
 */
 
-const char *fmt_char (uint32 charval)
+const char *fmt_char (uint32_t charval)
 {
 static const char *const control [] = {
     "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
@@ -2308,7 +2308,7 @@ else {
        either side of the name and a terminating NUL character.
 */
 
-const char *fmt_bitset (uint32 bitset, const BITSET_FORMAT bitfmt)
+const char *fmt_bitset (uint32_t bitset, const BITSET_FORMAT bitfmt)
 {
 static const char separator [] = " | ";                     /* the separator to use between names */
 static char fmt_buffer [1024];                              /* the return buffer */
@@ -2316,7 +2316,7 @@ static char *freeptr = fmt_buffer;                          /* pointer to the fi
 static char *endptr  = fmt_buffer + sizeof fmt_buffer       /* pointer to the end of the buffer */
                          - 2 * (sizeof separator - 1) - 1;  /*   less allowance for two separators and a terminator */
 const  char *bnptr, *fmtptr;
-uint32 test_bit, index, bitmask;
+uint32_t test_bit, index, bitmask;
 size_t name_length;
 
 if (bitfmt.name_count < D32_WIDTH)                      /* if the name count is the less than the mask width */
@@ -2439,7 +2439,7 @@ return fmtptr;                                          /* return a pointer to t
 #define FLAG_SIZE           32                          /* sufficiently large to accommodate all flag names */
 #define FORMAT_SIZE         1024                        /* sufficiently large to accommodate all format strings */
 
-void hp_debug (DEVICE *dptr, uint32 flag, ...)
+void hp_debug (DEVICE *dptr, uint32_t flag, ...)
 {
 va_list argptr;
 DEBTAB  *debptr;
@@ -2557,7 +2557,7 @@ typedef enum {                                          /* conflict types */
     None                                                /*   no conflict */
     } CONFLICT_TYPE;
 
-static const uint32 max_number [CONFLICT_COUNT] = {     /* the last element index, in CONFLICT_TYPE order */
+static const uint32_t max_number [CONFLICT_COUNT] = {     /* the last element index, in CONFLICT_TYPE order */
     DEVNO_MAX,
     INTPRI_MAX,
     SRNO_MAX
@@ -2573,7 +2573,7 @@ const DIB     *dibptr;
 const DEBTAB  *tptr;
 DEVICE        *dptr;
 size_t        name_length, flag_length;
-uint32        dev, val;
+uint32_t        dev, val;
 CONFLICT_TYPE conf, conflict_is;
 int32         count;
 int32         dib_val   [DEVICE_COUNT] [CONFLICT_COUNT];
@@ -2802,7 +2802,7 @@ else                                                    /* otherwise all other s
 
 static void fprint_addr (FILE *st, DEVICE *dptr, t_addr addr)
 {
-uint32 bank, offset;
+uint32_t bank, offset;
 
 if (dptr == &cpu_dev) {                                 /* if the address originates in the CPU */
     bank = TO_BANK (addr);                              /*   then separate bank and offset */
@@ -2861,7 +2861,7 @@ return;
 static t_addr parse_addr (DEVICE *dptr, CONST char *cptr, CONST char **tptr)
 {
 CONST char *sptr;
-uint32     overrides;
+uint32_t     overrides;
 t_addr     bank;
 t_addr     address = 0;
 
@@ -2996,7 +2996,7 @@ return run_cmd (RU_GO, buf);                            /* return the result of 
 
 static t_stat hp_brk_cmd (int32 arg, CONST char *buf)
 {
-static uint32 PC;
+static uint32_t PC;
 static REG PR = { ORDATA (PP, PC, 32) };
 REG    *save_PC;
 t_stat status;
@@ -3037,11 +3037,11 @@ return status;                                          /* return the handler st
    printed successfully, or SCPE_ARG if the value could not be printed.
 */
 
-static t_stat fprint_value (FILE *ofile, t_value val, uint32 radix, uint32 width, uint32 format)
+static t_stat fprint_value (FILE *ofile, t_value val, uint32_t radix, uint32_t width, uint32_t format)
 {
 if (radix == 256)                                       /* if ASCII character display is requested */
     if (val <= D8_SMAX) {                               /*   then if the value is a single character */
-        fputs (fmt_char ((uint32) val), ofile);         /*     then format and print it */
+        fputs (fmt_char ((uint32_t) val), ofile);         /*     then format and print it */
         return SCPE_OK;                                 /*       and report success */
         }
 
@@ -3135,7 +3135,7 @@ static const char *const order_names [] = {             /* indexed by SIO_ORDER 
     "READC  "                                           /*   sioREADC  -- Read (chained) */
     };
 
-static t_stat fprint_order (FILE *ofile, t_value *val, uint32 radix)
+static t_stat fprint_order (FILE *ofile, t_value *val, uint32_t radix)
 {
 t_value   iocw, ioaw;
 SIO_ORDER order;
@@ -3253,16 +3253,16 @@ return SCPE_OK_2_WORDS;                                 /* indicate that each in
        previous setting of sim_switches is used.
 */
 
-static t_stat fprint_subop (FILE *ofile, t_value *val, uint32 radix, t_addr addr, int32 switches)
+static t_stat fprint_subop (FILE *ofile, t_value *val, uint32_t radix, t_addr addr, int32 switches)
 {
-static uint32 odd_byte = 0;
-uint32 byte_addr, bytes_used, total_bytes_used;
+static uint32_t odd_byte = 0;
+uint32_t byte_addr, bytes_used, total_bytes_used;
 
 if (ofile != sim_log)                                       /* if this is not a logging call */
-    odd_byte = (uint32) ((switches & SWMASK ('R')) != 0);   /*   then recalculate the odd-byte flag */
+    odd_byte = (uint32_t) ((switches & SWMASK ('R')) != 0);   /*   then recalculate the odd-byte flag */
 
 total_bytes_used = odd_byte;                            /* initialize the bytes used accumulator */
-byte_addr = (uint32) addr * 2 + odd_byte;               /* form the initial byte address */
+byte_addr = (uint32_t) addr * 2 + odd_byte;               /* form the initial byte address */
 
 do {
     bytes_used = fprint_edit (ofile, val, radix, byte_addr);    /* format and print an operation */
@@ -3405,9 +3405,9 @@ static const char *const sign_cntl [] = {       /* CVND sign control names corre
     };
 
 static t_stat fprint_instruction (FILE *ofile, const OP_TABLE ops, t_value *val,
-                                  uint32 mask, uint32 shift, uint32 radix)
+                                  uint32_t mask, uint32_t shift, uint32_t radix)
 {
-uint32     op_index, op_radix;
+uint32_t     op_index, op_radix;
 int32      reg_index;
 t_bool     reg_first;
 t_value    instruction, op_value;
@@ -3418,7 +3418,7 @@ t_stat     status   = SCPE_OK;                          /* result status */
 
 instruction = TO_DWORD (val [1], val [0]);              /* merge the two supplied values */
 
-op_index = ((uint32) instruction & mask) >> shift;      /* extract the opcode index */
+op_index = ((uint32_t) instruction & mask) >> shift;      /* extract the opcode index */
 
 if (ops [op_index].mnemonic [0])                        /* if a primary entry is defined */
     fputs (ops [op_index].mnemonic, ofile);             /*   then print the mnemonic */

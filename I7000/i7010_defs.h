@@ -28,12 +28,12 @@
 /* Memory */
 #define AMASK  0x1ffff
 #define BBIT   0x80000000
-#define MEM_ADDR_OK(x)  ((uint32)((x) & AMASK) < MEMSIZE)
-extern uint8            M[MAXMEMSIZE];
+#define MEM_ADDR_OK(x)  ((uint32_t)((x) & AMASK) < MEMSIZE)
+extern uint8_t            M[MAXMEMSIZE];
 #define WM      0200    /* Word mark in memory */
 
 /* Issue a command to a channel */
-int chan_cmd(uint16 dev, uint16 cmd, uint32 addr);
+int chan_cmd(uint16_t dev, uint16_t cmd, uint32_t addr);
 
 /* Opcodes */                   /* I     A     B   */
 #define OP_A    CHR_A           /* Aab */ /* NSI   ALW   BLB */

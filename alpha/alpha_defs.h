@@ -68,7 +68,7 @@
 #define W_SIGN          0x8000
 #define L_SIGN          0x80000000
 #define Q_SIGN          0x8000000000000000
-#define Q_GETSIGN(x)    (((uint32) ((x) >> 63)) & 1)
+#define Q_GETSIGN(x)    (((uint32_t) ((x) >> 63)) & 1)
 
 /* Architectural variants */
 
@@ -158,7 +158,7 @@
 #define F_BIAS          0x80
 #define F_EXP           (F_M_EXP << F_V_EXP)
 #define F_V_FRAC        29
-#define F_GETEXP(x)     ((uint32) (((x) >> F_V_EXP) & F_M_EXP))
+#define F_GETEXP(x)     ((uint32_t) (((x) >> F_V_EXP) & F_M_EXP))
 #define SWAP_VAXF(x)    ((((x) >> 16) & 0xFFFF) | (((x) & 0xFFFF) << 16))
 
 /* Floating point memory format (VAX G) */
@@ -169,7 +169,7 @@
 #define G_M_EXP         0x7FF
 #define G_BIAS          0x400
 #define G_EXP           (G_M_EXP << G_V_EXP)
-#define G_GETEXP(x)     ((uint32) (((x) >> G_V_EXP) & G_M_EXP))
+#define G_GETEXP(x)     ((uint32_t) (((x) >> G_V_EXP) & G_M_EXP))
 #define SWAP_VAXG(x)    ((((x) & 0x000000000000FFFF) << 48) | \
                         (((x) & 0x00000000FFFF0000) << 16) | \
                         (((x) >> 16) & 0x00000000FFFF0000) | \
@@ -185,7 +185,7 @@
 #define S_NAN           0xFF
 #define S_EXP           (S_M_EXP << S_V_EXP)
 #define S_V_FRAC        29
-#define S_GETEXP(x)     ((uint32) (((x) >> S_V_EXP) & S_M_EXP))
+#define S_GETEXP(x)     ((uint32_t) (((x) >> S_V_EXP) & S_M_EXP))
 
 /* Floating point memory format (IEEE T) */
 
@@ -197,7 +197,7 @@
 #define T_NAN           0x7FF
 #define T_EXP           0x7FF0000000000000
 #define T_FRAC          0x000FFFFFFFFFFFFF
-#define T_GETEXP(x)     ((uint32) (((uint32) ((x) >> T_V_EXP)) & T_M_EXP))
+#define T_GETEXP(x)     ((uint32_t) (((uint32_t) ((x) >> T_V_EXP)) & T_M_EXP))
 
 /* Floating point register format (all except VAX D) */
 
@@ -210,8 +210,8 @@
 #define FPR_HB          0x0010000000000000
 #define FPR_FRAC        0x000FFFFFFFFFFFFF
 #define FPR_GUARD       (UF_V_NM - FPR_V_EXP)
-#define FPR_GETSIGN(x)  (((uint32) ((x) >> FPR_V_SIGN)) & 1)
-#define FPR_GETEXP(x)   (((uint32) ((x) >> FPR_V_EXP)) & FPR_M_EXP)
+#define FPR_GETSIGN(x)  (((uint32_t) ((x) >> FPR_V_SIGN)) & 1)
+#define FPR_GETEXP(x)   (((uint32_t) ((x) >> FPR_V_EXP)) & FPR_M_EXP)
 #define FPR_GETFRAC(x)  ((x) & FPR_FRAC)
 
 #define FP_TRUE         0x4000000000000000              /* 0.5/2.0 in reg */
@@ -226,8 +226,8 @@
 #define FDR_HB          0x0080000000000000
 #define FDR_FRAC        0x007FFFFFFFFFFFFF
 #define FDR_GUARD       (UF_V_NM - FDR_V_EXP)
-#define FDR_GETSIGN(x)  (((uint32) ((x) >> FDR_V_SIGN)) & 1)
-#define FDR_GETEXP(x)   (((uint32) ((x) >> FDR_V_EXP)) & FDR_M_EXP)
+#define FDR_GETSIGN(x)  (((uint32_t) ((x) >> FDR_V_SIGN)) & 1)
+#define FDR_GETEXP(x)   (((uint32_t) ((x) >> FDR_V_EXP)) & FDR_M_EXP)
 #define FDR_GETFRAC(x)  ((x) & FDR_FRAC)
 
 #define D_BIAS          0x80
@@ -235,7 +235,7 @@
 /* Unpacked floating point number */
 
 typedef struct {
-    uint32              sign;
+    uint32_t              sign;
     int32               exp;
     t_uint64            frac;
     } UFP;
@@ -300,7 +300,7 @@ typedef struct {
 #define PTE_FOR         (1u << PTE_V_FOR)
 #define PTE_V           (1u << PTE_V_V)
 #define PTE_MASK        0xFF7F
-#define PTE_GETGH(x)    ((((uint32) (x)) >> PTE_V_GH) & PTE_M_GH)
+#define PTE_GETGH(x)    ((((uint32_t) (x)) >> PTE_V_GH) & PTE_M_GH)
 #define VPN_GETLVL1(x)  (((x) >> ((2 * VA_N_LVL) - 3)) & (VA_M_LVL << 3))
 #define VPN_GETLVL2(x)  (((x) >> (VA_N_LVL - 3)) & (VA_M_LVL << 3))
 #define VPN_GETLVL3(x)  (((x) << 3) & (VA_M_LVL << 3))
@@ -374,9 +374,9 @@ typedef struct {
 typedef struct {                                        /* device info block */
     t_uint64            low;                            /* low addr */
     t_uint64            high;                           /* high addr */
-    t_bool              (*read)(t_uint64 pa, t_uint64 *val, uint32 lnt);
-    t_bool              (*write)(t_uint64 pa, t_uint64 val, uint32 lnt);
-    uint32              ipl;
+    t_bool              (*read)(t_uint64 pa, t_uint64 *val, uint32_t lnt);
+    t_bool              (*write)(t_uint64 pa, t_uint64 val, uint32_t lnt);
+    uint32_t              ipl;
     } DIB;
 
 /* Interrupt system - 6 levels in EV4 and EV6, 4 in EV5 - software expects 4 */
@@ -428,32 +428,32 @@ enum opcodes {
 
 /* Function prototypes */
 
-uint32 ReadI (t_uint64 va);
+uint32_t ReadI (t_uint64 va);
 t_uint64 ReadB (t_uint64 va);
 t_uint64 ReadW (t_uint64 va);
 t_uint64 ReadL (t_uint64 va);
 t_uint64 ReadQ (t_uint64 va);
-t_uint64 ReadAccL (t_uint64 va, uint32 acc);
-t_uint64 ReadAccQ (t_uint64 va, uint32 acc);
+t_uint64 ReadAccL (t_uint64 va, uint32_t acc);
+t_uint64 ReadAccQ (t_uint64 va, uint32_t acc);
 INLINE t_uint64 ReadPB (t_uint64 pa);
 INLINE t_uint64 ReadPW (t_uint64 pa);
 INLINE t_uint64 ReadPL (t_uint64 pa);
 INLINE t_uint64 ReadPQ (t_uint64 pa);
-t_bool ReadIO (t_uint64 pa, t_uint64 *val, uint32 lnt);
+t_bool ReadIO (t_uint64 pa, t_uint64 *val, uint32_t lnt);
 void WriteB (t_uint64 va, t_uint64 dat);
 void WriteW (t_uint64 va, t_uint64 dat);
 void WriteL (t_uint64 va, t_uint64 dat);
 void WriteQ (t_uint64 va, t_uint64 dat);
-void WriteAccL (t_uint64 va, t_uint64 dat, uint32 acc);
-void WriteAccQ (t_uint64 va, t_uint64 dat, uint32 acc);
+void WriteAccL (t_uint64 va, t_uint64 dat, uint32_t acc);
+void WriteAccQ (t_uint64 va, t_uint64 dat, uint32_t acc);
 INLINE void WritePB (t_uint64 pa, t_uint64 dat);
 INLINE void WritePW (t_uint64 pa, t_uint64 dat);
 INLINE void WritePL (t_uint64 pa, t_uint64 dat);
 INLINE void WritePQ (t_uint64 pa, t_uint64 dat);
-t_bool WriteIO (t_uint64 pa, t_uint64 val, uint32 lnt);
-uint32 mmu_set_cm (uint32 mode);
-void mmu_set_icm (uint32 mode);
-void mmu_set_dcm (uint32 mode);
-void arith_trap (uint32 trap, uint32 ir);
+t_bool WriteIO (t_uint64 pa, t_uint64 val, uint32_t lnt);
+uint32_t mmu_set_cm (uint32_t mode);
+void mmu_set_icm (uint32_t mode);
+void mmu_set_dcm (uint32_t mode);
+void arith_trap (uint32_t trap, uint32_t ir);
 
 #endif

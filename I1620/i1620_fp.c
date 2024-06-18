@@ -45,29 +45,29 @@
 typedef struct {
     int32       sign;                                   /* 0 => +, 1 => - */
     int32       exp;                                    /* binary exponent */
-    uint32      lnt;                                    /* mantissa length */
-    uint32      addr;                                   /* mantissa addr */
-    uint32      zero;                                   /* 0 => nz, 1 => zero */
+    uint32_t      lnt;                                    /* mantissa length */
+    uint32_t      addr;                                   /* mantissa addr */
+    uint32_t      zero;                                   /* 0 => nz, 1 => zero */
     } FPA;
 
-extern uint8 M[MAXMEMSIZE];                             /* main memory */
-extern uint8 ind[NUM_IND];                              /* indicators */
+extern uint8_t M[MAXMEMSIZE];                             /* main memory */
+extern uint8_t ind[NUM_IND];                              /* indicators */
 extern UNIT cpu_unit;
 
-t_stat fp_scan_mant (uint32 ad, uint32 *lnt, uint32 *zro);
+t_stat fp_scan_mant (uint32_t ad, uint32_t *lnt, uint32_t *zro);
 t_stat fp_zero (FPA *fp);
 
-extern t_stat xmt_field (uint32 d, uint32 s, uint32 skp);
-extern t_stat add_field (uint32 d, uint32 s, t_bool sub, uint32 skp, int32 *sta);
-extern t_stat mul_field (uint32 d, uint32 s);
-extern t_stat xmt_divd (uint32 d, uint32 s);
-extern t_stat div_field (uint32 dvd, uint32 dvr, int32 *ez);
+extern t_stat xmt_field (uint32_t d, uint32_t s, uint32_t skp);
+extern t_stat add_field (uint32_t d, uint32_t s, t_bool sub, uint32_t skp, int32 *sta);
+extern t_stat mul_field (uint32_t d, uint32_t s);
+extern t_stat xmt_divd (uint32_t d, uint32_t s);
+extern t_stat div_field (uint32_t dvd, uint32_t dvr, int32 *ez);
 
 /* Unpack and validate a floating point argument */
 
-t_stat fp_unpack (uint32 ad, FPA *fp)
+t_stat fp_unpack (uint32_t ad, FPA *fp)
 {
-uint8 d0, d1, esign;
+uint8_t d0, d1, esign;
 
 esign = M[ad] & FLAG;                                   /* get exp sign */
 d0 = M[ad] & DIGIT;                                     /* get exp lo digit */
@@ -86,7 +86,7 @@ return fp_scan_mant (fp->addr, &(fp->lnt), &(fp->zero));
 
 /* Unpack and validate source and destination arguments */
 
-t_stat fp_unpack_two (uint32 dad, uint32 sad, FPA *dfp, FPA *sfp)
+t_stat fp_unpack_two (uint32_t dad, uint32_t sad, FPA *dfp, FPA *sfp)
 {
 t_stat r;
 
@@ -104,7 +104,7 @@ return SCPE_OK;
 t_stat fp_pack (FPA *fp)
 {
 int32 e;
-uint32 i, mad;
+uint32_t i, mad;
 
 e = (fp->exp >= 0)? fp->exp: -fp->exp;                  /* get |exp| */                                 
 if (e > FP_EMAX) {                                      /* too big? */
@@ -126,9 +126,9 @@ return SCPE_OK;
 
 /* Shift mantissa right n positions */
 
-void fp_rsh (FPA *fp, uint32 n)
+void fp_rsh (FPA *fp, uint32_t n)
 {
-uint32 i, sad, dad;
+uint32_t i, sad, dad;
 
 if (n == 0)                                             /* zero? done */
     return;
@@ -148,7 +148,7 @@ return;
 
 void fp_lsh_1 (FPA *fp)
 {
-uint32 i, mad, nxt;
+uint32_t i, mad, nxt;
 
 mad = ADDR_S (fp->addr, fp->lnt - 1);                   /* hi order digit */
 for (i = 0; i < (fp->lnt - 1); i++) {                   /* move lnt-1 digits */
@@ -164,7 +164,7 @@ return;
 
 t_stat fp_zero (FPA *fp)
 {
-uint32 i, mad = fp->addr;
+uint32_t i, mad = fp->addr;
 
 for (i = 0; i < fp->lnt; i++) {                         /* clear mantissa */
     M[mad] = (i? M[mad] & FLAG: 0);                     /* clear sign bit */
@@ -179,9 +179,9 @@ return SCPE_OK;
 
 /* Scan floating point mantissa for length and (optionally) zero */
 
-t_stat fp_scan_mant (uint32 ad, uint32 *lnt, uint32 *zro)
+t_stat fp_scan_mant (uint32_t ad, uint32_t *lnt, uint32_t *zro)
 {
-uint8 d, l, z;
+uint8_t d, l, z;
 
 z = 1;                                                  /* assume zero */
 for (l = 1; l <= FP_LMAX; l++) {                        /* scan to get length */
@@ -201,9 +201,9 @@ return STOP_FPLNT;                                      /* too long */
 
 /* Copy floating point mantissa */
 
-void fp_copy_mant (uint32 d, uint32 s, uint32 l)
+void fp_copy_mant (uint32_t d, uint32_t s, uint32_t l)
 {
-uint32 i;
+uint32_t i;
 
 if (ind[IN_HP])                                         /* clr/set sign */
     M[d] = M[d] & ~FLAG;
@@ -218,9 +218,9 @@ return;
 
 /* Compare floating point mantissa */
 
-int32 fp_comp_mant (uint32 d, uint32 s, uint32 l)
+int32 fp_comp_mant (uint32_t d, uint32_t s, uint32_t l)
 {
-uint8 i, dd, sd;
+uint8_t i, dd, sd;
 
 d = ADDR_S (d, l - 1);                                  /* start of mantissa */
 s = ADDR_S (s, l - 1);
@@ -239,12 +239,12 @@ return 0;                                               /* done, equal */
 
 /* Floating point add */
 
-t_stat fp_add (uint32 d, uint32 s, t_bool sub)
+t_stat fp_add (uint32_t d, uint32_t s, t_bool sub)
 {
 FPA sfp, dfp;
-uint32 i, sad, hi;
+uint32_t i, sad, hi;
 int32 dif, sta;
-uint8 sav_src[FP_LMAX];
+uint8_t sav_src[FP_LMAX];
 t_stat r;
 
 r = fp_unpack_two (d, s, &dfp, &sfp);                   /* unpack operands */
@@ -313,10 +313,10 @@ return fp_pack (&dfp);                                  /* pack and exit */
 
 /* Floating point multiply */
 
-t_stat fp_mul (uint32 d, uint32 s)
+t_stat fp_mul (uint32_t d, uint32_t s)
 {
 FPA sfp, dfp;
-uint32 pad;
+uint32_t pad;
 t_stat r;
 
 r = fp_unpack_two (d, s, &dfp, &sfp);                   /* unpack operands */
@@ -343,10 +343,10 @@ return fp_pack (&dfp);                                  /* pack and exit */
 
 /* Floating point divide */
 
-t_stat fp_div (uint32 d, uint32 s)
+t_stat fp_div (uint32_t d, uint32_t s)
 {
 FPA sfp, dfp;
-uint32 i, pad, a100ml, a99ml;
+uint32_t i, pad, a100ml, a99ml;
 int32 ez;
 t_stat r;
 
@@ -390,10 +390,10 @@ return fp_pack (&dfp);
 
 /* Floating shift right */
 
-t_stat fp_fsr (uint32 d, uint32 s)
+t_stat fp_fsr (uint32_t d, uint32_t s)
 {
-uint32 cnt;
-uint8 t;
+uint32_t cnt;
+uint8_t t;
 
 if (d == s)                                             /* no move? */
     return SCPE_OK;
@@ -421,10 +421,10 @@ return SCPE_OK;
 
 /* Floating shift left - note that dst is addr of high order digit */
 
-t_stat fp_fsl (uint32 d, uint32 s)
+t_stat fp_fsl (uint32_t d, uint32_t s)
 {
-uint32 i, lnt;
-uint8 sign;
+uint32_t i, lnt;
+uint8_t sign;
 t_stat r;
 
 if (d == s)

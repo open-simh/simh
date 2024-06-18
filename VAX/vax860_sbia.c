@@ -72,13 +72,13 @@
 
 #define SBIQC_MBZ       0xC0000007                      /* MBZ */
 
-extern uint32 nexus_req[NEXUS_HLVL];                    /* nexus int req */
-uint32 sbi_fs = 0;                                      /* SBI fault status */
-uint32 sbi_sc = 0;                                      /* SBI silo comparator */
-uint32 sbi_mt = 0;                                      /* SBI maintenance */
-uint32 sbi_er = 0;                                      /* SBI error status */
-uint32 sbi_tmo = 0;                                     /* SBI timeout addr */
-uint32 sbi_csr = 0;                                     /* SBI control/status */
+extern uint32_t nexus_req[NEXUS_HLVL];                    /* nexus int req */
+uint32_t sbi_fs = 0;                                      /* SBI fault status */
+uint32_t sbi_sc = 0;                                      /* SBI silo comparator */
+uint32_t sbi_mt = 0;                                      /* SBI maintenance */
+uint32_t sbi_er = 0;                                      /* SBI error status */
+uint32_t sbi_tmo = 0;                                     /* SBI timeout addr */
+uint32_t sbi_csr = 0;                                     /* SBI control/status */
 
 t_stat sbia_reset (DEVICE *dptr);
 const char *sbia_description (DEVICE *dptr);
@@ -308,7 +308,7 @@ return SCPE_OK;
 
 void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -328,7 +328,7 @@ return;
 
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;

@@ -426,21 +426,21 @@
 /* Lifted from ddcmp.c in the framer firmware */
 struct status_msg_t
 {
-    uint8 dc1;
-    uint8 on;                     /* "on" flags */
-    uint16 mflags;
-    uint32 speed;
-    uint32 txspeed;
-    uint32 rxframes;
-    uint32 rxbytes;
-    uint32 txframes;
-    uint32 txbytes;
-    uint32 hcrc_err;
-    uint32 crc_err;
-    uint32 len_err;
-    uint32 nobuf_err;
-    uint32 last_cmd_sts;          /* Response code from last command */
-    uint32 freq;                  /* Measured frequency */
+    uint8_t dc1;
+    uint8_t on;                     /* "on" flags */
+    uint16_t mflags;
+    uint32_t speed;
+    uint32_t txspeed;
+    uint32_t rxframes;
+    uint32_t rxbytes;
+    uint32_t txframes;
+    uint32_t txbytes;
+    uint32_t hcrc_err;
+    uint32_t crc_err;
+    uint32_t len_err;
+    uint32_t nobuf_err;
+    uint32_t last_cmd_sts;          /* Response code from last command */
+    uint32_t freq;                  /* Measured frequency */
     char version[64];
 };
 #define ON_ACT 1
@@ -453,8 +453,8 @@ struct status_msg_t
  */
 typedef struct framer_data {
     ETH_DEV *eth;                   /* Ethernet device pointer if framer */
-    uint16 fmode;                   /* Framer mode from attach command */
-    uint32 fspeed;                  /* Framer link speed from attach command */
+    uint16_t fmode;                   /* Framer mode from attach command */
+    uint32_t fspeed;                  /* Framer link speed from attach command */
     struct status_msg_t status;     /* Last received status message */
     int status_cnt;                 /* Count of status messages seen */
     t_bool connect_pending;         /* True if connected not yet reported */    
@@ -1040,7 +1040,7 @@ return tptr;
 Set the connection polling interval
 
 */
-t_stat tmxr_connection_poll_interval (TMXR *mp, uint32 seconds)
+t_stat tmxr_connection_poll_interval (TMXR *mp, uint32_t seconds)
 {
 if (0 == seconds)
     return SCPE_ARG;
@@ -1072,7 +1072,7 @@ int32 i, j;
 int32 ringing = -1;
 char *address;
 char msg[512];
-uint32 poll_time = sim_os_msec ();
+uint32_t poll_time = sim_os_msec ();
 
 memset (msg, 0, sizeof (msg));
 if (mp->last_poll_time == 0) {                          /* first poll initializations */
@@ -1234,7 +1234,7 @@ if (mp->master) {
                 if (!lp->notelnet) {
                     sim_write_sock (newsock, (char *)mantra, sizeof(mantra));
                     tmxr_debug (TMXR_DBG_XMT, lp, "Sending", (char *)mantra, sizeof(mantra));
-                    lp->telnet_sent_opts = (uint8 *)realloc (lp->telnet_sent_opts, 256);
+                    lp->telnet_sent_opts = (uint8_t *)realloc (lp->telnet_sent_opts, 256);
                     memset (lp->telnet_sent_opts, 0, 256);
                     }
                 tmxr_report_connection (mp, lp);
@@ -1306,7 +1306,7 @@ for (i = 0; i < mp->lines; i++) {                       /* check each line in se
                             if (!lp->notelnet) {
                                 sim_write_sock (lp->sock, (char *)mantra, sizeof(mantra));
                                 tmxr_debug (TMXR_DBG_XMT, lp, "Sending", (char *)mantra, sizeof(mantra));
-                                lp->telnet_sent_opts = (uint8 *)realloc (lp->telnet_sent_opts, 256);
+                                lp->telnet_sent_opts = (uint8_t *)realloc (lp->telnet_sent_opts, 256);
                                 memset (lp->telnet_sent_opts, 0, 256);
                                 }
                             return i;
@@ -1369,7 +1369,7 @@ for (i = 0; i < mp->lines; i++) {                       /* check each line in se
                                 if (!lp->notelnet) {
                                     sim_write_sock (lp->sock, (char *)mantra, sizeof(mantra));
                                     tmxr_debug (TMXR_DBG_XMT, lp, "Sending", (char *)mantra, sizeof(mantra));
-                                    lp->telnet_sent_opts = (uint8 *)realloc (lp->telnet_sent_opts, 256);
+                                    lp->telnet_sent_opts = (uint8_t *)realloc (lp->telnet_sent_opts, 256);
                                     memset (lp->telnet_sent_opts, 0, 256);
                                     }
                                 tmxr_report_connection (mp, lp);
@@ -1864,7 +1864,7 @@ else {
             if (!lp->notelnet) {
                 sim_write_sock (lp->sock, (char *)mantra, sizeof(mantra));
                 tmxr_debug (TMXR_DBG_XMT, lp, "Sending", (char *)mantra, sizeof(mantra));
-                lp->telnet_sent_opts = (uint8 *)realloc (lp->telnet_sent_opts, 256);
+                lp->telnet_sent_opts = (uint8_t *)realloc (lp->telnet_sent_opts, 256);
                 memset (lp->telnet_sent_opts, 0, 256);
                 }
             tmxr_report_connection (lp->mp, lp);
@@ -2067,7 +2067,7 @@ int32 tmxr_getc_ln (TMLN *lp)
 {
 int32 j; 
 t_stat val = 0;
-uint32 tmp;
+uint32_t tmp;
 double sim_gtime_now = sim_gtime ();
 
 tmxr_debug_trace_line (lp, "tmxr_getc_ln()");
@@ -2118,12 +2118,12 @@ return val;
        NULL, but success (SCPE_OK) is returned
 */
 
-t_stat tmxr_get_packet_ln (TMLN *lp, const uint8 **pbuf, size_t *psize)
+t_stat tmxr_get_packet_ln (TMLN *lp, const uint8_t **pbuf, size_t *psize)
 {
 return tmxr_get_packet_ln_ex (lp, pbuf, psize, 0);
 }
 
-t_stat tmxr_get_packet_ln_ex (TMLN *lp, const uint8 **pbuf, size_t *psize, uint8 frame_byte)
+t_stat tmxr_get_packet_ln_ex (TMLN *lp, const uint8_t **pbuf, size_t *psize, uint8_t frame_byte)
 {
 int32 c;
 size_t pktsize;
@@ -2132,7 +2132,7 @@ size_t fc_size = (frame_byte ? 1 : 0);
 while (TMXR_VALID & (c = tmxr_getc_ln (lp))) {
     if (lp->rxpboffset + 3 > lp->rxpbsize) {
         lp->rxpbsize += 512;
-        lp->rxpb = (uint8 *)realloc (lp->rxpb, lp->rxpbsize);
+        lp->rxpb = (uint8_t *)realloc (lp->rxpb, lp->rxpbsize);
         }
     if ((lp->rxpboffset == 0) && (fc_size) && (c != frame_byte)) {
         tmxr_debug (TMXR_DBG_PRCV, lp, "Received Unexpected Framing Byte", (char *)&lp->rxpb[lp->rxpboffset], 1);
@@ -2143,8 +2143,8 @@ while (TMXR_VALID & (c = tmxr_getc_ln (lp))) {
            delivery, for TCP lines, we read the packet length from the data stream.
            So, here we stuff packet size into head of packet buffer so it looks like
            it was delivered by TCP and the below return logic doesn't have to worry */
-        lp->rxpb[lp->rxpboffset++] = (uint8)(((1 + lp->rxbpi - lp->rxbpr) >> 8) & 0xFF);
-        lp->rxpb[lp->rxpboffset++] = (uint8)((1 + lp->rxbpi - lp->rxbpr) & 0xFF);
+        lp->rxpb[lp->rxpboffset++] = (uint8_t)(((1 + lp->rxbpi - lp->rxbpr) >> 8) & 0xFF);
+        lp->rxpb[lp->rxpboffset++] = (uint8_t)((1 + lp->rxbpi - lp->rxbpr) & 0xFF);
         }
     lp->rxpb[lp->rxpboffset++] = c & 0xFF;
     if (lp->rxpboffset >= (2 + fc_size)) {
@@ -2526,12 +2526,12 @@ return SCPE_STALL;                                      /* char not sent */
     2. If prior packet transmission still in progress, SCPE_STALL is 
        returned and no packet data is stored.  The caller must retry later.
 */
-t_stat tmxr_put_packet_ln (TMLN *lp, const uint8 *buf, size_t size)
+t_stat tmxr_put_packet_ln (TMLN *lp, const uint8_t *buf, size_t size)
 {
 return tmxr_put_packet_ln_ex (lp, buf, size, 0);
 }
 
-t_stat tmxr_put_packet_ln_ex (TMLN *lp, const uint8 *buf, size_t size, uint8 frame_byte)
+t_stat tmxr_put_packet_ln_ex (TMLN *lp, const uint8_t *buf, size_t size, uint8_t frame_byte)
 {
 t_stat r;
 size_t fc_size = (frame_byte ? 1 : 0);
@@ -2545,7 +2545,7 @@ if (lp->txppoffset < lp->txppsize) {
     }
 if (lp->txpbsize < size + pktlen_size + fc_size) {
     lp->txpbsize = size + pktlen_size + fc_size;
-    lp->txpb = (uint8 *)realloc (lp->txpb, lp->txpbsize);
+    lp->txpb = (uint8_t *)realloc (lp->txpb, lp->txpbsize);
     }
 lp->txpb[0] = frame_byte;
 if (!lp->datagram) {
@@ -2798,11 +2798,11 @@ int nspeed;
 char speed[24];
 int nfactor = 1;
 
-nspeed = (uint32)strtotv (cptr, &cptr, 10);
+nspeed = (uint32_t)strtotv (cptr, &cptr, 10);
 if ((*cptr != '\0') && (*cptr != '-') && (*cptr != '*'))
     return -1;
 if (*cptr == '*') {
-    nfactor = (uint32)strtotv (cptr+1, NULL, 10);
+    nfactor = (uint32_t)strtotv (cptr+1, NULL, 10);
     if ((nfactor < 1) || (nfactor > 32))
         return -1;
     }
@@ -2830,15 +2830,15 @@ t_stat tmxr_set_line_speed (TMLN *lp, CONST char *speed)
 UNIT *uptr;
 CONST char *cptr;
 t_stat r;
-uint32 rxbps;
+uint32_t rxbps;
 
 if (!speed || !*speed)
     return SCPE_2FARG;
 if (_tmln_speed_delta (speed) < 0)
     return SCPE_ARG;
-rxbps = (uint32)strtotv (speed, &cptr, 10);
+rxbps = (uint32_t)strtotv (speed, &cptr, 10);
 if (*cptr == '*') {
-    uint32 bpsfactor = (uint32) get_uint (cptr+1, 10, 32, &r);
+    uint32_t bpsfactor = (uint32_t) get_uint (cptr+1, 10, 32, &r);
 
     if (r != SCPE_OK)
         return r;
@@ -2848,7 +2848,7 @@ if (*cptr == '*') {
         char speedbps[16];
 
         sprintf (speedbps, "%d", lp->rxbps);
-        lp->rxdeltausecs = (uint32)(_tmln_speed_delta (speedbps) / lp->bpsfactor);
+        lp->rxdeltausecs = (uint32_t)(_tmln_speed_delta (speedbps) / lp->bpsfactor);
         lp->txdeltausecs = lp->rxdeltausecs;
         return SCPE_OK;                 /* Done now */
         }
@@ -2857,7 +2857,7 @@ lp->rxbps = rxbps;                      /* use supplied speed */
 if ((lp->bpsfactor == 0.0) ||           /* factor unspecified */
     (lp->serport))                      /* OR serial port */
     lp->bpsfactor = 1.0;                /* No bps factor */
-lp->rxdeltausecs = (uint32)(_tmln_speed_delta (speed) / lp->bpsfactor);
+lp->rxdeltausecs = (uint32_t)(_tmln_speed_delta (speed) / lp->bpsfactor);
 lp->rxnexttime = 0.0;
 uptr = lp->uptr;
 if ((!uptr) && (lp->mp))
@@ -3492,7 +3492,7 @@ while (*tptr) {
             framer_s->fmode = fr_mode;
             framer_s->fspeed = fr_speed;
             /* Set the scheduling parameters from the line speed */
-            lp->txdeltausecs = lp->rxdeltausecs = (uint32) (8000000 / fr_speed);
+            lp->txdeltausecs = lp->rxdeltausecs = (uint32_t) (8000000 / fr_speed);
             tmxr_init_line (lp);                /* initialize line state */
             }
         if (logfiletmpl[0]) {
@@ -4839,7 +4839,7 @@ sim_cancel (uptr);
 return tmxr_activate (uptr, interval);
 }
 
-t_stat tmxr_activate_after (UNIT *uptr, uint32 usecs_walltime)
+t_stat tmxr_activate_after (UNIT *uptr, uint32_t usecs_walltime)
 {
 int32 sooner;
 
@@ -4869,7 +4869,7 @@ return _sim_activate_after (uptr, (double)usecs_walltime);
 #endif
 }
 
-t_stat tmxr_activate_after_abs (UNIT *uptr, uint32 usecs_walltime)
+t_stat tmxr_activate_after_abs (UNIT *uptr, uint32_t usecs_walltime)
 {
 sim_cancel (uptr);
 return tmxr_activate_after (uptr, usecs_walltime);
@@ -5289,7 +5289,7 @@ if (buf != stackbuf)
 void tmxr_fconns (FILE *st, const TMLN *lp, int32 ln)
 {
 int32 hr, mn, sc;
-uint32 ctime;
+uint32_t ctime;
 
 if (ln >= 0)
     fprintf (st, "line %d: ", ln);
@@ -5586,7 +5586,7 @@ char   *tptr;
 t_addr low, high, min, max;
 int32  *list;
 t_bool *set;
-uint32 line, idx;
+uint32_t line, idx;
 t_addr lncount = (t_addr) (mp->lines - 1);
 t_stat result = SCPE_OK;
 
@@ -5637,7 +5637,7 @@ idx = 0;                                                /* initialize the index 
 while (*cptr != '\0') {                                     /* while characters remain in the command string */
     if (strncasecmp (cptr, "ALL;", 4) == 0) {               /*   if the parameter is "ALL" */
         if ((val != 0) || ((idx > 0) && (idx <= max)))      /*     then if some lines are restrictied or unspecified */
-            for (line = (uint32)min; line <= (uint32)max; line++)/*  then fill them in sequentially */
+            for (line = (uint32_t)min; line <= (uint32_t)max; line++)/*  then fill them in sequentially */
                 if (set [line] == FALSE)                    /*         setting each unspecified line */
                     list [idx++] = line;                    /*           into the line order */
 
@@ -5665,7 +5665,7 @@ while (*cptr != '\0') {                                     /* while characters 
         }
 
     else                                                /* otherwise it's a valid range */
-        for (line = (uint32)low; line <= (uint32)high; line++)/* so add the line(s) to the order */
+        for (line = (uint32_t)low; line <= (uint32_t)high; line++)/* so add the line(s) to the order */
             if (set [line] == FALSE) {                  /* if the line number has not been specified */
                 set [line] = TRUE;                      /*   then now it is */
                 list [idx++] = line;                    /*     and add it to the connection order */
@@ -5976,7 +5976,7 @@ switch ((u_char)buf[1]) {
 return optsize;
 }
 
-void _tmxr_debug (uint32 dbits, TMLN *lp, const char *msg, char *buf, int bufsize)
+void _tmxr_debug (uint32_t dbits, TMLN *lp, const char *msg, char *buf, int bufsize)
 {
 DEVICE *dptr = (lp->dptr ? lp->dptr : (lp->mp ? lp->mp->dptr : NULL));
 
@@ -6124,7 +6124,7 @@ return SCPE_OK;
 
 static t_stat sim_tmxr_test_lnorder (TMXR *tmxr)
 {
-uint32 i;
+uint32_t i;
 int32 *saved_lnorder = tmxr->lnorder;
 int32 saved_lines = tmxr->lines;
 

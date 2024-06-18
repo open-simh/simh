@@ -294,12 +294,12 @@
                          (((x) >> RM48_V_BNK) & RM48_M_BNK))
 
 typedef struct {
-    uint32              pc;
-    uint32              ir;
-    uint32              ovac;
-    uint32              pfio;
-    uint32              ea;
-    uint32              opnd;
+    uint32_t              pc;
+    uint32_t              ir;
+    uint32_t              ovac;
+    uint32_t              pfio;
+    uint32_t              ea;
+    uint32_t              opnd;
     } InstHistory;
 
 int32 M[MAXMEMSIZE] = { 0 };                            /* memory */
@@ -331,7 +331,7 @@ int32 extm_init = 0;                                    /* ext mem startup */
 int32 stop_inst = 0;                                    /* stop rsrv inst */
 int32 xct_max = 16;                                     /* XCT limit */
 int32 ind_max = 16;                                     /* ind limit */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 int32 hst_p = 0;                                        /* history pointer */
@@ -1606,7 +1606,7 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (((size_t)val) > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;

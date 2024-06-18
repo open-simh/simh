@@ -369,7 +369,7 @@ DEVICE dsk_dev = {
 
 t_stat dsk_reset (DEVICE *dptr)
 {
-    uint32 i;
+    uint32_t i;
 
     cur_dsk = 5;                        /* force initial SIR read */
     for (i=0; i<dptr->numunits; i++) {
@@ -378,7 +378,7 @@ t_stat dsk_reset (DEVICE *dptr)
         dptr->units[i].u5 = 0;          /* clear current sector # */
         dptr->units[i].pos = 0;         /* clear current byte ptr */
         if (dptr->units[i].filebuf == NULL) {
-            dptr->units[i].filebuf = calloc(SECT_SIZE, sizeof(uint8)); /* allocate buffer */
+            dptr->units[i].filebuf = calloc(SECT_SIZE, sizeof(uint8_t)); /* allocate buffer */
             if (dptr->units[i].filebuf == NULL) {
                 printf("dc-4_reset: Calloc error\n");
                 return SCPE_MEM;
@@ -423,7 +423,7 @@ int32 fdcdrv(int32 io, int32 data)
 {
     static long pos;
     static int32 err;
-    uint8  *SIR; 
+    uint8_t  *SIR; 
     int32  disk_image_size; 
 
     if (io) {                           // write to DC-4 drive register
@@ -443,7 +443,7 @@ int32 fdcdrv(int32 io, int32 data)
         sim_fread(dsk_unit[cur_dsk].filebuf, SECT_SIZE, 1, dsk_unit[cur_dsk].fileref); /* read in SIR */
         dsk_unit[cur_dsk].u3 |= BUSY | DRQ; /* set DRQ & BUSY */
         dsk_unit[cur_dsk].pos = 0;      /* clear counter */
-        SIR = (uint8 * )(dsk_unit[cur_dsk].filebuf); 
+        SIR = (uint8_t * )(dsk_unit[cur_dsk].filebuf); 
         // detect disk type based on image geometry or SIR record
         disk_image_size = sim_fsize(dsk_unit[cur_dsk].fileref); //get actual file size
         if (disk_image_size == 35 * 10 * 256) { // 89600 bytes -> FDOS image
@@ -611,7 +611,7 @@ int32 fdcdata(int32 io, int32 data)
     if (io) {                           /* write byte to fdc */
         fdcbyte = data;                 /* save for seek */
         if (dsk_unit[cur_dsk].pos < (t_addr) sectsize) { /* copy bytes to buffer */
-            *((uint8 *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) = data; /* byte into buffer */
+            *((uint8_t *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) = data; /* byte into buffer */
             dsk_unit[cur_dsk].pos++;    /* step counter */
             if (dsk_unit[cur_dsk].pos == sectsize) {
                 dsk_unit[cur_dsk].u3 &= ~(BUSY | DRQ);
@@ -624,7 +624,7 @@ int32 fdcdata(int32 io, int32 data)
         return 0;
     } else {                            /* read byte from fdc */
         if (dsk_unit[cur_dsk].pos < (t_addr) sectsize) { /* copy bytes from buffer */
-            val = *((uint8 *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) & BYTEMASK;
+            val = *((uint8_t *)(dsk_unit[cur_dsk].filebuf) + dsk_unit[cur_dsk].pos) & BYTEMASK;
             dsk_unit[cur_dsk].pos++;    /* step counter */
             if (dsk_unit[cur_dsk].pos == sectsize) { // sector finished
                 if ((multiple_sector) && (dsk_unit[cur_dsk].u5-sector_base < spt-1)) { // read multiple in progress

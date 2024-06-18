@@ -58,7 +58,7 @@
 #endif
 
 
-t_stat         ptp_devio(uint32 dev, uint64 *data);
+t_stat         ptp_devio(uint32_t dev, uint64 *data);
 t_stat         ptp_svc (UNIT *uptr);
 t_stat         ptp_reset (DEVICE *dptr);
 t_stat         ptp_attach (UNIT *uptr, CONST char *cptr);
@@ -67,7 +67,7 @@ t_stat         ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr,
                             int32 flag, const char *cptr);
 const char    *ptp_description (DEVICE *dptr);
 
-t_stat         ptr_devio(uint32 dev, uint64 *data);
+t_stat         ptr_devio(uint32_t dev, uint64 *data);
 t_stat         ptr_svc (UNIT *uptr);
 t_stat         ptr_boot(int32 unit_num, DEVICE * dptr);
 t_stat         ptr_reset (DEVICE *dptr);
@@ -128,7 +128,7 @@ DEVICE ptr_dev = {
 
 /* IOT routine */
 
-t_stat ptp_devio(uint32 dev, uint64 *data) {
+t_stat ptp_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &ptp_unit;
     switch(dev & 3) {
     case CONI:
@@ -233,7 +233,7 @@ t_stat ptp_detach (UNIT *uptr)
 
 
 
-t_stat ptr_devio(uint32 dev, uint64 *data) {
+t_stat ptr_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &ptr_unit;
     switch(dev & 3) {
     case CONI:

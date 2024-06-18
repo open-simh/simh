@@ -301,7 +301,7 @@ t_stat mg_attach (UNIT *u, CONST char *cptr)
                 int zno = blkno / 2;
                 control[3] = SET_PARITY(070707LL << 24 | zno << 13 | blkno, PARITY_NUMBER);
                 control[6] = control[3];
-                sim_tape_wrrecf(u, (uint8*)fullzone, sizeof(fullzone));
+                sim_tape_wrrecf(u, (uint8_t*)fullzone, sizeof(fullzone));
                 // sim_tape_wrgap(u, 20);
             }
             sim_tape_wrtmk(u);
@@ -374,7 +374,7 @@ void mg_write (UNIT *u)
         sim_printf ("::: writing %s mem %05o\n", sim_uname(u), page);
     memcpy(fullzone, c->sysdata, 8*sizeof(t_value));
     memcpy(fullzone+8, &memory[page], 1024*sizeof(t_value));
-    ret = sim_tape_wrrecf (u, (uint8*) fullzone, sizeof(fullzone));
+    ret = sim_tape_wrrecf (u, (uint8_t*) fullzone, sizeof(fullzone));
     if (ret != MTSE_OK) {
         mg_fail |= c->mask_fail;
     }
@@ -384,7 +384,7 @@ void mg_write (UNIT *u)
  * Controlling formatting mode:
  * 0 - disable, 2 - create gap, 3 - create synchrotrack
  */
-void mg_format (uint32 op)
+void mg_format (uint32_t op)
 {
     KMT *c = &controller[FMT_CTLR];
     int prev = c->format;
@@ -427,7 +427,7 @@ void mg_format (uint32 op)
                 u->in_io = 0;
                 sim_printf("(in_io = 0) Extending block on %s\n", sim_uname(u));
                 // Writing the synchrotrack for a zone is like writing a zone of arbitrary values
-                sim_tape_wrrecf(u, (uint8*) fullzone, sizeof(fullzone));
+                sim_tape_wrrecf(u, (uint8_t*) fullzone, sizeof(fullzone));
                 // Writing the synchrotrack is self-sustaining, no end event requested.
                 sim_printf("Formatting block on %s\n", sim_uname(u));
             }
@@ -452,7 +452,7 @@ void mg_read (UNIT *u)
                      "::: reading %s control words\n" :
                      "::: reading %s mem %05o\n",
                     sim_uname(u), page);
-    ret = sim_tape_rdrecf (u, (uint8*) fullzone, &len, sizeof(t_value)*(8+1024));
+    ret = sim_tape_rdrecf (u, (uint8_t*) fullzone, &len, sizeof(t_value)*(8+1024));
     if (ret != MTSE_OK || len != sizeof(t_value)*(8+1024)) {
         /* Bad tape format */
             if (u->dptr->dctrl)
@@ -474,7 +474,7 @@ void mg_read (UNIT *u)
  * Given 2 affects 0 and 1.
  * Given 3 affects 2 and 3.
  */
-void mg_io (int ctlr, uint32 op)
+void mg_io (int ctlr, uint32_t op)
 {
     int i;
     int dev = (op >> 7) & 7;
@@ -504,7 +504,7 @@ void mg_io (int ctlr, uint32 op)
 /*
  * Moving the tape.
  */
-void mg_ctl (int unit, uint32 op)
+void mg_ctl (int unit, uint32_t op)
 {
     UNIT *u = &mg_unit [unit];
     KMT *c = unit_to_ctlr (u);
@@ -597,7 +597,7 @@ void mg_ctl (int unit, uint32 op)
 int mg_state (int ctlr)
 {
     KMT *c = &controller [ctlr];
-    static uint32 prev[4];
+    static uint32_t prev[4];
     if (mg_dev[ctlr].dctrl && c->status != prev[ctlr]) {
         char status[24];
         int i;

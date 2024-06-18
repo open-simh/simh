@@ -59,12 +59,12 @@ int      dcs_tx_scan = 0;                        /* Scan counter */
 int      dcs_send_line = 0;                      /* Send line number */
 TMLN     dcs_ldsc[DCS_LINES] = { 0 };            /* Line descriptors */
 TMXR     dcs_desc = { DCS_LINES, 0, 0, dcs_ldsc };
-uint32   dcs_tx_enable, dcs_rx_rdy;              /* Flags */
-uint32   dcs_enable;                             /* Enable line */
-uint32   dcs_rx_conn;                            /* Connection flags */
+uint32_t   dcs_tx_enable, dcs_rx_rdy;              /* Flags */
+uint32_t   dcs_enable;                             /* Enable line */
+uint32_t   dcs_rx_conn;                            /* Connection flags */
 extern int32 tmxr_poll;
 
-t_stat dcs_devio(uint32 dev, uint64 *data);
+t_stat dcs_devio(uint32_t dev, uint64 *data);
 t_stat dcs_svc (UNIT *uptr);
 t_stat dcs_doscan (UNIT *uptr);
 t_stat dcs_reset (DEVICE *dptr);
@@ -139,7 +139,7 @@ DEVICE dcs_dev = {
 
 
 /* IOT routine */
-t_stat dcs_devio(uint32 dev, uint64 *data) {
+t_stat dcs_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &dcs_unit;
     TMLN *lp;
     int   ln;
@@ -155,7 +155,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          if ((uptr->STATUS & (XSCN_ACT)) == 0)
             *data |= 01000LL;
          sim_debug(DEBUG_CONI, &dcs_dev, "DCS %03o CONI %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
 
     case CONO:
@@ -172,7 +172,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          }
 
          sim_debug(DEBUG_CONO, &dcs_dev, "DCS %03o CONO %06o PC=%06o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          dcs_doscan(uptr);
          break;
 
@@ -227,14 +227,14 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          else
              *data = (uint64)(dcs_rx_scan) + 2;
          sim_debug(DEBUG_CONI, &dcs_dev, "DCS %03o CONI %06o PC=%o recieve line\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
 
     case CONO|4:
          /* Output buffer pointer */
          dcs_send_line = (int)(*data & 077) - 2;
          sim_debug(DEBUG_CONO, &dcs_dev, "DCS %03o CONO %06o PC=%06o send line\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
     }
     return SCPE_OK;

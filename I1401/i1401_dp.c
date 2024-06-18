@@ -91,7 +91,7 @@
 
 #define CYL             u3                              /* current cylinder */
 
-extern uint8 M[];                                       /* memory */
+extern uint8_t M[];                                       /* memory */
 extern int32 ind[64];
 extern int32 AS, BS, iochk;
 extern const int32 bcd_to_bin[16];
@@ -108,13 +108,13 @@ t_stat dp_wradr (UNIT *uptr, int32 sec, int32 flg);
 t_stat dp_wrsec (UNIT *uptr, int32 sec, int32 flg);
 int32 dp_fndsec (UNIT *uptr, int32 sec, int32 dcf);
 t_stat dp_nexsec (UNIT *uptr, int32 psec, int32 dcf);
-t_bool dp_zeroad (uint8 *ap);
-t_bool dp_cmp_ad (uint8 *ap, int32 dcf);
+t_bool dp_zeroad (uint8_t *ap);
+t_bool dp_cmp_ad (uint8_t *ap, int32 dcf);
 int32 dp_trkop (int32 drv, int32 sec);
 int32 dp_cvt_bcd (int32 ad, int32 len);
 void dp_cvt_bin (int32 ad, int32 len, int32 val, int32 flg);
 int32 dp_get_cnt (int32 dcf);
-void dp_fill (UNIT *uptr, uint32 da, int32 cnt);
+void dp_fill (UNIT *uptr, uint32_t da, int32 cnt);
 
 /* DP data structures
 
@@ -362,9 +362,9 @@ CRETIOE (iochk || !ind[IN_DSK], r);                     /* return status */
 t_stat dp_rdadr (UNIT *uptr, int32 sec, int32 flg, int32 qwc)
 {
 int32 i;
-uint8 ac;
+uint8_t ac;
 int32 da = (sec % DP_TOTSC) * DP_NUMCH;                 /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;             /* buf ptr */
 t_bool zad = dp_zeroad (ap);                            /* zero address */
 static const int32 dec_tab[DP_ADDR] = {                 /* powers of 10 */
     100000, 10000, 1000, 100, 10, 1
@@ -404,7 +404,7 @@ t_stat dp_rdsec (UNIT *uptr, int32 sec, int32 flg, int32 qwc)
 {
 int32 i, lim;
 int32 da = (sec % DP_TOTSC) * DP_NUMCH;                 /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da + DP_ADDR;   /* buf ptr */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da + DP_ADDR;   /* buf ptr */
 
 lim = flg? (DP_DATA - 10): DP_DATA;                     /* load vs move */
 for (i = 0; i < lim; i++) {                             /* copy data */
@@ -435,8 +435,8 @@ return SCPE_OK;
 t_stat dp_wradr (UNIT *uptr, int32 sec, int32 flg)
 {
 int32 i;
-uint32 da = (sec % DP_TOTSC) * DP_NUMCH;                /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+uint32_t da = (sec % DP_TOTSC) * DP_NUMCH;                /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;             /* buf ptr */
 
 for (i = 0; i < DP_ADDR; i++) {                         /* copy address */
     if (M[BS] == (WM | BCD_GRPMRK)) {                   /* premature GWM? */
@@ -463,8 +463,8 @@ return SCPE_OK;
 t_stat dp_wrsec (UNIT *uptr, int32 sec, int32 flg)
 {
 int32 i, lim;
-uint32 da = ((sec % DP_TOTSC) * DP_NUMCH) + DP_ADDR;    /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+uint32_t da = ((sec % DP_TOTSC) * DP_NUMCH) + DP_ADDR;    /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;             /* buf ptr */
 
 lim = flg? (DP_DATA - 10): DP_DATA;                     /* load vs move */
 for (i = 0; i < lim; i++) {                             /* copy data */
@@ -494,7 +494,7 @@ int32 dp_fndsec (UNIT *uptr, int32 sec, int32 dcf)
 int32 ctrk = sec % (DP_NUMSF * DP_NUMSC);               /* curr trk-sec */
 int32 psec = ((uptr->CYL) * (DP_NUMSF * DP_NUMSC)) + ctrk;
 int32 da = psec * DP_NUMCH;                             /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;             /* buf ptr */
 int32 i;
 
 if (dp_zeroad (ap))                                     /* addr zero? ok */
@@ -504,7 +504,7 @@ if (dp_cmp_ad (ap, dcf))                                /* addr comp? ok */
 psec = psec - (psec % DP_NUMSC);                        /* sector 0 */
 for (i = 0; i < DP_NUMSC; i++, psec++) {                /* check track */
     da = psec * DP_NUMCH;                               /* char number */
-    ap = ((uint8 *) uptr->filebuf) + da;                /* word pointer */
+    ap = ((uint8_t *) uptr->filebuf) + da;                /* word pointer */
     if (dp_zeroad (ap))                                 /* no implicit match */
         continue;
     if (dp_cmp_ad (ap, dcf))                            /* match? */
@@ -520,7 +520,7 @@ t_stat dp_nexsec (UNIT *uptr, int32 psec, int32 dcf)
 {
 int32 ctrk = psec % (DP_NUMSF * DP_NUMSC);              /* curr trk-sec */
 int32 da = psec * DP_NUMCH;                             /* word number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;             /* buf ptr */
 
 if (ctrk) {                                             /* not trk zero? */
     if (dp_zeroad (ap))                                 /* addr zero? ok */
@@ -534,7 +534,7 @@ return STOP_INVDAD;
 
 /* Test for zero address */
 
-t_bool dp_zeroad (uint8 *ap)
+t_bool dp_zeroad (uint8_t *ap)
 {
 int32 i;
 
@@ -547,10 +547,10 @@ return TRUE;                                            /* all zeroes */
 
 /* Compare disk address to memory sector address - always omit word marks */
 
-t_bool dp_cmp_ad (uint8 *ap, int32 dcf)
+t_bool dp_cmp_ad (uint8_t *ap, int32 dcf)
 {
 int32 i;
-uint8 c;
+uint8_t c;
 
 for (i = 0; i < DP_ADDR; i++, ap++) {                   /* loop thru addr */
     c = M[dcf + DCF_SEC + i];                           /* sector addr char */
@@ -574,7 +574,7 @@ return ((drv * DP_TOTSC) + (dp_unit[drv].CYL * DP_NUMSF * DP_NUMSC) +
 
 int32 dp_cvt_bcd (int32 ad, int32 len)
 {
-uint8 c;
+uint8_t c;
 int32 r;
 
 for (r = 0; len > 0; len--) {                           /* loop thru char */
@@ -617,10 +617,10 @@ return cnt;
 
 /* Fill sector buffer with blanks */
 
-void dp_fill (UNIT *uptr, uint32 da, int32 cnt)
+void dp_fill (UNIT *uptr, uint32_t da, int32 cnt)
 {
 while (cnt-- > 0) {                                     /* fill with blanks */
-    *(((uint8 *) uptr->filebuf) + da) = BCD_BLANK;
+    *(((uint8_t *) uptr->filebuf) + da) = BCD_BLANK;
     if (da >= uptr->hwmark)
         uptr->hwmark = da + 1;
     da++;

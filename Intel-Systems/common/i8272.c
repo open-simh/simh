@@ -116,7 +116,7 @@
 #define FDD_NUM          4
 
 int32 i8272_devnum = 0;                 //actual number of 8272 instances + 1
-uint16 i8272_port[4];                   //base port registered to each instance
+uint16_t i8272_port[4];                   //base port registered to each instance
 
 //disk geometry values
 #define MDSSD           256256          //single density FDD size
@@ -127,46 +127,46 @@ uint16 i8272_port[4];                   //base port registered to each instance
 
 /* external globals */
 
-extern uint16   port;                   //port called in dev_table[port]
-extern uint16    PCX;
+extern uint16_t   port;                   //port called in dev_table[port]
+extern uint16_t    PCX;
 
 /* internal function prototypes */
 
 t_stat i8272_svc (UNIT *uptr);
-t_stat i8272_reset (DEVICE *dptr, uint16 base);
-void i8272_reset1(uint8 devnum);
-uint8 i8272_get_dn(void);
+t_stat i8272_reset (DEVICE *dptr, uint16_t base);
+void i8272_reset1(uint8_t devnum);
+uint8_t i8272_get_dn(void);
 t_stat i8272_attach (UNIT *uptr, CONST char *cptr);
 t_stat i8272_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-uint8 i8272_r00(t_bool io, uint8 data);
-uint8 i8272_r01(t_bool io, uint8 data);
+uint8_t i8272_r00(t_bool io, uint8_t data);
+uint8_t i8272_r01(t_bool io, uint8_t data);
 
 /* external function prototypes */
 
-extern uint16 reg_dev(uint8 (*routine)(t_bool, uint8), uint16);
-extern void multibus_put_mbyte(uint16 addr, uint8 val);
-extern uint8 multibus_get_mbyte(uint16 addr);
+extern uint16_t reg_dev(uint8_t (*routine)(t_bool, uint8_t), uint16_t);
+extern void multibus_put_mbyte(uint16_t addr, uint8_t val);
+extern uint8_t multibus_get_mbyte(uint16_t addr);
 
 /* 8272 physical register definitions */ 
 /* 8272 command register stack*/
 
-uint8 i8272_w0[4];                      // MT+MFM+SK+command 
-uint8 i8272_w1[4];                      // HDS [HDS=H << 2] + DS1 + DS0
-uint8 i8272_w2[4];                      // cylinder # (0-XX)
-uint8 i8272_w3[4];                      // head # (0 or 1)
-uint8 i8272_w4[4];                      // sector # (1-XX)                         
-uint8 i8272_w5[4];                      // number of bytes (128 << N)
-uint8 i8272_w6[4];                      // End of track (last sector # on cylinder)
-uint8 i8272_w7[4];                      // Gap length
-uint8 i8272_w8[4];                      // Data length (when N=0, size to read or write)
+uint8_t i8272_w0[4];                      // MT+MFM+SK+command 
+uint8_t i8272_w1[4];                      // HDS [HDS=H << 2] + DS1 + DS0
+uint8_t i8272_w2[4];                      // cylinder # (0-XX)
+uint8_t i8272_w3[4];                      // head # (0 or 1)
+uint8_t i8272_w4[4];                      // sector # (1-XX)                         
+uint8_t i8272_w5[4];                      // number of bytes (128 << N)
+uint8_t i8272_w6[4];                      // End of track (last sector # on cylinder)
+uint8_t i8272_w7[4];                      // Gap length
+uint8_t i8272_w8[4];                      // Data length (when N=0, size to read or write)
 
 /* 8272 status register stack */
 
-uint8 i8272_msr[4];                     // main status                         
-uint8 i8272_r0[4];                      // ST 0                       
-uint8 i8272_r1[4];                      // ST 1
-uint8 i8272_r2[4];                      // ST 2
-uint8 i8272_r3[4];                      // ST 3
+uint8_t i8272_msr[4];                     // main status                         
+uint8_t i8272_r0[4];                      // ST 0                       
+uint8_t i8272_r1[4];                      // ST 1
+uint8_t i8272_r2[4];                      // ST 2
+uint8_t i8272_r3[4];                      // ST 3
 
 /* data obtained from analyzing command registers/attached file length */
 
@@ -177,13 +177,13 @@ int32 hed[4];                           // current head [ h << 2]
 int32 h[4];                             // current head
 int32 sec[4];                           // current sector
 int32 drv[4];                           // current drive
-uint8 cmd[4], pcmd[4];                  // current command
+uint8_t cmd[4], pcmd[4];                  // current command
 int32 secn[4];                          // N 0-128, 1-256, etc
 int32 spt[4];                           // sectors per track
 int32 ssize[4];                         // sector size (128 << N)
 int32 nd[4];                            //non-DMA mode
 
-uint8 *i8272_buf[4][FDD_NUM] = {        /* FDD buffer pointers */
+uint8_t *i8272_buf[4][FDD_NUM] = {        /* FDD buffer pointers */
     NULL,
     NULL,
     NULL,
@@ -340,12 +340,12 @@ DEVICE i8272_dev = {
 
 t_stat i8272_svc(UNIT *uptr)
 {
-    uint32 i;
+    uint32_t i;
     int32 imgadr, data;
     int c;
     int32 bpt, bpc;
     FILE *fp;
-    uint8 devnum;
+    uint8_t devnum;
 
     devnum = uptr->u5;              //get FDC instance
     if ((i8272_msr[devnum] & CB) && cmd[devnum] && (uptr->u6 == drv[devnum])) { /* execution phase */
@@ -611,7 +611,7 @@ t_stat i8272_svc(UNIT *uptr)
 
 /* i8272 hardware reset routine */ 
 
-t_stat i8272_reset(DEVICE *dptr, uint16 base)
+t_stat i8272_reset(DEVICE *dptr, uint16_t base)
 {
     if (i8272_devnum >= I8272_NUM) {
         sim_printf("8272_reset: too many devices!\n");
@@ -633,7 +633,7 @@ t_stat i8272_reset(DEVICE *dptr, uint16 base)
 
 /* i8272 software reset routine */ 
 
-void i8272_reset1(uint8 devnum)
+void i8272_reset1(uint8_t devnum)
 {
     int32 i;
     UNIT *uptr;
@@ -672,7 +672,7 @@ void i8272_reset1(uint8 devnum)
     flag = 0;
 }
 
-uint8 i8272_get_dn(void)
+uint8_t i8272_get_dn(void)
 {
     int i;
 
@@ -688,7 +688,7 @@ uint8 i8272_get_dn(void)
 t_stat i8272_attach (UNIT *uptr, CONST char *cptr)
 {
     t_stat r;
-    uint8 fdcnum, fddnum, devnum;
+    uint8_t fdcnum, fddnum, devnum;
     int i;
     long flen;
 
@@ -730,7 +730,7 @@ t_stat i8272_attach (UNIT *uptr, CONST char *cptr)
 
 t_stat i8272_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint8 devnum;
+    uint8_t devnum;
 
     sim_debug (DEBUG_flow, &i8272_dev, "   i8272_set_mode: Entered with val=%08XH uptr->flags=%08X\n", 
         val, uptr->flags);
@@ -750,9 +750,9 @@ t_stat i8272_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
     IN or OUT instruction is issued.
 */
 
-uint8 i8272_r00(t_bool io, uint8 data)
+uint8_t i8272_r00(t_bool io, uint8_t data)
 {
-    uint8 devnum;
+    uint8_t devnum;
 
     if ((devnum = i8272_get_dn()) != 0xFF) {
         if (io == 0) {                      /* read FDC status register */
@@ -768,9 +768,9 @@ uint8 i8272_r00(t_bool io, uint8 data)
 
 // read/write FDC data register stack
 
-uint8 i8272_r01(t_bool io, uint8 data)
+uint8_t i8272_r01(t_bool io, uint8_t data)
 {
-    uint8 devnum;
+    uint8_t devnum;
 
     if ((devnum = i8272_get_dn()) != 0xFF) {
         if (io == 0) {                          /* read FDC data register */

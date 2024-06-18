@@ -29,7 +29,7 @@
 #include "vax_defs.h"
 #include "sim_ether.h"
 
-uint32 nar[NARSIZE];                                    /* network address ROM */
+uint32_t nar[NARSIZE];                                    /* network address ROM */
 ETH_MAC nar_mac = {0x08, 0x00, 0x2B, 0xCC, 0xDD, 0xEE};
 t_bool nar_init = FALSE;
 
@@ -103,7 +103,7 @@ return SCPE_OK;
 
 t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -117,13 +117,13 @@ return SCPE_OK;
 
 t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NARSIZE)
     return SCPE_NXM;
-nar[addr] = (uint32) val;
+nar[addr] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -131,7 +131,7 @@ return SCPE_OK;
 
 t_stat nar_reset (DEVICE *dptr)
 {
-uint16 i, c, w;
+uint16_t i, c, w;
 t_stat r;
 
 if (!nar_init) {                                        /* set initial MAC */
@@ -142,9 +142,9 @@ if (!nar_init) {                                        /* set initial MAC */
     }
 
 for (i = c = 0; i < 6; i += 2) {
-    c = c + c + ((uint32)((uint32)c + (uint32)c) > 0xFFFF ? 1 : 0);
+    c = c + c + ((uint32_t)((uint32_t)c + (uint32_t)c) > 0xFFFF ? 1 : 0);
     w = (nar_mac[i] << 8) | nar_mac[i + 1];
-    c = c + w + ((uint32)((uint32)c + (uint32)w) > 0xFFFF ? 1 : 0);
+    c = c + w + ((uint32_t)((uint32_t)c + (uint32_t)w) > 0xFFFF ? 1 : 0);
     }
 nar[0] = nar_mac[0];                                    /* MAC Address */
 nar[1] = nar_mac[1];

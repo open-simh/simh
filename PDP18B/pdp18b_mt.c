@@ -137,7 +137,7 @@ int32 mt_cu = 0;                                        /* command/unit */
 int32 mt_sta = 0;                                       /* status register */
 int32 mt_time = 10;                                     /* record latency */
 int32 mt_stopioe = 1;                                   /* stop on error */
-uint8 *mtxb = NULL;                                     /* transfer buffer */
+uint8_t *mtxb = NULL;                                     /* transfer buffer */
 
 int32 mt (int32 dev, int32 pulse, int32 dat);
 int32 mt_iors (void);
@@ -497,7 +497,7 @@ for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
     }
 mt_updcsta (&mt_unit[0], 0);                            /* update status */
 if (mtxb == NULL)
-    mtxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    mtxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (mtxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;

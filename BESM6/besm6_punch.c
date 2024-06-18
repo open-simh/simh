@@ -146,7 +146,7 @@ t_stat fs_detach (UNIT *u)
 /*
  * Управление двигателем, лампой, протяжкой
  */
-void fs_control (int num, uint32 cmd)
+void fs_control (int num, uint32_t cmd)
 {
     UNIT *u = &fs_unit[num];
 

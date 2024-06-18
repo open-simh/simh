@@ -57,13 +57,13 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8 *ram;
-    uint8 *rom;
-    uint8 rom_attached;
-    uint8 uart_scr;
-    uint8 uart_lcr;
-    uint8 mpcl_ram;
-    uint8 mpcl_rom;
+    uint8_t *ram;
+    uint8_t *rom;
+    uint8_t rom_attached;
+    uint8_t uart_scr;
+    uint8_t uart_lcr;
+    uint8_t mpcl_ram;
+    uint8_t mpcl_rom;
 } N8VEM_INFO;
 
 static N8VEM_INFO n8vem_info_data = { { 0x0, 0x8000, 0x60, 32 } };
@@ -73,9 +73,9 @@ extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 PCX;
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern uint32_t PCX;
 extern int32 find_unit_index (UNIT *uptr);
 
 static t_stat n8vem_reset(DEVICE *n8vem_dev);
@@ -83,8 +83,8 @@ static t_stat n8vem_boot(int32 unitno, DEVICE *dptr);
 static t_stat n8vem_attach(UNIT *uptr, CONST char *cptr);
 static t_stat n8vem_detach(UNIT *uptr);
 
-static uint8 N8VEM_Read(const uint32 Addr);
-static uint8 N8VEM_Write(const uint32 Addr, uint8 cData);
+static uint8_t N8VEM_Read(const uint32_t Addr);
+static uint8_t N8VEM_Write(const uint32_t Addr, uint8_t cData);
 
 static int32 n8vemdev(const int32 port, const int32 io, const int32 data);
 static int32 n8vem_mem(const int32 port, const int32 io, const int32 data);
@@ -182,8 +182,8 @@ static t_stat n8vem_reset(DEVICE *dptr)
             return SCPE_ARG;
         }
 
-        n8vem_info->ram = (uint8 *)calloc(1, (N8VEM_RAM_SIZE));
-        n8vem_info->rom = (uint8 *)calloc(1, (N8VEM_ROM_SIZE));
+        n8vem_info->ram = (uint8_t *)calloc(1, (N8VEM_RAM_SIZE));
+        n8vem_info->rom = (uint8_t *)calloc(1, (N8VEM_ROM_SIZE));
 
         /* Clear the RAM and ROM mapping registers */
         n8vem_info->mpcl_ram = 0;
@@ -379,9 +379,9 @@ static int32 n8vemdev(const int32 port, const int32 io, const int32 data)
 extern int32 sio0d(const int32 port, const int32 io, const int32 data);
 extern int32 sio0s(const int32 port, const int32 io, const int32 data);
 
-static uint8 N8VEM_Read(const uint32 Addr)
+static uint8_t N8VEM_Read(const uint32_t Addr)
 {
-    uint8 cData = 0xFF;
+    uint8_t cData = 0xFF;
 
     switch(Addr & 0x1F) {
         case N8VEM_PIO1A:
@@ -435,7 +435,7 @@ static uint8 N8VEM_Read(const uint32 Addr)
 
 }
 
-static uint8 N8VEM_Write(const uint32 Addr, uint8 cData)
+static uint8_t N8VEM_Write(const uint32_t Addr, uint8_t cData)
 {
 
     switch(Addr & 0x1F) {

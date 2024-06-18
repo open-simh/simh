@@ -60,11 +60,11 @@ Priority 3: Use LOWFIRST 1 as default
 #endif
 
 #if LOWFIRST
-typedef struct  { uint16 x_reg; }       I16_reg_t;
-typedef struct  { uint8 l_reg, h_reg; } I8_reg_t;
+typedef struct  { uint16_t x_reg; }       I16_reg_t;
+typedef struct  { uint8_t l_reg, h_reg; } I8_reg_t;
 #else
-typedef struct  { uint16 x_reg; }       I16_reg_t;
-typedef struct  { uint8 h_reg, l_reg; } I8_reg_t;
+typedef struct  { uint16_t x_reg; }       I16_reg_t;
+typedef struct  { uint8_t h_reg, l_reg; } I8_reg_t;
 #endif
 
 typedef union
@@ -83,7 +83,7 @@ typedef struct i386_general_regs Gen_reg_t;
 struct i386_special_regs
 {
     i386_general_register SP, BP, SI, DI, IP;
-    uint32 FLAGS;
+    uint32_t FLAGS;
 };
 
 /*
@@ -95,12 +95,12 @@ struct i386_special_regs
  *  fetched = *q;
  *  m->R_IP += 1;
  *  compared to:
- *  fetched = GetBYTEExtended(((uint32)m->R_CS << 4) + (m->R_IP++));
+ *  fetched = GetBYTEExtended(((uint32_t)m->R_CS << 4) + (m->R_IP++));
  *  Save at least one shift, more if doing two byte moves.
  */
 struct i386_segment_regs
 {
-    uint16 CS, DS, SS, ES, FS, GS;
+    uint16_t CS, DS, SS, ES, FS, GS;
 };
 
 /* 8 bit registers */
@@ -208,86 +208,86 @@ struct  pc_env
            Halted                1 bits
     */
    long sysmode;
-   uint8 intno;
+   uint8_t intno;
 };
 
 /* GLOBAL */
 extern volatile int intr;
 
 void halt_sys (PC_ENV *sys);
-void fetch_decode_modrm (PC_ENV *m, uint16 *mod, uint16 *regh, uint16 *regl);
-uint8 *decode_rm_byte_register (PC_ENV *m, int reg);
-uint16 *decode_rm_word_register (PC_ENV *m, int reg);
-uint16 *decode_rm_seg_register (PC_ENV *m, int reg);
-uint8 fetch_byte_imm (PC_ENV *m);
-uint16 fetch_word_imm (PC_ENV *m);
-uint16 decode_rm00_address (PC_ENV *m, int rm);
-uint16 decode_rm01_address (PC_ENV *m, int rm);
-uint16 decode_rm10_address (PC_ENV *m, int rm);
-uint8 fetch_data_byte (PC_ENV *m, uint16 offset);
-uint8 fetch_data_byte_abs (PC_ENV *m, uint16 segment, uint16 offset);
-uint16 fetch_data_word (PC_ENV *m, uint16 offset);
-uint16 fetch_data_word_abs (PC_ENV *m, uint16 segment, uint16 offset);
-void store_data_byte (PC_ENV *m, uint16 offset, uint8 val);
-void store_data_byte_abs (PC_ENV *m, uint16 segment, uint16 offset, uint8 val);
-void store_data_word (PC_ENV *m, uint16 offset, uint16 val);
-void store_data_word_abs (PC_ENV *m, uint16 segment, uint16 offset, uint16 val);
+void fetch_decode_modrm (PC_ENV *m, uint16_t *mod, uint16_t *regh, uint16_t *regl);
+uint8_t *decode_rm_byte_register (PC_ENV *m, int reg);
+uint16_t *decode_rm_word_register (PC_ENV *m, int reg);
+uint16_t *decode_rm_seg_register (PC_ENV *m, int reg);
+uint8_t fetch_byte_imm (PC_ENV *m);
+uint16_t fetch_word_imm (PC_ENV *m);
+uint16_t decode_rm00_address (PC_ENV *m, int rm);
+uint16_t decode_rm01_address (PC_ENV *m, int rm);
+uint16_t decode_rm10_address (PC_ENV *m, int rm);
+uint8_t fetch_data_byte (PC_ENV *m, uint16_t offset);
+uint8_t fetch_data_byte_abs (PC_ENV *m, uint16_t segment, uint16_t offset);
+uint16_t fetch_data_word (PC_ENV *m, uint16_t offset);
+uint16_t fetch_data_word_abs (PC_ENV *m, uint16_t segment, uint16_t offset);
+void store_data_byte (PC_ENV *m, uint16_t offset, uint8_t val);
+void store_data_byte_abs (PC_ENV *m, uint16_t segment, uint16_t offset, uint8_t val);
+void store_data_word (PC_ENV *m, uint16_t offset, uint16_t val);
+void store_data_word_abs (PC_ENV *m, uint16_t segment, uint16_t offset, uint16_t val);
 
 typedef void (*OP)(PC_ENV *m);
 extern OP i86_optab[256];
 
 /* PRIMITIVE OPERATIONS */
 
-uint8   aad_word (PC_ENV *m, uint16 d);
-uint16  aam_word (PC_ENV *m, uint8 d);
-uint8   adc_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  adc_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   add_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  add_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   and_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  and_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   cmp_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  cmp_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   dec_byte (PC_ENV *m, uint8 d);
-uint16  dec_word (PC_ENV *m, uint16 d);
-uint8   inc_byte (PC_ENV *m, uint8 d);
-uint16  inc_word (PC_ENV *m, uint16 d);
-uint8   or_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  or_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   neg_byte (PC_ENV *m, uint8 s);
-uint16  neg_word (PC_ENV *m, uint16 s);
-uint8   not_byte (PC_ENV *m, uint8 s);
-uint16  not_word (PC_ENV *m, uint16 s);
-uint16  mem_access_word (PC_ENV *m, int addr);
-void    push_word (PC_ENV *m, uint16 w);
-uint16  pop_word (PC_ENV *m);
-uint8   rcl_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  rcl_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   rcr_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  rcr_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   rol_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  rol_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   ror_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  ror_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   shl_byte (PC_ENV *m, uint8 d, uint8 s) ;
-uint16  shl_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   shr_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  shr_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   sar_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  sar_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   sbb_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  sbb_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   sub_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  sub_word (PC_ENV *m, uint16 d, uint16 s);
-void    test_byte (PC_ENV *m, uint8 d, uint8 s);
-void    test_word (PC_ENV *m, uint16 d, uint16 s);
-uint8   xor_byte (PC_ENV *m, uint8 d, uint8 s);
-uint16  xor_word (PC_ENV *m, uint16 d, uint16 s);
-void    imul_byte (PC_ENV *m, uint8 s);
-void    imul_word (PC_ENV *m, uint16 s);
-void    mul_byte (PC_ENV *m, uint8 s);
-void    mul_word (PC_ENV *m, uint16 s);
-void    idiv_byte (PC_ENV *m, uint8 s);
-void    idiv_word (PC_ENV *m, uint16 s);
-void    div_byte (PC_ENV *m, uint8 s);
-void    div_word (PC_ENV *m, uint16 s);
+uint8_t   aad_word (PC_ENV *m, uint16_t d);
+uint16_t  aam_word (PC_ENV *m, uint8_t d);
+uint8_t   adc_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  adc_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   add_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  add_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   and_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  and_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   cmp_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  cmp_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   dec_byte (PC_ENV *m, uint8_t d);
+uint16_t  dec_word (PC_ENV *m, uint16_t d);
+uint8_t   inc_byte (PC_ENV *m, uint8_t d);
+uint16_t  inc_word (PC_ENV *m, uint16_t d);
+uint8_t   or_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  or_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   neg_byte (PC_ENV *m, uint8_t s);
+uint16_t  neg_word (PC_ENV *m, uint16_t s);
+uint8_t   not_byte (PC_ENV *m, uint8_t s);
+uint16_t  not_word (PC_ENV *m, uint16_t s);
+uint16_t  mem_access_word (PC_ENV *m, int addr);
+void    push_word (PC_ENV *m, uint16_t w);
+uint16_t  pop_word (PC_ENV *m);
+uint8_t   rcl_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  rcl_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   rcr_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  rcr_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   rol_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  rol_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   ror_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  ror_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   shl_byte (PC_ENV *m, uint8_t d, uint8_t s) ;
+uint16_t  shl_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   shr_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  shr_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   sar_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  sar_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   sbb_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  sbb_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   sub_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  sub_word (PC_ENV *m, uint16_t d, uint16_t s);
+void    test_byte (PC_ENV *m, uint8_t d, uint8_t s);
+void    test_word (PC_ENV *m, uint16_t d, uint16_t s);
+uint8_t   xor_byte (PC_ENV *m, uint8_t d, uint8_t s);
+uint16_t  xor_word (PC_ENV *m, uint16_t d, uint16_t s);
+void    imul_byte (PC_ENV *m, uint8_t s);
+void    imul_word (PC_ENV *m, uint16_t s);
+void    mul_byte (PC_ENV *m, uint8_t s);
+void    mul_word (PC_ENV *m, uint16_t s);
+void    idiv_byte (PC_ENV *m, uint8_t s);
+void    idiv_word (PC_ENV *m, uint16_t s);
+void    div_byte (PC_ENV *m, uint8_t s);
+void    div_word (PC_ENV *m, uint16_t s);

@@ -111,9 +111,9 @@ t_stat vax610_set_instruction_set (UNIT *uptr, int32 val, CONST char *cptr, void
 #define QVMAMASK        (QVMSIZE - 1)                   /* QVSS mem addr mask */
 #define QVMBASE         0x3C0000                        /* QVSS mem base */
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
-                         (((uint32) (x)) >= QVMBASE) && \
-                         (((uint32) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32 *vc_buf;
+                         (((uint32_t) (x)) >= QVMBASE) && \
+                         (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
+extern uint32_t *vc_buf;
 
 /* Memory */
 
@@ -124,7 +124,7 @@ extern uint32 *vc_buf;
 #define INITMEMSIZE     (1 << 22)                       /* initial memory size */
 #define VS_MEMSIZE      (((cpu_unit.capac > QVMBASE) ? QVMBASE : cpu_unit.capac))
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < (sys_model ? VS_MEMSIZE : MEMSIZE))
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < (sys_model ? VS_MEMSIZE : MEMSIZE))
 #undef  PAMASK
 #define PAMASK          0x203FFFFF                      /* KA610 needs a special mask */
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 19), NULL, "512K", &cpu_set_size, NULL, NULL, "Set Memory to 512K bytes" },\
@@ -142,8 +142,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define IOPAGEMASK      (IOPAGESIZE - 1)                /* IO addr mask */
 #define IOPAGEBASE      0x20000000                      /* IO page base */
 #define ADDR_IS_IO(x)   ((ADDR_IS_QVM (x)) ||               \
-                         ((((uint32) (x)) >= IOPAGEBASE) && \
-                          (((uint32) (x)) < (IOPAGEBASE + IOPAGESIZE))))
+                         ((((uint32_t) (x)) >= IOPAGEBASE) && \
+                          (((uint32_t) (x)) < (IOPAGEBASE + IOPAGESIZE))))
 
 /* Other address spaces */
 
@@ -209,15 +209,15 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
+    uint32_t              ba;                             /* base addr */
+    uint32_t              lnt;                            /* length */
     t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
     t_stat              (*wr)(int32 dat, int32 ad, int32 md);
     int32               vnum;                           /* vectors: number */
     int32               vloc;                           /* locator */
     int32               vec;                            /* value */
     int32               (*ack[VEC_DEVMAX])(void);       /* ack routine */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t              ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
     int32               numc;                           /* Number of controllers */
@@ -356,17 +356,17 @@ extern int32 sys_model;
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf);
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf);
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf);
 
 /* Function prototypes for system-specific unaligned support */
 
-int32 ReadIOU (uint32 pa, int32 lnt);
-int32 ReadRegU (uint32 pa, int32 lnt);
-void WriteIOU (uint32 pa, int32 val, int32 lnt);
-void WriteRegU (uint32 pa, int32 val, int32 lnt);
+int32 ReadIOU (uint32_t pa, int32 lnt);
+int32 ReadRegU (uint32_t pa, int32 lnt);
+void WriteIOU (uint32_t pa, int32 val, int32 lnt);
+void WriteRegU (uint32_t pa, int32 val, int32 lnt);
 
 t_stat cpu_show_leds (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 

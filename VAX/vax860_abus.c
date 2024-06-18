@@ -86,12 +86,12 @@ struct boot_dev {
     int32               let;
     };
 
-uint32 nexus_req[NEXUS_HLVL];                           /* nexus int req */
-uint32 pamloc = 0;
-uint32 pamm[1024];                                      /* Contents of physical memory space */
-uint32 cswp = 0;
-uint32 ehsr = 0;
-uint32 mdctl = 0;
+uint32_t nexus_req[NEXUS_HLVL];                           /* nexus int req */
+uint32_t pamloc = 0;
+uint32_t pamm[1024];                                      /* Contents of physical memory space */
+uint32_t cswp = 0;
+uint32_t ehsr = 0;
+uint32_t mdctl = 0;
 int32 sys_model = 0;
 char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
 
@@ -108,7 +108,7 @@ static struct boot_dev boot_tab[] = {
     };
 
 extern int32 tmr_int, tti_int, tto_int, csi_int;
-extern uint32 sbi_er;
+extern uint32_t sbi_er;
 
 void uba_eval_int (void);
 t_stat abus_reset (DEVICE *dptr);
@@ -574,7 +574,7 @@ return;
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 int32 val;
 
@@ -597,7 +597,7 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 if (ADDR_IS_SBIA (pa)) {                                /* SBI adapter space? */
     sbia_wr (pa, val, lnt);
@@ -711,7 +711,7 @@ int32 i, r5v, unitno;
 DEVICE *dptr;
 UNIT *uptr;
 DIB *dibp;
-uint32 ba;
+uint32_t ba;
 t_stat r;
 
 if (!ptr || !*ptr)
@@ -802,7 +802,7 @@ return "bus controller";
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;

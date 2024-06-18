@@ -34,9 +34,9 @@
 extern void buildDCtables(void);
 extern void buildIOtable(void);
 
-extern int disassem(char *, uint16, t_bool, t_bool, t_bool);
+extern int disassem(char *, uint16_t, t_bool, t_bool, t_bool);
 
-extern uint16 M[];
+extern uint16_t M[];
 extern REG cpu_reg[];
 extern DEVICE cpu_dev, dca_dev, dcb_dev, dcc_dev,
   tti_dev, tto_dev, ptr_dev, ptp_dev, mt_dev, lp_dev, dp_dev,
@@ -49,7 +49,7 @@ t_stat DPautoload(void);
 t_stat DRMautoload(void);
 
 t_bool RelValid = FALSE;
-uint16 RelBase;
+uint16_t RelBase;
 
 /* SCP data structures and interface routines
 
@@ -128,7 +128,7 @@ static void sprintAddress(char *buf, DEVICE *dptr, t_addr addr)
 {
   if ((dptr == sim_devices[0]) && ((sim_switches & SWMASK('R')) != 0)) {
     if (!RelValid) {
-      RelBase = (uint16)addr;
+      RelBase = (uint16_t)addr;
       RelValid = TRUE;
     }
     addr -= RelBase;
@@ -158,7 +158,7 @@ void VMinit(void)
 /*
  * Check for duplicate equipment addresses.
  */
-static t_bool checkDuplicate(DEVICE *dptr, uint8 equipment)
+static t_bool checkDuplicate(DEVICE *dptr, uint8_t equipment)
 {
   int i = 0;
   DEVICE *dptr2;
@@ -213,7 +213,7 @@ t_stat set_equipment(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
  * Check for a duplicate address when a device is reset. If a duplicate is
  * found, the device being reset is disabled.
  */
-t_stat checkReset(DEVICE *dptr, uint8 equipment)
+t_stat checkReset(DEVICE *dptr, uint8_t equipment)
 {
   if (checkDuplicate(dptr, equipment)) {
     dptr->flags |= DEV_DIS;
@@ -314,7 +314,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
   if ((sw & SWMASK('M')) == 0)
     return SCPE_ARG;
 
-  consume = disassem(buf, (uint16)addr, FALSE, target, FALSE);
+  consume = disassem(buf, (uint16_t)addr, FALSE, target, FALSE);
   fprintf(of, "%s", buf);
   return -(consume - 1);
 }

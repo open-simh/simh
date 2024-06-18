@@ -79,12 +79,12 @@ CTAB vax410_cmd[] = {
 extern int32 tmr_int;
 extern UNIT clk_unit;
 extern int32 tmr_poll;
-extern uint32 vc_sel, vc_org;
+extern uint32_t vc_sel, vc_org;
 extern DEVICE va_dev, vc_dev, lk_dev, vs_dev;
 extern DEVICE xs_dev;
-extern uint32 *rom;
+extern uint32_t *rom;
 
-uint32 *ddb = NULL;                                     /* 16k disk buffer */
+uint32_t *ddb = NULL;                                     /* 16k disk buffer */
 int32 conisp, conpc, conpsl;                            /* console reg */
 int32 ka_hltcod = 0;                                    /* KA410 halt code */
 int32 ka_mser = 0;                                      /* KA410 mem sys err */
@@ -101,8 +101,8 @@ int32 ka_rd (int32 pa);
 void ka_wr (int32 pa, int32 val, int32 lnt);
 int32 con_halt (int32 code, int32 cc);
 
-extern t_stat or_map (uint32 index, uint8 *rom, t_addr size);
-extern t_stat or_unmap (uint32 index);
+extern t_stat or_map (uint32_t index, uint8_t *rom, t_addr size);
+extern t_stat or_unmap (uint32_t index);
 extern void rom_wr_B (int32 pa, int32 val);
 extern int32 iccs_rd (void);
 extern int32 rom_rd (int32 pa);
@@ -222,11 +222,11 @@ return 0;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i;
-uint32 ma = ba;
-uint32 dat;
+uint32_t ma = ba;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -247,11 +247,11 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i;
-uint32 ma = ba;
-uint32 dat;
+uint32_t ma = ba;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -272,11 +272,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_WriteB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i;
-uint32 ma = ba;
-uint32 dat;
+uint32_t ma = ba;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -286,10 +286,10 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                          /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);           /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);          /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);            /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -297,11 +297,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_WriteW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i;
-uint32 ma = ba;
-uint32 dat;
+uint32_t ma = ba;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -313,8 +313,8 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                          /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);            /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -322,9 +322,9 @@ else {
 return 0;
 }
 
-void ddb_WriteB (uint32 ba, uint32 bc, uint8 *buf)
+void ddb_WriteB (uint32_t ba, uint32_t bc, uint8_t *buf)
 {
-uint32 i, id, sc, mask, dat;
+uint32_t i, id, sc, mask, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -338,19 +338,19 @@ if ((ba | bc) & 03) {                                   /* check alignment */
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0xFFF;
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                          /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);           /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);          /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);            /* merge hi 8b */
         ddb[id] = dat;                                  /* store lw */
         ba = ba + 4;
         }
     }
 }
 
-void ddb_WriteW (uint32 ba, uint32 bc, uint16 *buf)
+void ddb_WriteW (uint32_t ba, uint32_t bc, uint16_t *buf)
 {
-uint32 i, id, dat;
+uint32_t i, id, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -365,17 +365,17 @@ if ((ba | bc) & 03) {                                   /* check alignment */
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0xFFF;
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                          /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);            /* merge hi 16b */
         ddb[id] = dat;                                  /* store lw */
         ba = ba + 4;
         }
     }
 }
 
-void ddb_ReadB (uint32 ba, uint32 bc, uint8 *buf)
+void ddb_ReadB (uint32_t ba, uint32_t bc, uint8_t *buf)
 {
-uint32 i, id, sc, dat;
+uint32_t i, id, sc, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -398,9 +398,9 @@ else {
     }
 }
 
-void ddb_ReadW (uint32 ba, uint32 bc, uint16 *buf)
+void ddb_ReadW (uint32_t ba, uint32_t bc, uint16_t *buf)
 {
-uint32 i, id, dat;
+uint32_t i, id, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -540,8 +540,8 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa);                      /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
     int32      width;                                   /* data path width */
@@ -574,7 +574,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 int32 val;
@@ -602,7 +602,7 @@ return 0xFFFFFFFF;
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32 ReadRegU (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 int32 val;
@@ -636,7 +636,7 @@ return 0xFFFFFFFF;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -663,7 +663,7 @@ return;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -903,7 +903,7 @@ if (DZ_L3C && (sys_model == 0))                         /* line 3 console */
     ka_cfgtst |= CFGT_L3C;
 
 if (ddb == NULL)
-    ddb = (uint32 *) calloc (D16SIZE >> 2, sizeof (uint32));
+    ddb = (uint32_t *) calloc (D16SIZE >> 2, sizeof (uint32_t));
 if (ddb == NULL)
     return SCPE_MEM;
 

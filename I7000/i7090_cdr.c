@@ -86,7 +86,7 @@ DEVICE              cdr_dev = {
 };
 
 
-uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
 
@@ -122,8 +122,8 @@ t_stat cdr_srv(UNIT * uptr)
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdr_unit);
     int                 pos, col, b;
-    uint16              *image = (uint16 *)(uptr->up7);
-    uint16              bit;
+    uint16_t              *image = (uint16_t *)(uptr->up7);
+    uint16_t              bit;
     t_uint64            mask, wd;
 
     /* Channel has disconnected, abort current read. */
@@ -249,7 +249,7 @@ cdr_boot(int32 unit_num, DEVICE * dptr)
     int                 chan = UNIT_G_CHAN(uptr->flags);
     t_stat              r;
     int                 pos;
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t             *image = (uint16_t *)(uptr->up7);
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_UNATT;      /* attached? */
@@ -264,7 +264,7 @@ cdr_boot(int32 unit_num, DEVICE * dptr)
 /* Copy first three records. */
     uptr->u5 &= ~CDRPOSMASK;
     for(pos = 0; pos <3; pos++) {
-        uint16          bit = 1 << (pos / 2);
+        uint16_t          bit = 1 << (pos / 2);
         t_uint64        mask = 1;
         int             b = (pos & 1)?36:0;
         int             col;
@@ -298,7 +298,7 @@ cdr_attach(UNIT * uptr, CONST char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = malloc(sizeof(uint16)*80);
+        uptr->up7 = malloc(sizeof(uint16_t)*80);
         uptr->u5 = 0;
         uptr->u4 = 0;
     }

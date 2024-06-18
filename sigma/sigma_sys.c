@@ -45,12 +45,12 @@ extern DEVICE dp_dev[];
 extern DEVICE mt_dev;
 extern DEVICE mux_dev, muxl_dev;
 extern REG cpu_reg[];
-extern uint32 *M;
+extern uint32_t *M;
 extern UNIT cpu_unit;
 
-t_stat fprint_sym_m (FILE *of, uint32 inst);
+t_stat fprint_sym_m (FILE *of, uint32_t inst);
 t_stat parse_sym_m (CONST char *cptr, t_value *val);
-void fprint_ebcdic (FILE *of, uint32 c);
+void fprint_ebcdic (FILE *of, uint32_t c);
 
 extern t_stat lp_read_cct (FILE *cfile);
 
@@ -112,7 +112,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* Character conversion tables (from Sigma 7 manual) */
 
-uint8 ascii_to_ebcdic[128] = {
+uint8_t ascii_to_ebcdic[128] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x09, 0x06, 0x07,     /* 00 - 1F */
     0x08, 0x05, 0x15, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x0A, 0x16, 0x17,
@@ -131,7 +131,7 @@ uint8 ascii_to_ebcdic[128] = {
     0xA7, 0xA8, 0xA9, 0xB2, 0x4F, 0xB3, 0x5F, 0xFF
     };
 
-uint8 ebcdic_to_ascii[256] = {
+uint8_t ebcdic_to_ascii[256] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x09, 0x06, 0x07,     /* 00 - 1F */
     0x08, 0x05, 0x15, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x0A, 0x16, 0x17,
@@ -228,14 +228,14 @@ return lp_read_cct (fileref);
 #define IC_GETAW(x)     (((x) >> IC_V_AW) & IC_M_AW)
 #define IC_GETAP(x)     (((x) >> IC_V_AP) & IC_M_AP)
 
-static const uint32 masks[] = {
+static const uint32_t masks[] = {
  0x7F000000, 0x7FF00000, 0x7F000700, 0x7F000100,
  0x7F0E0000
  };
 
 /* Opcode tables - extended mnemonics must precede standard mnemonics */
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
  0x02100000, IC_LFI,  0x02200000, IC_LCI,  0x70100000, IC_MNOX, 0x70200000, IC_MNOX,
  0x25000000, IC_SHFT, 0x25000100, IC_SHFT, 0x25000200, IC_SHFT, 0x25000000, IC_SHFT,
  0x25000400, IC_SHFT, 0x25000500, IC_SHFT, 0x25000600, IC_SHFT, 0x25000700, IC_SHFT,
@@ -344,7 +344,7 @@ static const char *opcode[] = {
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
-uint32 inst, sc, rdx, c;
+uint32_t inst, sc, rdx, c;
 DEVICE *dptr;
 
 inst = val[0];                                          /* get inst */
@@ -405,21 +405,21 @@ return 0;
 
 /* Instruction decode */
 
-t_stat fprint_sym_m (FILE *of, uint32 inst)
+t_stat fprint_sym_m (FILE *of, uint32_t inst)
 {
-uint32 i, j;
+uint32_t i, j;
 
 for (i = 0; opc_val[i] < 0xFFFFFFFF; i = i + 2) {       /* loop thru ops */
     j = IC_GETCL (opc_val[i + 1]);                      /* get class */
     if (opc_val[i] == (inst & masks[j])) {              /* match? */
-        uint32 fl = opc_val[i + 1];                     /* get format */
-        uint32 aw = IC_GETAW (fl);
-        uint32 ap = IC_GETAP (fl);
-        uint32 xr = IC_GETXR (fl);
-        uint32 rn = I_GETRN (inst);                     /* get fields */
-        uint32 xn = I_GETXR (inst);
-        uint32 mask = (1u << aw) - 1;
-        uint32 ad = (inst >> ap) & mask;
+        uint32_t fl = opc_val[i + 1];                     /* get format */
+        uint32_t aw = IC_GETAW (fl);
+        uint32_t ap = IC_GETAP (fl);
+        uint32_t xr = IC_GETXR (fl);
+        uint32_t rn = I_GETRN (inst);                     /* get fields */
+        uint32_t xn = I_GETXR (inst);
+        uint32_t mask = (1u << aw) - 1;
+        uint32_t ad = (inst >> ap) & mask;
 
         fprintf (of, "%s", opcode[i >> 1]);             /* opcode */
         if (fl & IC_RN)                                 /* rn? */
@@ -443,9 +443,9 @@ for (i = 0; opc_val[i] < 0xFFFFFFFF; i = i + 2) {       /* loop thru ops */
 return SCPE_ARG;
 }
 
-void fprint_ebcdic (FILE *of, uint32 c)
+void fprint_ebcdic (FILE *of, uint32_t c)
 {
-uint32 cv = ebcdic_to_ascii[c];
+uint32_t cv = ebcdic_to_ascii[c];
 if ((cv < 0040) || (cv >= 0177))
     fprintf (of, "<%02X>", c);
 else fputc (cv, of);
@@ -467,7 +467,7 @@ return;
 t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
 {
 t_value num;
-uint32 i, sc, rdx, c;
+uint32_t i, sc, rdx, c;
 t_stat r;
 DEVICE *dptr;
 
@@ -541,7 +541,7 @@ return 0;
 
 t_stat parse_sym_m (CONST char *cptr, t_value *val)
 {
-uint32 i, sgn;
+uint32_t i, sgn;
 t_stat r;
 char *sep;
 char gbuf[CBUFSIZE];
@@ -551,13 +551,13 @@ if ((sep = strchr (gbuf, ',')))                         /* , in middle? */
     *sep++ = 0;                                         /* split strings */
 for (i = 0; opcode[i] != NULL; i++) {                   /* loop thru ops */
     if (strcmp (opcode[i], gbuf) == 0) {                /* string match? */
-        uint32 rn, xn, ad;
-        uint32 k = i << 1;                              /* index to opval */
-        uint32 fl = opc_val[k + 1];
-        uint32 aw = IC_GETAW (fl);
-        uint32 ap = IC_GETAP (fl);
-        uint32 xr = IC_GETXR (fl);
-        uint32 mask = (1u << aw) - 1;
+        uint32_t rn, xn, ad;
+        uint32_t k = i << 1;                              /* index to opval */
+        uint32_t fl = opc_val[k + 1];
+        uint32_t aw = IC_GETAW (fl);
+        uint32_t ap = IC_GETAP (fl);
+        uint32_t xr = IC_GETXR (fl);
+        uint32_t mask = (1u << aw) - 1;
 
         val[0] = opc_val[k];
         if (fl & IC_RN) {                               /* need rn? */

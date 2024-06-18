@@ -62,13 +62,13 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
-    uint8 motor_on;
-    uint8 autowait;
-    uint8 rtc;
-    uint8 imask;        /* Interrupt Mask Register */
-    uint8 ipend;        /* Interrupt Pending Register */
+    uint32_t dma_addr;    /* DMA Transfer Address */
+    uint8_t rom_disabled; /* TRUE if ROM has been disabled */
+    uint8_t motor_on;
+    uint8_t autowait;
+    uint8_t rtc;
+    uint8_t imask;        /* Interrupt Mask Register */
+    uint8_t ipend;        /* Interrupt Pending Register */
 } CROMFDC_INFO;
 
 extern WD179X_INFO_PUB *wd179x_infop;
@@ -80,12 +80,12 @@ extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 static t_stat cromfdc_svc (UNIT *uptr);
 
-extern uint32 PCX;      /* external view of PC  */
+extern uint32_t PCX;      /* external view of PC  */
 
 #define UNIT_V_CROMFDC_ROM      (UNIT_V_UF + 2) /* boot ROM enabled                         */
 #define UNIT_CROMFDC_ROM        (1 << UNIT_V_CROMFDC_ROM)
@@ -174,10 +174,10 @@ static unsigned char cromfdc_irq_table[8] = {
     CROMFDC_TIMER4_RST,
     CROMFDC_TIMER5_RST };
 
-static uint8 ipend_to_rst_opcode(uint8 ipend)
+static uint8_t ipend_to_rst_opcode(uint8_t ipend)
 {
-    uint8 active_intr;
-    uint8 i,j = 0;
+    uint8_t active_intr;
+    uint8_t i,j = 0;
 
     active_intr = cromfdc_info->imask & cromfdc_info->ipend;
 
@@ -197,7 +197,7 @@ static uint8 ipend_to_rst_opcode(uint8 ipend)
  * SIMH/AltairZ80 Resource Mapping Scheme, rather than Map and Unmap the ROM, simply implement our
  * own RAM that can be swapped in when the CROMFDC Boot ROM is disabled.
  */
-static uint8 cromfdcram[CROMFDC_ROM_SIZE];
+static uint8_t cromfdcram[CROMFDC_ROM_SIZE];
 
 static UNIT cromfdc_unit[] = {
     { UDATA (&cromfdc_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE + UNIT_CROMFDC_ROM, CROMFDC_CAPACITY), 1024 },
@@ -264,7 +264,7 @@ DEVICE cromfdc_dev = {
  * RDOS 2.52 is the default, but RDOS 3.12 can be
  * selected with 'd cromfdc bootstrap <n>' at the SIMH SCP Prompt.
  */
-static uint8 cromfdc_rom[2][CROMFDC_ROM_SIZE] = {
+static uint8_t cromfdc_rom[2][CROMFDC_ROM_SIZE] = {
 {   /* RDOS 2.52 */
     0xF3, 0x18, 0x3C, 0xC3, 0x30, 0xC0, 0xC3, 0x04, 0xC5, 0xC3, 0x37, 0xC0, 0xC3, 0x3B, 0xC0, 0xC3,
     0x9E, 0xCB, 0xC3, 0x37, 0xCD, 0xC3, 0xD4, 0xC4, 0xC3, 0x52, 0xCD, 0xC3, 0xAB, 0xC5, 0xC3, 0x4B,
@@ -1427,7 +1427,7 @@ unsigned char ccs2422_rom[2048] = {
 };
 
 /* returns TRUE iff there exists a disk with 'property' */
-static int32 cromfdc_hasProperty(uint32 property)
+static int32 cromfdc_hasProperty(uint32_t property)
 {
     int32 i;
     for (i = 0; i < CROMFDC_MAX_DRIVES; i++)
@@ -1436,7 +1436,7 @@ static int32 cromfdc_hasProperty(uint32 property)
     return FALSE;
 }
 
-static uint8 motor_timeout = 0;
+static uint8_t motor_timeout = 0;
 
 /* Unit service routine */
 static t_stat cromfdc_svc (UNIT *uptr)
@@ -1758,7 +1758,7 @@ static int32 cromfdc_banksel(const int32 port, const int32 io, const int32 data)
     return result;
 }
 
-static uint8 ccs2810_uart_status_reg = 0x00;
+static uint8_t ccs2810_uart_status_reg = 0x00;
 
 /* CCS 2810 UART Status Register, needed by MOSS 2.2 Monitor */
 static int32 ccs2810_uart_status(const int32 port, const int32 io, const int32 data)

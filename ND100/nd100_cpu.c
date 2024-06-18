@@ -53,7 +53,7 @@ static  Hist_entry *hist = NULL;
 static  struct intr *ilnk[4];   /* level 10-13 */
 jmp_buf env;
 
-uint16 R[8], RBLK[16][8], regSTH, oregP;
+uint16_t R[8], RBLK[16][8], regSTH, oregP;
 int curlvl;             /* current interrupt level */
 int iic, iie, iid;      /* IIC/IIE/IID register */
 int pid, pie;           /* PID/PIE register */
@@ -83,7 +83,7 @@ static int nd_mcl(int reg);
 static int nd_mst(int reg);
 static int highest_level(void);
 static void identrm(int);
-static uint16 add3(uint16 a, uint16 d, uint16 c);
+static uint16_t add3(uint16_t a, uint16_t d, uint16_t c);
 int fls(int);
 
 int ins_store(int ir, int addr);
@@ -168,7 +168,7 @@ sim_instr(void)
         int reason;
         int n, i;
         int first = 1;
-        uint16 off;
+        uint16_t off;
 
         (void)setjmp(env);
         reason = 0;
@@ -331,7 +331,7 @@ ins_load(int IR, int off)
 int
 ins_min(int IR, int off)
 {
-        uint16 s;
+        uint16_t s;
         int pt = SELPT2(IR);
 
         wrmem(off, s = rdmem(off, pt) + 1, pt);
@@ -346,7 +346,7 @@ ins_min(int IR, int off)
 int
 ins_add(int IR, int off)
 {
-        uint16 d = rdmem(off, SELPT2(IR));
+        uint16_t d = rdmem(off, SELPT2(IR));
         int n = 0;
 
         if (ID(IR) == ID(ND_SUB))
@@ -361,7 +361,7 @@ ins_add(int IR, int off)
 int
 ins_andor(int IR, int off)
 {
-        uint16 s = rdmem(off, SELPT2(IR));
+        uint16_t s = rdmem(off, SELPT2(IR));
 
         regA = BIT11(IR) ? (regA | s) : (regA & s);
         return SCPE_OK;
@@ -519,7 +519,7 @@ ins_movbf(int IR)
 int
 ins_skip_ext(int IR)
 {
-        uint16 d;
+        uint16_t d;
         int16 ss, sd;
         int32 shc;
         int paddr, reason = 0;
@@ -784,7 +784,7 @@ ins_sht(int IR, int off)
 {
         char sht_reg[] = { rnT, rnD, rnA, 0 };
         int m, n, rs, i;
-        uint32 ushc;
+        uint32_t ushc;
 
         rs = sht_reg[(IR >> 7) & 03];
         n = BIT5(IR) ? 32 - IR & 037 : IR & 037;
@@ -973,7 +973,7 @@ struct fp {
 };
 
 static void
-mkfp48(struct fp *fp, uint16 w1, uint16 w2, uint16 w3)
+mkfp48(struct fp *fp, uint16_t w1, uint16_t w2, uint16_t w3)
 {
         fp->s = BIT15(w1);
         fp->e = (w1 & 077777) - 16384;
@@ -1020,7 +1020,7 @@ ins_dnz(int ins)
         if (regT & 0100000)
                 val = -val;
         regT = regD = 0;
-        regA = (uint16)val;
+        regA = (uint16_t)val;
 }
 
 /*
@@ -1094,8 +1094,8 @@ ins_fmu(int IR, int addr)
         }
 
         /* restore regs */
-        regA = (uint16)(m3 >> 48);
-        regD = (uint16)(m3 >> 32);
+        regA = (uint16_t)(m3 >> 48);
+        regD = (uint16_t)(m3 >> 32);
         regT = (e3 + 16384) | (s3 << 15);
         if (m3 == 0 || e3 < -16383)
                 regT = regA = regD = 0;
@@ -1151,8 +1151,8 @@ ins_fdv(int IR, int addr)
         }
 
         /* restore regs */
-        regA = (uint16)(m3 >> 16);
-        regD = (uint16)m3;
+        regA = (uint16_t)(m3 >> 16);
+        regD = (uint16_t)m3;
         regT = (e3 + 16384) | (s3 << 15);
         if (f2.m == 0 || e3 < -16383)
                 regT = regA = regD = 0;
@@ -1194,8 +1194,8 @@ add48(struct fp *f1, struct fp *f2)
         }
 
 done:   regT = (f1->e + 16384) | (f1->s << 15);
-        regA = (uint16)(m3 >> 16);
-        regD = (uint16)m3;
+        regA = (uint16_t)(m3 >> 16);
+        regD = (uint16_t)m3;
 }
 
 /* 
@@ -1243,8 +1243,8 @@ sub48(struct fp *f1, struct fp *f2, int addr)
         }
 
 done:   regT = (f1->e + 16384) | (f1->s << 15);
-        regA = (uint16)(m3 >> 16);
-        regD = (uint16)m3;
+        regA = (uint16_t)(m3 >> 16);
+        regD = (uint16_t)m3;
 }
 
 int
@@ -1284,8 +1284,8 @@ ins_fsb(int IR, int addr)
 /*
  * Add three numbers, setting overflow and carry as needed.
  */
-uint16
-add3(uint16 a, uint16 d, uint16 c)
+uint16_t
+add3(uint16_t a, uint16_t d, uint16_t c)
 {
         int32 res;
 
@@ -1337,7 +1337,7 @@ ins_cjp(int IR, int off)
 {
         char cjpmsk[] = { 01, 01, 02, 02, 05, 05, 02, 01 };
         int n, i;
-        uint16 s;
+        uint16_t s;
 
         n = (IR & ND_CJPMSK) >> ND_CJPSH;
         if (cjpmsk[n] & 04)
@@ -1358,7 +1358,7 @@ int
 ins_skp(int IR, int off)
 {
         int c_o, shc, n, rv = SCPE_OK;
-        uint16 s, d;
+        uint16_t s, d;
 
         if (IR & 0300) { /* extended instructions */
                 rv = ins_skip_ext(IR);
@@ -1384,7 +1384,7 @@ int
 ins_rop(int IR, int off)
 {
         int n, rs, rd;
-        uint16 s, d;
+        uint16_t s, d;
 
         rs = (IR & 070) >> 3;
         rd = IR & 07;

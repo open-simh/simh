@@ -51,12 +51,12 @@
 #include "alpha_defs.h"
 
 extern t_uint64 trans_i (t_uint64 va);
-extern t_uint64 trans_d (t_uint64 va, uint32 acc);
+extern t_uint64 trans_d (t_uint64 va, uint32_t acc);
 
 extern t_uint64 *M;
 extern t_uint64 p1;
-extern uint32 pal_mode, dmapen;
-extern uint32 cm_eacc, cm_racc, cm_wacc;
+extern uint32_t pal_mode, dmapen;
+extern uint32_t cm_eacc, cm_racc, cm_wacc;
 extern jmp_buf save_env;
 extern UNIT cpu_unit;
 
@@ -109,7 +109,7 @@ return ReadPQ (pa);
 
 /* Read with generalized access controls - used by PALcode */
 
-t_uint64 ReadAccL (t_uint64 va, uint32 acc)
+t_uint64 ReadAccL (t_uint64 va, uint32_t acc)
 {
 t_uint64 pa;
 
@@ -119,7 +119,7 @@ else pa = va;
 return ReadPL (pa);
 }
 
-t_uint64 ReadAccQ (t_uint64 va, uint32 acc)
+t_uint64 ReadAccQ (t_uint64 va, uint32_t acc)
 {
 t_uint64 pa;
 
@@ -131,13 +131,13 @@ return ReadPQ (pa);
 
 /* Read instruction */
 
-uint32 ReadI (t_uint64 va)
+uint32_t ReadI (t_uint64 va)
 {
 t_uint64 pa;
 
 if (!pal_mode) pa = trans_i (va);                       /* mapping on? */
 else pa = va;
-return (uint32) ReadPL (pa);
+return (uint32_t) ReadPL (pa);
 }
 
 /* Write virtual aligned
@@ -194,7 +194,7 @@ return;
 
 /* Write with generalized access controls - used by PALcode */
 
-void WriteAccL (t_uint64 va, t_uint64 dat, uint32 acc)
+void WriteAccL (t_uint64 va, t_uint64 dat, uint32_t acc)
 {
 t_uint64 pa;
 
@@ -205,7 +205,7 @@ WritePL (pa, dat);
 return;
 }
 
-void WriteAccQ (t_uint64 va, t_uint64 dat, uint32 acc)
+void WriteAccQ (t_uint64 va, t_uint64 dat, uint32_t acc)
 {
 t_uint64 pa;
 
@@ -223,7 +223,7 @@ INLINE t_uint64 ReadPB (t_uint64 pa)
 t_uint64 val;
 
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 07;
+    uint32_t bo = ((uint32_t) pa) & 07;
     return (((M[pa >> 3] >> (bo << 3))) & M8);
     }
 if (ReadIO (pa, &val, L_BYTE)) return val;
@@ -235,7 +235,7 @@ INLINE t_uint64 ReadPW (t_uint64 pa)
 t_uint64 val;
 
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 06;
+    uint32_t bo = ((uint32_t) pa) & 06;
     return (((M[pa >> 3] >> (bo << 3))) & M16);
     }
 if (ReadIO (pa, &val, L_WORD)) return val;
@@ -267,7 +267,7 @@ INLINE void WritePB (t_uint64 pa, t_uint64 dat)
 {
 dat = dat & M8;
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 07;
+    uint32_t bo = ((uint32_t) pa) & 07;
     M[pa >> 3] = (M[pa >> 3] & ~(((t_uint64) M8) << (bo << 3))) |
         (dat << (bo << 3));
     }
@@ -279,7 +279,7 @@ INLINE void WritePW (t_uint64 pa, t_uint64 dat)
 {
 dat = dat & M16;
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 07;
+    uint32_t bo = ((uint32_t) pa) & 07;
     M[pa >> 3] = (M[pa >> 3] & ~(((t_uint64) M16) << (bo << 3))) |
         (dat << (bo << 3));
     }

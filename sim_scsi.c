@@ -92,7 +92,7 @@
                           b[x+3])
 #define GETW(b,x)       ((b[x] << 8)|b[x+1])
 
-static void _scsi_vdebug (uint32 dbits, SCSI_BUS *bus, const char* fmt, va_list arglist)
+static void _scsi_vdebug (uint32_t dbits, SCSI_BUS *bus, const char* fmt, va_list arglist)
 {
 UNIT *uptr = bus->dev[bus->target];
 size_t tfmt_size = strlen (fmt) + strlen (sim_uname (uptr)) + 3;
@@ -125,7 +125,7 @@ static const char *scsi_phases[] = {
 
 /* Arbitrate for control of the bus */
 
-t_bool scsi_arbitrate (SCSI_BUS *bus, uint32 initiator)
+t_bool scsi_arbitrate (SCSI_BUS *bus, uint32_t initiator)
 {
 if (bus->initiator < 0) {                               /* bus free? */
     sim_debug (SCSI_DBG_BUS, bus->dptr,
@@ -194,7 +194,7 @@ if (bus->req == TRUE) {
     }
 }
 
-void scsi_set_phase (SCSI_BUS *bus, uint32 phase)
+void scsi_set_phase (SCSI_BUS *bus, uint32_t phase)
 {
 if (bus->phase != phase) {
     sim_debug (SCSI_DBG_BUS, bus->dptr,
@@ -205,7 +205,7 @@ if (bus->phase != phase) {
 
 /* Attempt to select a target device */
 
-t_bool scsi_select (SCSI_BUS *bus, uint32 target)
+t_bool scsi_select (SCSI_BUS *bus, uint32_t target)
 {
 UNIT *uptr = bus->dev[target];
 
@@ -238,9 +238,9 @@ return FALSE;
 
 /* Process a SCSI message */
 
-uint32 scsi_message (SCSI_BUS *bus, uint8 *data, uint32 len)
+uint32_t scsi_message (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
-uint32 used;
+uint32_t used;
 
 if (data[0] & 0x80) {                                   /* identify */
     bus->lun = (data[0] & 0xF);
@@ -281,7 +281,7 @@ return used;
 
 /* Send status to the initiator immediately */
 
-void scsi_status (SCSI_BUS *bus, uint32 sts, uint32 key, uint32 asc)
+void scsi_status (SCSI_BUS *bus, uint32_t sts, uint32_t key, uint32_t asc)
 {
 bus->sense_key = key;
 bus->sense_code = asc;
@@ -293,7 +293,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Send status to the initiator at the end of transaction */
 
-void scsi_status_deferred (SCSI_BUS *bus, uint32 sts, uint32 key, uint32 asc)
+void scsi_status_deferred (SCSI_BUS *bus, uint32_t sts, uint32_t key, uint32_t asc)
 {
 bus->status = sts;
 bus->sense_key = key;
@@ -302,9 +302,9 @@ bus->sense_code = asc;
 
 /* Decode the command group to get the command length */
 
-uint32 scsi_decode_group (uint8 data)
+uint32_t scsi_decode_group (uint8_t data)
 {
-uint32 group = (data >> 5) & 0x7;
+uint32_t group = (data >> 5) & 0x7;
 
 switch (group) {
     case 0:                                             /* 6 byte commands */
@@ -364,7 +364,7 @@ return;
 /* Limit the transfer count to the allocation specified
    by the SCSI command */
 
-void scsi_check_alloc (SCSI_BUS *bus, uint32 alloc)
+void scsi_check_alloc (SCSI_BUS *bus, uint32_t alloc)
 {
 if (bus->buf_b > alloc)                                 /* check allocation */
     bus->buf_b = alloc;
@@ -372,7 +372,7 @@ if (bus->buf_b > alloc)                                 /* check allocation */
 
 /* Command - Test Unit Ready */
 
-void scsi_test_ready (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_test_ready (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 
@@ -386,7 +386,7 @@ else
 
 /* Command - Inquiry */
 
-void scsi_inquiry (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_inquiry (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -453,7 +453,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Request Sense */
 
-void scsi_req_sense (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_req_sense (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Request Sense\n");
 
@@ -488,11 +488,11 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Mode Select (6 byte command) */
 
-void scsi_mode_sel6 (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_mode_sel6 (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
-uint32 blk_size;
+uint32_t blk_size;
 if (bus->phase == SCSI_CMD) {
     scsi_debug_cmd (bus, "Mode Select(6) - CMD\n");
     memcpy (&bus->cmd[0], &data[0], 6);
@@ -503,9 +503,9 @@ if (bus->phase == SCSI_CMD) {
 else if (bus->phase == SCSI_DATO) {
     scsi_debug_cmd (bus, "Mode Select(6) - DATO\n");
     if (dev->devtype == SCSI_TAPE && uptr->flags & SCSI_QIC) {
-        blk_size = ((uint32)bus->buf[9]) << 16 |
-            ((uint32)bus->buf[10]) << 8 |
-            (uint32)bus->buf[11];
+        blk_size = ((uint32_t)bus->buf[9]) << 16 |
+            ((uint32_t)bus->buf[10]) << 8 |
+            (uint32_t)bus->buf[11];
         /* QIC tape ONLY supports requesting a fixed block size of
          * 0x200 bytes. Any other block size will cause an illegal
          * request. */
@@ -525,7 +525,7 @@ else if (bus->phase == SCSI_DATO) {
 
 /* Command - Mode Select (10 byte command) */
 
-void scsi_mode_sel10 (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_mode_sel10 (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 if (bus->phase == SCSI_CMD) {
     scsi_debug_cmd (bus, "Mode Select(10) - CMD\n");
@@ -544,11 +544,11 @@ else if (bus->phase == SCSI_DATO) {
 
 /* Mode Sense common fields */
 
-void scsi_mode_sense (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_mode_sense (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
-uint32 pc, pctl;
+uint32_t pc, pctl;
 
 pc = data[2] & 0x3F;                                    /* page code */
 pctl = (data[2] >> 6) & 0x3F;                           /* page control */
@@ -660,11 +660,11 @@ if ((pc == 0xA) || (pc == 0x3F)) {
 
 /* Command - Mode Sense (6 byte command) */
 
-void scsi_mode_sense6 (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_mode_sense6 (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
-uint32 pc, pctl;
+uint32_t pc, pctl;
 
 scsi_debug_cmd (bus, "Mode Sense(6)\n");
 
@@ -696,9 +696,9 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Mode Sense (10 byte command) */
 
-void scsi_mode_sense10 (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_mode_sense10 (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
-uint32 pc, pctl;
+uint32_t pc, pctl;
 
 scsi_debug_cmd (bus, "Mode Sense(10)\n");
 
@@ -731,7 +731,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Start/Stop Unit */
 
-void scsi_start_stop (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_start_stop (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Start/Stop Unit\n");
 scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
@@ -739,7 +739,7 @@ scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
 
 /* Command - Prevent/Allow Medium Removal */
 
-void scsi_prev_allow (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_prev_allow (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Prevent/Allow Medium Removal\n");
 scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
@@ -747,7 +747,7 @@ scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
 
 /* Command - Read Capacity */
 
-void scsi_read_capacity (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_read_capacity (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -769,7 +769,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Read (6 byte command), disk version */
 
-void scsi_read6_disk (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_read6_disk (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -798,13 +798,13 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Read (6 byte command), tape version */
 
-void scsi_read6_tape (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_read6_tape (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
 t_seccnt sects, sectsread, new_buf_b;
 t_stat r;
-uint32 i;
+uint32_t i;
 
 if ((data[1] & 0x3) == 0x3) {                           /* SILI and FIXED? */
     scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
@@ -906,7 +906,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Read (10 byte command), disk version */
 
-void scsi_read10_disk (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_read10_disk (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -940,7 +940,7 @@ scsi_set_req (bus);                                     /* request to send data 
 /* This command is needed by VMS for host-based volume shadowing */
 /* See DKDRIVER */
 
-void scsi_read_long (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_read_long (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 t_lba lba;
@@ -965,7 +965,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Write (6 byte command), disk version */
 
-void scsi_write6_disk (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_write6_disk (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -998,7 +998,7 @@ else if (bus->phase == SCSI_DATO) {
 
 /* Command - Write (6 byte command), tape version */
 
-void scsi_write6_tape (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_write6_tape (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -1036,7 +1036,7 @@ else if (bus->phase == SCSI_DATO) {
 
 /* Command - Write (10 byte command), disk version */
 
-void scsi_write10_disk (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_write10_disk (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -1071,7 +1071,7 @@ else if (bus->phase == SCSI_DATO) {
 
 /* Command - Erase */
 
-void scsi_erase (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_erase (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
@@ -1090,7 +1090,7 @@ scsi_status (bus, bus->status, bus->sense_key, bus->sense_code);
 
 /* Command - Reserve Unit */
 
-void scsi_reserve_unit (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_reserve_unit (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Reserve Unit\n");
 scsi_status (bus, STS_OK, KEY_OK, ASC_OK);              /* GOOD status */
@@ -1098,7 +1098,7 @@ scsi_status (bus, STS_OK, KEY_OK, ASC_OK);              /* GOOD status */
 
 /* Command - Release Unit */
 
-void scsi_release_unit (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_release_unit (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Release Unit\n");
 scsi_status (bus, STS_OK, KEY_OK, ASC_OK);              /* GOOD status */
@@ -1106,7 +1106,7 @@ scsi_status (bus, STS_OK, KEY_OK, ASC_OK);              /* GOOD status */
 
 /* Command - Rewind */
 
-void scsi_rewind (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_rewind (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 t_stat r;
@@ -1121,7 +1121,7 @@ scsi_status (bus, bus->status, bus->sense_key, bus->sense_code);
 
 /* Command - Send Diagnostic */
 
-void scsi_send_diag (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_send_diag (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Send Diagnostic\n");
 
@@ -1133,10 +1133,10 @@ else
 
 /* Command - Space */
 
-void scsi_space (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_space (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
-uint32 code, skipped;
+uint32_t code, skipped;
 t_seccnt sects;
 t_stat r = 0;
 
@@ -1174,10 +1174,10 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Write Filemarks */
 
-void scsi_wrfmark (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_wrfmark (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
-uint32 i;
+uint32_t i;
 t_seccnt sects;
 t_stat r;
 
@@ -1198,7 +1198,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command - Read Block Limits */
 
-void scsi_read_blklim (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_read_blklim (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 scsi_debug_cmd (bus, "Read Block Limits\n");
 
@@ -1214,7 +1214,7 @@ scsi_set_req (bus);                                     /* request to send data 
 
 /* Command Load/Unload Unit */
 
-void scsi_load_unload (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_load_unload (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 
@@ -1231,7 +1231,7 @@ scsi_status (bus, STS_OK, KEY_OK, ASC_OK);              /* GOOD status */
 
 /* Process a SCSI command for a direct-access device */
 
-void scsi_disk_command (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_disk_command (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 switch (data[0]) {
 
@@ -1318,7 +1318,7 @@ switch (data[0]) {
 
 /* Process a SCSI command for a sequential-access device */
 
-void scsi_tape_command (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_tape_command (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 switch (data[0]) {
 
@@ -1407,7 +1407,7 @@ switch (data[0]) {
 
 /* Process a SCSI command for a CD-ROM device */
 
-void scsi_cdrom_command (SCSI_BUS *bus, uint8 *data, uint32 len)
+void scsi_cdrom_command (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 switch (data[0]) {
 
@@ -1484,11 +1484,11 @@ switch (data[0]) {
 
 /* Process data for CMD phase */
 
-uint32 scsi_command (SCSI_BUS *bus, uint8 *data, uint32 len)
+uint32_t scsi_command (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
 UNIT *uptr = bus->dev[bus->target];
 SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
-uint32 cmd_len;
+uint32_t cmd_len;
 
 cmd_len = scsi_decode_group (data[0]);
 
@@ -1521,9 +1521,9 @@ return cmd_len;
 
 /* Process data for DATO phase */
 
-uint32 scsi_data (SCSI_BUS *bus, uint8 *data, uint32 len)
+uint32_t scsi_data (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; ((i < len) && (bus->buf_t != bus->buf_b)); i++, bus->buf_t++)
     bus->buf[bus->buf_t] = data[i];
@@ -1538,11 +1538,11 @@ return i;
 
 /* Write data to the SCSI bus */
 
-uint32 scsi_write (SCSI_BUS *bus, uint8 *data, uint32 len)
+uint32_t scsi_write (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
-uint32 left = len;
-uint32 bc;
-uint8 *buf;
+uint32_t left = len;
+uint32_t bc;
+uint8_t *buf;
 
 scsi_release_req (bus);                                 /* assume done */
 for (buf = data; left > 0; buf += bc, left -= bc) {
@@ -1579,9 +1579,9 @@ return (len - left);
 
 /* Read data from the SCSI bus */
 
-uint32 scsi_read (SCSI_BUS *bus, uint8 *data, uint32 len)
+uint32_t scsi_read (SCSI_BUS *bus, uint8_t *data, uint32_t len)
 {
-uint32 i;
+uint32_t i;
 
 if (len == 0) {
     *data = bus->buf[bus->buf_t];
@@ -1617,7 +1617,7 @@ return i;
 
 /* Get the state of the given SCSI device */
 
-uint32 scsi_state (SCSI_BUS *bus, uint32 id)
+uint32_t scsi_state (SCSI_BUS *bus, uint32_t id)
 {
 if (bus->initiator == id)
     return SCSI_INIT;                                   /* device is initiator */
@@ -1628,7 +1628,7 @@ return SCSI_DISC;                                       /* device is disconnecte
 
 /* Add a unit to the SCSI bus */
 
-void scsi_add_unit (SCSI_BUS *bus, uint32 id, UNIT *uptr)
+void scsi_add_unit (SCSI_BUS *bus, uint32_t id, UNIT *uptr)
 {
 bus->dev[id] = uptr;
 }
@@ -1685,10 +1685,10 @@ bus->sense_info = 0;
 
 /* Initial setup of SCSI bus */
 
-t_stat scsi_init (SCSI_BUS *bus, uint32 maxfr)
+t_stat scsi_init (SCSI_BUS *bus, uint32_t maxfr)
 {
 if (bus->buf == NULL)
-    bus->buf = (uint8 *)calloc (maxfr, sizeof(uint8));
+    bus->buf = (uint8_t *)calloc (maxfr, sizeof(uint8_t));
 if (bus->buf == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -1766,10 +1766,10 @@ if (dev == NULL)
 switch (dev->devtype) {
     case SCSI_DISK:
     case SCSI_WORM:
-        return sim_disk_attach_ex (uptr, cptr, dev->block_size, sizeof (uint16), (uptr->flags & SCSI_NOAUTO), SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
+        return sim_disk_attach_ex (uptr, cptr, dev->block_size, sizeof (uint16_t), (uptr->flags & SCSI_NOAUTO), SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
     case SCSI_CDROM:
         sim_switches |= SWMASK ('R');       /* Force Read Only Attach for CDROM */
-        return sim_disk_attach_ex (uptr, cptr, dev->block_size, sizeof (uint16), FALSE, SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
+        return sim_disk_attach_ex (uptr, cptr, dev->block_size, sizeof (uint16_t), FALSE, SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
     case SCSI_TAPE:
         return sim_tape_attach_ex (uptr, cptr, SCSI_DBG_TAP, 0);
     default:

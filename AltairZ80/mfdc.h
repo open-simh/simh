@@ -35,8 +35,8 @@
  *                                                                       *
  *************************************************************************/
 
-extern uint8 MFDC_Read(const uint32 Addr);
-extern uint8 MFDC_Write(const uint32 Addr, uint8 cData);
+extern uint8_t MFDC_Read(const uint32_t Addr);
+extern uint8_t MFDC_Write(const uint32_t Addr, uint8_t cData);
 
 
 

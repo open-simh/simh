@@ -65,28 +65,28 @@
 #define TST_EOR(c)      (chan_flag[c] & CHF_EOR)
 #define QAILCE(a)       (((a) >= POT_ILCY) && ((a) < (POT_ILCY + NUM_CHAN)))
 
-uint8 chan_uar[NUM_CHAN];                               /* unit addr */
-uint16 chan_wcr[NUM_CHAN];                              /* word count */
-uint16 chan_mar[NUM_CHAN];                              /* mem addr */
-uint8 chan_dcr[NUM_CHAN];                               /* data chain */
-uint32 chan_war[NUM_CHAN];                              /* word assembly */
-uint8 chan_cpw[NUM_CHAN];                               /* char per word */
-uint8 chan_cnt[NUM_CHAN];                               /* char count */
-uint16 chan_mode[NUM_CHAN];                             /* mode */
-uint16 chan_flag[NUM_CHAN];                             /* flags */
+uint8_t chan_uar[NUM_CHAN];                               /* unit addr */
+uint16_t chan_wcr[NUM_CHAN];                              /* word count */
+uint16_t chan_mar[NUM_CHAN];                              /* mem addr */
+uint8_t chan_dcr[NUM_CHAN];                               /* data chain */
+uint32_t chan_war[NUM_CHAN];                              /* word assembly */
+uint8_t chan_cpw[NUM_CHAN];                               /* char per word */
+uint8_t chan_cnt[NUM_CHAN];                               /* char count */
+uint16_t chan_mode[NUM_CHAN];                             /* mode */
+uint16_t chan_flag[NUM_CHAN];                             /* flags */
 static const char *chname[NUM_CHAN] = {
     "W", "Y", "C", "D", "E", "F", "G", "H"
     };
 
-extern uint32 M[MAXMEMSIZE];                            /* memory */
-extern uint32 int_req;                                  /* int req */
-extern uint32 xfr_req;                                  /* xfer req */
-extern uint32 alert;                                    /* pin/pot alert */
-extern uint32 X, EM2, EM3, OV, ion, bpt;
-extern uint32 cpu_mode;
+extern uint32_t M[MAXMEMSIZE];                            /* memory */
+extern uint32_t int_req;                                  /* int req */
+extern uint32_t xfr_req;                                  /* xfer req */
+extern uint32_t alert;                                    /* pin/pot alert */
+extern uint32_t X, EM2, EM3, OV, ion, bpt;
+extern uint32_t cpu_mode;
 extern int32 rtc_pie;
 extern int32 stop_invins, stop_invdev, stop_inviop;
-extern uint32 mon_usr_trap;
+extern uint32_t mon_usr_trap;
 extern UNIT cpu_unit;
 
 t_stat chan_reset (DEVICE *dptr);
@@ -94,23 +94,23 @@ t_stat chan_read (int32 ch);
 t_stat chan_write (int32 ch);
 void chan_write_mem (int32 ch);
 void chan_flush_war (int32 ch);
-uint32 chan_mar_inc (int32 ch);
+uint32_t chan_mar_inc (int32 ch);
 t_stat chan_eor (int32 ch);
-t_stat pot_ilc (uint32 num, uint32 *dat);
-t_stat pot_dcr (uint32 num, uint32 *dat);
-t_stat pin_adr (uint32 num, uint32 *dat);
-t_stat pot_fork (uint32 num, uint32 *dat);
-t_stat dev_disc (uint32 ch, uint32 dev);
-t_stat dev_wreor (uint32 ch, uint32 dev);
-extern t_stat pot_RL1 (uint32 num, uint32 *dat);
-extern t_stat pot_RL2 (uint32 num, uint32 *dat);
-extern t_stat pot_RL4 (uint32 num, uint32 *dat);
-extern t_stat pin_rads (uint32 num, uint32 *dat);
-extern t_stat pot_rada (uint32 num, uint32 *dat);
-extern t_stat pin_dsk (uint32 num, uint32 *dat);
-extern t_stat pot_dsk (uint32 num, uint32 *dat);
-t_stat pin_mux (uint32 num, uint32 *dat);
-t_stat pot_mux (uint32 num, uint32 *dat);
+t_stat pot_ilc (uint32_t num, uint32_t *dat);
+t_stat pot_dcr (uint32_t num, uint32_t *dat);
+t_stat pin_adr (uint32_t num, uint32_t *dat);
+t_stat pot_fork (uint32_t num, uint32_t *dat);
+t_stat dev_disc (uint32_t ch, uint32_t dev);
+t_stat dev_wreor (uint32_t ch, uint32_t dev);
+extern t_stat pot_RL1 (uint32_t num, uint32_t *dat);
+extern t_stat pot_RL2 (uint32_t num, uint32_t *dat);
+extern t_stat pot_RL4 (uint32_t num, uint32_t *dat);
+extern t_stat pin_rads (uint32_t num, uint32_t *dat);
+extern t_stat pot_rada (uint32_t num, uint32_t *dat);
+extern t_stat pin_dsk (uint32_t num, uint32_t *dat);
+extern t_stat pot_dsk (uint32_t num, uint32_t *dat);
+t_stat pin_mux (uint32_t num, uint32_t *dat);
+t_stat pot_mux (uint32_t num, uint32_t *dat);
 extern void set_dyn_map (void);
 
 /* SDS I/O model
@@ -154,8 +154,8 @@ extern void set_dyn_map (void);
 t_stat chan_show_reg (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
 struct aldisp {
-    t_stat      (*pin) (uint32 num, uint32 *dat);       /* altnum, *dat */
-    t_stat      (*pot) (uint32 num, uint32 *dat);       /* altnum, *dat */
+    t_stat      (*pin) (uint32_t num, uint32_t *dat);       /* altnum, *dat */
+    t_stat      (*pot) (uint32_t num, uint32_t *dat);       /* altnum, *dat */
     };
 
 /* Channel data structures
@@ -208,27 +208,27 @@ DEVICE chan_dev = {
 
 /* Tables */
 
-static const uint32 int_zc[8] = {
+static const uint32_t int_zc[8] = {
     INT_WZWC, INT_YZWC, INT_CZWC, INT_DZWC,
     INT_EZWC, INT_FZWC, INT_GZWC, INT_HZWC
     };
 
-static const uint32 int_er[8] = {
+static const uint32_t int_er[8] = {
     INT_WEOR, INT_YEOR, INT_CEOR, INT_DEOR,
     INT_EEOR, INT_FEOR, INT_GEOR, INT_HEOR
     };
 
 /* dev_map maps device and channel numbers to a transfer flag masks */
 
-uint32 dev_map[64][NUM_CHAN];
+uint32_t dev_map[64][NUM_CHAN];
 
 /* dev_dsp maps device and channel numbers to dispatch routines */
 
-t_stat (*dev_dsp[64][NUM_CHAN])(uint32 fnc, uint32 dev, uint32 *dat) = { {NULL} };
+t_stat (*dev_dsp[64][NUM_CHAN])(uint32_t fnc, uint32_t dev, uint32_t *dat) = { {NULL} };
 
 /* dev3_dsp maps system device numbers to dispatch routines */
 
-t_stat (*dev3_dsp[64])(uint32 fnc, uint32 dev, uint32 *dat) = { NULL };
+t_stat (*dev3_dsp[64])(uint32_t fnc, uint32_t dev, uint32_t *dat) = { NULL };
 
 /* dev_alt maps alert numbers to dispatch routines */
 
@@ -255,7 +255,7 @@ struct aldisp dev_alt[] = {
 
 /* Single word I/O instructions */
 
-t_stat op_wyim (uint32 inst, uint32 *dat)
+t_stat op_wyim (uint32_t inst, uint32_t *dat)
 {
 int32 ch, dev;
 
@@ -272,7 +272,7 @@ chan_cnt[ch] = 0;                                       /* reset cnt */
 return SCPE_OK;
 }
 
-t_stat op_miwy (uint32 inst, uint32 dat)
+t_stat op_miwy (uint32_t inst, uint32_t dat)
 {
 int32 ch, dev;
 
@@ -293,9 +293,9 @@ if (chan_flag[ch] & CHF_OWAK) {                         /* output wake? */
 return SCPE_OK;
 }
 
-t_stat op_pin (uint32 *dat)
+t_stat op_pin (uint32_t *dat)
 {
-uint32 al = alert;                                      /* local copy */
+uint32_t al = alert;                                      /* local copy */
 
 alert = 0;                                              /* clear alert */
 if ((al == 0) || (dev_alt[al].pin == NULL))             /* inv alert? */
@@ -303,9 +303,9 @@ if ((al == 0) || (dev_alt[al].pin == NULL))             /* inv alert? */
 return dev_alt[al].pin (al, dat);                       /* PIN from dev */
 }
 
-t_stat op_pot (uint32 dat)
+t_stat op_pot (uint32_t dat)
 {
-uint32 al = alert;                                      /* local copy */
+uint32_t al = alert;                                      /* local copy */
 
 alert = 0;                                              /* clear alert */
 if ((al == 0) || (dev_alt[al].pot == NULL))             /* inv alert? */
@@ -315,12 +315,12 @@ return dev_alt[al].pot (al, &dat);                      /* POT to dev */
 
 /* EOM/EOD */
 
-t_stat op_eomd (uint32 inst)
+t_stat op_eomd (uint32_t inst)
 {
-uint32 mod = I_GETIOMD (inst);                          /* get mode */
-uint32 ch = I_GETEOCH (inst);                           /* get chan # */
-uint32 dev = inst & DEV_MASK;                           /* get dev # */
-uint32 ch_dev = chan_uar[ch] & DEV_MASK;                /* chan curr dev # */
+uint32_t mod = I_GETIOMD (inst);                          /* get mode */
+uint32_t ch = I_GETEOCH (inst);                           /* get chan # */
+uint32_t dev = inst & DEV_MASK;                           /* get dev # */
+uint32_t ch_dev = chan_uar[ch] & DEV_MASK;                /* chan curr dev # */
 t_stat r;
 
 switch (mod) {
@@ -453,11 +453,11 @@ return SCPE_OK;
 
 /* Skip if not signal */
 
-t_stat op_sks (uint32 inst, uint32 *dat)
+t_stat op_sks (uint32_t inst, uint32_t *dat)
 {
-uint32 mod = I_GETIOMD (inst);                          /* get mode */
-uint32 ch = I_GETSKCH (inst);                           /* get chan # */
-uint32 dev = inst & DEV_MASK;                           /* get dev # */
+uint32_t mod = I_GETIOMD (inst);                          /* get mode */
+uint32_t ch = I_GETSKCH (inst);                           /* get chan # */
+uint32_t dev = inst & DEV_MASK;                           /* get dev # */
 
 *dat = 0;
 if ((ch == 4) && !(inst & 037774)) {                    /* EM test */
@@ -516,9 +516,9 @@ return SCPE_OK;
 
 /* PIN/POT routines */
 
-t_stat pot_ilc (uint32 num, uint32 *dat)
+t_stat pot_ilc (uint32_t num, uint32_t *dat)
 {
-uint32 ch = num - POT_ILCY;
+uint32_t ch = num - POT_ILCY;
 
 chan_mar[ch] = (chan_mar[ch] & ~CHI_M_MA) | CHI_GETMA (*dat);
 chan_wcr[ch] = (chan_wcr[ch] & ~CHI_M_WC) | CHI_GETWC (*dat);
@@ -526,18 +526,18 @@ chan_flag[ch] = chan_flag[ch] | CHF_ILCE;
 return SCPE_OK;
 }
 
-t_stat pot_dcr (uint32 num, uint32 *dat)
+t_stat pot_dcr (uint32_t num, uint32_t *dat)
 {
-uint32 ch = num - POT_DCRY;
+uint32_t ch = num - POT_DCRY;
 
 chan_dcr[ch] = (*dat) & (CHD_INT | CHD_PAGE);
 chan_flag[ch] = chan_flag[ch] | CHF_DCHN;
 return SCPE_OK;
 }
 
-t_stat pin_adr (uint32 num, uint32 *dat)
+t_stat pin_adr (uint32_t num, uint32_t *dat)
 {
-uint32 ch = num - POT_ADRY;
+uint32_t ch = num - POT_ADRY;
 
 *dat = chan_mar[ch] & PAMASK;
 return SCPE_OK;
@@ -550,10 +550,10 @@ return SCPE_OK;
    interrupt handler to a lower priority.  The interrupt is
    armed to set up the fork, and disarmed in the fork routine */
 
-t_stat pot_fork (uint32 num, uint32 *dat)
+t_stat pot_fork (uint32_t num, uint32_t *dat)
 {
-uint32 igrp = SYI_GETGRP (*dat);                        /* get group */
-uint32 fbit = (0100000 >> (VEC_FORK & 017));            /* bit in group */
+uint32_t igrp = SYI_GETGRP (*dat);                        /* get group */
+uint32_t fbit = (0100000 >> (VEC_FORK & 017));            /* bit in group */
 
 if (igrp == ((VEC_FORK-0200) / 020)) {                  /* right group? */
     if ((*dat & SYI_ARM) && (*dat & fbit))              /* arm, bit set? */
@@ -584,9 +584,9 @@ return SCPE_OK;
 
 t_stat chan_read (int32 ch)
 {
-uint32 dat = 0;
-uint32 dev = chan_uar[ch] & DEV_MASK;
-uint32 tfnc = CHM_GETFNC (chan_mode[ch]);
+uint32_t dat = 0;
+uint32_t dev = chan_uar[ch] & DEV_MASK;
+uint32_t tfnc = CHM_GETFNC (chan_mode[ch]);
 t_stat r = SCPE_OK;
 
 if ((dev != 0) && TST_XFR (dev, ch)) {                  /* ready to xfr? */
@@ -686,9 +686,9 @@ return;
 */
 t_stat chan_write (int32 ch)
 {
-uint32 dat = 0;
-uint32 dev = chan_uar[ch] & DEV_MASK;
-uint32 tfnc = CHM_GETFNC (chan_mode[ch]);
+uint32_t dat = 0;
+uint32_t dev = chan_uar[ch] & DEV_MASK;
+uint32_t tfnc = CHM_GETFNC (chan_mode[ch]);
 t_stat r = SCPE_OK;
 
 if (dev && TST_XFR (dev, ch)) {                         /* ready to xfr? */
@@ -762,9 +762,9 @@ return r;
 
 /* MAR increment */
 
-uint32 chan_mar_inc (int32 ch)
+uint32_t chan_mar_inc (int32 ch)
 {
-uint32 t = (chan_mar[ch] + 1) & PAMASK;                 /* incr mar */
+uint32_t t = (chan_mar[ch] + 1) & PAMASK;                 /* incr mar */
 
 if ((chan_flag[ch] & CHF_DCHN) && ((t & VA_POFF) == 0)) { /* chain? */
     chan_flag[ch] = chan_flag[ch] & ~CHF_DCHN;          /* clr flag */
@@ -779,8 +779,8 @@ return t;
 
 t_stat chan_eor (int32 ch)
 {
-uint32 tfnc = CHM_GETFNC (chan_mode[ch]);
-uint32 dev = chan_uar[ch] & DEV_MASK;
+uint32_t tfnc = CHM_GETFNC (chan_mode[ch]);
+uint32_t dev = chan_uar[ch] & DEV_MASK;
 
 chan_flag[ch] = chan_flag[ch] & ~(CHF_EOR | CHF_ILCE);  /* clr eor, ilce */
 if (((tfnc == CHM_COMP) && ion) || (chan_mode[ch] & CHM_ER))
@@ -793,7 +793,7 @@ return SCPE_OK;
 
 /* Utility routines */
 
-t_stat dev_disc (uint32 ch, uint32 dev)
+t_stat dev_disc (uint32_t ch, uint32_t dev)
 {
 chan_uar[ch] = 0;                                       /* disconnect */
 if (dev_dsp[dev][ch])
@@ -801,7 +801,7 @@ if (dev_dsp[dev][ch])
 return SCPE_OK;
 }
 
-t_stat dev_wreor (uint32 ch, uint32 dev)
+t_stat dev_wreor (uint32_t ch, uint32_t dev)
 {
 if (dev_dsp[dev][ch])
     return dev_dsp[dev][ch] (IO_WREOR, dev, NULL);
@@ -859,7 +859,7 @@ return;
 
 /* Set flag in channel */
 
-void chan_set_flag (int32 ch, uint32 fl)
+void chan_set_flag (int32 ch, uint32_t fl)
 {
 if ((ch >= 0) && (ch < NUM_CHAN))
     chan_flag[ch] = chan_flag[ch] | fl;
@@ -868,7 +868,7 @@ return;
 
 /* Set UAR in channel */
 
-void chan_set_uar (int32 ch, uint32 dev)
+void chan_set_uar (int32 ch, uint32_t dev)
 {
 if ((ch >= 0) && (ch < NUM_CHAN))
     chan_uar[ch] = dev & DEV_MASK;
@@ -959,7 +959,7 @@ DEVICE *dptr;
 DIB *dibp;
 DSPT *tplp;
 int32 ch;
-uint32 i, j, dev, doff;
+uint32_t i, j, dev, doff;
 
 /* Clear dispatch table, device map */
 

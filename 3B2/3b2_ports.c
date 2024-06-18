@@ -103,20 +103,20 @@
 #define LPORT(ln)       ((ln) % PORTS_LINES)
 
 int8    ports_base_slot;          /* First slot in our contiguous block */
-uint8   ports_int_slot;           /* Interrupting card ID   */
-uint8   ports_int_subdev;         /* Interrupting subdevice */
+uint8_t   ports_int_slot;           /* Interrupting card ID   */
+uint8_t   ports_int_subdev;         /* Interrupting subdevice */
 t_bool  ports_conf = FALSE;       /* Have PORTS cards been configured? */
-uint32  ports_crc;                /* CRC32 of downloaded memory */
+uint32_t  ports_crc;                /* CRC32 of downloaded memory */
 
 /* Mapping of line number to CIO card slot. Up to 32 lines spread over 8
    slots are supported. */
-uint8 ports_ln_slot[MAX_LINES];
+uint8_t ports_ln_slot[MAX_LINES];
 
 /* Mapping of slot number to base line number belonging to the card in
    that slot. I.e., if there are two PORTS cards, one in slot 3 and one in
    slot 5, index 3 will have starting line 0, index 5 will have starting
    line 4. */
-uint32 ports_slot_ln[CIO_SLOTS];
+uint32_t ports_slot_ln[CIO_SLOTS];
 
 /* PORTS-specific state for each slot */
 PORTS_LINE_STATE *ports_state = NULL;
@@ -227,14 +227,14 @@ DEVICE lpt_dev = {
     &lpt_description        /* device description */
 };
 
-static void cio_irq(uint8 slot, uint8 dev, int32 delay)
+static void cio_irq(uint8_t slot, uint8_t dev, int32 delay)
 {
     ports_int_slot = slot;
     ports_int_subdev = dev & 0xf;
     sim_activate(&ports_unit[2], delay);
 }
 
-static void lpt_out(uint8 c)
+static void lpt_out(uint8_t c)
 {
     if (!lpt_state.conn) {
         return;
@@ -313,13 +313,13 @@ t_stat ports_setnl(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 }
 
 
-static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
+static void ports_cmd(uint8_t slot, cio_entry *rentry, uint8_t *rapp_data)
 {
     cio_entry centry = {0};
-    uint32 ln, i;
+    uint32_t ln, i;
     PORTS_OPTIONS opts;
     char line_config[16];
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
     PORTS_LINE_STATE *state;
 
     centry.address = rentry->address;
@@ -546,11 +546,11 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
 /*
  * Update the connection status of the given port.
  */
-static void ports_update_conn(uint8 slot, uint8 subdev)
+static void ports_update_conn(uint8_t slot, uint8_t subdev)
 {
     cio_entry centry = {0};
-    uint8 app_data[4] = {0};
-    uint32 ln = LN(slot, subdev);
+    uint8_t app_data[4] = {0};
+    uint32_t ln = LN(slot, subdev);
 
     /* If the card hasn't sysgened, there's no way to write a completion
      * queue entry */
@@ -587,10 +587,10 @@ static void ports_update_conn(uint8 slot, uint8 subdev)
     CIO_SET_INT(slot);
 }
 
-void ports_sysgen(uint8 slot)
+void ports_sysgen(uint8_t slot)
 {
     cio_entry cqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
 
     ports_crc = 0;
 
@@ -605,19 +605,19 @@ void ports_sysgen(uint8 slot)
     sim_activate(&ports_unit[2], DELAY_STD);
 }
 
-void ports_express(uint8 slot)
+void ports_express(uint8_t slot)
 {
     cio_entry rqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
     cio_rexpress(slot, PPQESIZE, &rqe, app_data);
     ports_cmd(slot, &rqe, app_data);
 }
 
-void ports_full(uint8 slot)
+void ports_full(uint8_t slot)
 {
-    uint32 i;
+    uint32_t i;
     cio_entry rqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
 
     for (i = 0; i < PORTS_RCV_QUEUE; i++) {
         if (cio_rqueue(slot, i, PPQESIZE, &rqe, app_data) == SCPE_OK) {
@@ -629,7 +629,7 @@ void ports_full(uint8 slot)
 t_stat ports_reset(DEVICE *dptr)
 {
     int32 i, j;
-    uint8 slot;
+    uint8_t slot;
     t_stat r;
 
     ports_crc = 0;
@@ -721,13 +721,13 @@ t_stat ports_cio_svc(UNIT *uptr)
 
 t_stat ports_rcv_svc(UNIT *uptr)
 {
-    uint8 slot;
+    uint8_t slot;
     int32 temp, ln;
     char c;
     cio_entry rentry = {0};
     cio_entry centry = {0};
-    uint8 rapp_data[4] = {0};
-    uint8 capp_data[4] = {0};
+    uint8_t rapp_data[4] = {0};
+    uint8_t capp_data[4] = {0};
 
     if ((uptr->flags & UNIT_ATT) == 0) {
         return SCPE_OK;
@@ -788,12 +788,12 @@ t_stat ports_rcv_svc(UNIT *uptr)
 
 t_stat ports_xmt_svc(UNIT *uptr)
 {
-    uint8 slot, ln;
+    uint8_t slot, ln;
     char c;
     t_bool tx = FALSE; /* Did a tx ever occur? */
     cio_entry centry = {0};
-    uint8 app_data[4] = {0};
-    uint32 wait = 0x7fffffff;
+    uint8_t app_data[4] = {0};
+    uint32_t wait = 0x7fffffff;
 
     /* Scan all MUX lines for output */
     for (ln = 0; ln < ports_desc.lines; ln++) {

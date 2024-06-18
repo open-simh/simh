@@ -141,10 +141,10 @@ typedef struct serial_list {
     } SERIAL_LIST;
 
 typedef struct serial_config {                          /* serial port configuration */
-    uint32 baudrate;                                    /* baud rate */
-    uint32 charsize;                                    /* character size in bits */
+    uint32_t baudrate;                                    /* baud rate */
+    uint32_t charsize;                                    /* character size in bits */
     char   parity;                                      /* parity (N/O/E/M/S) */
-    uint32 stopbits;                                    /* 0/1/2 stop bits (0 implies 1.5) */
+    uint32_t stopbits;                                    /* 0/1/2 stop bits (0 implies 1.5) */
     } SERCONFIG;
 
 static int       sim_serial_os_devices (int max, SERIAL_LIST* list);
@@ -465,19 +465,19 @@ if ((sconfig == NULL) || (*sconfig == '\0'))
     sconfig = "9600-8N1";                               /* default settings */
 pptr = sconfig;
 
-config.baudrate = (uint32)strtotv (pptr, &sptr, 10);    /* parse baud rate */
+config.baudrate = (uint32_t)strtotv (pptr, &sptr, 10);    /* parse baud rate */
 arg_error = (pptr == sptr);                             /* check for bad argument */
 
 if (*sptr)                                              /* separator present? */
     sptr++;                                             /* skip it */
 
-config.charsize = (uint32)strtotv (sptr, &tptr, 10);    /* parse character size */
+config.charsize = (uint32_t)strtotv (sptr, &tptr, 10);    /* parse character size */
 arg_error = arg_error || (sptr == tptr);                /* check for bad argument */
 
 if (*tptr)                                              /* parity character present? */
     config.parity = (char)toupper (*tptr++);            /* save parity character */
 
-config.stopbits = (uint32)strtotv (tptr, &sptr, 10);    /* parse number of stop bits */
+config.stopbits = (uint32_t)strtotv (tptr, &sptr, 10);    /* parse number of stop bits */
 arg_error = arg_error || (tptr == sptr);                /* check for bad argument */
 
 if (arg_error)                                          /* bad conversions? */
@@ -1154,7 +1154,7 @@ struct termios tio;
 int32 i;
 
 static const struct {
-    uint32  rate;
+    uint32_t  rate;
     speed_t rate_code;
     } baud_map [] =
         { { 50,     B50     }, { 75,     B75     }, { 110,    B110    }, {  134,   B134   },
@@ -1424,7 +1424,7 @@ typedef struct {
     } ITEM;
 
 struct SERPORT {
-    uint32 port;
+    uint32_t port;
     IOSB write_iosb;
     };
 
@@ -1444,17 +1444,17 @@ char devstr[sizeof(list[0].name)];
 $DESCRIPTOR (device, devstr);
 int ports;
 IOSB iosb;
-uint32 status;
-uint32 devsts;
+uint32_t status;
+uint32_t devsts;
 #define UCB$M_TEMPLATE 0x2000       /* Device is a template device */
 #define UCB$M_ONLINE   0x0010       /* Device is online */
-uint32 devtype;
-uint32 devdepend;
+uint32_t devtype;
+uint32_t devdepend;
 #define DEV$M_RTM 0x20000000
-uint32 devnamlen = 0;
+uint32_t devnamlen = 0;
 t_bool done = FALSE;
-uint32 context[2];
-uint32 devclass = DC$_TERM; /* Only interested in terminal devices */
+uint32_t context[2];
+uint32_t devclass = DC$_TERM; /* Only interested in terminal devices */
 ITEM select_items[] = { {sizeof (devclass), DVS$_DEVCLASS, &devclass, NULL},
                         {                  0,               0,        NULL, NULL}};
 ITEM valid_items[] =  { {    sizeof (devsts),        DVI$_STS,     &devsts, NULL},
@@ -1526,11 +1526,11 @@ return ports;
 
 static SERHANDLE sim_open_os_serial (char *name)
 {
-uint32 status;
-uint32 chan = 0;
+uint32_t status;
+uint32_t chan = 0;
 IOSB iosb;
 $DESCRIPTOR (devnam, name);
-uint32 devclass;
+uint32_t devclass;
 ITEM items[] = { {sizeof (devclass), DVI$_DEVCLASS, &devclass, NULL},
                  {                0,             0,      NULL, NULL}};
 SENSE_BUF start_mode = { 0 };
@@ -1589,11 +1589,11 @@ static t_stat sim_config_os_serial (SERHANDLE port, SERCONFIG config)
 {
 int32 i;
 SENSE_BUF sense;
-uint32 status, speed, parity, charsize, stopbits;
+uint32_t status, speed, parity, charsize, stopbits;
 IOSB iosb;
 static const struct {
-    uint32  rate;
-    uint32  rate_code;
+    uint32_t  rate;
+    uint32_t  rate_code;
     } baud_map [] =
         { { 50,     TT$C_BAUD_50     }, { 75,     TT$C_BAUD_75     }, { 110,    TT$C_BAUD_110    }, {  134,   TT$C_BAUD_134   },
           { 150,    TT$C_BAUD_150    }, { 300,    TT$C_BAUD_300    }, {  600,   TT$C_BAUD_600    }, {  1200,  TT$C_BAUD_1200  },
@@ -1683,9 +1683,9 @@ return SCPE_OK;                                         /* configuration set suc
 
 t_stat sim_control_serial (SERHANDLE port, int32 bits_to_set, int32 bits_to_clear, int32 *incoming_bits)
 {
-uint32 status;
+uint32_t status;
 IOSB iosb;
-uint32 bits[2] = {0, 0};
+uint32_t bits[2] = {0, 0};
 
 if ((bits_to_set & ~(TMXR_MDM_OUTGOING)) ||         /* Assure only settable bits */
     (bits_to_clear & ~(TMXR_MDM_OUTGOING)) ||
@@ -1708,7 +1708,7 @@ if (bits_to_set || bits_to_clear) {
         }
     }
 if (incoming_bits) {
-    uint32 modem;
+    uint32_t modem;
 
     status = sys$qiow (0, port->port, IO$_SENSEMODE|IO$M_RD_MODEM, &iosb, 0, 0,
                        bits, 0, 0, 0, 0, 0);
@@ -1754,8 +1754,8 @@ return SCPE_OK;
 int32 sim_read_serial (SERHANDLE port, char *buffer, int32 count, char *brk)
 {
 int read_count = 0;
-uint32 status;
-static uint32 term[2] = {0, 0};
+uint32_t status;
+static uint32_t term[2] = {0, 0};
 unsigned char buf[4];
 IOSB iosb;
 SENSE_BUF sense;
@@ -1791,7 +1791,7 @@ return (int32)iosb.count;                                   /* return the number
 
 int32 sim_write_serial (SERHANDLE port, char *buffer, int32 count)
 {
-uint32 status;
+uint32_t status;
 
 if (port->write_iosb.status == 0)           /* Prior write not done yet? */
     return 0;

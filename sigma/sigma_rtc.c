@@ -41,14 +41,14 @@
 
 /* Timed events data structures */
 
-uint8 rtc_indx[RTC_NUM_EVNTS];                          /* index into rtc_tab */
-uint8 rtc_cntr[RTC_NUM_EVNTS];                          /* timer ticks left */
-uint8 rtc_xtra[RTC_NUM_EVNTS];                          /* extra counter */
+uint8_t rtc_indx[RTC_NUM_EVNTS];                          /* index into rtc_tab */
+uint8_t rtc_cntr[RTC_NUM_EVNTS];                          /* timer ticks left */
+uint8_t rtc_xtra[RTC_NUM_EVNTS];                          /* extra counter */
 UNIT *rtc_usrv[RTC_NUM_EVNTS];                          /* unit servers */
 
 /* Real-time clock counter frequencies */
 
-uint16 rtc_tps[RTC_NUM_CNTRS] = {
+uint16_t rtc_tps[RTC_NUM_CNTRS] = {
     RTC_HZ_OFF, RTC_HZ_OFF, RTC_HZ_500, RTC_HZ_500
     };
 
@@ -59,9 +59,9 @@ uint16 rtc_tps[RTC_NUM_CNTRS] = {
    3 clock ticks for every 25 base timer ticks. */
 
 typedef struct {
-    uint32      hz;
-    uint32      cntr_reset;
-    uint32      xtra_reset;
+    uint32_t      hz;
+    uint32_t      cntr_reset;
+    uint32_t      xtra_reset;
     } rtcdef_t;
 
 static rtcdef_t rtc_tab[RTC_NUM_HZ] = {
@@ -127,7 +127,7 @@ DEVICE rtc_dev = {
 
 t_stat rtc_svc (UNIT *uptr)
 {
-uint32 i, idx;
+uint32_t i, idx;
 int32 t;
 t_stat st;
 
@@ -162,7 +162,7 @@ return SCPE_OK;
 
 t_stat rtc_cntr_svc (UNIT *uptr)
 {
-uint32 cn = uptr - rtc_cntr_unit;
+uint32_t cn = uptr - rtc_cntr_unit;
 
 io_sclr_req (INTV (INTG_OVR, cn), 1);                   /* set cntr intr */
 return SCPE_OK;
@@ -170,7 +170,7 @@ return SCPE_OK;
 
 /* Register a timer */
 
-t_stat rtc_register (uint32 tm, uint32 idx, UNIT *uptr)
+t_stat rtc_register (uint32_t tm, uint32_t idx, UNIT *uptr)
 {
 if ((tm >= RTC_NUM_EVNTS) ||                            /* validate params */
     (idx >= RTC_NUM_HZ) ||
@@ -188,7 +188,7 @@ return SCPE_OK;
 
 t_stat rtc_set_tps (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 newval, i;
+uint32_t newval, i;
 t_stat r;
 
 if (val >= RTC_NUM_EVNTS)                               /* validate params */
@@ -216,7 +216,7 @@ return SCPE_ARG;
 
 t_stat rtc_show_tps (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 idx;
+uint32_t idx;
 
 if (val >= RTC_NUM_EVNTS)
     return SCPE_IERR;
@@ -232,7 +232,7 @@ return SCPE_OK;
 
 t_stat rtc_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 sim_rtcn_init (rtc_unit.wait, TMR_RTC);                 /* init base clock */
 sim_activate_abs (&rtc_unit, rtc_unit.wait);            /* activate unit */
@@ -257,7 +257,7 @@ return SCPE_OK;
 
 t_stat rtc_show_events (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 i;
+uint32_t i;
 
 fprintf (of, "Event  Status  Frequency  Ticks  Extra\n");
 for (i = 0; i < RTC_NUM_EVNTS; i++) {

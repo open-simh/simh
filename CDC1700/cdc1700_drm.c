@@ -89,11 +89,11 @@ extern char INTprefix[];
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern t_bool doDirectorFunc(DEVICE *, t_bool);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
-extern void fw_IOunderwayEOP2(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8_t);
+extern void fw_IOunderwayEOP2(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
 extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16_t, uint16_t, uint16_t, const char *);
 
 extern void rebuildPending(void);
 
@@ -107,10 +107,10 @@ extern t_stat set_equipment(UNIT *, int32, CONST char *, void *);
 extern t_stat set_stoponrej(UNIT *, int32, CONST char *, void *);
 extern t_stat clr_stoponrej(UNIT *, int32, CONST char *, void *);
 
-extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern t_bool IOStoreToMem(uint16_t, uint16_t, t_bool);
 
-extern uint16 M[], Areg, IOAreg;
+extern uint16_t M[], Areg, IOAreg;
 extern t_uint64 Instructions;
 
 extern t_bool IOFWinitialized;
@@ -122,7 +122,7 @@ t_stat drm_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 /* Constants */
 
 #define DRM_NUMWD       (96)            /* words/sector */
-#define DRM_NUMBY       (DRM_NUMWD * sizeof(uint16))
+#define DRM_NUMBY       (DRM_NUMWD * sizeof(uint16_t))
 #define DRM_NUMSC       (32)            /* sectors/track */
 #define DRM_SIZE        (512 * DRM_NUMSC * DRM_NUMBY)
 #define DRM_MINTRACKS   (64)            /* Min # of tracks supported */
@@ -154,11 +154,11 @@ t_stat drm_detach(UNIT *);
 t_stat drm_set_size(UNIT *, int32, CONST char *, void *);
 
 void DRMstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool DRMreject(IO_DEVICE *, t_bool, uint8);
-enum IOstatus DRMin(IO_DEVICE *, uint8);
-enum IOstatus DRMout(IO_DEVICE *, uint8);
+t_bool DRMreject(IO_DEVICE *, t_bool, uint8_t);
+enum IOstatus DRMin(IO_DEVICE *, uint8_t);
+enum IOstatus DRMout(IO_DEVICE *, uint8_t);
 void DRMclear(DEVICE *);
-uint8 DRMdecode(IO_DEVICE *, t_bool, uint8);
+uint8_t DRMdecode(IO_DEVICE *, t_bool, uint8_t);
 
 /*
         1752-A/B/C/D Drum memory controller
@@ -448,7 +448,7 @@ void DRMstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
  */
 static t_bool LoadDrumAddress(void)
 {
-  uint16 track = (DRMdev.iod_isa & DRM_TRK_MASK) >> DRM_TRK_SHIFT;
+  uint16_t track = (DRMdev.iod_isa & DRM_TRK_MASK) >> DRM_TRK_SHIFT;
 
   if (track >= DRMdev.iod_tracks)
     return FALSE;
@@ -510,8 +510,8 @@ static void DrumIOIncSector(void)
  */
 static enum drmio_status DrumIORead(UNIT *uptr)
 {
-  uint16 buf[DRM_NUMWD];
-  uint32 lba = (DRMdev.iod_trk << DRM_TRK_SHIFT) | DRMdev.iod_sec;
+  uint16_t buf[DRM_NUMWD];
+  uint32_t lba = (DRMdev.iod_trk << DRM_TRK_SHIFT) | DRMdev.iod_sec;
   int i;
 
   if (DRMdev.iod_trk >= DRMdev.iod_tracks)
@@ -522,7 +522,7 @@ static enum drmio_status DrumIORead(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * DRM_NUMBY, SEEK_SET) ||
-      (sim_fread(buf, sizeof(uint16), DRM_NUMWD, uptr->fileref) != DRM_NUMWD))
+      (sim_fread(buf, sizeof(uint16_t), DRM_NUMWD, uptr->fileref) != DRM_NUMWD))
     return DRMIO_ADDRERR;
 
   for (i = 0; i < DRM_NUMWD; i++) {
@@ -553,8 +553,8 @@ static enum drmio_status DrumIORead(UNIT *uptr)
  */
 static enum drmio_status DrumIOWrite(UNIT *uptr)
 {
-  uint16 buf[DRM_NUMWD];
-  uint32 lba = (DRMdev.iod_trk << DRM_TRK_SHIFT) | DRMdev.iod_sec;
+  uint16_t buf[DRM_NUMWD];
+  uint32_t lba = (DRMdev.iod_trk << DRM_TRK_SHIFT) | DRMdev.iod_sec;
   t_bool done = FALSE;
   int i;
 
@@ -577,7 +577,7 @@ static enum drmio_status DrumIOWrite(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * DRM_NUMBY, SEEK_SET) ||
-      (sim_fwrite(buf, sizeof(uint16), DRM_NUMWD, uptr->fileref) != DRM_NUMWD))
+      (sim_fwrite(buf, sizeof(uint16_t), DRM_NUMWD, uptr->fileref) != DRM_NUMWD))
     return DRMIO_ADDRERR;
 
   DrumIOIncSector();
@@ -593,7 +593,7 @@ static enum drmio_status DrumIOWrite(UNIT *uptr)
 /*
  * Perform read/write sector operations from within the unit service routine.
  */
-void DrumIO(UNIT *uptr, uint8 iotype)
+void DrumIO(UNIT *uptr, uint8_t iotype)
 {
   const char *error = "Unknown";
   enum drmio_status status = DRMIO_ADDRERR;
@@ -744,7 +744,7 @@ t_stat drm_attach (UNIT *uptr, CONST char *cptr)
     return sim_messagef(SCPE_OPENERR, "Invalid file size");
   }
   DRMdev.STATUS = IO_ST_READY | IO_ST_DATA;
-  DRMdev.iod_tracks = (uint16)tracks;
+  DRMdev.iod_tracks = (uint16_t)tracks;
   DRMdev.iod_event = Instructions;
 
   return SCPE_OK;
@@ -774,7 +774,7 @@ t_stat drm_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 /* Check if I/O should be rejected */
 
-t_bool DRMreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+t_bool DRMreject(IO_DEVICE *iod, t_bool output, uint8_t reg)
 {
   if (output) {
     if (reg != 0x1)
@@ -785,7 +785,7 @@ t_bool DRMreject(IO_DEVICE *iod, t_bool output, uint8 reg)
 
 /* Perform I/O */
 
-enum IOstatus DRMin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DRMin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * The I/O framework passes input requests for the Director Status register
@@ -829,7 +829,7 @@ enum IOstatus DRMin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus DRMout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DRMout(IO_DEVICE *iod, uint8_t reg)
 {
   switch (reg) {
     case 0x00:
@@ -909,7 +909,7 @@ void DRMclear(DEVICE *dptr)
  * Address decode routine. If bit 0 of an output  register address is set,
  * clear bits 1 - 7 since they are ignored.
  */
-uint8 DRMdecode(IO_DEVICE *iod, t_bool output, uint8 reg)
+uint8_t DRMdecode(IO_DEVICE *iod, t_bool output, uint8_t reg)
 {
   if (output && ((reg & 0x01) != 0))
     reg &= 0x01;
@@ -924,14 +924,14 @@ t_stat DRMautoload(void)
   UNIT *uptr = &drm_unit;
 
   if ((uptr->flags & UNIT_ATT) != 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; i < DRM_AUTOLOAD; i++) {
       t_offset offset = i * DRM_NUMBY;
       void *buf = &M[i * DRM_NUMBY];
 
       if (sim_fseeko(uptr->fileref, offset, SEEK_SET) ||
-          (sim_fread(buf, sizeof(uint16), DRM_NUMWD, uptr->fileref) != DRM_NUMWD))
+          (sim_fread(buf, sizeof(uint16_t), DRM_NUMWD, uptr->fileref) != DRM_NUMWD))
         return SCPE_IOERR;
     }
     return SCPE_OK;

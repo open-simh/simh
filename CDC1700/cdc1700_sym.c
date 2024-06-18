@@ -33,7 +33,7 @@
 
 extern UNIT cpu_unit;
 
-extern uint16 doADDinternal(uint16, uint16);
+extern uint16_t doADDinternal(uint16_t, uint16_t);
 
 /*
  * Symbol tables
@@ -117,11 +117,11 @@ static const char *regname[] = {
 /*
  * Usage value for each usage type (0 means invalid).
  */
-static uint16 instIndex[] = {
+static uint16_t instIndex[] = {
   0x0000, MOD_I1, 0x0000, MOD_I2, MOD_I1 | MOD_I2
 };
 
-static uint16 instInter[] = {
+static uint16_t instInter[] = {
   MOD_D_A, MOD_D_Q, MOD_D_M, 0x0000, 0x0000
 };
 

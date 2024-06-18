@@ -68,9 +68,9 @@ static IF3_INFO if3_info_data = { { 0x0, 0, 0x10, 8 } };
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 PCX;
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern uint32_t PCX;
 
 extern int32 sio0d(const int32 port, const int32 io, const int32 data);
 extern int32 sio0s(const int32 port, const int32 io, const int32 data);
@@ -79,8 +79,8 @@ static t_stat set_if3_connect(UNIT *uptr, int32 val, CONST char *cptr, void *des
 
 static t_stat if3_reset(DEVICE *if3_dev);
 static t_stat if3_svc (UNIT *uptr);
-static uint8 IF3_Read(const uint32 Addr);
-static uint8 IF3_Write(const uint32 Addr, uint8 cData);
+static uint8_t IF3_Read(const uint32_t Addr);
+static uint8_t IF3_Write(const uint32_t Addr, uint8_t cData);
 static int32 if3dev(const int32 port, const int32 io, const int32 data);
 static t_stat update_rx_tx_isr (UNIT *uptr);
 static const char* if3_description(DEVICE *dptr);
@@ -92,12 +92,12 @@ static UNIT if3_unit[] = {
     { UDATA (&if3_svc, UNIT_FIX | UNIT_DISABLE | UNIT_ROABLE, 0) }
 };
 
-static uint8 if3_user = 0;
-static uint8 if3_board = 0;
-static uint8 if3_rimr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
-static uint8 if3_timr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
-static uint8 if3_risr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
-static uint8 if3_tisr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
+static uint8_t if3_user = 0;
+static uint8_t if3_board = 0;
+static uint8_t if3_rimr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
+static uint8_t if3_timr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
+static uint8_t if3_risr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
+static uint8_t if3_tisr[IF3_MAX_BOARDS] = { 0, 0, 0, 0 };
 
 static REG if3_reg[] = {
     { HRDATAD (USER,    if3_user,   3,                      "IF3 user register"),       },
@@ -164,7 +164,7 @@ static t_stat set_if3_connect(UNIT *uptr, int32 val, CONST char *cptr, void *des
 /* Reset routine */
 static t_stat if3_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
 
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
@@ -212,9 +212,9 @@ static int32 if3dev(const int32 port, const int32 io, const int32 data)
 #define IF3_RESERVED    0x06
 #define IF3_USER_SEL    0x07
 
-static uint8 IF3_Read(const uint32 Addr)
+static uint8_t IF3_Read(const uint32_t Addr)
 {
-    uint8 cData = 0xFF;
+    uint8_t cData = 0xFF;
 
     /* Check if board is connected */
     if(!(if3_unit[if3_board].flags & UNIT_IF3_CONNECT)) {
@@ -259,7 +259,7 @@ static uint8 IF3_Read(const uint32 Addr)
 
 }
 
-static uint8 IF3_Write(const uint32 Addr, uint8 cData)
+static uint8_t IF3_Write(const uint32_t Addr, uint8_t cData)
 {
     /* Check if board is connected for all ports except "user select" */
     if((Addr & 0x7) != IF3_USER_SEL) {
@@ -309,14 +309,14 @@ static uint8 IF3_Write(const uint32 Addr, uint8 cData)
 
 #define IF3_NUM_PORTS       8   /* Number of ports per IF3 board */
 
-extern void raise_ss1_interrupt(uint8 isr_index);
+extern void raise_ss1_interrupt(uint8_t isr_index);
 
 /* Unit service routine */
 static t_stat if3_svc (UNIT *uptr)
 {
-    uint8 pending_rx_irqs;
-    uint8 pending_tx_irqs;
-    uint8 board = uptr->u3;
+    uint8_t pending_rx_irqs;
+    uint8_t pending_tx_irqs;
+    uint8_t board = uptr->u3;
 
     update_rx_tx_isr(uptr);
 
@@ -339,9 +339,9 @@ static t_stat if3_svc (UNIT *uptr)
 
 static t_stat update_rx_tx_isr (UNIT *uptr)
 {
-    uint8 i;
-    uint8 cData;
-    uint8 board = uptr->u3;
+    uint8_t i;
+    uint8_t cData;
+    uint8_t board = uptr->u3;
 
     if3_risr[board] = 0;
     if3_tisr[board] = 0;

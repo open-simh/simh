@@ -182,7 +182,7 @@
 #define DT_LIN2WD(p,u)  ((DT_LIN2OF (p,u) - DT_HTLIN) / DT_WSIZE)
 #define DT_BLK2LN(p,u)  (((p) * DTU_LPERB (u)) + DT_EZLIN)
 #define DT_QREZ(u)      (((u)->pos) < DT_EZLIN)
-#define DT_QFEZ(u)      (((u)->pos) >= ((uint32) DTU_FWDEZ (u)))
+#define DT_QFEZ(u)      (((u)->pos) >= ((uint32_t) DTU_FWDEZ (u)))
 #define DT_QEZ(u)       (DT_QREZ (u) || DT_QFEZ (u))
 
 /* Status register A */
@@ -709,7 +709,7 @@ int32 fnc, dir, blk, unum, newpos;
 #if defined (TC02)
 int32 relpos;
 #endif
-uint32 oldpos;
+uint32_t oldpos;
 
 oldpos = uptr->pos;                                     /* save old pos */
 if (dt_setpos (uptr))                                   /* update pos */
@@ -832,7 +832,7 @@ return;
 
 t_bool dt_setpos (UNIT *uptr)
 {
-uint32 new_time, ut, ulin, udelt;
+uint32_t new_time, ut, ulin, udelt;
 int32 mot = DTS_GETMOT (uptr->STATE);
 int32 unum, delta = 0;
 
@@ -848,19 +848,19 @@ switch (mot & ~DTS_DIR) {                               /* case on motion */
         break;
 
     case DTS_DECF:                                      /* slowing */
-        ulin = ut / (uint32) dt_ltime;
+        ulin = ut / (uint32_t) dt_ltime;
         udelt = dt_dctime / dt_ltime;
         delta = ((ulin * udelt * 2) - (ulin * ulin)) / (2 * udelt);
         break;
 
     case DTS_ACCF:                                      /* accelerating */
-        ulin = ut / (uint32) dt_ltime;
+        ulin = ut / (uint32_t) dt_ltime;
         udelt = (dt_dctime - (dt_dctime >> 2)) / dt_ltime;
         delta = (ulin * ulin) / (2 * udelt);
         break;
 
     case DTS_ATSF:                                      /* at speed */
-        delta = ut / (uint32) dt_ltime;
+        delta = ut / (uint32_t) dt_ltime;
         break;
         }
 
@@ -892,7 +892,7 @@ int32 fnc = DTS_GETFNC (uptr->STATE);
 int32 *fbuf = (int32 *) uptr->filebuf;
 int32 unum = uptr - dt_dev.units;
 int32 blk, wrd, ma, relpos;
-uint32 ba;
+uint32_t ba;
 
 /* Motion cases
 
@@ -1423,9 +1423,9 @@ return 0;
 
 t_stat dt_attach (UNIT *uptr, CONST char *cptr)
 {
-uint16 pdp8b[D8_NBSIZE];
-uint16 pdp11b[D18_BSIZE];
-uint32 ba, sz, k, *fbuf;
+uint16_t pdp8b[D8_NBSIZE];
+uint16_t pdp11b[D18_BSIZE];
+uint32_t ba, sz, k, *fbuf;
 int32 u = uptr - dt_dev.units;
 t_stat r;
 
@@ -1447,12 +1447,12 @@ if ((sim_switches & SIM_SW_REST) == 0) {                /* not from rest? */
         }
     }
 uptr->capac = DTU_CAPAC (uptr);                         /* set capacity */
-uptr->filebuf = calloc (uptr->capac, sizeof (uint32));
+uptr->filebuf = calloc (uptr->capac, sizeof (uint32_t));
 if (uptr->filebuf == NULL) {                            /* can't alloc? */
     detach_unit (uptr);
     return SCPE_MEM;
     }
-fbuf = (uint32 *) uptr->filebuf;                        /* file buffer */
+fbuf = (uint32_t *) uptr->filebuf;                        /* file buffer */
 sim_printf ("%s%d: ", sim_dname (&dt_dev), u);
 if (uptr->flags & UNIT_8FMT)
     sim_printf ("12b format");
@@ -1463,16 +1463,16 @@ sim_printf (", buffering file in memory\n");
 uptr->io_flush = dt_flush;
 if (uptr->flags & UNIT_8FMT) {                          /* 12b? */
     for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
-        k = fxread (pdp8b, sizeof (uint16), D8_NBSIZE, uptr->fileref);
+        k = fxread (pdp8b, sizeof (uint16_t), D8_NBSIZE, uptr->fileref);
         if (k == 0)
             break;
         for ( ; k < D8_NBSIZE; k++)
             pdp8b[k] = 0;
         for (k = 0; k < D8_NBSIZE; k = k + 3) {         /* loop thru blk */
-            fbuf[ba] = ((uint32) (pdp8b[k] & 07777) << 6) |
-                ((uint32) (pdp8b[k + 1] >> 6) & 077);
-            fbuf[ba + 1] = ((uint32) (pdp8b[k + 1] & 077) << 12) |
-                ((uint32) pdp8b[k + 2] & 07777);
+            fbuf[ba] = ((uint32_t) (pdp8b[k] & 07777) << 6) |
+                ((uint32_t) (pdp8b[k + 1] >> 6) & 077);
+            fbuf[ba + 1] = ((uint32_t) (pdp8b[k + 1] & 077) << 12) |
+                ((uint32_t) pdp8b[k + 2] & 07777);
             ba = ba + 2;                                /* end blk loop */
             }
         }                                               /* end file loop */
@@ -1480,7 +1480,7 @@ if (uptr->flags & UNIT_8FMT) {                          /* 12b? */
     }                                                   /* end if */
 else if (uptr->flags & UNIT_11FMT) {                    /* 16b? */
     for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
-        k = fxread (pdp11b, sizeof (uint16), D18_BSIZE, uptr->fileref);
+        k = fxread (pdp11b, sizeof (uint16_t), D18_BSIZE, uptr->fileref);
         if (k == 0)
             break;
         for ( ; k < D18_BSIZE; k++)
@@ -1490,7 +1490,7 @@ else if (uptr->flags & UNIT_11FMT) {                    /* 16b? */
             }
     uptr->hwmark = ba;
     }                                                   /* end elif */
-else uptr->hwmark = fxread (uptr->filebuf, sizeof (uint32),
+else uptr->hwmark = fxread (uptr->filebuf, sizeof (uint32_t),
     uptr->capac, uptr->fileref);
 uptr->flags = uptr->flags | UNIT_BUF;                   /* set buf flag */
 uptr->pos = DT_EZLIN;                                   /* beyond leader */
@@ -1509,15 +1509,15 @@ return SCPE_OK;
 
 void dt_flush (UNIT* uptr)
 {
-uint16 pdp8b[D8_NBSIZE];
-uint16 pdp11b[D18_BSIZE];
+uint16_t pdp8b[D8_NBSIZE];
+uint16_t pdp11b[D18_BSIZE];
 int32 k;
-uint32 ba, *fbuf;
+uint32_t ba, *fbuf;
 
 if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any data? */
     sim_printf ("%s: writing buffer to file: %s\n", sim_uname (uptr), uptr->filename);
     rewind (uptr->fileref);                             /* start of file */
-    fbuf = (uint32 *) uptr->filebuf;                    /* file buffer */
+    fbuf = (uint32_t *) uptr->filebuf;                    /* file buffer */
     if (uptr->flags & UNIT_8FMT) {                      /* 12b? */
         for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru file */
             for (k = 0; k < D8_NBSIZE; k = k + 3) {     /* loop blk */
@@ -1527,7 +1527,7 @@ if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any 
                 pdp8b[k + 2] = fbuf[ba + 1] & 07777;
                 ba = ba + 2;
                 }                                       /* end loop blk */
-            fxwrite (pdp8b, sizeof (uint16), D8_NBSIZE, uptr->fileref);
+            fxwrite (pdp8b, sizeof (uint16_t), D8_NBSIZE, uptr->fileref);
             if (ferror (uptr->fileref))
                 break;
             }                                           /* end loop file */
@@ -1537,13 +1537,13 @@ if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any 
             for (ba = 0; ba < uptr->hwmark; ) {         /* loop thru file */
                 for (k = 0; k < D18_BSIZE; k++)         /* loop blk */
                     pdp11b[k] = fbuf[ba++] & 0177777;
-                fxwrite (pdp11b, sizeof (uint16), D18_BSIZE, uptr->fileref);
+                fxwrite (pdp11b, sizeof (uint16_t), D18_BSIZE, uptr->fileref);
                 if (ferror (uptr->fileref))
                     break;
                 }                                       /* end loop file */
             }                                           /* end if 16b */
         else 
-            fxwrite (uptr->filebuf, sizeof (uint32),       /* write file */
+            fxwrite (uptr->filebuf, sizeof (uint32_t),       /* write file */
                      uptr->hwmark, uptr->fileref);
     if (ferror (uptr->fileref))
         sim_perror ("I/O error");

@@ -52,9 +52,9 @@
 #define VA_WIDTH        (VA_N_VPN + VA_N_OFF)           /* total VA size */
 #define VA_V_SEXT       (VA_WIDTH - 1)                  /* sext start */
 #define VA_M_SEXT       ((1u << (64 - VA_V_SEXT)) - 1)  /* sext mask */
-#define VA_GETOFF(x)    (((uint32) (x)) & VA_M_OFF)
-#define VA_GETVPN(x)    (((uint32) ((x) >> VA_V_VPN)) & VA_M_VPN)
-#define VA_GETSEXT(x)   (((uint32) ((x) >> VA_V_SEXT)) & VA_M_SEXT)
+#define VA_GETOFF(x)    (((uint32_t) (x)) & VA_M_OFF)
+#define VA_GETVPN(x)    (((uint32_t) ((x) >> VA_V_VPN)) & VA_M_VPN)
+#define VA_GETSEXT(x)   (((uint32_t) ((x) >> VA_V_SEXT)) & VA_M_SEXT)
 #define PHYS_ADDR(p,v)  (((((t_uint64) (p)) < VA_N_OFF) | VA_GETOFF (v)) & EV5_PA_MASK)
 
 /* 43b and 32b superpages - present in all implementations */
@@ -63,8 +63,8 @@
 #define SPEN_32                 0x1
 #define SP43_MASK               (EV5_PA_MASK)
 #define SP32_MASK               0x000000003FFFFFFF
-#define VPN_GETSP43(x)          ((uint32) (((x) >> (VA_WIDTH - VA_N_OFF - 2)) & 3))
-#define VPN_GETSP32(x)          ((uint32) (((x) >> (NTVA_WIDTH - VA_N_OFF - 2)) & 0x1FFF))
+#define VPN_GETSP43(x)          ((uint32_t) (((x) >> (VA_WIDTH - VA_N_OFF - 2)) & 3))
+#define VPN_GETSP32(x)          ((uint32_t) (((x) >> (NTVA_WIDTH - VA_N_OFF - 2)) & 0x1FFF))
 
 /* TLBs */
 
@@ -79,12 +79,12 @@
 #define TLB_CA                  0x4                     /* clear all */
 
 typedef struct {
-    uint32                      tag;                    /* tag */
-    uint8                       asn;                    /* addr space # */
-    uint8                       idx;                    /* entry # */
-    uint16                      gh_mask;                /* gh mask */
-    uint32                      pfn;                    /* pfn */
-    uint32                      pte;                    /* swre/pte */
+    uint32_t                      tag;                    /* tag */
+    uint8_t                       asn;                    /* addr space # */
+    uint8_t                       idx;                    /* entry # */
+    uint16_t                      gh_mask;                /* gh mask */
+    uint32_t                      pfn;                    /* pfn */
+    uint32_t                      pte;                    /* swre/pte */
     } TLBENT;
 
 /* Register shadow */
@@ -409,19 +409,19 @@ enum ev5_internal_reg {
 
 /* Function prototypes (TLB interface) */
 
-void tlb_ia (uint32 flags);
-void tlb_is (t_uint64 va, uint32 flags);
-void itlb_set_asn (uint32 asn);
-void itlb_set_cm (uint32 mode);
-void itlb_set_spage (uint32 spage);
-TLBENT *itlb_lookup (uint32 vpn);
-TLBENT *itlb_load (uint32 vpn, t_uint64 pte);
+void tlb_ia (uint32_t flags);
+void tlb_is (t_uint64 va, uint32_t flags);
+void itlb_set_asn (uint32_t asn);
+void itlb_set_cm (uint32_t mode);
+void itlb_set_spage (uint32_t spage);
+TLBENT *itlb_lookup (uint32_t vpn);
+TLBENT *itlb_load (uint32_t vpn, t_uint64 pte);
 t_uint64 itlb_read (void);
-void dtlb_set_asn (uint32 asn);
-void dtlb_set_cm (uint32 mode);
-void dtlb_set_spage (uint32 spage);
-TLBENT *dtlb_lookup (uint32 vpn);
-TLBENT *dtlb_load (uint32 vpn, t_uint64 pte);
+void dtlb_set_asn (uint32_t asn);
+void dtlb_set_cm (uint32_t mode);
+void dtlb_set_spage (uint32_t spage);
+TLBENT *dtlb_lookup (uint32_t vpn);
+TLBENT *dtlb_load (uint32_t vpn, t_uint64 pte);
 t_uint64 dtlb_read (void);
 
 #endif

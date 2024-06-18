@@ -33,20 +33,20 @@
 extern char INTprefix[];
 
 extern t_bool inProtectedMode(void);
-extern uint16 dev1INTR(DEVICE *);
-extern uint16 cpuINTR(DEVICE *);
-extern uint16 dcINTR(void);
+extern uint16_t dev1INTR(DEVICE *);
+extern uint16_t cpuINTR(DEVICE *);
+extern uint16_t dcINTR(void);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern enum IOstatus fw_doIO(DEVICE *, t_bool);
 
-extern uint16 Areg, Mreg, Preg, OrigPreg, Qreg, Pending, IOAreg, IOQreg, M[];
-extern uint8 Protected, INTflag;
+extern uint16_t Areg, Mreg, Preg, OrigPreg, Qreg, Pending, IOAreg, IOQreg, M[];
+extern uint8_t Protected, INTflag;
 extern t_uint64 Instructions;
 
 extern t_bool FirstRejSeen;
-extern uint32 CountRejects;
+extern uint32_t CountRejects;
 
 extern DEVICE cpu_dev, dca_dev, dcb_dev, dcc_dev, tti_dev, tto_dev,
   ptr_dev, ptp_dev;
@@ -188,7 +188,7 @@ t_stat clear_protected(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 /*
  * Interrupt status for a non-existent device
  */
-uint16 noneINTR(DEVICE *dptr)
+uint16_t noneINTR(DEVICE *dptr)
 {
   return 0;
 }
@@ -196,7 +196,7 @@ uint16 noneINTR(DEVICE *dptr)
 /*
  * Generic device interrupt status
  */
-uint16 deviceINTR(DEVICE *dptr)
+uint16_t deviceINTR(DEVICE *dptr)
 {
   IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
 
@@ -533,7 +533,7 @@ void buildIOtable(void)
 /*
  * Load bootstrap code into memory
  */
-void loadBootstrap(uint16 *code, int len, uint16 base, uint16 start)
+void loadBootstrap(uint16_t *code, int len, uint16_t base, uint16_t start)
 {
   while (len--) {
     M[base++] = *code++;

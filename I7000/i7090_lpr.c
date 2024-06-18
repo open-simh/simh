@@ -73,7 +73,7 @@ struct _lpr_data
 }
 lpr_data[NUM_DEVS_LPR];
 
-uint32              lpr_cmd(UNIT *, uint16, uint16);
+uint32_t              lpr_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              lpr_srv(UNIT *);
 void                lpr_ini(UNIT *, t_bool);
 t_stat              lpr_reset(DEVICE *);
@@ -165,7 +165,7 @@ print_line(UNIT * uptr, int chan, int unit)
 /* If failed and text report error and dump what we have */
 /* Else if binary or not convertable, dump as image */
 
-    uint16              buff[80];       /* Temp conversion buffer */
+    uint16_t              buff[80];       /* Temp conversion buffer */
     int                 i, j;
     int                 outsel = uptr->u3;
 
@@ -322,7 +322,7 @@ print_line(UNIT * uptr, int chan, int unit)
     return SCPE_OK;
 }
 
-uint32 lpr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t lpr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - lpr_unit);

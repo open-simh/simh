@@ -349,7 +349,7 @@
 
 #define BAUD_RATE(p)        ((28800 / (OTL_BAUD (p) + 1) + 1) / 2)
 
-static const uint32 bits_per_char [8] = {       /* bits per character, indexed by OTL_LNT encoding */
+static const uint32_t bits_per_char [8] = {       /* bits per character, indexed by OTL_LNT encoding */
     9, 10, 11, 12, 5, 6, 7, 8
     };
 
@@ -530,34 +530,34 @@ typedef struct {
 static CARD_STATE muxl;                         /* per-card state */
 static CARD_STATE muxc;                         /* per-card state */
 
-static uint32 muxl_ibuf = 0;                    /* low in: rcv data */
-static uint32 muxl_obuf = 0;                    /* low out: param */
+static uint32_t muxl_ibuf = 0;                    /* low in: rcv data */
+static uint32_t muxl_obuf = 0;                    /* low out: param */
 
-static uint32 muxu_ibuf = 0;                    /* upr in: status */
-static uint32 muxu_obuf = 0;                    /* upr out: chan */
+static uint32_t muxu_ibuf = 0;                    /* upr in: status */
+static uint32_t muxu_obuf = 0;                    /* upr out: chan */
 
-static uint32 muxc_chan = 0;                    /* ctrl chan */
-static uint32 muxc_scan = 0;                    /* ctrl scan */
+static uint32_t muxc_chan = 0;                    /* ctrl chan */
+static uint32_t muxc_scan = 0;                    /* ctrl scan */
 
 
 /* Multiplexer per-line state variables */
 
-static uint16 mux_sta   [RECV_CHAN_COUNT];      /* line status */
-static uint16 mux_rpar  [RECV_CHAN_COUNT];      /* rcv param */
-static uint16 mux_xpar  [SEND_CHAN_COUNT];      /* xmt param */
+static uint16_t mux_sta   [RECV_CHAN_COUNT];      /* line status */
+static uint16_t mux_rpar  [RECV_CHAN_COUNT];      /* rcv param */
+static uint16_t mux_xpar  [SEND_CHAN_COUNT];      /* xmt param */
 
-static uint8  mux_rchp  [RECV_CHAN_COUNT];      /* rcv chr pend */
-static uint8  mux_defer [RECV_CHAN_COUNT];      /* rcv break deferred flags */
-static uint8  mux_xdon  [SEND_CHAN_COUNT];      /* xmt done */
+static uint8_t  mux_rchp  [RECV_CHAN_COUNT];      /* rcv chr pend */
+static uint8_t  mux_defer [RECV_CHAN_COUNT];      /* rcv break deferred flags */
+static uint8_t  mux_xdon  [SEND_CHAN_COUNT];      /* xmt done */
 
-static uint8  muxc_ota  [TERM_COUNT];           /* ctrl: Cn,ESn,SSn */
-static uint8  muxc_lia  [TERM_COUNT];           /* ctrl: Sn */
+static uint8_t  muxc_ota  [TERM_COUNT];           /* ctrl: Cn,ESn,SSn */
+static uint8_t  muxc_lia  [TERM_COUNT];           /* ctrl: Sn */
 
 
 /* Multiplexer per-line buffer variables */
 
-static uint16 mux_rbuf [RECV_CHAN_COUNT];       /* rcv buf */
-static uint16 mux_xbuf [SEND_CHAN_COUNT];       /* xmt buf */
+static uint16_t mux_rbuf [RECV_CHAN_COUNT];       /* rcv buf */
+static uint16_t mux_xbuf [SEND_CHAN_COUNT];       /* xmt buf */
 
 
 /* Multiplexer local routines */
@@ -1042,7 +1042,7 @@ while (working_set) {                                   /* while signals remain 
                              ln);
 
                 else if (muxl_obuf & OTL_P) {           /* otherwise if this is a parameter store */
-                    mux_xpar[ln] = (uint16) muxl_obuf;  /*   then save it */
+                    mux_xpar[ln] = (uint16_t) muxl_obuf;  /*   then save it */
 
                     tprintf (muxl_dev, TRACE_CSRW, "Channel %d send parameter %06o stored\n",
                              ln, muxl_obuf);
@@ -1053,7 +1053,7 @@ while (working_set) {                                   /* while signals remain 
                         muxl_obuf = muxl_obuf & ~OTL_PAR        /*   then replace the parity bit */
                                       | XMT_PAR (muxl_obuf);    /*     with the calculated value */
 
-                    mux_xbuf[ln] = (uint16) muxl_obuf;          /* load buffer */
+                    mux_xbuf[ln] = (uint16_t) muxl_obuf;          /* load buffer */
 
                     if (sim_is_active (&muxl_unit[ln])) {       /* still working? */
                         mux_sta[ln] = mux_sta[ln] | LIU_LOST;   /* char lost */
@@ -1082,7 +1082,7 @@ while (working_set) {                                   /* while signals remain 
                              ln);
 
                 else if (muxl_obuf & OTL_P) {           /* otherwise if this is a parameter store */
-                    mux_rpar[ln] = (uint16) muxl_obuf;  /*   then save it */
+                    mux_rpar[ln] = (uint16_t) muxl_obuf;  /*   then save it */
 
                     tprintf (muxl_dev, TRACE_CSRW, "Channel %d receive parameter %06o stored\n",
                              ln, muxl_obuf);
@@ -1505,10 +1505,10 @@ if (mux_ldsc[ln].xmte) {                                /* xmt enabled? */
     if (loopback || c >= 0)
         if (result == SCPE_LOST)
             tprintf (muxl_dev, TRACE_XFER, "Channel %d character %s discarded by connection loss\n",
-                     ln, fmt_char ((uint8) (loopback ? fc : c)));
+                     ln, fmt_char ((uint8_t) (loopback ? fc : c)));
         else
             tprintf (muxl_dev, TRACE_XFER, "Channel %d character %s sent\n",
-                     ln, fmt_char ((uint8) (loopback ? fc : c)));
+                     ln, fmt_char ((uint8_t) (loopback ? fc : c)));
     }
 
 else {                                              /* buf full */
@@ -1562,13 +1562,13 @@ else {                                                  /* normal */
             tmxr_poll_tx (&mux_desc);                   /* poll xmt */
             }
         }
-    mux_rbuf[ln] = (uint16) c;                          /* save char */
+    mux_rbuf[ln] = (uint16_t) c;                          /* save char */
     }
 
 mux_rchp[ln] = 1;                                       /* char pending */
 
 tprintf (muxl_dev, TRACE_XFER, "Channel %d character %s received\n",
-         ln, fmt_char ((uint8) c));
+         ln, fmt_char ((uint8_t) c));
 
 if (mux_rpar[ln] & OTL_DIAG)                            /* diagnose this line? */
     mux_diag (c);                                       /* do diagnosis */
@@ -1684,7 +1684,7 @@ for (i = FIRST_AUX; i <= LAST_AUX; i++) {             /* diag lines */
     else {
         if (mux_rchp[i]) mux_sta[i] = mux_sta[i] | LIU_LOST;
         mux_rchp[i] = 1;
-        mux_rbuf[i] = (uint16) c;
+        mux_rbuf[i] = (uint16_t) c;
         }
     }
 return;

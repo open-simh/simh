@@ -101,15 +101,15 @@ struct boot_dev {
     int32               let;
     };
 
-uint32 wcs_addr = 0;
-uint32 wcs_data = 0;
-uint32 wcs_mbrk = 0;
-uint32 nexus_req[NEXUS_HLVL];                           /* nexus int req */
-uint32 sbi_fs = 0;                                      /* SBI fault status */
-uint32 sbi_sc = 0;                                      /* SBI silo comparator */
-uint32 sbi_mt = 0;                                      /* SBI maintenance */
-uint32 sbi_er = 0;                                      /* SBI error status */
-uint32 sbi_tmo = 0;                                     /* SBI timeout addr */
+uint32_t wcs_addr = 0;
+uint32_t wcs_data = 0;
+uint32_t wcs_mbrk = 0;
+uint32_t nexus_req[NEXUS_HLVL];                           /* nexus int req */
+uint32_t sbi_fs = 0;                                      /* SBI fault status */
+uint32_t sbi_sc = 0;                                      /* SBI silo comparator */
+uint32_t sbi_mt = 0;                                      /* SBI maintenance */
+uint32_t sbi_er = 0;                                      /* SBI error status */
+uint32_t sbi_tmo = 0;                                     /* SBI timeout addr */
 int32 sys_model = 0;                                    /* 780 or 785 */
 static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
 
@@ -492,7 +492,7 @@ return;
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 int32 nexus, val;
 
@@ -519,7 +519,7 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 int32 nexus;
 
@@ -642,7 +642,7 @@ char gbuf[CBUFSIZE];
 char *slptr;
 const char *regptr;
 int32 i, r5v, unitno;
-uint32 ba;
+uint32_t ba;
 DEVICE *dptr;
 UNIT *uptr;
 DIB *dibp;
@@ -752,7 +752,7 @@ return SCPE_OK;
 
 void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -773,7 +773,7 @@ return;
 
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;
@@ -798,7 +798,7 @@ return SCPE_OK;
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;

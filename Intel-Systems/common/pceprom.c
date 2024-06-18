@@ -39,8 +39,8 @@
 /* function prototypes */
 
 t_stat EPROM_attach (UNIT *uptr, CONST char *cptr);
-t_stat EPROM_reset (DEVICE *dptr, uint32 base, uint32 size);
-uint8 EPROM_get_mbyte(uint32 addr);
+t_stat EPROM_reset (DEVICE *dptr, uint32_t base, uint32_t size);
+uint8_t EPROM_get_mbyte(uint32_t addr);
 
 /* external function prototypes */
 
@@ -94,7 +94,7 @@ DEVICE EPROM_dev = {
 
 t_stat EPROM_attach (UNIT *uptr, CONST char *cptr)
 {
-    uint16 j;
+    uint16_t j;
     int c;
     FILE *fp;
     t_stat r;
@@ -123,7 +123,7 @@ t_stat EPROM_attach (UNIT *uptr, CONST char *cptr)
     j = 0;                              /* load EPROM file */
     c = fgetc(fp);
     while (c != EOF) {
-        *((uint8 *)EPROM_unit.filebuf + j++) = c & 0xFF;
+        *((uint8_t *)EPROM_unit.filebuf + j++) = c & 0xFF;
         c = fgetc(fp);
         if (j > EPROM_unit.capac) {
             sim_printf("\tImage is too large - Load truncated!!!\n");
@@ -140,7 +140,7 @@ t_stat EPROM_attach (UNIT *uptr, CONST char *cptr)
 
 /* EPROM reset */
 
-t_stat EPROM_reset (DEVICE *dptr, uint32 base, uint32 size)
+t_stat EPROM_reset (DEVICE *dptr, uint32_t base, uint32_t size)
 {
     sim_debug (DEBUG_flow, &EPROM_dev, "   EPROM_reset: base=%05X size=%05X\n", base, size);
     if ((EPROM_unit.flags & UNIT_ATT) == 0) { /* if unattached */
@@ -158,15 +158,15 @@ t_stat EPROM_reset (DEVICE *dptr, uint32 base, uint32 size)
 
 /*  get a byte from memory */
 
-uint8 EPROM_get_mbyte(uint32 addr)
+uint8_t EPROM_get_mbyte(uint32_t addr)
 {
-    uint8 val;
-    uint32 romoff;
+    uint8_t val;
+    uint32_t romoff;
 
     romoff = addr - EPROM_unit.u3;
     sim_debug (DEBUG_read, &EPROM_dev, "EPROM_get_mbyte: addr=%05X romoff=%05X\n", addr, romoff);
     if (romoff < EPROM_unit.capac) {
-        val = *((uint8 *)EPROM_unit.filebuf + romoff);
+        val = *((uint8_t *)EPROM_unit.filebuf + romoff);
         sim_debug (DEBUG_read, &EPROM_dev, " val=%02X\n", val);
         return (val & 0xFF);
     }

@@ -31,7 +31,7 @@
    */
 #include "pdq3_defs.h"
 
-static uint8 *opdebug = NULL;
+static uint8_t *opdebug = NULL;
 
 static void dbg_opdbgcreate() {
   int i;
@@ -62,7 +62,7 @@ static void dbg_opdbginit() {
     dbg_opdbgcreate(); /* will not return */
 
   if (opdebug == NULL)
-    opdebug = (uint8*)calloc(DEBUG_MAXOPCODE-DEBUG_MINOPCODE,sizeof(uint8));
+    opdebug = (uint8_t*)calloc(DEBUG_MAXOPCODE-DEBUG_MINOPCODE,sizeof(uint8_t));
 
   for (i=DEBUG_MINOPCODE; i<DEBUG_MAXOPCODE; i++)
       opdebug[i-DEBUG_MINOPCODE] = DEBUG_PRE|DEBUG_POST;
@@ -75,7 +75,7 @@ static void dbg_opdbginit() {
   fclose(fd);
 }
 
-t_stat dbg_check(t_value op, uint8 flag) {
+t_stat dbg_check(t_value op, uint8_t flag) {
   if (opdebug[op-DEBUG_MINOPCODE] & flag) {
     if (flag & DEBUG_PRE) {
       opdebug[op-DEBUG_MINOPCODE] &= ~DEBUG_PRE;
@@ -86,9 +86,9 @@ t_stat dbg_check(t_value op, uint8 flag) {
   return SCPE_OK;
 }
 
-t_stat dbg_dump_tib(FILE *fd, uint16 base) {
+t_stat dbg_dump_tib(FILE *fd, uint16_t base) {
   t_stat rc;
-  uint16 data;
+  uint16_t data;
   fprintf(fd, "TIB at $%04x (CTP=$%04x, RQ=$%04x)\n",base, reg_ctp, reg_rq);
   if ((rc=ReadEx(base, OFF_WAITQ, &data)) != SCPE_OK) return rc;
   fprintf(fd, " WAITQ: $%04x\n",data);
@@ -117,7 +117,7 @@ t_stat dbg_dump_tib(FILE *fd, uint16 base) {
   return SCPE_OK;
 }
 
-t_stat dbg_dump_queue(FILE* fd, const char* qname, uint16 q) {
+t_stat dbg_dump_queue(FILE* fd, const char* qname, uint16_t q) {
   t_stat rc;
   fprintf(fd, "dump queue %s: address=$%04x\n  ",qname, q);
   while (q != NIL) {
@@ -128,9 +128,9 @@ t_stat dbg_dump_queue(FILE* fd, const char* qname, uint16 q) {
   return SCPE_OK;
 }
 
-t_stat dbg_dump_mscw(FILE* fd, uint16 base) {
+t_stat dbg_dump_mscw(FILE* fd, uint16_t base) {
   t_stat rc;
-  uint16 data;
+  uint16_t data;
   fprintf(fd, "MSCW at $%04x\n",base);
   if ((rc=ReadEx(base, OFF_MSSTAT, &data)) != SCPE_OK) return rc;
   fprintf(fd, " MSSTAT: $%04x\n", data);
@@ -151,9 +151,9 @@ void dbg_enable() {
  * Segment Tracking support
  *****************************************************************************/
 
-static char* pdq3_segname(uint16 nameptr) {
+static char* pdq3_segname(uint16_t nameptr) {
   static char name[10];
-  uint16 data;
+  uint16_t data;
   int i;
   for (i=0; i<8; i++) {
     ReadBEx(nameptr,i,&data);
@@ -163,9 +163,9 @@ static char* pdq3_segname(uint16 nameptr) {
   return name;
 }
 
-t_stat dbg_dump_seg(FILE* fd, uint16 segptr) {
+t_stat dbg_dump_seg(FILE* fd, uint16_t segptr) {
   t_stat rc;
-  uint16 data;
+  uint16_t data;
   if ((rc=ReadEx(segptr, OFF_SEGBASE, &data)) != SCPE_OK) return rc;
   fprintf(fd, "  BASE:    $%04x\n",data);
   if ((rc=ReadEx(segptr, OFF_SEGLENG, &data)) != SCPE_OK) return rc;
@@ -194,7 +194,7 @@ t_stat dbg_dump_seg(FILE* fd, uint16 segptr) {
 
 t_stat dbg_dump_segtbl(FILE* fd) {
   int i;
-  uint16 segptr, nsegs;
+  uint16_t segptr, nsegs;
   t_stat rc;
   
   if (reg_ssv < 0x2030 || reg_ssv > 0xf000) {
@@ -214,13 +214,13 @@ t_stat dbg_dump_segtbl(FILE* fd) {
 
 /* segment tracking */
 typedef struct _seginfo {
-  uint16 base; /* base load address */
+  uint16_t base; /* base load address */
   struct _seginfo* next;
-  uint16 idx; /* index into SSV table */
+  uint16_t idx; /* index into SSV table */
   char name[10]; /* segment name */
-  uint16 size;
-  uint16 nproc;
-  uint16 segno;
+  uint16_t size;
+  uint16_t nproc;
+  uint16_t segno;
 } SEGINFO;
 
 #define SEGHASHSIZE 97
@@ -234,14 +234,14 @@ t_stat dbg_segtrackinit() {
   return SCPE_OK;
 }
 
-static SEGINFO* new_seginfo(SEGINFO* next, uint16 base) {
+static SEGINFO* new_seginfo(SEGINFO* next, uint16_t base) {
   SEGINFO* s = (SEGINFO*)malloc(sizeof(SEGINFO));
   s->next = next;
   s->base = base;
   return s;
 }
 
-static SEGINFO* find_seginfo(uint16 base, int* idx) {
+static SEGINFO* find_seginfo(uint16_t base, int* idx) {
   SEGINFO* s;
   *idx = SEGHASHFUNC(base);
   s = seghash[*idx];
@@ -249,7 +249,7 @@ static SEGINFO* find_seginfo(uint16 base, int* idx) {
   return s;
 }
 
-t_stat dbg_segtrack(uint16 segbase) {
+t_stat dbg_segtrack(uint16_t segbase) {
   t_stat rc;
   int idx;
   SEGINFO* s = find_seginfo(segbase, &idx);
@@ -340,14 +340,14 @@ t_stat dbg_listalias(FILE* fd) {
  
 typedef struct _procinfo {
   struct _procinfo *next;
-  uint16 procno;
+  uint16_t procno;
   SEGINFO* seg;
-  uint16 localsz;
-  uint16 freesz;
-  uint16 mscw;
-  uint16 segb;
-  uint16 instipc;
-  uint16 ipc;
+  uint16_t localsz;
+  uint16_t freesz;
+  uint16_t mscw;
+  uint16_t segb;
+  uint16_t instipc;
+  uint16_t ipc;
 } PROCINFO;
 
 const char* find_procname(PROCINFO* p) {
@@ -362,10 +362,10 @@ const char* find_procname(PROCINFO* p) {
 
 static PROCINFO* procroot = NULL;
 
-static PROCINFO* new_procinfo(uint16 segbase, uint16 procno, uint16 mscw, uint16 osegb) {
+static PROCINFO* new_procinfo(uint16_t segbase, uint16_t procno, uint16_t mscw, uint16_t osegb) {
   int dummy;
-  uint16 procbase, procaddr;
-  uint16 exitic, sz1, sz2;
+  uint16_t procbase, procaddr;
+  uint16_t exitic, sz1, sz2;
   PROCINFO* p = (PROCINFO*)malloc(sizeof(PROCINFO));
   p->procno = procno;
   p->mscw = mscw;
@@ -389,7 +389,7 @@ static PROCINFO* new_procinfo(uint16 segbase, uint16 procno, uint16 mscw, uint16
   return p;
 }
 
-t_stat dbg_procenter(uint16 segbase, uint16 procno, uint16 mscw, uint16 osegb) {
+t_stat dbg_procenter(uint16_t segbase, uint16_t procno, uint16_t mscw, uint16_t osegb) {
   PROCINFO* p = new_procinfo(segbase, procno, mscw, osegb);
   p->next = procroot;
   procroot = p;
@@ -399,7 +399,7 @@ t_stat dbg_procenter(uint16 segbase, uint16 procno, uint16 mscw, uint16 osegb) {
 t_stat dbg_procleave() {
   t_stat rc;
   PROCINFO* p = procroot;
-  uint16 ipc,pipc;
+  uint16_t ipc,pipc;
   while (p) {
     pipc = p->ipc;
     if ((rc=ReadEx(p->mscw,OFF_MSIPC, &ipc)) != SCPE_OK) return rc;

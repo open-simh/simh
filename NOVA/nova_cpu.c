@@ -292,7 +292,7 @@ typedef struct
     }   Hist_entry ;
 
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
+uint16_t M[MAXMEMSIZE] = { 0 };                           /* memory */
 int32 AC[4] = { 0 };                                    /* accumulators */
 int32 C = 0;                                            /* carry flag */
 int32 saved_PC = 0;                                     /* program counter */
@@ -307,7 +307,7 @@ int32 pimask = 0;                                       /* priority int mask */
 int32 pwr_low = 0;                                      /* power fail flag */
 int32 ind_max = 65536;                                  /* iadr nest limit */
 int32 stop_dev = 0;                                     /* stop on ill dev */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 struct ndev dev_table[64];                              /* dispatch table */
@@ -900,11 +900,11 @@ while (reason == 0) {                                   /* loop until halted */
             case ioDOC:
                 if ((dstAC == 2) && (cpu_unit.flags & UNIT_MDV))
                     {  /*  Nova, Nova3 or Nova 4  */
-                    uint32 mddata, uAC0, uAC1, uAC2;
+                    uint32_t mddata, uAC0, uAC1, uAC2;
 
-                    uAC0 = (uint32) AC[0];
-                    uAC1 = (uint32) AC[1];
-                    uAC2 = (uint32) AC[2];
+                    uAC0 = (uint32_t) AC[0];
+                    uAC1 = (uint32_t) AC[1];
+                    uAC2 = (uint32_t) AC[2];
                     if (pulse == iopP)
                         {                /* mul */
                         mddata = (uAC1 * uAC2) + uAC0;

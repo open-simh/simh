@@ -108,9 +108,9 @@ struct drvtyp rc_drv_tab[] = {
 
 struct  df10    rc_df10[NUM_DEVS_RC];
 uint64          rc_buf[NUM_DEVS_RC][RM10_WDS];
-uint32          rc_ipr[NUM_DEVS_RC];
+uint32_t          rc_ipr[NUM_DEVS_RC];
 
-t_stat          rc_devio(uint32 dev, uint64 *data);
+t_stat          rc_devio(uint32_t dev, uint64 *data);
 t_stat          rc_svc(UNIT *);
 t_stat          rc_boot(int32, DEVICE *);
 void            rc_ini(UNIT *, t_bool);
@@ -217,7 +217,7 @@ DEVICE *rc_devs[] = {
 };
 
 
-t_stat rc_devio(uint32 dev, uint64 *data) {
+t_stat rc_devio(uint32_t dev, uint64 *data) {
      int          ctlr = (dev - RC_DEVNUM) >> 2;
      struct df10 *df10;
      UNIT        *uptr;
@@ -243,7 +243,7 @@ t_stat rc_devio(uint32 dev, uint64 *data) {
 #endif
         *data |= PRTLT;
         sim_debug(DEBUG_CONI, dptr, "HK %03o CONI %06o PC=%o\n", dev,
-                          (uint32)*data, PC);
+                          (uint32_t)*data, PC);
         break;
      case CONO:
          if (*data & PI_ENABLE)
@@ -273,7 +273,7 @@ t_stat rc_devio(uint32 dev, uint64 *data) {
          } else
             df10->status &= ~CCW_COMP;
          sim_debug(DEBUG_CONO, dptr, "HK %03o CONO %06o PC=%o %06o\n", dev,
-                   (uint32)*data, PC, df10->status);
+                   (uint32_t)*data, PC, df10->status);
          break;
      case DATAI:
          *data = rc_ipr[ctlr];
@@ -309,9 +309,9 @@ t_stat rc_devio(uint32 dev, uint64 *data) {
             df10_setirq(df10);
             return SCPE_OK;
          }
-         df10_setup(df10, (uint32)*data);
+         df10_setup(df10, (uint32_t)*data);
          df10->status &= ~CCW_COMP;
-         tmp = (uint32)(*data >> 15) & ~07;
+         tmp = (uint32_t)(*data >> 15) & ~07;
          cyl = (tmp >> 10) & 0777;
          if (((cyl & 017) > 9) || (((cyl >> 4) & 017) > 9)) {
               sim_debug(DEBUG_DETAIL, dptr, "HK %d non-bcd cyl %02x\n",
@@ -502,12 +502,12 @@ rc_boot(int32 unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     int                 dtype = GET_DTYPE(uptr->flags);
-    uint32              addr;
+    uint32_t              addr;
     int                 wc;
     int                 wps;
     int                 seg;
     int                 sect;
-    uint32              ptr;
+    uint32_t              ptr;
 
    addr = (MEMSIZE - 512) & RMASK;
    wps = rc_drv_tab[dtype].wd_seg;
