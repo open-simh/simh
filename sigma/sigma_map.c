@@ -59,19 +59,19 @@
 #define S8
 
 typedef struct {
-    uint32          width;                              /* item width */
-    uint32          dmask;                              /* data mask */
-    uint32          cmask;                              /* control start mask */
-    uint32          lnt;                                /* array length */
-    uint32          opt;                                /* option control */
+    uint32_t          width;                              /* item width */
+    uint32_t          dmask;                              /* data mask */
+    uint32_t          cmask;                              /* control start mask */
+    uint32_t          lnt;                                /* array length */
+    uint32_t          opt;                                /* option control */
     } mmc_ctl_t;
 
-uint16 mmc_rel[VA_NUM_PAG];
-uint8 mmc_acc[VA_NUM_PAG];
-uint8 mmc_wlk[PA_NUM_PAG];
+uint16_t mmc_rel[VA_NUM_PAG];
+uint8_t mmc_acc[VA_NUM_PAG];
+uint8_t mmc_wlk[PA_NUM_PAG];
 
-uint32 mem_sr0[NUM_MUNITS];
-uint32 mem_sr1[NUM_MUNITS];
+uint32_t mem_sr0[NUM_MUNITS];
+uint32_t mem_sr1[NUM_MUNITS];
 
 mmc_ctl_t mmc_tab[8] = {
     {  0, 0,     0,         0 },
@@ -84,20 +84,20 @@ mmc_ctl_t mmc_tab[8] = {
     {  0, 0,     0,         0 }
     };
 
-extern uint32 *R;
-extern uint32 *M;
-extern uint32 PSW1, PSW2, PSW4;
-extern uint32 CC, PSW2_WLK;
-extern uint32 stop_op;
-extern uint32 cpu_model;
-extern uint32 chan_num;
+extern uint32_t *R;
+extern uint32_t *M;
+extern uint32_t PSW1, PSW2, PSW4;
+extern uint32_t CC, PSW2_WLK;
+extern uint32_t stop_op;
+extern uint32_t cpu_model;
+extern uint32_t chan_num;
 extern UNIT cpu_unit;
 extern cpu_var_t cpu_tab[];
 
-uint32 map_reloc (uint32 bva, uint32 acc, uint32 *bpa);
-uint32 map_viol (uint32 bva, uint32 bpa, uint32 tr);
+uint32_t map_reloc (uint32_t bva, uint32_t acc, uint32_t *bpa);
+uint32_t map_viol (uint32_t bva, uint32_t bpa, uint32_t tr);
 t_stat map_reset (DEVICE *dptr);
-uint32 map_las (uint32 rn, uint32 bva);
+uint32_t map_las (uint32_t rn, uint32_t bva);
 
 /* Map data structures
 
@@ -127,9 +127,9 @@ DEVICE map_dev = {
 
 /* Read and write virtual routines - per length */
 
-uint32 ReadB (uint32 bva, uint32 *dat, uint32 acc)
+uint32_t ReadB (uint32_t bva, uint32_t *dat, uint32_t acc)
 {
-uint32 bpa, sc, tr;
+uint32_t bpa, sc, tr;
 
 sc = 24 - ((bva & 3) << 3);
 if (bva < BVA_REG)                                      /* register access */
@@ -142,9 +142,9 @@ else {                                                  /* memory access */
 return 0;
 }
 
-uint32 ReadH (uint32 bva, uint32 *dat, uint32 acc)
+uint32_t ReadH (uint32_t bva, uint32_t *dat, uint32_t acc)
 {
-uint32 bpa, tr;
+uint32_t bpa, tr;
 
 if (bva < BVA_REG) {                                    /* register access */
     if (bva & 2)
@@ -161,9 +161,9 @@ else {                                                  /* memory access */
 return 0;
 }
 
-uint32 ReadW (uint32 bva, uint32 *dat, uint32 acc)
+uint32_t ReadW (uint32_t bva, uint32_t *dat, uint32_t acc)
 {
-uint32 bpa, tr;
+uint32_t bpa, tr;
 
 if (bva < BVA_REG)                                      /* register access */
     *dat = R[bva >> 2];
@@ -175,9 +175,9 @@ else {                                                  /* memory access */
 return 0;
 }
 
-uint32 ReadD (uint32 bva, uint32 *dat, uint32 *dat1, uint32 acc)
+uint32_t ReadD (uint32_t bva, uint32_t *dat, uint32_t *dat1, uint32_t acc)
 {
-uint32 bpa, tr;
+uint32_t bpa, tr;
 
 if (bva < BVA_REG) {                                    /* register access */
     *dat = R[(bva >> 2) & ~1];                          /* force alignment */
@@ -193,9 +193,9 @@ else {                                                  /* memory access */
 return 0;
 }
 
-uint32 WriteB (uint32 bva, uint32 dat, uint32 acc)
+uint32_t WriteB (uint32_t bva, uint32_t dat, uint32_t acc)
 {
-uint32 bpa, sc, tr;
+uint32_t bpa, sc, tr;
 
 sc = 24 - ((bva & 3) << 3);
 if (bva < BVA_REG)                                      /* register access */
@@ -209,9 +209,9 @@ PSW2 |= PSW2_RA;                                        /* state altered */
 return 0;
 }
 
-uint32 WriteH (uint32 bva, uint32 dat, uint32 acc)
+uint32_t WriteH (uint32_t bva, uint32_t dat, uint32_t acc)
 {
-uint32 bpa, tr;
+uint32_t bpa, tr;
 
 if (bva < BVA_REG) {                                    /* register access */
     if (bva & 2)
@@ -229,9 +229,9 @@ PSW2 |= PSW2_RA;                                        /* state altered */
 return 0;
 }
 
-uint32 WriteW (uint32 bva, uint32 dat, uint32 acc)
+uint32_t WriteW (uint32_t bva, uint32_t dat, uint32_t acc)
 {
-uint32 bpa, tr;
+uint32_t bpa, tr;
 
 if (bva < BVA_REG)                                      /* register access */
         R[bva >> 2] = dat & WMASK;
@@ -244,9 +244,9 @@ PSW2 |= PSW2_RA;                                        /* state altered */
 return 0;
 }
 
-uint32 WriteD (uint32 bva, uint32 dat, uint32 dat1, uint32 acc)
+uint32_t WriteD (uint32_t bva, uint32_t dat, uint32_t dat1, uint32_t acc)
 {
-uint32 bpa, tr;
+uint32_t bpa, tr;
 
 if (bva < BVA_REG) {                                    /* register access */
     R[(bva >> 2) & ~1] = dat & WMASK;                   /* force alignment */
@@ -264,7 +264,7 @@ return 0;
 
 /* General virtual read for instruction history */
 
-uint32 ReadHist (uint32 bva, uint32 *dat, uint32 *dat1, uint32 acc, uint32 lnt)
+uint32_t ReadHist (uint32_t bva, uint32_t *dat, uint32_t *dat1, uint32_t acc, uint32_t lnt)
 {
 switch (lnt) {                                          /* case on length */
 
@@ -287,10 +287,10 @@ return SCPE_IERR;
 /* Specialized virtual read and write word routines -
    treats all addresses as memory addresses */
 
-uint32 ReadMemVW (uint32 bva, uint32 *dat, uint32 acc)
+uint32_t ReadMemVW (uint32_t bva, uint32_t *dat, uint32_t acc)
 {
-uint32 bpa;
-uint32 tr;
+uint32_t bpa;
+uint32_t tr;
 
 if ((tr = map_reloc (bva, acc, &bpa)) != 0)             /* relocate addr */
     return tr;
@@ -298,10 +298,10 @@ if ((tr = map_reloc (bva, acc, &bpa)) != 0)             /* relocate addr */
 return 0;
 }
 
-uint32 WriteMemVW (uint32 bva, uint32 dat, uint32 acc)
+uint32_t WriteMemVW (uint32_t bva, uint32_t dat, uint32_t acc)
 {
-uint32 bpa;
-uint32 tr;
+uint32_t bpa;
+uint32_t tr;
 
 if ((tr = map_reloc (bva, acc, &bpa)) != 0)             /* relocate addr */
     return tr;
@@ -311,10 +311,10 @@ return 0;
 
 /* Relocation routine */
 
-uint32 map_reloc (uint32 bva, uint32 acc, uint32 *bpa)
+uint32_t map_reloc (uint32_t bva, uint32_t acc, uint32_t *bpa)
 {
 if ((acc != 0) && (PSW1 & PSW1_MM)) {                   /* virt, map on? */
-    uint32 vpag = BVA_GETPAG (bva);                     /* virt page num */
+    uint32_t vpag = BVA_GETPAG (bva);                     /* virt page num */
     *bpa = ((mmc_rel[vpag] << BVA_V_PAG) + BVA_GETOFF (bva)) & BPAMASK;
     if (((PSW1 & PSW1_MS) ||                            /* slave mode? */
          (PSW2 & (PSW2_MA9|PSW2_MA5X0))) &&             /* master prot? */
@@ -323,7 +323,7 @@ if ((acc != 0) && (PSW1 & PSW1_MM)) {                   /* virt, map on? */
     }
 else *bpa = bva;                                        /* no, physical */
 if ((acc == VW) && PSW2_WLK) {                          /* write check? */
-    uint32 ppag = BPA_GETPAG (*bpa);                    /* phys page num */
+    uint32_t ppag = BPA_GETPAG (*bpa);                    /* phys page num */
     if (PSW2_WLK && mmc_wlk[ppag] &&                    /* lock, key != 0 */
         (PSW2_WLK != mmc_wlk[ppag]))                    /* lock != key? */
         return map_viol (bva, *bpa, TR_WLK);
@@ -335,9 +335,9 @@ return 0;
 
 /* Memory management error */
 
-uint32 map_viol (uint32 bva, uint32 bpa, uint32 tr)
+uint32_t map_viol (uint32_t bva, uint32_t bpa, uint32_t tr)
 {
-uint32 vpag = BVA_GETPAG (bva);                         /* virt page num */
+uint32_t vpag = BVA_GETPAG (bva);                         /* virt page num */
 
 if (QCPU_S9)                                            /* Sigma 9? */
     PSW2 = (PSW2 & ~PSW2_TSF) | (vpag << PSW2_V_TSF);   /* save address */
@@ -351,9 +351,9 @@ return tr;
 
 /* Physical byte access routines */
 
-uint32 ReadPB (uint32 ba, uint32 *wd)
+uint32_t ReadPB (uint32_t ba, uint32_t *wd)
 {
-uint32 sc;
+uint32_t sc;
 
 ba = ba & BPAMASK;
 if (BPA_IS_NXM (ba))
@@ -363,9 +363,9 @@ sc = 24 - ((ba & 3) << 3);
 return 0;
 }
 
-uint32 WritePB (uint32 ba, uint32 wd)
+uint32_t WritePB (uint32_t ba, uint32_t wd)
 {
-uint32 sc;
+uint32_t sc;
 
 ba = ba & BPAMASK;
 if (BPA_IS_NXM (ba))
@@ -377,7 +377,7 @@ return 0;
 
 /* Physical word access routines */
 
-uint32 ReadPW (uint32 pa, uint32 *wd)
+uint32_t ReadPW (uint32_t pa, uint32_t *wd)
 {
 pa = pa & cpu_tab[cpu_model].pamask;
 if (MEM_IS_NXM (pa))
@@ -386,7 +386,7 @@ if (MEM_IS_NXM (pa))
 return 0;
 }
 
-uint32 WritePW (uint32 pa, uint32 wd)
+uint32_t WritePW (uint32_t pa, uint32_t wd)
 {
 pa = pa & cpu_tab[cpu_model].pamask;
 if (MEM_IS_NXM (pa))
@@ -397,10 +397,10 @@ return 0;
 
 /* LRA - load real address (extended memory systems only) */
 
-uint32 map_lra (uint32 rn, uint32 IR)
+uint32_t map_lra (uint32_t rn, uint32_t IR)
 {
-uint32 lnt, bva, bpa, vpag, ppag;
-uint32 tr;
+uint32_t lnt, bva, bpa, vpag, ppag;
+uint32_t tr;
 
 lnt = CC >> 2;                                          /* length */
 CC = 0;                                                 /* clear */
@@ -428,10 +428,10 @@ return 0;
 
 /* MMC - load memory map control */
 
-uint32 map_mmc (uint32 rn, uint32 map)
+uint32_t map_mmc (uint32_t rn, uint32_t map)
 {
-uint32 tr;
-uint32 wd, i, map_width, maps_per_word, map_cmask, cs;
+uint32_t tr;
+uint32_t wd, i, map_width, maps_per_word, map_cmask, cs;
 
 map_width = mmc_tab[map].width;                         /* width in bits */
 maps_per_word = 32 / map_width;
@@ -478,9 +478,9 @@ return SCPE_OK;
 
 /* LAS instruction (reused by LMS), without condition code settings */
 
-uint32 map_las (uint32 rn, uint32 bva)
+uint32_t map_las (uint32_t rn, uint32_t bva)
 {
-uint32 opnd, tr;
+uint32_t opnd, tr;
 
 if ((bva < (RF_NUM << 2)) && QCPU_5X0)                  /* on 5X0, reg */
     ReadW (bva, &opnd, VR);                             /* refs ignored */
@@ -496,10 +496,10 @@ return 0;
 
 /* Load memory status */
 
-uint32 map_lms (uint32 rn, uint32 bva)
+uint32_t map_lms (uint32_t rn, uint32_t bva)
 {
-uint32 tr, wd, low, ppag;
-uint32 memu = (bva >> 2) / CPU_MUNIT_SIZE;
+uint32_t tr, wd, low, ppag;
+uint32_t memu = (bva >> 2) / CPU_MUNIT_SIZE;
 
 if (CC == 0)                                            /* LAS */
     return map_las (rn, bva);
@@ -581,7 +581,7 @@ return 0;
 
 t_stat map_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < VA_NUM_PAG; i++) {                      /* clear mmc arrays */
     mmc_rel[i] = 0;

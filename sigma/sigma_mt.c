@@ -106,15 +106,15 @@
 #define MTAI_V_INT      6
 #define MTAI_INT        (1u << MTAI_V_INT)
 
-uint32 mt_stopioe = 1;
+uint32_t mt_stopioe = 1;
 int32 mt_rwtime = 10000;                                /* rewind latency */
 int32 mt_ctime = 100;                                   /* command latency */
 int32 mt_time = 10;                                     /* record latency */
-uint32 mt_rwi = 0;                                      /* rewind interrupts */
+uint32_t mt_rwi = 0;                                      /* rewind interrupts */
 t_mtrlnt mt_bptr;
 t_mtrlnt mt_blim;
-uint8 mt_xb[MT_MAXFR];                                  /* transfer buffer */
-uint8 mt_op[128] = {
+uint8_t mt_xb[MT_MAXFR];                                  /* transfer buffer */
+uint8_t mt_op[128] = {
     0, O_ATT|O_WRE, O_ATT, O_NMT, O_NMT, 0, 0, 0,       /* wr, rd, set, sense */
     0, 0, 0, 0, O_ATT|O_REV, 0, 0, 0,                   /* rd rev */
     0, 0, 0, O_ATT, 0, 0, 0, 0,                         /* rewind & int */
@@ -133,14 +133,14 @@ uint8 mt_op[128] = {
     0, 0, 0, 0, 0, 0, 0, 0
     };
 
-extern uint32 chan_ctl_time;
-extern uint8 ascii_to_ebcdic[128];
-extern uint8 ebcdic_to_ascii[256];
+extern uint32_t chan_ctl_time;
+extern uint8_t ascii_to_ebcdic[128];
+extern uint8_t ebcdic_to_ascii[256];
 
-uint32 mt_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 mt_tio_status (uint32 un);
-uint32 mt_tdv_status (uint32 un);
-t_stat mt_chan_err (uint32 dva, uint32 st);
+uint32_t mt_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t mt_tio_status (uint32_t un);
+uint32_t mt_tdv_status (uint32_t un);
+t_stat mt_chan_err (uint32_t dva, uint32_t st);
 t_stat mtu_svc (UNIT *uptr);
 t_stat mtr_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
@@ -148,9 +148,9 @@ t_stat mt_attach (UNIT *uptr, CONST char *cptr);
 t_stat mt_detach (UNIT *uptr);
 t_stat mt_flush_buf (UNIT *uptr);
 t_stat mt_map_err (UNIT *uptr, t_stat r);
-int32 mt_clr_int (uint32 dva);
-void mt_set_rwi (uint32 un);
-void mt_clr_rwi (uint32 un);
+int32 mt_clr_int (uint32_t dva);
+void mt_set_rwi (uint32_t un);
+void mt_clr_rwi (uint32_t un);
 
 /* MT data structures
 
@@ -230,9 +230,9 @@ DEVICE mt_dev = {
    For AIO, the handler must return the unit number
 */
 
-uint32 mt_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t mt_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
-uint32 un = DVA_GETUNIT (dva);
+uint32_t un = DVA_GETUNIT (dva);
 UNIT *uptr = &mt_unit[un];
 
 if ((un >= MT_NUMDR) ||                                 /* inv unit num? */
@@ -305,10 +305,10 @@ return 0;
 
 t_stat mtu_svc (UNIT *uptr)
 {
-uint32 cmd = uptr->UCMD;
-uint32 un = uptr - mt_unit;
-uint32 dva = mt_dib.dva | un;
-uint32 c;
+uint32_t cmd = uptr->UCMD;
+uint32_t un = uptr - mt_unit;
+uint32_t dva = mt_dib.dva | un;
+uint32_t c;
 int32 t;
 t_mtrlnt tbc;
 t_stat r, st;
@@ -504,7 +504,7 @@ return SCPE_OK;
 
 t_stat mtr_svc (UNIT *uptr)
 {
-uint32 un = uptr - mt_unit - MT_REW;
+uint32_t un = uptr - mt_unit - MT_REW;
 
 mt_unit[un].UST |= MTDV_BOT;                            /* set BOT */
 if (uptr->UCMD == MCM_RWI)                              /* int wanted? */
@@ -524,8 +524,8 @@ return sim_tape_wrrecf (uptr, mt_xb, mt_blim);          /* write, err? */
 t_stat mt_map_err (UNIT *uptr, t_stat st)
 {
 
-uint32 un = uptr - mt_unit;
-uint32 dva = mt_dib.dva | un;
+uint32_t un = uptr - mt_unit;
+uint32_t dva = mt_dib.dva | un;
 
 switch (st) {
 
@@ -566,9 +566,9 @@ return SCPE_OK;
 
 /* MT status routine */
 
-uint32 mt_tio_status (uint32 un)
+uint32_t mt_tio_status (uint32_t un)
 {
-uint32 i, st;
+uint32_t i, st;
 UNIT *uptr = &mt_unit[un];
 
 st = DVS_AUTO;                                          /* flags */
@@ -585,9 +585,9 @@ for (i = 0; i < MT_NUMDR; i++) {                        /* loop thru units */
 return st;
 }
 
-uint32 mt_tdv_status (uint32 un)
+uint32_t mt_tdv_status (uint32_t un)
 {
-uint32 st;
+uint32_t st;
 UNIT *uptr = &mt_unit[un];
 
 if (uptr->flags & UNIT_ATT) {                           /* attached? */
@@ -606,7 +606,7 @@ return st;
 
 /* Channel error */
 
-t_stat mt_chan_err (uint32 dva, uint32 st)
+t_stat mt_chan_err (uint32_t dva, uint32_t st)
 {
 chan_uen (dva);                                         /* uend */
 if (st < CHS_ERR)
@@ -616,7 +616,7 @@ return SCPE_OK;
 
 /* Clear controller/device interrupt, return active unit */
 
-int32 mt_clr_int (uint32 dva)
+int32 mt_clr_int (uint32_t dva)
 {
 int32 iu;
 
@@ -627,7 +627,7 @@ if ((iu = chan_clr_chi (dva)) >= 0) {                   /* chan int? clear */
     }
 for (iu = 0; iu < MT_NUMDR; iu++) {                     /* rewind int? */
     if (mt_rwi & (1u << iu)) {
-        mt_clr_rwi ((uint32) iu);
+        mt_clr_rwi ((uint32_t) iu);
         return (iu | MTAI_INT);
         }
     }
@@ -636,7 +636,7 @@ return 0;
 
 /* Set rewind interrupt */
 
-void mt_set_rwi (uint32 un)
+void mt_set_rwi (uint32_t un)
 {
 mt_rwi |= (1u << un);
 chan_set_dvi (mt_dib.dva);                              /* set INP */
@@ -645,7 +645,7 @@ return;
 
 /* Clear rewind interrupt */
 
-void mt_clr_rwi (uint32 un)
+void mt_clr_rwi (uint32_t un)
 {
 mt_rwi &= ~(1u << un);                                  /* clear */
 if (mt_rwi != 0)                                        /* more? */
@@ -659,7 +659,7 @@ return;
 
 t_stat mt_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < MT_NUMDR; i++) {
     sim_cancel (&mt_unit[i]);                           /* stop unit */

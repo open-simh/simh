@@ -93,7 +93,7 @@
 #define DP_CONT         0xF                             /* ctrl's drive # */
 #define DP_WDSC         256                             /* words/sector */
 #define DP_BYHD         8                               /* byte/header */
-#define DP_NUMDR        ((uint32) ((DP_Q10B (ctx->dp_ctype))? DP_NUMDR_10B: DP_NUMDR_16B))
+#define DP_NUMDR        ((uint32_t) ((DP_Q10B (ctx->dp_ctype))? DP_NUMDR_10B: DP_NUMDR_16B))
 #define DP_SEEK         (DP_CONT + 1)                   /* offset to seek units */
 
 /* Address bytes */
@@ -112,13 +112,13 @@
 
 #define DPS_NBY_10B     10
 #define DPS_NBY_16B     16
-#define DPS_NBY         ((uint32) (DP_Q10B (ctx->dp_ctype)? DPS_NBY_10B: DPS_NBY_16B))
+#define DPS_NBY         ((uint32_t) (DP_Q10B (ctx->dp_ctype)? DPS_NBY_10B: DPS_NBY_16B))
 
 /* Test mode */
 
 #define DPT_NBY_10B     1                               /* bytes/test mode spec */
 #define DPT_NBY_16B     2
-#define DPT_NBY         ((uint32) (DP_Q10B (ctx->dp_ctype)? DPT_NBY_10B: DPT_NBY_16B))
+#define DPT_NBY         ((uint32_t) (DP_Q10B (ctx->dp_ctype)? DPT_NBY_10B: DPT_NBY_16B))
 
 /* Commands */
 
@@ -254,61 +254,61 @@
                         ((double) (s))))
 
 typedef struct {
-    uint32 dp_ctype;                                    /* controller type */
-    uint32 dp_time;                                     /* inter-word time */
-    uint32 dp_stime;                                    /* inter-track time */
-    uint32 dp_flags;                                    /* status flags */
-    uint32 dp_ski;                                      /* seek interrupts */
-    uint32 dp_stopioe;                                  /* stop on I/O error */
-    uint32 dp_test;                                     /* test mode */
+    uint32_t dp_ctype;                                    /* controller type */
+    uint32_t dp_time;                                     /* inter-word time */
+    uint32_t dp_stime;                                    /* inter-track time */
+    uint32_t dp_flags;                                    /* status flags */
+    uint32_t dp_ski;                                      /* seek interrupts */
+    uint32_t dp_stopioe;                                  /* stop on I/O error */
+    uint32_t dp_test;                                     /* test mode */
     } DP_CTX;
 
 typedef struct {
-    uint32 dtype;                                       /* drive type */
-    uint32 cy;                                          /* cylinders */
-    uint32 hd;                                          /* heads */
-    uint32 sc;                                          /* sectors */
-    uint32 ctype;                                       /* controller */
-    uint32 capac;                                       /* capacity */
-    uint32 id;                                          /* ID */
+    uint32_t dtype;                                       /* drive type */
+    uint32_t cy;                                          /* cylinders */
+    uint32_t hd;                                          /* heads */
+    uint32_t sc;                                          /* sectors */
+    uint32_t ctype;                                       /* controller */
+    uint32_t capac;                                       /* capacity */
+    uint32_t id;                                          /* ID */
     } DP_TYPE;
 
 typedef struct {
-    uint32 byte;                                        /* offset in array */
-    uint32 mask;                                        /* test mask */
-    uint32 fpos;                                        /* from position */
-    uint32 tpos;                                        /* to position */
+    uint32_t byte;                                        /* offset in array */
+    uint32_t mask;                                        /* test mask */
+    uint32_t fpos;                                        /* from position */
+    uint32_t tpos;                                        /* to position */
     } DP_SNSTAB;
 
 static const char *dp_cname[] = {
     "7240", "7270", "7260", "7275", "7265", "T3281"
     };
 
-static uint32 dp_buf[DP_WDSC];
+static uint32_t dp_buf[DP_WDSC];
 
-extern uint32 chan_ctl_time;
+extern uint32_t chan_ctl_time;
 
-uint32 dpa_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 dpb_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 dp_disp (uint32 cidx, uint32 op, uint32 dva, uint32 *dvst);
-uint32 dp_tio_status (uint32 cidx, uint32 un);
-uint32 dp_tdv_status (uint32 cidx, uint32 un);
-uint32 dp_aio_status (uint32 cidx, uint32 un);
-void dp_set_sense (UNIT *uptr, uint32 *c);
-t_stat dp_chan_err (uint32 dva, uint32 st);
+uint32_t dpa_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t dpb_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t dp_disp (uint32_t cidx, uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t dp_tio_status (uint32_t cidx, uint32_t un);
+uint32_t dp_tdv_status (uint32_t cidx, uint32_t un);
+uint32_t dp_aio_status (uint32_t cidx, uint32_t un);
+void dp_set_sense (UNIT *uptr, uint32_t *c);
+t_stat dp_chan_err (uint32_t dva, uint32_t st);
 t_stat dp_svc (UNIT *uptr);
 t_stat dps_svc (UNIT *uptr);
 t_stat dp_reset (DEVICE *dptr);
-t_bool dp_inv_ad (UNIT *uptr, uint32 *da);
+t_bool dp_inv_ad (UNIT *uptr, uint32_t *da);
 t_bool dp_inc_ad (UNIT *uptr);
-t_stat dp_read (UNIT *uptr, uint32 da);
-t_stat dp_write (UNIT *uptr, uint32 da);
+t_stat dp_read (UNIT *uptr, uint32_t da);
+t_stat dp_write (UNIT *uptr, uint32_t da);
 t_stat dp_ioerr (UNIT *uptr);
-t_bool dp_test_mode (uint32 cidx);
-t_bool dp_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
-int32 dp_clr_int (uint32 cidx);
-void dp_set_ski (uint32 cidx, uint32 un);
-void dp_clr_ski (uint32 cidx, uint32 un);
+t_bool dp_test_mode (uint32_t cidx);
+t_bool dp_end_sec (UNIT *uptr, uint32_t lnt, uint32_t exp, uint32_t st);
+int32 dp_clr_int (uint32_t cidx);
+void dp_set_ski (uint32_t cidx, uint32_t un);
+void dp_clr_ski (uint32_t cidx, uint32_t un);
 t_stat dp_attach (UNIT *uptr, CONST char *cptr);
 t_stat dp_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat dp_set_auto (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -353,7 +353,7 @@ static DP_SNSTAB dp_sense_16B[] = {
 #define C_F             (1u << (DP_CTYPE))              /* fast */
 #define C_C             (1u << (DP_CTYPE + 1))          /* ctrl cmd */
 
-static uint16 dp_cmd[256] = {
+static uint16_t dp_cmd[256] = {
    0, C_A, C_A, C_A|C_F, C_A|C_F, C_A, 0, C_16B|C_F,
    0, C_A, C_A, 0, 0, 0, 0, C_16B|C_F|C_C,
    0, 0, C_A, C_A|C_F, 0, 0, 0, C_16B|C_F,
@@ -572,23 +572,23 @@ DEVICE dp_dev[] = {
    For AIO, the handler must return the unit number
 */
 
-uint32 dpa_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t dpa_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
 return dp_disp (0, op, dva, dvst);
 }
 
-uint32 dpb_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t dpb_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
 return dp_disp (1, op, dva, dvst);
 }
 
-uint32 dp_disp (uint32 cidx, uint32 op, uint32 dva, uint32 *dvst)
+uint32_t dp_disp (uint32_t cidx, uint32_t op, uint32_t dva, uint32_t *dvst)
 {
-uint32 un = DVA_GETUNIT (dva);
+uint32_t un = DVA_GETUNIT (dva);
 UNIT *dp_unit = dp_dev[cidx].units;
 UNIT *uptr;
 int32 iu;
-uint32 i;
+uint32_t i;
 DP_CTX *ctx;
 
 if (cidx >= DP_NUMCTL) {                                /* inv ctrl num? */
@@ -678,15 +678,15 @@ return 0;
 
 t_stat dp_svc (UNIT *uptr)
 {
-uint32 i, da, wd, wd1, c[DPS_NBY_16B];
-uint32 cidx = uptr->UCTX;
+uint32_t i, da, wd, wd1, c[DPS_NBY_16B];
+uint32_t cidx = uptr->UCTX;
 UNIT *dp_unit = dp_dev[cidx].units;
-uint32 un = uptr - dp_unit;
-uint32 dva = dp_dib[cidx].dva | un;
-uint32 dtype = GET_DTYPE (uptr->flags);
+uint32_t un = uptr - dp_unit;
+uint32_t dva = dp_dib[cidx].dva | un;
+uint32_t dtype = GET_DTYPE (uptr->flags);
 DP_CTX *ctx = &dp_ctx[cidx];
 int32 t, dc;
-uint32 st, cmd, sc;
+uint32_t st, cmd, sc;
 t_stat r;
 
 if (uptr->UCMD == DPS_INIT) {                           /* init state? */
@@ -949,11 +949,11 @@ return SCPE_OK;
 
 t_stat dps_svc (UNIT *uptr)
 {
-uint32 cidx = uptr->UCTX;
+uint32_t cidx = uptr->UCTX;
 DP_CTX *ctx = &dp_ctx[cidx];
 UNIT *dp_unit = dp_dev[cidx].units;
-uint32 un = uptr - dp_unit - DP_SEEK;
-uint32 dtype = GET_DTYPE (dp_unit[un].flags);
+uint32_t un = uptr - dp_unit - DP_SEEK;
+uint32_t dtype = GET_DTYPE (dp_unit[un].flags);
 
 if (uptr->UCMD != DSC_SEEK) {                           /* int? */
     if (chan_chk_chi (dp_dib[cidx].dva) >= 0) {         /* ctl int pending? */
@@ -973,11 +973,11 @@ return SCPE_OK;
    case 4 - transfer done, no length error - return FALSE (sched end state)
 */
 
-t_bool dp_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
+t_bool dp_end_sec (UNIT *uptr, uint32_t lnt, uint32_t exp, uint32_t st)
 {
-uint32 cidx = uptr->UCTX;
-uint32 un = uptr - dp_dev[cidx].units;
-uint32 dva = dp_dib[cidx].dva | un;
+uint32_t cidx = uptr->UCTX;
+uint32_t un = uptr - dp_dev[cidx].units;
+uint32_t dva = dp_dib[cidx].dva | un;
 DP_CTX *ctx = &dp_ctx[cidx];
 
 if (st != CHS_ZBC) {                                    /* end record? */
@@ -1003,9 +1003,9 @@ return FALSE;                                           /* cmd done */
 /* The ctrl is busy if any drive is busy.
    The device is busy if either the main unit or the seek unit is busy */
 
-uint32 dp_tio_status (uint32 cidx, uint32 un)
+uint32_t dp_tio_status (uint32_t cidx, uint32_t un)
 {
-uint32 i, st;
+uint32_t i, st;
 DP_CTX *ctx = &dp_ctx[cidx];
 UNIT *dp_unit = dp_dev[cidx].units;
 
@@ -1024,9 +1024,9 @@ for (i = 0; i < DP_NUMDR; i++) {
 return st;
 }
 
-uint32 dp_tdv_status (uint32 cidx, uint32 un)
+uint32_t dp_tdv_status (uint32_t cidx, uint32_t un)
 {
-uint32 st;
+uint32_t st;
 UNIT *dp_unit = dp_dev[cidx].units;
 t_bool on_cyl;
 
@@ -1041,9 +1041,9 @@ else st = ((dp_ctx[cidx].dp_flags & DPF_PGE)? 0x20: 0) |
 return st;
 }
 
-uint32 dp_aio_status (uint32 cidx, uint32 un)
+uint32_t dp_aio_status (uint32_t cidx, uint32_t un)
 {
-uint32 st;
+uint32_t st;
 UNIT *dp_unit = dp_dev[cidx].units;
 t_bool on_cyl;
 
@@ -1059,12 +1059,12 @@ return st;
 
 /* Set sense status */
 
-void dp_set_sense (UNIT *uptr, uint32 *c)
+void dp_set_sense (UNIT *uptr, uint32_t *c)
 {
-uint32 cidx = uptr->UCTX;
+uint32_t cidx = uptr->UCTX;
 UNIT *sptr = uptr + DP_SEEK;
 DP_CTX *ctx = &dp_ctx[cidx];
-uint8 data;
+uint8_t data;
 DP_SNSTAB *tptr;
 
 if (sim_is_active (sptr) &&
@@ -1076,7 +1076,7 @@ if (DP_Q10B (ctx->dp_ctype))
 else tptr = dp_sense_16B;
 while (tptr->byte != 0) {
     if (ctx->dp_flags & tptr->mask) {
-        data = (uint8) ((ctx->dp_flags & tptr->mask) >> tptr->fpos);
+        data = (uint8_t) ((ctx->dp_flags & tptr->mask) >> tptr->fpos);
         c[tptr->byte] |= (data << tptr->tpos);
         }
     tptr++;
@@ -1086,12 +1086,12 @@ return;
 
 /* Validate disk address */
 
-t_bool dp_inv_ad (UNIT *uptr, uint32 *da)
+t_bool dp_inv_ad (UNIT *uptr, uint32_t *da)
 {
-uint32 dtype = GET_DTYPE (uptr->flags);
-uint32 cy = DPA_GETCY (uptr->UDA);
-uint32 hd = DPA_GETHD (uptr->UDA);
-uint32 sc = DPA_GETSC (uptr->UDA);
+uint32_t dtype = GET_DTYPE (uptr->flags);
+uint32_t cy = DPA_GETCY (uptr->UDA);
+uint32_t hd = DPA_GETHD (uptr->UDA);
+uint32_t sc = DPA_GETSC (uptr->UDA);
 
 if ((cy >= dp_tab[dtype].cy) ||
     (hd >= dp_tab[dtype].hd) ||
@@ -1106,10 +1106,10 @@ return FALSE;
 
 t_bool dp_inc_ad (UNIT *uptr)
 {
-uint32 dtype = GET_DTYPE (uptr->flags);
-uint32 cy = DPA_GETCY (uptr->UDA);
-uint32 hd = DPA_GETHD (uptr->UDA);
-uint32 sc = DPA_GETSC (uptr->UDA);
+uint32_t dtype = GET_DTYPE (uptr->flags);
+uint32_t cy = DPA_GETCY (uptr->UDA);
+uint32_t hd = DPA_GETHD (uptr->UDA);
+uint32_t sc = DPA_GETSC (uptr->UDA);
 
 sc = sc + 1;                                            /* sector++ */
 if (sc >= dp_tab[dtype].sc) {                           /* overflow? */
@@ -1126,13 +1126,13 @@ return FALSE;
 
 /* Read and write sector */
 
-t_stat dp_read (UNIT *uptr, uint32 da)
+t_stat dp_read (UNIT *uptr, uint32_t da)
 {
 int32 err, awc;
 
 err = fseek (uptr->fileref, da * sizeof (int32), SEEK_SET);
 if (err == 0) {
-    awc = fxread (dp_buf, sizeof (uint32), DP_WDSC, uptr->fileref);
+    awc = fxread (dp_buf, sizeof (uint32_t), DP_WDSC, uptr->fileref);
     err = ferror (uptr->fileref);
     for (; awc < DP_WDSC; awc++)                        /* fill buf */
        dp_buf[awc] = 0;
@@ -1142,13 +1142,13 @@ if (err != 0)
 return SCPE_OK;
 }
 
-t_stat dp_write (UNIT *uptr, uint32 da)
+t_stat dp_write (UNIT *uptr, uint32_t da)
 {
 int32 err;
 
 err = fseek (uptr->fileref, da * sizeof (int32), SEEK_SET);
 if (err == 0) {
-    fxwrite (dp_buf, sizeof (uint32), DP_WDSC, uptr->fileref);
+    fxwrite (dp_buf, sizeof (uint32_t), DP_WDSC, uptr->fileref);
     err = ferror (uptr->fileref);
     }
 if (err != 0)
@@ -1158,9 +1158,9 @@ return SCPE_OK;
 
 t_stat dp_ioerr (UNIT *uptr)
 {
-uint32 cidx = uptr->UCTX;
-uint32 un = uptr - dp_dev[cidx].units;
-uint32 dva = dp_dib[cidx].dva | un;
+uint32_t cidx = uptr->UCTX;
+uint32_t un = uptr - dp_dev[cidx].units;
+uint32_t dva = dp_dib[cidx].dva | un;
 
 perror ("DP I/O error");
 clearerr (uptr->fileref);
@@ -1172,11 +1172,11 @@ return SCPE_IOERR;
 
 /* Test mode */
 
-t_bool dp_test_mode (uint32 cidx)
+t_bool dp_test_mode (uint32_t cidx)
 {
 DP_CTX *ctx = &dp_ctx[cidx];
-uint32 dva = dp_dib[cidx].dva;
-uint32 i, st, wd;
+uint32_t dva = dp_dib[cidx].dva;
+uint32_t i, st, wd;
 
 ctx->dp_test = 0;
 for (i = 0, st = 0; i < DPT_NBY; i++) {                 /* sector loop */
@@ -1195,7 +1195,7 @@ return TRUE;
 
 /* Channel error */
 
-t_stat dp_chan_err (uint32 dva, uint32 st)
+t_stat dp_chan_err (uint32_t dva, uint32_t st)
 {
 chan_uen (dva);                                         /* uend */
 if (st < CHS_ERR)
@@ -1205,7 +1205,7 @@ return SCPE_OK;
 
 /* Clear controller/device interrupt */
 
-int32 dp_clr_int (uint32 cidx)
+int32 dp_clr_int (uint32_t cidx)
 {
 int32 iu;
 DP_CTX *ctx = &dp_ctx[cidx];
@@ -1226,7 +1226,7 @@ return 0;
 
 /* Set seek interrupt */
 
-void dp_set_ski (uint32 cidx, uint32 un)
+void dp_set_ski (uint32_t cidx, uint32_t un)
 {
 dp_ctx[cidx].dp_ski |= (1u << un);
 chan_set_dvi (dp_dib[cidx].dva);                        /* set INP */
@@ -1235,7 +1235,7 @@ return;
 
 /* Clear seek interrupt */
 
-void dp_clr_ski (uint32 cidx, uint32 un)
+void dp_clr_ski (uint32_t cidx, uint32_t un)
 {
 dp_ctx[cidx].dp_ski &= ~(1u << un);                     /* clear */
 if (dp_ctx[cidx].dp_ski != 0)                           /* more int? */
@@ -1247,7 +1247,7 @@ return;
 
 /* Reset routines */
 
-void dp_reset_unit (UNIT *uptr, uint32 cidx)
+void dp_reset_unit (UNIT *uptr, uint32_t cidx)
 {
 sim_cancel (uptr);                                      /* stop dev thread */
 uptr->UDA = 0;
@@ -1258,8 +1258,8 @@ return;
 
 t_stat dp_reset (DEVICE *dptr)
 {
-uint32 i;
-uint32 cidx = dptr - dp_dev;
+uint32_t i;
+uint32_t cidx = dptr - dp_dev;
 UNIT *dp_unit;
 DP_CTX *ctx;
 
@@ -1283,7 +1283,7 @@ return SCPE_OK;
 
 t_stat dp_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 i, p;
+uint32_t i, p;
 t_stat r;
 
 uptr->capac = dp_tab[GET_DTYPE (uptr->flags)].capac;
@@ -1297,7 +1297,7 @@ if (p == 0)                                             /* new file? */
     return SCPE_OK;
 for (i = 0; dp_tab[i].sc != 0; i++) {
     if ((dp_tab[i].ctype == DP_C3281) &&                /* only on 3281 */
-        (p <= (dp_tab[i].capac * (uint32) sizeof (int32)))) {
+        (p <= (dp_tab[i].capac * (uint32_t) sizeof (int32)))) {
         uptr->flags = (uptr->flags & ~UNIT_DTYPE) | (i << UNIT_V_DTYPE);
         uptr->capac = dp_tab[i].capac;
         return SCPE_OK;
@@ -1310,8 +1310,8 @@ return SCPE_OK;
 
 t_stat dp_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 dtype = GET_DTYPE (val);
-uint32 cidx = uptr->UCTX;
+uint32_t dtype = GET_DTYPE (val);
+uint32_t cidx = uptr->UCTX;
 
 if (cidx >= DP_NUMCTL)                                  /* valid ctrl idx? */
     return SCPE_IERR;
@@ -1327,7 +1327,7 @@ return SCPE_OK;
 
 t_stat dp_set_auto (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 cidx = uptr->UCTX;
+uint32_t cidx = uptr->UCTX;
 
 if (cidx >= DP_NUMCTL)                                  /* valid ctrl idx? */
     return SCPE_IERR;
@@ -1342,7 +1342,7 @@ return SCPE_OK;
 
 t_stat dp_set_ctl (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i, new_dtyp, cidx = uptr->UCTX;
+uint32_t i, new_dtyp, cidx = uptr->UCTX;
 DP_CTX *ctx = &dp_ctx[cidx];
 UNIT *dp_unit = dp_dev[cidx].units;
 
@@ -1378,7 +1378,7 @@ return SCPE_OK;
 
 t_stat dp_show_ctl (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 cidx = uptr->UCTX;
+uint32_t cidx = uptr->UCTX;
 
 if (cidx >= DP_NUMCTL)                                 /* valid ctrl idx? */
     return SCPE_IERR;

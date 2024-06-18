@@ -38,18 +38,18 @@
 #define VALID_DVA(c,d)  \
     (((c) < chan_num) && ((d) < CHAN_N_DEV) && (chan[c].disp[d] != NULL))
 
-uint32 int_hiact = NO_INT;                              /* hi act int */
-uint32 int_hireq = NO_INT;                              /* hi int req */
-uint32 chan_ctl_time = 5;
-uint32 ei_bmax = EIGRP_DFLT;                            /* ext int grps */
-uint32 s9_snap = 0;
-uint32 s9_marg = 0;
-uint32 chan_num = CHAN_DFLT;                            /* num chan */
-uint32 s5x0_ireg[32] = { 0 };
-uint16 int_arm[INTG_MAX];                               /* int grps: arm */
-uint16 int_enb[INTG_MAX];                               /* enable */
-uint16 int_req[INTG_MAX];                               /* request */
-uint8 int_lnk[INTG_MAX] = {                             /* pri chain */
+uint32_t int_hiact = NO_INT;                              /* hi act int */
+uint32_t int_hireq = NO_INT;                              /* hi int req */
+uint32_t chan_ctl_time = 5;
+uint32_t ei_bmax = EIGRP_DFLT;                            /* ext int grps */
+uint32_t s9_snap = 0;
+uint32_t s9_marg = 0;
+uint32_t chan_num = CHAN_DFLT;                            /* num chan */
+uint32_t s5x0_ireg[32] = { 0 };
+uint16_t int_arm[INTG_MAX];                               /* int grps: arm */
+uint16_t int_enb[INTG_MAX];                               /* enable */
+uint16_t int_req[INTG_MAX];                               /* request */
+uint8_t int_lnk[INTG_MAX] = {                             /* pri chain */
     INTG_OVR,  INTG_CTR,  INTG_IO,   0
     };
 
@@ -57,12 +57,12 @@ uint8 int_lnk[INTG_MAX] = {                             /* pri chain */
 
 #define I_STD           0x80
 
-static uint8 igrp_dflt_5x0[] = {
+static uint8_t igrp_dflt_5x0[] = {
     I_STD|INTG_OVR, I_STD|INTG_CTR, I_STD|INTG_IO,    INTG_E2,
     INTG_E3,        INTG_E3+1,      INTG_E3+2,      0
     };
 
-static uint8 igrp_dflt_S56789[] = {
+static uint8_t igrp_dflt_S56789[] = {
     I_STD|INTG_OVR, I_STD|INTG_CTR, I_STD|INTG_IO,  INTG_E2,
     INTG_E3,        INTG_E3+1,      INTG_E3+2,      INTG_E3+3,
     INTG_E3+4,      INTG_E3+5,      INTG_E3+6,      INTG_E3+7,
@@ -71,7 +71,7 @@ static uint8 igrp_dflt_S56789[] = {
     };
 
 chan_t chan[CHAN_N_CHAN];
-uint32 (*dio_disp[DIO_N_MOD])(uint32, uint32, uint32);
+uint32_t (*dio_disp[DIO_N_MOD])(uint32_t, uint32_t, uint32_t);
 
 int_grp_t int_tab[INTG_MAX] = {
 /*    PSW inh #bits vec   grp regbit */
@@ -94,30 +94,30 @@ int_grp_t int_tab[INTG_MAX] = {
     { PSW2_EI, 16, 0x130, 0xF, 16 }
     };
 
-extern uint32 *R;
-extern uint32 PSW1, PSW2;
-extern uint32 CC, SSW;
-extern uint32 stop_op;
-extern uint32 cpu_model;
-extern uint32 cons_alarm, cons_pcf;
+extern uint32_t *R;
+extern uint32_t PSW1, PSW2;
+extern uint32_t CC, SSW;
+extern uint32_t stop_op;
+extern uint32_t cpu_model;
+extern uint32_t cons_alarm, cons_pcf;
 extern UNIT cpu_unit;
 extern cpu_var_t cpu_tab[];
 
 void io_eval_ioint (void);
-t_bool io_init_inst (uint32 ad, uint32 rn, uint32 ch, uint32 dev, uint32 r0);
-uint32 io_set_status (uint32 rn, uint32 ch, uint32 dev, uint32 dvst, t_bool tdv);
-uint32 io_rwd_m0 (uint32 op, uint32 rn, uint32 ad);
-uint32 io_rwd_m1 (uint32 op, uint32 rn, uint32 ad);
+t_bool io_init_inst (uint32_t ad, uint32_t rn, uint32_t ch, uint32_t dev, uint32_t r0);
+uint32_t io_set_status (uint32_t rn, uint32_t ch, uint32_t dev, uint32_t dvst, t_bool tdv);
+uint32_t io_rwd_m0 (uint32_t op, uint32_t rn, uint32_t ad);
+uint32_t io_rwd_m1 (uint32_t op, uint32_t rn, uint32_t ad);
 t_stat io_set_eiblks (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat io_show_eiblks (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat int_reset (DEVICE *dptr);
 t_stat chan_reset (DEVICE *dptr);
-uint32 chan_new_cmd (uint32 ch, uint32 dev, uint32 clc);
-void io_set_eimax (uint32 max);
-uint32 chan_proc_prolog (uint32 dva, uint32 *ch, uint32 *dev);
-uint32 chan_proc_epilog (uint32 dva, int32 cnt);
+uint32_t chan_new_cmd (uint32_t ch, uint32_t dev, uint32_t clc);
+void io_set_eimax (uint32_t max);
+uint32_t chan_proc_prolog (uint32_t dva, uint32_t *ch, uint32_t *dev);
+uint32_t chan_proc_epilog (uint32_t dva, int32 cnt);
 
-extern uint32 cpu_new_PSD (uint32 lrp, uint32 p1, uint32 p2);
+extern uint32_t cpu_new_PSD (uint32_t lrp, uint32_t p1, uint32_t p2);
 
 /* IO data structures
 
@@ -331,10 +331,10 @@ DEVICE chan_dev[] = {
 
 /* Read direct */
 
-uint32 io_rwd (uint32 op, uint32 rn, uint32 bva)
+uint32_t io_rwd (uint32_t op, uint32_t rn, uint32_t bva)
 {
-uint32 ad = bva >> 2;
-uint32 mode = DIO_GETMOD (ad);                          /* mode */
+uint32_t ad = bva >> 2;
+uint32_t mode = DIO_GETMOD (ad);                          /* mode */
 
 if (dio_disp[mode] != NULL)                             /* if defined */
     return dio_disp[mode] (op, rn, ad);                 /* dispatch */
@@ -343,11 +343,11 @@ return (stop_op)? STOP_ILLEG: 0;                        /* ill inst */
 
 /* Start IO */
 
-uint32 io_sio (uint32 rn, uint32 bva)
+uint32_t io_sio (uint32_t rn, uint32_t bva)
 {
-uint32 ad = bva >> 2;
-uint32 ch, dev, dvst;
-uint32 st;
+uint32_t ad = bva >> 2;
+uint32_t ch, dev, dvst;
+uint32_t st;
 
 CC &= ~cpu_tab[cpu_model].iocc;                         /* clear CC's */
 ch = DVA_GETCHAN (ad);                                  /* get chan, dev */
@@ -370,11 +370,11 @@ return st;
 
 /* Test IO */
 
-uint32 io_tio (uint32 rn, uint32 bva)
+uint32_t io_tio (uint32_t rn, uint32_t bva)
 {
-uint32 ad = bva >> 2;
-uint32 ch, dev, dvst;
-uint32 st;
+uint32_t ad = bva >> 2;
+uint32_t ch, dev, dvst;
+uint32_t st;
 
 CC &= ~cpu_tab[cpu_model].iocc;                         /* clear CC's */
 ch = DVA_GETCHAN (ad);                                  /* get chan, dev */
@@ -390,11 +390,11 @@ return st;
 
 /* Test device status */
 
-uint32 io_tdv (uint32 rn, uint32 bva)
+uint32_t io_tdv (uint32_t rn, uint32_t bva)
 {
-uint32 ad = bva >> 2;
-uint32 ch, dev, dvst;
-uint32 st;
+uint32_t ad = bva >> 2;
+uint32_t ch, dev, dvst;
+uint32_t st;
 
 CC &= ~cpu_tab[cpu_model].iocc;                         /* clear CC's */
 ch = DVA_GETCHAN (ad);                                  /* get chan, dev */
@@ -410,11 +410,11 @@ return st;
 
 /* Halt IO */
 
-uint32 io_hio (uint32 rn, uint32 bva)
+uint32_t io_hio (uint32_t rn, uint32_t bva)
 {
-uint32 ad = bva >> 2;
-uint32 ch, dev, subop, dvst;
-uint32 st;
+uint32_t ad = bva >> 2;
+uint32_t ch, dev, subop, dvst;
+uint32_t st;
 
 CC &= ~cpu_tab[cpu_model].iocc;
 ad = bva >> 2;
@@ -442,10 +442,10 @@ return st;
 
 /* Acknowledge interrupt (ignores device address) */
 
-uint32 io_aio (uint32 rn, uint32 bva)
+uint32_t io_aio (uint32_t rn, uint32_t bva)
 {
-uint32 i, j, dva, dvst;
-uint32 st;
+uint32_t i, j, dva, dvst;
+uint32_t st;
 
 if (DVA_GETCHAN (bva >> 2) != 0)                        /* non std I/O addr? */
     return (stop_op? STOP_ILLEG: 0);
@@ -465,7 +465,7 @@ for (i = 0; i < chan_num; i++) {                        /* loop thru chan */
             dva |= DVT_GETUN (dvst);                    /* finish dev addr */
             if (rn)                                     /* want status? */
                 R[rn] = (DVT_GETDVS (dvst) << 24) |     /* device status */
-                ((uint32) ((chan[i].chf[j] & (CHF_LNTE|CHF_XMDE)) |
+                ((uint32_t) ((chan[i].chf[j] & (CHF_LNTE|CHF_XMDE)) |
                 CHI_GETINT (chan[i].chi[j])) << 16) | dva;
             if (chan[i].chi[j] & CHI_UEN)               /* unusual end? */
                 CC |= CC2;                              /* set CC2 */
@@ -487,9 +487,9 @@ return 0;
    address actually agrees with the type of device in that dispatch slot.
 */
 
-t_bool io_init_inst (uint32 rn, uint32 ad, uint32 ch, uint32 dev, uint32 r0)
+t_bool io_init_inst (uint32_t rn, uint32_t ad, uint32_t ch, uint32_t dev, uint32_t r0)
 {
-uint32 loc20;
+uint32_t loc20;
 t_bool ch_mu, dva_mu;
 
 if ((dev >= CHAN_N_DEV) || (ch >= chan_num))            /* bad dev or chan? */
@@ -507,9 +507,9 @@ return (chan[ch].disp[dev] != NULL)? TRUE: FALSE;
 
 /* Set status for I/O instruction */
 
-uint32 io_set_status (uint32 rn, uint32 ch, uint32 dev, uint32 dvst, t_bool tdv)
+uint32_t io_set_status (uint32_t rn, uint32_t ch, uint32_t dev, uint32_t dvst, t_bool tdv)
 {
-uint32 mrgst;
+uint32_t mrgst;
 
 if ((rn != 0) && !(dvst & DVT_NOST)) {                  /* return status? */
     if (tdv)
@@ -529,9 +529,9 @@ return DVT_GETCC (dvst);
 
 /* Get new command */
 
-uint32 chan_get_cmd (uint32 dva, uint32 *cmd)
+uint32_t chan_get_cmd (uint32_t dva, uint32_t *cmd)
 {
-uint32 ch, dev;
+uint32_t ch, dev;
 t_stat st;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
@@ -542,10 +542,10 @@ return 0;
 
 /* Channel end */
 
-uint32 chan_end (uint32 dva)
+uint32_t chan_end (uint32_t dva)
 {
-uint32 ch, dev;
-uint32 st, cm;
+uint32_t ch, dev;
+uint32_t st, cm;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
     return st;
@@ -562,9 +562,9 @@ return 0;
 
 /* Channel error */
 
-uint32 chan_set_chf (uint32 dva, uint32 fl)
+uint32_t chan_set_chf (uint32_t dva, uint32_t fl)
 {
-uint32 ch, dev;
+uint32_t ch, dev;
 
 ch = DVA_GETCHAN (dva);                                 /* get chan, dev */
 dev = DVA_GETDEV (dva);
@@ -589,9 +589,9 @@ return 0;
 
 /* Channel test command flags */
 
-t_bool chan_tst_cmf (uint32 dva, uint32 fl)
+t_bool chan_tst_cmf (uint32_t dva, uint32_t fl)
 {
-uint32 ch, dev;
+uint32_t ch, dev;
 
 ch = DVA_GETCHAN (dva);                                 /* get chan, dev */
 dev = DVA_GETDEV (dva);
@@ -603,9 +603,9 @@ return FALSE;
 
 /* Channel unusual end */
 
-uint32 chan_uen (uint32 dva)
+uint32_t chan_uen (uint32_t dva)
 {
-uint32 ch, dev;
+uint32_t ch, dev;
 
 ch = DVA_GETCHAN (dva);                                 /* get chan, dev */
 dev = DVA_GETDEV (dva);
@@ -620,10 +620,10 @@ return CHS_INACTV;                                      /* done */
 
 /* Channel read processes */
 
-uint32 chan_RdMemB (uint32 dva, uint32 *dat)
+uint32_t chan_RdMemB (uint32_t dva, uint32_t *dat)
 {
-uint32 ch, dev;
-uint32 st;
+uint32_t ch, dev;
+uint32_t st;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
     return st;
@@ -636,10 +636,10 @@ else if (ReadPB (chan[ch].ba[dev], dat)) {              /* read data, nxm? */
 return chan_proc_epilog (dva, 1);                       /* adjust counts */
 }
 
-uint32 chan_RdMemW (uint32 dva, uint32 *dat)
+uint32_t chan_RdMemW (uint32_t dva, uint32_t *dat)
 {
-uint32 ch, dev;
-uint32 st;
+uint32_t ch, dev;
+uint32_t st;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
     return st;
@@ -647,7 +647,7 @@ if (chan[ch].cmf[dev] & CMF_SKP)                        /* skip? */
     *dat = 0;
 else if ((chan[ch].bc[dev] < 4) ||                      /* unaligned? */
          ((chan[ch].ba[dev] & 0x3) != 0)) {
-    uint32 i, wd;
+    uint32_t i, wd;
     for (i = 0, *dat = 0, wd = 0; i < 4; i++) {         /* up to 4 bytes */
         st = chan_RdMemB (dva, &wd);                    /* get byte */
         *dat |= ((wd & 0xFF) << (24 - (i * 8)));        /* pack */
@@ -665,10 +665,10 @@ return chan_proc_epilog (dva, 4);                       /* adjust counts */
 
 /* Channel write processes */
 
-uint32 chan_WrMemB (uint32 dva, uint32 dat)
+uint32_t chan_WrMemB (uint32_t dva, uint32_t dat)
 {
-uint32 ch, dev;
-uint32 st;
+uint32_t ch, dev;
+uint32_t st;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
     return st;
@@ -680,10 +680,10 @@ if (((chan[ch].cmf[dev] & CMF_SKP) == 0) &&             /* skip? */
 return chan_proc_epilog (dva, 1);                       /* adjust counts */
 }
 
-uint32 chan_WrMemBR (uint32 dva, uint32 dat)
+uint32_t chan_WrMemBR (uint32_t dva, uint32_t dat)
 {
-uint32 ch, dev;
-uint32 st;
+uint32_t ch, dev;
+uint32_t st;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
     return st;
@@ -695,16 +695,16 @@ if (((chan[ch].cmf[dev] & CMF_SKP) == 0) &&             /* skip? */
 return chan_proc_epilog (dva, -1);                      /* adjust counts */
 }
 
-uint32 chan_WrMemW (uint32 dva, uint32 dat)
+uint32_t chan_WrMemW (uint32_t dva, uint32_t dat)
 {
-uint32 ch, dev;
-uint32 st;
+uint32_t ch, dev;
+uint32_t st;
 
 if ((st = chan_proc_prolog (dva, &ch, &dev)) != 0)      /* valid, active? */
     return st;
 if ((chan[ch].bc[dev] < 4) ||                           /* unaligned? */
     ((chan[ch].ba[dev] & 0x3) != 0)) {
-    uint32 i, wd;
+    uint32_t i, wd;
     for (i = 0; i < 4; i++) {                           /* up to 4 bytes */
         wd = (dat >> (24 - (i * 8))) & 0xFF;            /* get byte */
         if ((st = chan_WrMemB (dva, wd)) != 0)          /* write */
@@ -722,7 +722,7 @@ return chan_proc_epilog (dva, 4);                       /* adjust counts */
 
 /* Channel process common code */
 
-uint32 chan_proc_prolog (uint32 dva, uint32 *ch, uint32 *dev)
+uint32_t chan_proc_prolog (uint32_t dva, uint32_t *ch, uint32_t *dev)
 {
 *ch = DVA_GETCHAN (dva);                                /* get chan, dev */
 *dev = DVA_GETDEV (dva);
@@ -733,10 +733,10 @@ if ((chan[*ch].chsf[*dev] & CHSF_ACT) == 0)             /* active? */
 return 0;
 }
 
-uint32 chan_proc_epilog (uint32 dva, int32 cnt)
+uint32_t chan_proc_epilog (uint32_t dva, int32 cnt)
 {
-uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
-uint32 dev = DVA_GETDEV (dva);
+uint32_t ch = DVA_GETCHAN (dva);                          /* get ch, dev */
+uint32_t dev = DVA_GETDEV (dva);
 
 chan[ch].ba[dev] = (chan[ch].ba[dev] + cnt) & CHBA_MASK;
 chan[ch].bc[dev] = (chan[ch].bc[dev] - abs (cnt)) & CHBC_MASK;
@@ -754,9 +754,9 @@ return CHS_ZBC;
 
 /* New channel command */
 
-uint32 chan_new_cmd (uint32 ch, uint32 dev, uint32 clc)
+uint32_t chan_new_cmd (uint32_t ch, uint32_t dev, uint32_t clc)
 {
-uint32 i, ccw1, ccw2, cmd;
+uint32_t i, ccw1, ccw2, cmd;
 
 for (i = 0; i < 2; i++) {                               /* max twice */
     clc = clc & (cpu_tab[cpu_model].pamask >> 1);       /* mask clc */
@@ -785,11 +785,11 @@ return CHS_INACTV;
 
 /* Set, clear, test channel interrupt */
 
-void chan_set_chi (uint32 dva, uint32 fl)
+void chan_set_chi (uint32_t dva, uint32_t fl)
 {
-uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
-uint32 dev = DVA_GETDEV (dva);
-uint32 un = DVA_GETUNIT (dva);                          /* get unit */
+uint32_t ch = DVA_GETCHAN (dva);                          /* get ch, dev */
+uint32_t dev = DVA_GETDEV (dva);
+uint32_t un = DVA_GETUNIT (dva);                          /* get unit */
 
 chan[ch].chf[dev] |= CHF_INP;                           /* int pending */
 chan[ch].chi[dev] = (chan[ch].chi[dev] & CHI_FLAGS) |   /* update status */
@@ -797,11 +797,11 @@ chan[ch].chi[dev] = (chan[ch].chi[dev] & CHI_FLAGS) |   /* update status */
 return;
 }
 
-int32 chan_clr_chi (uint32 dva)
+int32 chan_clr_chi (uint32_t dva)
 {
-uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
-uint32 dev = DVA_GETDEV (dva);
-uint32 old_chi = chan[ch].chi[dev];
+uint32_t ch = DVA_GETCHAN (dva);                          /* get ch, dev */
+uint32_t dev = DVA_GETDEV (dva);
+uint32_t old_chi = chan[ch].chi[dev];
 
 chan[ch].chf[dev] &= ~CHF_INP;                          /* clr int pending */
 chan[ch].chi[dev] &= CHI_FLAGS;                         /* clr ctl int */
@@ -810,10 +810,10 @@ if (old_chi & CHI_CTL)
 else return -1;
 }
 
-int32 chan_chk_chi (uint32 dva)
+int32 chan_chk_chi (uint32_t dva)
 {
-uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
-uint32 dev = DVA_GETDEV (dva);
+uint32_t ch = DVA_GETCHAN (dva);                          /* get ch, dev */
+uint32_t dev = DVA_GETDEV (dva);
 
 if (chan[ch].chi[dev] & CHI_CTL)                        /* ctl int pending? */
     return CHI_GETUN (chan[ch].chi[dev]);
@@ -822,19 +822,19 @@ else return -1;
 
 /* Set, check device interrupt */
 
-void chan_set_dvi (uint32 dva)
+void chan_set_dvi (uint32_t dva)
 {
-uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
-uint32 dev = DVA_GETDEV (dva);
+uint32_t ch = DVA_GETCHAN (dva);                          /* get ch, dev */
+uint32_t dev = DVA_GETDEV (dva);
 
 chan[ch].chf[dev] |= CHF_INP;                           /* int pending */
 return;
 }
 
-t_bool chan_chk_dvi (uint32 dva)
+t_bool chan_chk_dvi (uint32_t dva)
 {
-uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
-uint32 dev = DVA_GETDEV (dva);
+uint32_t ch = DVA_GETCHAN (dva);                          /* get ch, dev */
+uint32_t dev = DVA_GETDEV (dva);
 
 if ((chan[ch].chf[dev] & CHF_INP) != 0)
     return TRUE;
@@ -843,9 +843,9 @@ return FALSE;
 
 /* Channel set Chaining Modifier flag */
 
-uint32 chan_set_cm (uint32 dva)
+uint32_t chan_set_cm (uint32_t dva)
 {
-uint32 ch, dev;
+uint32_t ch, dev;
 
 ch = DVA_GETCHAN (dva);                                 /* get chan, dev */
 dev = DVA_GETDEV (dva);
@@ -857,9 +857,9 @@ return 0;
 
 /* Called by device reset to reset channel registers */
 
-t_stat chan_reset_dev (uint32 dva)
+t_stat chan_reset_dev (uint32_t dva)
 {
-uint32 ch, dev;
+uint32_t ch, dev;
 
 ch = DVA_GETCHAN (dva);                                 /* get chan, dev */
 dev = DVA_GETDEV (dva);
@@ -874,9 +874,9 @@ return SCPE_OK;
    Question: must an interrupt be armed to be recognized?
    Answer: yes; req'arm = 11 signifies waiting state */
 
-uint32 io_eval_int (void)
+uint32_t io_eval_int (void)
 {
-uint32 i, j, t, curr, mask, newi;
+uint32_t i, j, t, curr, mask, newi;
 
 if (int_arm[INTG_IO] & INTGIO_IO)                       /* I/O armed? */
     io_eval_ioint ();                                   /* eval I/O interrupt */
@@ -910,7 +910,7 @@ return NO_INT;
 
 t_bool io_poss_int (void)
 {
-uint32 i, curr;
+uint32_t i, curr;
 
 for (i = 0, curr = 0; i < INTG_MAX; i++) {              /* loop thru groups */
     if (((int_arm[curr] & int_enb[curr]) != 0) &&
@@ -928,7 +928,7 @@ return FALSE;
 
 void io_eval_ioint (void)
 {
-uint32 i, j;
+uint32_t i, j;
 
 for (i = 0; i < chan_num; i++) {                        /* loop thru chan */
     for (j = 0; j < CHAN_N_DEV; j++) {                  /* loop thru dev */
@@ -945,9 +945,9 @@ return;
    Question: is an inhibited or disabled interrupt recognized?
    Answer: yes; req'arm = 10 signifies active state */
 
-uint32 io_actv_int (void)
+uint32_t io_actv_int (void)
 {
-uint32 i, j, t, curr, mask;
+uint32_t i, j, t, curr, mask;
 
 for (i = 0, curr = 0; i < INTG_MAX; i++) {              /* loop thru groups */
     if ((t = int_req[curr] & ~int_arm[curr]) != 0) {    /* req active? */
@@ -969,9 +969,9 @@ return NO_INT;
 
 /* Acknowledge interrupt and get vector */
 
-uint32 io_ackn_int (uint32 hireq)
+uint32_t io_ackn_int (uint32_t hireq)
 {
-uint32 grp, bit, mask;
+uint32_t grp, bit, mask;
 
 if (hireq >= NO_INT)                                    /* none pending? */
     return 0;
@@ -992,9 +992,9 @@ return int_tab[grp].vecbase + bit;
 
 /* Release interrupt and set new armed/disarmed state */
 
-extern uint32 io_rels_int (uint32 hiact, t_bool arm)
+extern uint32_t io_rels_int (uint32_t hiact, t_bool arm)
 {
-uint32 grp, bit, mask;
+uint32_t grp, bit, mask;
 
 if (hiact < NO_INT) {                                   /* intr active? */
     grp = INT_GETGRP (hiact);                           /* get grp, bit */
@@ -1023,9 +1023,9 @@ return SCPE_OK;
 
 /* Set or clear interrupt status flags */
 
-void io_sclr_req (uint32 inum, uint32 val)
+void io_sclr_req (uint32_t inum, uint32_t val)
 {
-uint32 grp, bit, mask;
+uint32_t grp, bit, mask;
 
 if (inum < NO_INT) {                                    /* valid? */
     grp = INT_GETGRP (inum);                            /* get grp, bit */
@@ -1044,9 +1044,9 @@ if (inum < NO_INT) {                                    /* valid? */
 return;
 }
 
-void io_sclr_arm (uint32 inum, uint32 val)
+void io_sclr_arm (uint32_t inum, uint32_t val)
 {
-uint32 grp, bit, mask;
+uint32_t grp, bit, mask;
 
 if (inum < NO_INT) {                                    /* valid? */
     grp = INT_GETGRP (inum);                            /* get grp, bit */
@@ -1065,11 +1065,11 @@ return;
 
 /* Read/write direct mode 0 - processor miscellaneous */
 
-uint32 io_rwd_m0 (uint32 op, uint32 rn, uint32 ad)
+uint32_t io_rwd_m0 (uint32_t op, uint32_t rn, uint32_t ad)
 {
-uint32 wd;
-uint32 fnc = DIO_GET0FNC (ad);
-uint32 dat = rn? R[rn]: 0;
+uint32_t wd;
+uint32_t fnc = DIO_GET0FNC (ad);
+uint32_t dat = rn? R[rn]: 0;
 
 if (op == OP_RD) {                                      /* read direct? */
     if (fnc == 0x000) {                                 /* copy SSW to SC */
@@ -1145,11 +1145,11 @@ return 0;
    This is the only routine that has to map between architecturally
    defined interrupts groups and the internal representation. */
 
-uint32 io_rwd_m1 (uint32 op, uint32 rn, uint32 ad)
+uint32_t io_rwd_m1 (uint32_t op, uint32_t rn, uint32_t ad)
 {
-uint32 i, beg, end, mask, sc;
-uint32 grp = DIO_GET1GRP (ad);
-uint32 fnc = DIO_GET1FNC (ad);
+uint32_t i, beg, end, mask, sc;
+uint32_t grp = DIO_GET1GRP (ad);
+uint32_t fnc = DIO_GET1FNC (ad);
 
 if (grp == 1)                                           /* group 1? */
     return 0;                                           /* not there */
@@ -1232,7 +1232,7 @@ return 0;
 
 t_stat int_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 if (int_lnk[0] == 0)                                    /* int chain not set up? */
     io_set_eimax (ei_bmax);
@@ -1248,8 +1248,8 @@ return SCPE_OK;
 
 t_stat chan_reset (DEVICE *dptr)
 {
-uint32 ch = dptr - &chan_dev[0];
-uint32 i, j;
+uint32_t ch = dptr - &chan_dev[0];
+uint32_t i, j;
 DEVICE *devp;
 
 if (ch >= CHAN_N_CHAN)
@@ -1276,7 +1276,7 @@ return SCPE_OK;
 
 /* Universal boot routine */
 
-static uint32 boot_rom[] = {
+static uint32_t boot_rom[] = {
     0x00000000, 0x00000000, 0x020000A8, 0x0E000058,
     0x00000011, 0x00000000, 0x32000024, 0xCC000025,
     0xCD000025, 0x69C00028, 0x00000000, 0x00000000
@@ -1284,7 +1284,7 @@ static uint32 boot_rom[] = {
 
 t_stat io_boot (int32 u, DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 dib_t *dibp = (dib_t *) dptr->ctxt;
 
 for (i = 0; i < MEMSIZE; i++)                           /* boot clrs mem */
@@ -1303,7 +1303,7 @@ return SCPE_OK;
 
 t_stat io_init (void)
 {
-uint32 i, j, ch, dev, dio;
+uint32_t i, j, ch, dev, dio;
 DEVICE *dptr;
 dib_t *dibp;
 
@@ -1376,10 +1376,10 @@ return SCPE_OK;
 /* Change the number of external I/O blocks, and restore the default
    chain configuration */
 
-void io_set_eimax (uint32 max)
+void io_set_eimax (uint32_t max)
 {
-uint32 i, curr, ngrp;
-uint8 *dflt_p;
+uint32_t i, curr, ngrp;
+uint8_t *dflt_p;
 
 ei_bmax = max;
 if (QCPU_5X0)
@@ -1457,7 +1457,7 @@ t_stat io_show_dvc (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
 DEVICE *dptr;
 dib_t *dibp;
-uint32 dvc;
+uint32_t dvc;
 
 if (((dptr = find_dev_from_unit (uptr)) == NULL) ||
     ((dibp = (dib_t *) dptr->ctxt) == NULL))
@@ -1508,7 +1508,7 @@ t_stat io_show_cst (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
 DEVICE *dptr;
 dib_t *dibp;
-uint32 ch, dva;
+uint32_t ch, dva;
 
 if (((dptr = find_dev_from_unit (uptr)) == NULL) ||
     ((dibp = (dib_t *) dptr->ctxt) == NULL))
