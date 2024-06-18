@@ -152,11 +152,11 @@
 
 #define RLSI_V_TRK      6                               /* track */
 
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 int_req;
 extern UNIT cpu_unit;
 
-uint8 *rlxb = NULL;                                     /* xfer buffer */
+uint8_t *rlxb = NULL;                                     /* xfer buffer */
 int32 rlcsa = 0;                                        /* control/status A */
 int32 rlcsb = 0;                                        /* control/status B */
 int32 rlma = 0;                                         /* memory address */
@@ -407,7 +407,7 @@ t_stat rl_svc (UNIT *uptr)
 {
 int32 err, wc, maxc;
 int32 i, j, func, da, bc, wbc;
-uint32 ma;
+uint32_t ma;
 
 func = GET_FUNC (rlcsb);                                /* get function */
 if (func == RLCSB_GSTA) {                               /* get status? */
@@ -483,11 +483,11 @@ if ((func >= RLCSB_READ) && (err == 0) &&               /* read (no hdr)? */
             M[ma] = rlxb[i] & 0377;                     /* store */
         else if (i & 1) {                               /* odd wd 12b? */
             M[ma] = ((rlxb[j + 1] >> 4) & 017) |
-                (((uint16) rlxb[j + 2]) << 4);
+                (((uint16_t) rlxb[j + 2]) << 4);
             j = j + 3;
             }
         else M[ma] = rlxb[j] |                          /* even wd 12b */
-            ((((uint16) rlxb[j + 1]) & 017) << 8);      
+            ((((uint16_t) rlxb[j + 1]) & 017) << 8);      
         ma = (ma & 070000) + ((ma + 1) & 07777);
         }                                               /* end for */
     }                                                   /* end if wr */
@@ -566,7 +566,7 @@ for (i = 0; i < RL_NUMDR; i++) {
     uptr->STAT = 0;
     }
 if (rlxb == NULL)
-    rlxb = (uint8 *) calloc (RL_MAXFR, sizeof (uint8));
+    rlxb = (uint8_t *) calloc (RL_MAXFR, sizeof (uint8_t));
 if (rlxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -576,7 +576,7 @@ return SCPE_OK;
 
 t_stat rl_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 p;
+uint32_t p;
 t_stat r;
 
 uptr->capac = (uptr->flags & UNIT_RL02)? RL02_SIZE: RL01_SIZE;
@@ -644,7 +644,7 @@ if (fseek (uptr->fileref, da, SEEK_SET))
 rlxb[0] = RL_BBID;
 for (i = 1; i < RL_NUMBY; i++)
     rlxb[i] = 0;
-fxwrite (rlxb, sizeof (uint8), RL_NUMBY, uptr->fileref);
+fxwrite (rlxb, sizeof (uint8_t), RL_NUMBY, uptr->fileref);
 if (ferror (uptr->fileref))
     return SCPE_IOERR;
 return SCPE_OK;
@@ -656,7 +656,7 @@ return SCPE_OK;
 #define BOOT_UNIT 02006                                 /* unit number */
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06600,                      /* BT, RLDC             ; reset */
     07201,                      /* 02, CLA IAC          ; clr drv = 1 */
     04027,                      /* 03, JMS GO           ; do io */

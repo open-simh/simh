@@ -131,7 +131,7 @@
 #define STA_DYN         (STA_REW | STA_BOT | STA_REM | STA_EOF | \
                          STA_EOT | STA_WLK)             /* kept in USTAT */
 
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 int_req, stop_inst;
 extern UNIT cpu_unit;
 
@@ -144,7 +144,7 @@ int32 mt_db = 0;                                        /* data buffer */
 int32 mt_done = 0;                                      /* mag tape flag */
 int32 mt_time = 10;                                     /* record latency */
 int32 mt_stopioe = 1;                                   /* stop on error */
-uint8 *mtxb = NULL;                                     /* transfer buffer */
+uint8_t *mtxb = NULL;                                     /* transfer buffer */
 
 int32 mt70 (int32 IR, int32 AC);
 int32 mt71 (int32 IR, int32 AC);
@@ -381,7 +381,7 @@ t_stat mt_svc (UNIT *uptr)
 int32 f, i, p, u, wc, xma;
 t_mtrlnt tbc, cbc;
 t_bool passed_eot;
-uint16 c, c1, c2;
+uint16_t c, c1, c2;
 t_stat st, r = SCPE_OK;
 
 u = (int32) (uptr - mt_dev.units);                      /* get unit number */
@@ -616,7 +616,7 @@ for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
     else uptr->USTAT = STA_REM;
     }
 if (mtxb == NULL)
-    mtxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    mtxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (mtxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;

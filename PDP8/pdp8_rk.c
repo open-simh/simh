@@ -124,7 +124,7 @@
 #define RK_MIN          50
 #define MAX(x,y)        (((x) > (y))? (x): (y))
 
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 int_req, stop_inst;
 extern UNIT cpu_unit;
 
@@ -340,7 +340,7 @@ return;
    Note that memory addresses wrap around in the current field.
 */
 
-static uint16 fill[RK_NUMWD/2] = { 0 };
+static uint16_t fill[RK_NUMWD/2] = { 0 };
 t_stat rk_svc (UNIT *uptr)
 {
 int32 err, wc, wc1, awc, swc, pa, da;
@@ -441,7 +441,7 @@ return SCPE_OK;
 #define BOOT_UNIT 032
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06007,                      /* 23, CAF */
     06744,                      /* 24, DLCA             ; addr = 0 */
     01032,                      /* 25, TAD UNIT         ; unit no */

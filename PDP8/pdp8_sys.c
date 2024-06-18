@@ -67,13 +67,13 @@ extern DEVICE dt_dev, td_dev;
 extern DEVICE mt_dev, ct_dev;
 extern DEVICE ttix_dev, ttox_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 
 t_stat fprint_sym_fpp (FILE *of, t_value *val);
 t_stat parse_sym_fpp (CONST char *cptr, t_value *val);
-CONST char *parse_field (CONST char *cptr, uint32 max, uint32 *val, uint32 c);
-CONST char *parse_fpp_xr (CONST char *cptr, uint32 *xr, t_bool inc);
-int32 test_fpp_addr (uint32 ad, uint32 max);
+CONST char *parse_field (CONST char *cptr, uint32_t max, uint32_t *val, uint32_t c);
+CONST char *parse_fpp_xr (CONST char *cptr, uint32_t *xr, t_bool inc);
+int32 test_fpp_addr (uint32_t ad, uint32_t max);
 
 /* SCP data structures and interface routines
 
@@ -172,7 +172,7 @@ return SCPE_OK;
    a character > 0200 indicates a change of field.
 */
 
-int32 sim_bin_getc (FILE *fi, uint32 *newf)
+int32 sim_bin_getc (FILE *fi, uint32_t *newf)
 {
 int32 c, rubout;
 
@@ -198,7 +198,7 @@ return EOF;
 t_stat sim_load_bin (FILE *fi, t_bool do_load)
 {
 int32 hi, lo, wd, csum, t;
-uint32 field, newf, origin, words;
+uint32_t field, newf, origin, words;
 int32 sections_read = 0;
 
 for (;;) {
@@ -495,7 +495,7 @@ static const int32 opc_val[] = {
 #define F_LTR           (F_V_LTR << F_V_FL)
 #define F_MRD           (F_V_MRD << F_V_FL)
 
-static const uint32 fmasks[] = {
+static const uint32_t fmasks[] = {
     07777, 07770, 07770, 07600,
     07770, 07770, 07600, 07600,
     07600, 017600, 017600, 07670,
@@ -639,7 +639,7 @@ if (opc == 07)                                          /* operate? */
 if (opc == 06) {                                        /* IOT? */
     DEVICE *dptr;
     DIB *dibp;
-    uint32 dno = (inst >> 3) & 077;
+    uint32_t dno = (inst >> 3) & 077;
     for (i = 0; (dptr = amb_dev[i]) != NULL; i++) {     /* check amb devices */
         if ((dptr->ctxt == NULL) ||                     /* no DIB or */
             (dptr->flags & DEV_DIS)) continue;          /* disabled? skip */
@@ -720,7 +720,7 @@ return SCPE_ARG;
 
 t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
 {
-uint32 cflag, d, i, j, k;
+uint32_t cflag, d, i, j, k;
 t_stat r;
 char gbuf[CBUFSIZE];
 
@@ -832,12 +832,12 @@ return SCPE_OK;
 
 t_stat fprint_sym_fpp (FILE *of, t_value *val)
 {
-uint32 wd1, wd2, xr4b, xr3b, ad15;
-uint32 i, j;
-extern uint32 fpp_bra, fpp_cmd;
+uint32_t wd1, wd2, xr4b, xr3b, ad15;
+uint32_t i, j;
+extern uint32_t fpp_bra, fpp_cmd;
 
-wd1 = (uint32) val[0] | ((fpp_cmd & 04000) << 1);
-wd2 = (uint32) val[1];
+wd1 = (uint32_t) val[0] | ((fpp_cmd & 04000) << 1);
+wd2 = (uint32_t) val[1];
 xr4b = (wd1 >> 3) & 017;
 xr3b = wd1 & 07;
 ad15 = (xr3b << 12) | wd2;
@@ -910,7 +910,7 @@ return SCPE_ARG;
 
 t_stat parse_sym_fpp (CONST char *cptr, t_value *val)
 {
-uint32 i, j, ad, xr;
+uint32_t i, j, ad, xr;
 int32 broff, nwd;
 char gbuf[CBUFSIZE];
 
@@ -1009,7 +1009,7 @@ return -nwd;
 
 /* Parse field */
 
-CONST char *parse_field (CONST char *cptr, uint32 max, uint32 *val, uint32 c)
+CONST char *parse_field (CONST char *cptr, uint32_t max, uint32_t *val, uint32_t c)
 {
 char gbuf[CBUFSIZE];
 t_stat r;
@@ -1023,10 +1023,10 @@ return cptr;
 
 /* Parse index register */
 
-CONST char *parse_fpp_xr (CONST char *cptr, uint32 *xr, t_bool inc)
+CONST char *parse_fpp_xr (CONST char *cptr, uint32_t *xr, t_bool inc)
 {
 char gbuf[CBUFSIZE];
-uint32 len;
+uint32_t len;
 t_stat r;
 
 cptr = get_glyph (cptr, gbuf, 0);                      /* get field */
@@ -1046,10 +1046,10 @@ return cptr;
 
 /* Test address in range of base register */
 
-int32 test_fpp_addr (uint32 ad, uint32 max)
+int32 test_fpp_addr (uint32_t ad, uint32_t max)
 {
-uint32 off;
-extern uint32 fpp_bra;
+uint32_t off;
+extern uint32_t fpp_bra;
 
 off = ad - fpp_bra;
 if (((off % 3) != 0) ||

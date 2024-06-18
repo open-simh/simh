@@ -70,11 +70,11 @@
 extern int32 int_req, int_enable, dev_done, stop_inst;
 extern int32 tmxr_poll;
 
-uint32 ttix_done = 0;                                   /* input ready flags */
-uint32 ttox_done = 0;                                   /* output ready flags */
-uint32 ttx_enbl = 0;                                    /* intr enable flags */
-uint8 ttix_buf[TTX_MAXL] = { 0 };                       /* input buffers */
-uint8 ttox_buf[TTX_MAXL] = { 0 };                       /* output buffers */
+uint32_t ttix_done = 0;                                   /* input ready flags */
+uint32_t ttox_done = 0;                                   /* output ready flags */
+uint32_t ttx_enbl = 0;                                    /* intr enable flags */
+uint8_t ttix_buf[TTX_MAXL] = { 0 };                       /* input buffers */
+uint8_t ttox_buf[TTX_MAXL] = { 0 };                       /* output buffers */
 TMLN ttx_ldsc[TTX_MAXL] = { {0} };                      /* line descriptors */
 TMXR ttx_desc = { TTX_INIL, 0, 0, ttx_ldsc };           /* mux descriptor */
 #define ttx_lines       ttx_desc.lines
@@ -84,7 +84,7 @@ int32 ttox (int32 IR, int32 AC);
 t_stat ttix_svc (UNIT *uptr);
 t_stat ttox_svc (UNIT *uptr);
 int32 ttx_getln (int32 inst);
-void ttx_new_flags (uint32 newi, uint32 newo, uint32 newe);
+void ttx_new_flags (uint32_t newi, uint32_t newo, uint32_t newe);
 t_stat ttx_reset (DEVICE *dptr);
 t_stat ttx_attach (UNIT *uptr, CONST char *cptr);
 t_stat ttx_detach (UNIT *uptr);
@@ -391,7 +391,7 @@ return SCPE_OK;
    int_enable must always be set
 */
 
-void ttx_new_flags (uint32 newidone, uint32 newodone, uint32 newenbl)
+void ttx_new_flags (uint32_t newidone, uint32_t newodone, uint32_t newenbl)
 {
 ttix_done = newidone;
 ttox_done = newodone;
@@ -448,7 +448,7 @@ return SCPE_OK;
 
 void ttx_reset_ln (int32 ln)
 {
-uint32 mask = (1u << ln);
+uint32_t mask = (1u << ln);
 
 ttix_buf[ln] = 0;                                       /* clr buf */
 ttox_buf[ln] = 0;                                       /* clr done, set enbl */

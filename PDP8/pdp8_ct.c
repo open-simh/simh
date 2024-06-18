@@ -140,18 +140,18 @@
 extern int32 int_req, stop_inst;
 extern UNIT cpu_unit;
 
-uint32 ct_sra = 0;                                      /* status reg A */
-uint32 ct_srb = 0;                                      /* status reg B */
-uint32 ct_db = 0;                                       /* data buffer */
-uint32 ct_df = 0;                                       /* data flag */
-uint32 ct_write = 0;                                    /* TU60 write flag */
-uint32 ct_bptr = 0;                                     /* buf ptr */
-uint32 ct_blnt = 0;                                     /* buf length */
+uint32_t ct_sra = 0;                                      /* status reg A */
+uint32_t ct_srb = 0;                                      /* status reg B */
+uint32_t ct_db = 0;                                       /* data buffer */
+uint32_t ct_df = 0;                                       /* data flag */
+uint32_t ct_write = 0;                                    /* TU60 write flag */
+uint32_t ct_bptr = 0;                                     /* buf ptr */
+uint32_t ct_blnt = 0;                                     /* buf length */
 int32 ct_stime = 1000;                                  /* start time */
 int32 ct_ctime = 100;                                   /* char latency */
-uint32 ct_stopioe = 1;                                  /* stop on error */
-uint8 *ct_xb = NULL;                                    /* transfer buffer */
-static uint8 ct_fnc_tab[SRA_M_FNC + 1] = {
+uint32_t ct_stopioe = 1;                                  /* stop on error */
+uint8_t *ct_xb = NULL;                                    /* transfer buffer */
+static uint8_t ct_fnc_tab[SRA_M_FNC + 1] = {
     OP_FWD,        0     , OP_WRI|OP_FWD, OP_REV,
     OP_WRI|OP_FWD, OP_REV, 0,             OP_FWD
     };
@@ -163,14 +163,14 @@ t_stat ct_attach (UNIT *uptr, CONST char *cptr);
 t_stat ct_detach (UNIT *uptr);
 t_stat ct_boot (int32 unitno, DEVICE *dptr);
 const char *ct_description (DEVICE *dptr);
-uint32 ct_updsta (UNIT *uptr);
+uint32_t ct_updsta (UNIT *uptr);
 int32 ct_go_start (int32 AC);
 int32 ct_go_cont (UNIT *uptr, int32 AC);
 t_stat ct_map_err (UNIT *uptr, t_stat st);
 UNIT *ct_busy (void);
 void ct_set_df (t_bool timchk);
 t_bool ct_read_char (void);
-uint32 ct_crc (uint8 *buf, uint32 cnt);
+uint32_t ct_crc (uint8_t *buf, uint32_t cnt);
 
 /* CT data structures
 
@@ -292,9 +292,9 @@ return AC;
 int32 ct_go_start (int32 AC)
 {
 UNIT *uptr = ct_dev.units + GET_UNIT (ct_sra);
-uint32 fnc = GET_FNC (ct_sra);
-uint32 flg = ct_fnc_tab[fnc];
-uint32 old_ust = uptr->UST;
+uint32_t fnc = GET_FNC (ct_sra);
+uint32_t flg = ct_fnc_tab[fnc];
+uint32_t old_ust = uptr->UST;
 
 if (DEBUG_PRS (ct_dev)) fprintf (sim_deb,
     ">>CT start: op=%o, old_sta = %o, pos=%d\n",
@@ -380,8 +380,8 @@ return AC;
 
 t_stat ct_svc (UNIT *uptr)
 {
-uint32 i, crc;
-uint32 flgs = ct_fnc_tab[uptr->FNC & SRA_M_FNC];
+uint32_t i, crc;
+uint32_t flgs = ct_fnc_tab[uptr->FNC & SRA_M_FNC];
 t_mtrlnt tbc;
 t_stat st, r;
 
@@ -494,7 +494,7 @@ return r;
 
 /* Update controller status */
 
-uint32 ct_updsta (UNIT *uptr)
+uint32_t ct_updsta (UNIT *uptr)
 {
 int32 srb;
 
@@ -554,7 +554,7 @@ return FALSE;
 
 UNIT *ct_busy (void)
 {
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 for (u = 0; u < CT_NUMDR; u++) {                        /* loop thru units */
@@ -567,13 +567,13 @@ return NULL;
 
 /* Calculate CRC on buffer */
 
-uint32 ct_crc (uint8 *buf, uint32 cnt)
+uint32_t ct_crc (uint8_t *buf, uint32_t cnt)
 {
-uint32 crc, i, j;
+uint32_t crc, i, j;
 
 crc = 0;
 for (i = 0; i < cnt; i++) {
-    crc = crc ^ (((uint32) buf[i]) << 8);
+    crc = crc ^ (((uint32_t) buf[i]) << 8);
     for (j = 0; j < 8; j++) {
         if (crc & 1)
             crc = (crc >> 1) ^ 0xA001;
@@ -630,7 +630,7 @@ return SCPE_OK;
 
 t_stat ct_reset (DEVICE *dptr)
 {
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 ct_sra = 0;
@@ -647,7 +647,7 @@ for (u = 0; u < CT_NUMDR; u++) {                        /* loop thru units */
     sim_tape_reset (uptr);                              /* reset tape */
     }
 if (ct_xb == NULL)
-    ct_xb = (uint8 *) calloc (CT_MAXFR + 2, sizeof (uint8));
+    ct_xb = (uint8_t *) calloc (CT_MAXFR + 2, sizeof (uint8_t));
 if (ct_xb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -686,7 +686,7 @@ return r;
 #define BOOT_START 04000
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     01237,          /* BOOT,    TAD M50     /change CRC to REW */
     01206,          /* CRCCHK,  TAD L260    /crc op */
     06704,          /*          KLSA        /load op */
@@ -724,7 +724,7 @@ static const uint16 boot_rom[] = {
 t_stat ct_boot (int32 unitno, DEVICE *dptr)
 {
 size_t i;
-extern uint16 M[];
+extern uint16_t M[];
 
 if ((ct_dib.dev != DEV_CT) || unitno)                   /* only std devno */
      return STOP_NOTSTD;
