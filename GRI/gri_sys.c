@@ -37,9 +37,9 @@ extern DEVICE tti_dev, tto_dev;
 extern DEVICE hsr_dev, hsp_dev;
 extern DEVICE rtc_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 
-void fprint_addr (FILE *of, uint32 val, uint32 mod, uint32 dst);
+void fprint_addr (FILE *of, uint32_t val, uint32_t mod, uint32_t dst);
 
 /* SCP data structures and interface routines
 
@@ -86,7 +86,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
 int32 c;
-uint32 org;
+uint32_t org;
 t_stat r;
 char gbuf[CBUFSIZE];
 
@@ -158,10 +158,10 @@ return SCPE_OK;
 #define F_MS    (F_V_MS << F_V_FL)
 
 struct fnc_op {
-    uint32      inst;                                   /* instr prot */
-    uint32      imask;                                  /* instr mask */
-    uint32      oper;                                   /* operator */
-    uint32      omask;                                  /* oper mask */
+    uint32_t      inst;                                   /* instr prot */
+    uint32_t      imask;                                  /* instr mask */
+    uint32_t      oper;                                   /* operator */
+    uint32_t      omask;                                  /* oper mask */
     };
 
 static const int32 masks[] = {
@@ -200,7 +200,7 @@ static const char *opcode[] = {
  NULL
  };
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
  0004000+F_FOI, 0004013+F_FOI, 0004004+F_FOI, 0004000+F_FO,
  0000002+F_SFI, 0026002+F_SFI, 0010002+F_SFI, 0000002+F_SF,
  0000006+F_ZM, 0000106+F_ZM, 0000206+F_ZM, 0000306+F_ZM,
@@ -290,7 +290,7 @@ static const struct fnc_op fop[] = {
 
 /* Print opcode field for FO, SF */
 
-void fprint_op (FILE *of, uint32 inst, uint32 op)
+void fprint_op (FILE *of, uint32_t inst, uint32_t op)
 {
 int32 i, nfirst;
 
@@ -311,7 +311,7 @@ return;
 
 /* Print address field with potential indexing */
 
-void fprint_addr (FILE *of, uint32 val, uint32 mode, uint32 dst)
+void fprint_addr (FILE *of, uint32_t val, uint32_t mode, uint32_t dst)
 {
 if ((val & INDEX) &&
     ((dst == U_SC) || (mode != MEM_IMM)))
@@ -338,7 +338,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
 int32 i, j;
-uint32 inst, src, dst, op, bop;
+uint32_t inst, src, dst, op, bop;
 
 inst = val[0];
 if (sw & SWMASK ('A')) {                                /* ASCII? */
@@ -474,8 +474,8 @@ char gbuf[CBUFSIZE];
 int32 i;
 t_value d;
 t_stat r;
-uint32 inst = val[0];
-uint32 fncv = 0, fncm = 0;
+uint32_t inst = val[0];
+uint32_t fncv = 0, fncm = 0;
 
 while (*cptr) {
     cptr = get_glyph (cptr, gbuf, 0);                   /* get glyph */

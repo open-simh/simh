@@ -44,10 +44,10 @@
 #include "sim_tmxr.h"
 #include <ctype.h>
 
-uint32 hsr_stopioe = 1, hsp_stopioe = 1;
+uint32_t hsr_stopioe = 1, hsp_stopioe = 1;
 
-extern uint16 M[];
-extern uint32 dev_done, ISR;
+extern uint16_t M[];
+extern uint32_t dev_done, ISR;
 
 t_stat tti_svc (UNIT *uhsr);
 t_stat tto_svc (UNIT *uhsr);
@@ -212,12 +212,12 @@ DEVICE rtc_dev = {
 
 /* Console terminal function processors */
 
-uint32 tty_rd (uint32 src)
+uint32_t tty_rd (uint32_t src)
 {
 return tti_unit.buf;                                    /* return data */
 }
 
-t_stat tty_wr (uint32 dst, uint32 val)
+t_stat tty_wr (uint32_t dst, uint32_t val)
 {
 tto_unit.buf = val & 0377;                              /* save char */
 dev_done = dev_done & ~INT_TTO;                         /* clear ready */
@@ -225,7 +225,7 @@ sim_activate (&tto_unit, tto_unit.wait);                /* activate unit */
 return SCPE_OK;
 }
 
-t_stat tty_fo (uint32 op)
+t_stat tty_fo (uint32_t op)
 {
 if (op & TTY_IRDY)
     dev_done = dev_done & ~INT_TTI;
@@ -234,7 +234,7 @@ if (op & TTY_ORDY)
 return SCPE_OK;
 }
 
-uint32 tty_sf (uint32 op)
+uint32_t tty_sf (uint32_t op)
 {
 if (((op & TTY_IRDY) && (dev_done & INT_TTI)) ||
     ((op & TTY_ORDY) && (dev_done & INT_TTO)))
@@ -304,12 +304,12 @@ return SCPE_OK;
 
 /* High speed paper tape function processors */
 
-uint32 hsrp_rd (uint32 src)
+uint32_t hsrp_rd (uint32_t src)
 {
 return hsr_unit.buf;                                    /* return data */
 }
 
-t_stat hsrp_wr (uint32 dst, uint32 val)
+t_stat hsrp_wr (uint32_t dst, uint32_t val)
 {
 hsp_unit.buf = val & 0377;                              /* save char */
 dev_done = dev_done & ~INT_HSP;                         /* clear ready */
@@ -317,7 +317,7 @@ sim_activate (&hsp_unit, hsp_unit.wait);                /* activate unit */
 return SCPE_OK;
 }
 
-t_stat hsrp_fo (uint32 op)
+t_stat hsrp_fo (uint32_t op)
 {
 if (op & PT_IRDY)
     dev_done = dev_done & ~INT_HSR;
@@ -328,7 +328,7 @@ if (op & PT_STRT)
 return SCPE_OK;
 }
 
-uint32 hsrp_sf (uint32 op)
+uint32_t hsrp_sf (uint32_t op)
 {
 if (((op & PT_IRDY) && (dev_done & INT_HSR)) ||
     ((op & PT_ORDY) && (dev_done & INT_HSP)))
@@ -392,7 +392,7 @@ return SCPE_OK;
 
 /* Clock function processors */
 
-t_stat rtc_fo (uint32 op)
+t_stat rtc_fo (uint32_t op)
 {
 if (op & RTC_OFF)                                       /* clock off? */
     sim_cancel (&rtc_unit);
@@ -403,7 +403,7 @@ if (op & RTC_OV)                                        /* clr ovflo? */
 return SCPE_OK;
 }
 
-uint32 rtc_sf (uint32 op)
+uint32_t rtc_sf (uint32_t op)
 {
 if ((op & RTC_OV) && (dev_done & INT_RTC))
     return 1;
