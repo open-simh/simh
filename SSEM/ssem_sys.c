@@ -33,8 +33,8 @@
 #include <ctype.h>
 #include "ssem_defs.h"
 
-extern uint32 S[];
-extern uint32 C[];
+extern uint32_t S[];
+extern uint32_t C[];
 extern int32  A[];
 
 extern DEVICE cpu_dev;
@@ -75,8 +75,8 @@ const char *sim_stop_messages[SCPE_BASE] = {
 t_stat ssem_dump (FILE *fi)
 {
 if (sim_fwrite(A, sizeof(int32), 1, fi) != 1 ||
-    sim_fwrite(C, sizeof(uint32), 1, fi) != 1 ||
-    sim_fwrite(S, sizeof(uint32), MEMSIZE, fi) != MEMSIZE) {
+    sim_fwrite(C, sizeof(uint32_t), 1, fi) != 1 ||
+    sim_fwrite(S, sizeof(uint32_t), MEMSIZE, fi) != MEMSIZE) {
     return SCPE_IOERR;
     }
 return SCPE_OK;
@@ -88,8 +88,8 @@ t_stat ssem_load_dmp (FILE *fi)
 {
 C[1] = 0;
 if (sim_fread(A, sizeof(int32), 1, fi) != 1 ||
-    sim_fread(C, sizeof(uint32), 1, fi) != 1 ||
-    sim_fread(S, sizeof(uint32), MEMSIZE, fi) != MEMSIZE) {
+    sim_fread(C, sizeof(uint32_t), 1, fi) != 1 ||
+    sim_fread(S, sizeof(uint32_t), MEMSIZE, fi) != MEMSIZE) {
     return SCPE_IOERR;
     }
 return SCPE_OK;
@@ -119,7 +119,7 @@ return ssem_load_dmp(fi);
 
 /* Utility routine - prints number in decimal */
 
-t_stat ssem_fprint_decimal (FILE *of, uint32 inst)
+t_stat ssem_fprint_decimal (FILE *of, uint32_t inst)
 {
 if (inst & SMASK)
     fprintf (of, "%d [%u]", inst, inst);
@@ -130,10 +130,10 @@ return SCPE_OK;
 
 /* Utility routine - prints number in backward binary */
 
-t_stat ssem_fprint_binary_number (FILE *of, uint32 inst, uint8 nbits)
+t_stat ssem_fprint_binary_number (FILE *of, uint32_t inst, uint8_t nbits)
 {
 int i;
-uint32 n;
+uint32_t n;
 
 n = inst;
 for (i = 0; i < nbits; i++) {
@@ -145,9 +145,9 @@ return SCPE_OK;
 
 /* Utility routine - prints instruction in backward binary */
 
-t_stat ssem_fprint_binary (FILE *of, uint32 inst, int flag)
+t_stat ssem_fprint_binary (FILE *of, uint32_t inst, int flag)
 {
-uint32 op, ea;
+uint32_t op, ea;
 
 if (!flag) return ssem_fprint_binary_number(of, inst, 32);
 
@@ -171,9 +171,9 @@ return SCPE_OK;
     http://www.computer50.org/mark1/prog98/ssemref.html
 */
 
-t_stat ssem_fprint_competition_mnemonic (FILE *of, uint32 inst)
+t_stat ssem_fprint_competition_mnemonic (FILE *of, uint32_t inst)
 {
-uint32 op, ea;
+uint32_t op, ea;
 
 op = I_GETOP (inst);
 switch (op) {
@@ -232,7 +232,7 @@ return SCPE_OK;
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
-uint32 inst;
+uint32_t inst;
 
 if (sw & SWMASK ('H')) return SCPE_ARG;    /* hexadecimal? */
 
@@ -290,7 +290,7 @@ return SCPE_OK;
 
 t_stat parse_sym_m (const char *cptr, t_value *val)
 {
-uint32 n,a;
+uint32_t n,a;
 char gbuf[CBUFSIZE];
 
 cptr = get_glyph(cptr, gbuf, 0);
