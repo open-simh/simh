@@ -48,8 +48,8 @@ extern int cgi;                             /* TRUE if we are running as a CGI p
 extern int cgiwritable;                     /* TRUE if we can write the disk images back to the image file in CGI mode */
 extern t_bool sim_gui;
 
-extern uint16 M[];                          /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
-extern uint16 ILSW[];                       /* interrupt level status words */
+extern uint16_t M[];                          /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
+extern uint16_t ILSW[];                       /* interrupt level status words */
 extern int32  IAR;                          /* instruction address register */
 extern int32  prev_IAR;                     /* instruction address register at start of current instruction */
 extern int32  SAR, SBR;                     /* storage address/buffer registers */
@@ -277,7 +277,7 @@ void   trace_both (const char *fmt, ...);           /* debugging printout */
 void   scp_panic (const char *msg);                 /* bail out of simulator */
 char  *upcase(char *str);
 void   break_simulation (t_stat reason);            /* let a device halt the simulation */
-char   hollerith_to_ascii (uint16 hol);             /* for debugging use only */
+char   hollerith_to_ascii (uint16_t hol);             /* for debugging use only */
 t_bool gdu_active (void);
 void   remark_cmd (char *remark);
 long   stuff_cmd (char *cmd);

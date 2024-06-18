@@ -154,7 +154,7 @@ typedef enum {DSK_FUNC_IDLE, DSK_FUNC_READ, DSK_FUNC_VERIFY, DSK_FUNC_WRITE, DSK
 
 static struct tag_dsk_action {              /* stores data needed for pending IO activity */
     int32    io_address;
-    uint32   io_filepos;
+    uint32_t   io_filepos;
     int      io_nwords;
     int      io_sector;
 } dsk_action[DSK_NUMDR];
@@ -187,7 +187,7 @@ extern int boot_drive;
 void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
 {
     int i, rev, nsteps, newcyl, sec, nwords;
-    uint32 newpos;                                  /* changed from t_addr to uint32 in anticipation of simh 64-bit development */
+    uint32_t newpos;                                  /* changed from t_addr to uint32_t in anticipation of simh 64-bit development */
     char msg[80];
     UNIT *uptr = dsk_unit+drv;
     int16 buf[DSK_NUMWD];
@@ -390,7 +390,7 @@ static t_stat dsk_svc (UNIT *uptr)
 {
     int drv = uptr - dsk_unit, i, nwords, sec;
     int16 buf[DSK_NUMWD];
-    uint32 newpos;                      /* changed from t_addr to uint32 in anticipation of simh 64-bit development */
+    uint32_t newpos;                      /* changed from t_addr to uint32_t in anticipation of simh 64-bit development */
     int32 iocc_addr;
     
     if (uptr->FUNC == DSK_FUNC_IDLE)                    /* service function called with no activity? not good, but ignore */
