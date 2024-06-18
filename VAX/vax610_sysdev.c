@@ -260,8 +260,8 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa, int32 lnt);           /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
     };
@@ -279,7 +279,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 
@@ -299,7 +299,7 @@ MACH_CHECK (MCHK_READ);
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32 ReadRegU (uint32_t pa, int32 lnt)
 {
 return ReadReg (pa & ~03, L_LONG);
 }
@@ -314,7 +314,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -338,7 +338,7 @@ SET_IRQL;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32 val, int32 lnt)
 {
 int32 sc = (pa & 03) << 3;
 int32 dat = ReadReg (pa & ~03, L_LONG);

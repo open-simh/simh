@@ -130,12 +130,12 @@ CTAB vax460_cmd[] = {
 
 extern int32 tmr_int;
 extern DEVICE lk_dev, vs_dev;
-extern uint32 *rom;
+extern uint32_t *rom;
 
-uint32 *isdn = NULL;                                    /* ISDN/audio registers */
-uint32 *invfl = NULL;                                   /* invalidate filter */
-uint32 *cache2ds = NULL;                                /* cache 2 data store */
-uint32 *cache2ts = NULL;                                /* cache 2 tag store */
+uint32_t *isdn = NULL;                                    /* ISDN/audio registers */
+uint32_t *invfl = NULL;                                   /* invalidate filter */
+uint32_t *cache2ds = NULL;                                /* cache 2 data store */
+uint32_t *cache2ts = NULL;                                /* cache 2 tag store */
 int32 conisp, conpc, conpsl;                            /* console reg */
 int32 ka_hltcod = 0;                                    /* KA460 halt code */
 int32 ka_mapbase = 0;                                   /* KA460 map base */
@@ -148,7 +148,7 @@ int32 SCCR = 0;                                         /* secondary cache contr
 int32 sys_model = 0;                                    /* MicroVAX or VAXstation */
 int32 int_req[IPL_HLVL] = { 0 };                        /* interrupt requests */
 int32 int_mask = 0;                                     /* interrupt mask */
-uint32 tmr_tir = 0;                                     /* curr interval */
+uint32_t tmr_tir = 0;                                     /* curr interval */
 
 t_stat sysd_reset (DEVICE *dptr);
 const char *sysd_description (DEVICE *dptr);
@@ -255,7 +255,7 @@ return 0;
 
 /* Map an address via the translation map */
 
-t_bool dma_map_addr (uint32 da, uint32 *ma)
+t_bool dma_map_addr (uint32_t da, uint32_t *ma)
 {
 int32 dblk = (da >> VA_V_VPN);                          /* DMA blk */
 if (dblk <= DMANMAPR) {
@@ -277,10 +277,10 @@ return FALSE;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -309,10 +309,10 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i;
-uint32 ma,dat;
+uint32_t ma,dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -341,10 +341,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_WriteB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -362,10 +362,10 @@ else {
             if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                          /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);           /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);          /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);            /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -373,10 +373,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_WriteW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -396,8 +396,8 @@ else {
             if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                          /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);            /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -426,7 +426,7 @@ int32 cfg_rd (int32 pa)
 {
 int32 val = ka_cfgtst;
 t_addr mem = MEMSIZE;
-uint32 sc;
+uint32_t sc;
 
 #if defined (VAX_46) || defined (VAX_47)
 mem -= (1u << 23);                                      /* 8MB on system board */
@@ -721,8 +721,8 @@ void null_wr (int32 pa, int32 val, int32 lnt)
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa);                      /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
     };
@@ -758,7 +758,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 
@@ -778,7 +778,7 @@ return 0xFFFFFFFF;
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32 ReadRegU (uint32_t pa, int32 lnt)
 {
 return ReadReg (pa & ~03, L_LONG);
 }
@@ -793,7 +793,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -816,7 +816,7 @@ return;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32 val, int32 lnt)
 {
 int32 sc = (pa & 03) << 3;
 int32 dat = ReadReg (pa & ~03, L_LONG);
@@ -1001,19 +1001,19 @@ ka_parctl = 0xF0;
 tmr_tir = 0;
 
 if (isdn == NULL)                                       /* dummy mem for ISDN */
-    isdn = (uint32 *) calloc (0x4000 >> 2, sizeof (uint32));
+    isdn = (uint32_t *) calloc (0x4000 >> 2, sizeof (uint32_t));
 if (isdn == NULL)
     return SCPE_MEM;
 if (invfl == NULL)                                      /* dummy mem for invalidate filter */
-    invfl = (uint32 *) calloc (0x8000, sizeof (uint32));
+    invfl = (uint32_t *) calloc (0x8000, sizeof (uint32_t));
 if (invfl == NULL)
     return SCPE_MEM;
 if (cache2ds == NULL)                                   /* dummy mem for cache data store */
-    cache2ds = (uint32 *) calloc (0x10002, sizeof (uint32));
+    cache2ds = (uint32_t *) calloc (0x10002, sizeof (uint32_t));
 if (cache2ds == NULL)
     return SCPE_MEM;
 if (cache2ts == NULL)                                   /* dummy mem for cache tag store */
-    cache2ts = (uint32 *) calloc (0x10000, sizeof (uint32));
+    cache2ts = (uint32_t *) calloc (0x10000, sizeof (uint32_t));
 if (cache2ts == NULL)
     return SCPE_MEM;
 

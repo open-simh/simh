@@ -129,58 +129,58 @@ extern int32 tmxr_poll;                                 /* calibrated delay */
 extern int32 fault_PC;
 extern int32 trpirq;
 
-uint16 va_ram[RAM_SIZE];
+uint16_t va_ram[RAM_SIZE];
 
-uint32 va_fcc_csr = 0;
-uint32 va_fcc_int = 0;
-uint32 va_fcc_fcsr = 0;
-uint32 va_fcc_data = 0;
-uint32 va_fcc_sc = 0;
+uint32_t va_fcc_csr = 0;
+uint32_t va_fcc_int = 0;
+uint32_t va_fcc_fcsr = 0;
+uint32_t va_fcc_data = 0;
+uint32_t va_fcc_sc = 0;
 int32 va_fcc_fifo_sz = 0;                               /* data size */
 int32 va_fcc_fifo_th = 0;                               /* threshold */
-uint32 va_fcc_fifo_wp = 0;                              /* write pointer */
-uint32 va_fcc_fifo_rp = 0;                              /* read pointer */
+uint32_t va_fcc_fifo_wp = 0;                              /* write pointer */
+uint32_t va_fcc_fifo_rp = 0;                              /* read pointer */
 
-uint32 va_ccmd = 0;                                     /* cursor command reg */
-uint32 va_xpos = 0;                                     /* cursor x position */
-uint32 va_ypos = 0;                                     /* cursor y position */
-uint32 va_xmin1 = 0;                                    /* region 1 left edge */
-uint32 va_xmax1 = 0;                                    /* region 1 right edge */
-uint32 va_ymin1 = 0;                                    /* region 1 top edge */
-uint32 va_ymax1 = 0;                                    /* region 1 bottom edge */
-uint32 va_xmin2 = 0;                                    /* region 2 left edge */
-uint32 va_xmax2 = 0;                                    /* region 2 right edge */
-uint32 va_ymin2 = 0;                                    /* region 2 top edge */
-uint32 va_ymax2 = 0;                                    /* region 2 bottom edge */
-uint16 va_cur[32];                                      /* cursor image data */
-uint32 va_cur_p = 0;                                    /* cursor image pointer */
+uint32_t va_ccmd = 0;                                     /* cursor command reg */
+uint32_t va_xpos = 0;                                     /* cursor x position */
+uint32_t va_ypos = 0;                                     /* cursor y position */
+uint32_t va_xmin1 = 0;                                    /* region 1 left edge */
+uint32_t va_xmax1 = 0;                                    /* region 1 right edge */
+uint32_t va_ymin1 = 0;                                    /* region 1 top edge */
+uint32_t va_ymax1 = 0;                                    /* region 1 bottom edge */
+uint32_t va_xmin2 = 0;                                    /* region 2 left edge */
+uint32_t va_xmax2 = 0;                                    /* region 2 right edge */
+uint32_t va_ymin2 = 0;                                    /* region 2 top edge */
+uint32_t va_ymax2 = 0;                                    /* region 2 bottom edge */
+uint16_t va_cur[32];                                      /* cursor image data */
+uint32_t va_cur_p = 0;                                    /* cursor image pointer */
 
-uint32 va_cur_x = 0;                                    /* Last cursor X-position */
-uint32 va_cur_y = 0;                                    /* Last cursor Y-position */
-uint32 va_cur_f = 0;                                    /* Last cursor function */
+uint32_t va_cur_x = 0;                                    /* Last cursor X-position */
+uint32_t va_cur_y = 0;                                    /* Last cursor Y-position */
+uint32_t va_cur_f = 0;                                    /* Last cursor function */
 t_bool va_cur_v = FALSE;                                /* Last cursor visible */
 
 t_bool va_active = FALSE;
 t_bool va_updated[2048];
 t_bool va_input_captured = FALSE;                       /* Mouse and Keyboard input captured in video window */
-uint32 *va_buf = NULL;                                  /* Video memory */
-uint32 *va_lines = NULL;                                /* Video Display Lines */
+uint32_t *va_buf = NULL;                                  /* Video memory */
+uint32_t *va_lines = NULL;                                /* Video Display Lines */
 #if defined(BT458)
-uint32 va_palette[VA_BPP + CUR_COL];                    /* Colour palette (screen, cursor)*/
-uint32 va_cmap2[VA_BPP + CUR_COL];                      /* Colour palette (screen, cursor)*/
+uint32_t va_palette[VA_BPP + CUR_COL];                    /* Colour palette (screen, cursor)*/
+uint32_t va_cmap2[VA_BPP + CUR_COL];                      /* Colour palette (screen, cursor)*/
 #else
-uint32 va_palette[VA_BPP + VA_BPP + CUR_COL];           /* Colour palette (fg, bg, cursor)*/
+uint32_t va_palette[VA_BPP + VA_BPP + CUR_COL];           /* Colour palette (fg, bg, cursor)*/
 #endif
 
-uint32 va_dla = 0;                                      /* display list addr */
+uint32_t va_dla = 0;                                      /* display list addr */
 int32 va_yoff = 0;
 int32 va_dpln = 0;
-uint32 va_white = 0;
-uint32 va_black = 0;
+uint32_t va_white = 0;
+uint32_t va_black = 0;
 
-uint32 va_bt458_addr = 0;
-uint32 va_cmap_p = 0;
-uint32 va_cmap[3];
+uint32_t va_bt458_addr = 0;
+uint32_t va_cmap_p = 0;
+uint32_t va_cmap[3];
 
 const char *va_fcc_rgd[] = {                            /* FIFO compression chip registers */
     "Colour Board CSR",
@@ -353,7 +353,7 @@ va_fcc_fifo_rp = 0;
 va_fcc_fifo_sz = 0;                                     /* empty */
 }
 
-void va_fcc_fifo_wr (uint32 val)
+void va_fcc_fifo_wr (uint32_t val)
 {
 sim_debug (DBG_FCC, &va_dev, "fcc_fifo_wr: %d, %X (%d) at %08X\n", va_fcc_fifo_wp, val, (va_fcc_fifo_sz + 1), fault_PC);
 if (va_fcc_fifo_sz == RAM_SIZE) {                       /* writing full fifo? */
@@ -366,9 +366,9 @@ if (va_fcc_fifo_wp == RAM_SIZE)                         /* pointer wrap? */
 va_fcc_fifo_sz++;
 }
 
-uint32 va_fcc_fifo_rd (void)
+uint32_t va_fcc_fifo_rd (void)
 {
-uint32 val;
+uint32_t val;
 
 if (va_fcc_fifo_sz == 0) {                              /* reading empty fifo */
     sim_debug (DBG_FCC, &va_dev, "fcc fifo underflow\n");
@@ -460,8 +460,8 @@ switch (rg) {
 #if defined(BT458)
 int32 va_dac_rd (int32 pa)
 {
-uint32 rg = (pa >> 1) & 0x3F;
-uint32 data = 0;
+uint32_t rg = (pa >> 1) & 0x3F;
+uint32_t data = 0;
 
 switch (rg) {
     case 0:                                             /* address */
@@ -507,7 +507,7 @@ return data;
 
 void va_dac_wr (int32 pa, int32 val, int32 lnt)
 {
-uint32 rg = (pa >> 1) & 0x3F;
+uint32_t rg = (pa >> 1) & 0x3F;
 int32 i;
 
 switch (rg) {
@@ -555,8 +555,8 @@ switch (rg) {
 #else
 int32 va_dac_rd (int32 pa)
 {
-uint32 rg = (pa >> 1) & 0x3F;
-uint32 data = 0;
+uint32_t rg = (pa >> 1) & 0x3F;
+uint32_t data = 0;
 
 if (rg <= 0x33)
     sim_debug (DBG_REG, &va_dev, "dac_rd: %s, %X at %08X\n", va_dac_rgd[rg], data, fault_PC);
@@ -568,7 +568,7 @@ return data;
 
 void va_dac_wr (int32 pa, int32 val, int32 lnt)
 {
-uint32 rg = (pa >> 1) & 0x3F;
+uint32_t rg = (pa >> 1) & 0x3F;
 int32 red, grn, blu, i;
 
 if (rg <= 0x33)
@@ -593,8 +593,8 @@ if (rg < 0x28) {                                        /* active colour map? */
 
 int32 va_fcc_rd (int32 pa)
 {
-uint32 rg = (pa >> 1) & 0xF;
-uint32 data = 0;
+uint32_t rg = (pa >> 1) & 0xF;
+uint32_t data = 0;
 
 switch (rg) {
     case FCC_CCSR:                                      /* colour board CSR */
@@ -662,7 +662,7 @@ return data;
 
 void va_fcc_wr (int32 pa, int32 val, int32 lnt)
 {
-uint32 rg = (pa >> 1) & 0xF;
+uint32_t rg = (pa >> 1) & 0xF;
 
 if (rg <= FCC_MAXREG)
     sim_debug (DBG_REG, &va_dev, "fcc_wr: %s, %X at %08X\n", va_fcc_rgd[rg], val, fault_PC);
@@ -818,7 +818,7 @@ if (rg >= VA_ADP_OF) {                                  /* address processor */
 void va_dlist ()
 {
 t_bool nodec = FALSE;
-uint32 inst, saved_inst;
+uint32_t inst, saved_inst;
 int32 val;
 
 saved_inst = (va_dla >> 16) & 0xFFFF;                   /* get saved instruction */
@@ -927,9 +927,9 @@ switch (src) {
         }
 }
 
-static SIM_INLINE void va_invalidate (uint32 y1, uint32 y2)
+static SIM_INLINE void va_invalidate (uint32_t y1, uint32_t y2)
 {
-uint32 ln;
+uint32_t ln;
 
 for (ln = y1; ln < y2; ln++)
     va_updated[ln] = TRUE;                              /* flag as updated */
@@ -940,11 +940,11 @@ t_stat va_svc (UNIT *uptr)
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
 t_bool updated = FALSE;                                 /* flag for refresh */
-uint32 lines;
-uint32 ln, col, off;
-uint16 *plna, *plnb;
-uint16 bita, bitb;
-uint32 c;
+uint32_t lines;
+uint32_t ln, col, off;
+uint16_t *plna, *plnb;
+uint16_t bita, bitb;
+uint32_t c;
 
 va_adp_svc (uptr);
 
@@ -1031,7 +1031,7 @@ if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
 return SCPE_OK;
 }
 
-t_bool va_fcc_rdn (uint32 *data, uint32 bits)
+t_bool va_fcc_rdn (uint32_t *data, uint32_t bits)
 {
 int32 mask = (1u << bits) - 1;
 if (va_fcc_sc == 0) {                                   /* need to read FIFO? */
@@ -1044,7 +1044,7 @@ va_fcc_sc = (va_fcc_sc + bits) & 0xF;
 return TRUE;
 }
 
-t_bool va_fcc_wrn (uint32 data, uint32 bits)
+t_bool va_fcc_wrn (uint32_t data, uint32_t bits)
 {
 int32 mask = (1u << bits) - 1;
 mask = mask << va_fcc_sc;
@@ -1062,7 +1062,7 @@ return TRUE;
 
 void va_fcc_decomp (UNIT *uptr)
 {
-uint32 pix, last_pix, len1, len2, i, sc, temp;
+uint32_t pix, last_pix, len1, len2, i, sc, temp;
 
 last_pix = 0xFF;
 for (;uptr->CMD != 0;) {
@@ -1097,7 +1097,7 @@ for (;uptr->CMD != 0;) {
 
 void va_fcc_comp (UNIT *uptr)
 {
-uint32 pix, last_pix, len1, len2, temp;
+uint32_t pix, last_pix, len1, len2, temp;
 
 va_fcc_sc = 0;
 va_fcc_data = 0;
@@ -1150,7 +1150,7 @@ int32 debug_flag = 0;
 
 t_stat va_dmasvc (UNIT *uptr)
 {
-uint16 data;
+uint16_t data;
 
 if (GET_MODE (va_fcc_csr) == MODE_HALT)
     return SCPE_OK;
@@ -1289,12 +1289,12 @@ if (!vid_active)  {
     r = vid_open (dptr, NULL, VA_XSIZE, VA_YSIZE, va_input_captured ? SIM_VID_INPUTCAPTURED : 0);/* display size & capture mode */
     if (r != SCPE_OK)
         return r;
-    va_buf = (uint32 *) calloc (VA_BUFSIZE, sizeof (uint32));
+    va_buf = (uint32_t *) calloc (VA_BUFSIZE, sizeof (uint32_t));
     if (va_buf == NULL) {
         vid_close ();
         return SCPE_MEM;
         }
-    va_lines = (uint32 *) calloc (VA_XSIZE * VA_YSIZE, sizeof (uint32));
+    va_lines = (uint32_t *) calloc (VA_XSIZE * VA_YSIZE, sizeof (uint32_t));
     if (va_lines == NULL) {
         free (va_buf);
         va_buf = NULL;

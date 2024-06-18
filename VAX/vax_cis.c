@@ -66,8 +66,8 @@
 #define C_NINE          0x39
 
 typedef struct {
-    uint32              sign;
-    uint32              val[DSTRLNT];
+    uint32_t              sign;
+    uint32_t              val[DSTRLNT];
     } DSTR;
 
 static DSTR Dstr_zero = { 0, {0, 0, 0, 0} };
@@ -82,8 +82,8 @@ int32 CmpDstr (DSTR *src1, DSTR *src2);
 int32 TestDstr (DSTR *dsrc);
 void ProbeDstr (int32 lnt, int32 addr, int32 acc);
 int32 LntDstr (DSTR *dsrc, int32 nz);
-uint32 NibbleLshift (DSTR *dsrc, int32 sc, uint32 cin);
-uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin);
+uint32_t NibbleLshift (DSTR *dsrc, int32 sc, uint32_t cin);
+uint32_t NibbleRshift (DSTR *dsrc, int32 sc, uint32_t cin);
 int32 WordLshift (DSTR *dsrc, int32 sc);
 void WordRshift (DSTR *dsrc, int32 sc);
 void CreateTable (DSTR *dsrc, DSTR mtable[10]);
@@ -102,7 +102,7 @@ int32 i, j, c, t, pop, rpt, V;
 int32 match, fill, sign, shift;
 int32 ldivd, ldivr;
 int32 lenl, lenp;
-uint32 nc, d, result;
+uint32_t nc, d, result;
 t_stat r;
 DSTR accum, src1, src2, dst;
 DSTR mptable[10];
@@ -173,7 +173,7 @@ switch (opc) {                                          /* case on opcode */
             mvl = R[0] & STR_LNMASK;                    /* orig move len */
             if (mvl >= (R[4] & STR_LNMASK))
                 mvl = R[4] & STR_LNMASK;
-            if (((uint32) R[1]) < ((uint32) R[5])) {    /* backward? */
+            if (((uint32_t) R[1]) < ((uint32_t) R[5])) {    /* backward? */
                 while (R[2]) {                          /* loop thru char */
                     t = Read ((R[1] + R[2] - 1) & LMASK, L_BYTE, RA);
                     c = Read ((R[3] + t) & LMASK, L_BYTE, RA);
@@ -1297,8 +1297,8 @@ return cc;
 int32 SetCCDstr (int32 lnt, DSTR *dst, int32 pslv)
 {
 int32 psln, pslz, i, limit;
-uint32 mask;
-static uint32 masktab[8] = {
+uint32_t mask;
+static uint32_t masktab[8] = {
     0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000,
     0xFFF00000, 0xFF000000, 0xF0000000, 0x00000000
     };
@@ -1377,7 +1377,7 @@ return;
 int32 AddDstr (DSTR *s1, DSTR *s2, DSTR *ds, int32 cy)
 {
 int32 i;
-uint32 sm1, sm2, tm1, tm2, tm3, tm4;
+uint32_t sm1, sm2, tm1, tm2, tm3, tm4;
 
 for (i = 0; i < DSTRLNT; i++) {                         /* loop low to high */
     tm1 = s1->val[i] ^ (s2->val[i] + cy);               /* xor operands */
@@ -1552,7 +1552,7 @@ return c;
         cin     =       carry in
 */
 
-uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin)
+uint32_t NibbleRshift (DSTR *dsrc, int32 sc, uint32_t cin)
 {
 int32 i, s, nc;
 
@@ -1576,7 +1576,7 @@ return 0;
         cin     =       carry in
 */
 
-uint32 NibbleLshift (DSTR *dsrc, int32 sc, uint32 cin)
+uint32_t NibbleLshift (DSTR *dsrc, int32 sc, uint32_t cin)
 {
 int32 i, s, nc;
 

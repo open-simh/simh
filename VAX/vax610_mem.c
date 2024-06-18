@@ -125,11 +125,11 @@ return;
 
 t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-uint32 memsize = (uint32)(MEMSIZE>>10);
-uint32 baseaddr = 0;
-uint32 csraddr = mctl_dib.ba;
+uint32_t memsize = (uint32_t)(MEMSIZE>>10);
+uint32_t baseaddr = 0;
+uint32_t csraddr = mctl_dib.ba;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         {  4096, "MSV11-QC"},

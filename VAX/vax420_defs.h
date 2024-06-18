@@ -105,7 +105,7 @@
 #define MAXMEMSIZE_X    (1 << MAXMEMWIDTH_X)
 #define INITMEMSIZE     (1 << 24)                       /* initial memory size */
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < MEMSIZE)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < MEMSIZE)
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 22), NULL, "4M", &cpu_set_size }, \
                         { UNIT_MSIZE, (1u << 23), NULL, "8M", &cpu_set_size }, \
                         { UNIT_MSIZE, (1u << 23) + (1u << 22), NULL, "12M", &cpu_set_size }, \
@@ -126,8 +126,8 @@
 #define ROMSIZE         (1u << ROMAWIDTH)               /* ROM length */
 #define ROMAMASK        (ROMSIZE - 1)                   /* ROM addr mask */
 #define ROMBASE         0x20040000                      /* ROM base */
-#define ADDR_IS_ROM(x)  ((((uint32) (x)) >= ROMBASE) && \
-                        (((uint32) (x)) < (ROMBASE + ROMSIZE)))
+#define ADDR_IS_ROM(x)  ((((uint32_t) (x)) >= ROMBASE) && \
+                        (((uint32_t) (x)) < (ROMBASE + ROMSIZE)))
 
 /* KA420 board registers */
 
@@ -153,8 +153,8 @@
 #define NVRSIZE         (1u << NVRAWIDTH)               /* NVR length */
 #define NVRAMASK        (NVRSIZE - 1)                   /* NVR addr mask */
 #define NVRBASE         0x200B0000                      /* NVR base */
-#define ADDR_IS_NVR(x)  ((((uint32) (x)) >= NVRBASE) && \
-                        (((uint32) (x)) < (NVRBASE + NVRSIZE)))
+#define ADDR_IS_NVR(x)  ((((uint32_t) (x)) >= NVRBASE) && \
+                        (((uint32_t) (x)) < (NVRBASE + NVRSIZE)))
 
 /* MFM disk controller */
 
@@ -268,7 +268,7 @@
 
 typedef struct {
     int32               rom_index;                      /* option ROM index */
-    uint8               *rom_array;                     /* option ROM code */
+    uint8_t               *rom_array;                     /* option ROM code */
     t_addr              rom_size;                       /* option ROM size */
     } DIB;
 
@@ -388,24 +388,24 @@ extern int32 sys_model;
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf);
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf);
+int32 Map_WriteB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_WriteW (uint32_t ba, int32 bc, uint16_t *buf);
 
 /* Function prototypes for disk buffer */
 
-void ddb_WriteB (uint32 ba, uint32 bc, uint8 *buf);
-void ddb_WriteW (uint32 ba, uint32 bc, uint16 *buf);
-void ddb_ReadB (uint32 ba, uint32 bc, uint8 *buf);
-void ddb_ReadW (uint32 ba, uint32 bc, uint16 *buf);
+void ddb_WriteB (uint32_t ba, uint32_t bc, uint8_t *buf);
+void ddb_WriteW (uint32_t ba, uint32_t bc, uint16_t *buf);
+void ddb_ReadB (uint32_t ba, uint32_t bc, uint8_t *buf);
+void ddb_ReadW (uint32_t ba, uint32_t bc, uint16_t *buf);
 
 /* Function prototypes for system-specific unaligned support */
 
-int32 ReadIOU (uint32 pa, int32 lnt);
-int32 ReadRegU (uint32 pa, int32 lnt);
-void WriteIOU (uint32 pa, int32 val, int32 lnt);
-void WriteRegU (uint32 pa, int32 val, int32 lnt);
+int32 ReadIOU (uint32_t pa, int32 lnt);
+int32 ReadRegU (uint32_t pa, int32 lnt);
+void WriteIOU (uint32_t pa, int32 val, int32 lnt);
+void WriteRegU (uint32_t pa, int32 val, int32 lnt);
 
 t_stat auto_config (const char *name, int32 nctrl);
 

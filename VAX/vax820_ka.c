@@ -74,8 +74,8 @@ int32 rxcd_iptr = 0;
 int32 rxcd_optr = 0;
 char rxcd_char = '\0';
 BIIC ka_biic[KA_NUM];
-uint32 ka_rxcd[KA_NUM];
-uint32 ka_pcsr[KA_NUM];
+uint32_t ka_rxcd[KA_NUM];
+uint32_t ka_pcsr[KA_NUM];
 
 extern int32 rxcd_int;
 extern int32 ipir;
@@ -92,7 +92,7 @@ t_stat ka_svc (UNIT *uptr);
 
 #if defined (VAX_MP)
 extern void cpu_setreg (int32 cpu, int32 rg, int32 val);
-extern void cpu_start (int32 cpu, uint32 addr);
+extern void cpu_start (int32 cpu, uint32_t addr);
 #endif
 
 /* KAx data structures

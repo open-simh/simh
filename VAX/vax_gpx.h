@@ -184,9 +184,9 @@ t_stat va_vdp_reset (DEVICE *dptr);
 
 t_stat va_btp (UNIT *uptr, t_bool zmode);
 t_stat va_ptb (UNIT *uptr, t_bool zmode);
-void va_fifo_wr (uint32 val);
-uint32 va_fifo_rd (void);
-void va_adpstat (uint32 set, uint32 clr);
+void va_fifo_wr (uint32_t val);
+uint32_t va_fifo_rd (void);
+void va_adpstat (uint32_t set, uint32_t clr);
 
 extern int32 va_adp[ADP_NUMREG];                        /* Address processor registers */
 
@@ -195,7 +195,7 @@ extern int32 va_adp[ADP_NUMREG];                        /* Address processor reg
 extern void va_setint (int32 src);
 extern void va_clrint (int32 src);
 
-extern uint32 *va_buf;                                  /* Video memory */
+extern uint32_t *va_buf;                                  /* Video memory */
 extern t_bool va_updated[VA_BYSIZE];
 extern UNIT va_unit[];
 

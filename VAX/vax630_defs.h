@@ -118,7 +118,7 @@
 #define MAXMEMSIZE_X    (1 << MAXMEMWIDTH_X)
 #define INITMEMSIZE     (1 << 24)                       /* initial memory size */
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < MEMSIZE)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < MEMSIZE)
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 20), NULL, "1M", &cpu_set_size, NULL, NULL, "Set Memory to 1M bytes" },                             \
                         { UNIT_MSIZE, (1u << 21), NULL, "2M", &cpu_set_size, NULL, NULL, "Set Memory to 2M bytes" },                             \
                         { UNIT_MSIZE, (1u << 21) + (1u << 20), NULL, "3M", &cpu_set_size, NULL, NULL, "Set Memory to 3M bytes" },                \
@@ -135,8 +135,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define IOPAGESIZE      (1u << IOPAGEAWIDTH)            /* IO page length */
 #define IOPAGEMASK      (IOPAGESIZE - 1)                /* IO addr mask */
 #define IOPAGEBASE      0x20000000                      /* IO page base */
-#define ADDR_IS_IOP(x)  ((((uint32) (x)) >= IOPAGEBASE) && \
-                        (((uint32) (x)) < (IOPAGEBASE + IOPAGESIZE)))
+#define ADDR_IS_IOP(x)  ((((uint32_t) (x)) >= IOPAGEBASE) && \
+                        (((uint32_t) (x)) < (IOPAGEBASE + IOPAGESIZE)))
 
 /* Read only memory - appears twice */
 
@@ -145,13 +145,13 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define ROMAMASK        (ROMSIZE - 1)                   /* ROM addr mask */
 #define ROMBASE         0x20040000                      /* ROM base */
 #if !defined(VAX_620)
-#define ADDR_IS_ROM(x)  (((((uint32) (x)) >= ROMBASE) && \
-                          (((uint32) (x)) < (ROMBASE + ROMSIZE + ROMSIZE))) || \
-                         ((((uint32) (x)) >= QDMBASE) && \
-                          (((uint32) (x)) < (QDMBASE + QDMSIZE))))
+#define ADDR_IS_ROM(x)  (((((uint32_t) (x)) >= ROMBASE) && \
+                          (((uint32_t) (x)) < (ROMBASE + ROMSIZE + ROMSIZE))) || \
+                         ((((uint32_t) (x)) >= QDMBASE) && \
+                          (((uint32_t) (x)) < (QDMBASE + QDMSIZE))))
 #else
-#define ADDR_IS_ROM(x)  ((((uint32) (x)) >= ROMBASE) && \
-                         (((uint32) (x)) < (ROMBASE + ROMSIZE + ROMSIZE)))
+#define ADDR_IS_ROM(x)  ((((uint32_t) (x)) >= ROMBASE) && \
+                         (((uint32_t) (x)) < (ROMBASE + ROMSIZE + ROMSIZE)))
 #endif
 
 /* KA630 board registers */
@@ -174,8 +174,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define NVRSIZE         ((1u << NVRAWIDTH) >> 1)        /* NVR length (bytes) */
 #define NVRAMASK        (NVRASIZE - 1)                  /* NVR addr mask */
 #define NVRBASE         0x200B8000                      /* NVR base */
-#define ADDR_IS_NVR(x)  ((((uint32) (x)) >= NVRBASE) && \
-                        (((uint32) (x)) < (NVRBASE + NVRASIZE)))
+#define ADDR_IS_NVR(x)  ((((uint32_t) (x)) >= NVRBASE) && \
+                        (((uint32_t) (x)) < (NVRBASE + NVRASIZE)))
 
 /* Qbus memory space */
 
@@ -183,8 +183,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define QBMSIZE         (1u << QBMAWIDTH)               /* Qmem length */
 #define QBMAMASK        (QBMSIZE - 1)                   /* Qmem addr mask */
 #define QBMBASE         0x30000000                      /* Qmem base */
-#define ADDR_IS_QBM(x)  ((((uint32) (x)) >= QBMBASE) && \
-                        (((uint32) (x)) < (QBMBASE + QBMSIZE)))
+#define ADDR_IS_QBM(x)  ((((uint32_t) (x)) >= QBMBASE) && \
+                        (((uint32_t) (x)) < (QBMBASE + QBMSIZE)))
 
 /* Reflect to IO on either IO space or Qbus memory */
 
@@ -197,21 +197,21 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc
 #define QVMAMASK        (QVMSIZE - 1)                   /* QVSS mem addr mask */
 #define QVMBASE         0x303C0000                      /* QVSS mem base */
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
-                         (((uint32) (x)) >= QVMBASE) && \
-                         (((uint32) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32 *vc_buf;
+                         (((uint32_t) (x)) >= QVMBASE) && \
+                         (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
+extern uint32_t *vc_buf;
 
 /* QDSS memory space */
 
 #define QDMAWIDTH       16                              /* QDSS mem addr width */
 #define QDMSIZE         (1u << QDMAWIDTH)               /* QDSS mem length */
 #define QDMAMASK        (QDMSIZE - 1)                   /* QDSS mem addr mask */
-#define QDMBASE         ((uint32)(0x30000000 + va_addr))/* QDSS mem base */
+#define QDMBASE         ((uint32_t)(0x30000000 + va_addr))/* QDSS mem base */
 #define ADDR_IS_QDM(x)  (va_buf &&                      \
-                         (((uint32) (x)) >= QDMBASE) && \
-                         (((uint32) (x)) < (QDMBASE + QDMSIZE)))
-extern uint32 *va_buf;
-extern uint32 va_addr;                                  /* QDSS memory offset */
+                         (((uint32_t) (x)) >= QDMBASE) && \
+                         (((uint32_t) (x)) < (QDMBASE + QDMSIZE)))
+extern uint32_t *va_buf;
+extern uint32_t va_addr;                                  /* QDSS memory offset */
 
 /* Other address spaces */
 
@@ -274,15 +274,15 @@ extern uint32 va_addr;                                  /* QDSS memory offset */
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
+    uint32_t              ba;                             /* base addr */
+    uint32_t              lnt;                            /* length */
     t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
     t_stat              (*wr)(int32 dat, int32 ad, int32 md);
     int32               vnum;                           /* vectors: number */
     int32               vloc;                           /* locator */
     int32               vec;                            /* value */
     int32               (*ack[VEC_DEVMAX])(void);       /* ack routine */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t              ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
     int32               numc;                           /* Number of controllers */
@@ -428,17 +428,17 @@ typedef struct {
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf);
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf);
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf);
 
 /* Function prototypes for system-specific unaligned support */
 
-int32 ReadIOU (uint32 pa, int32 lnt);
-int32 ReadRegU (uint32 pa, int32 lnt);
-void WriteIOU (uint32 pa, int32 val, int32 lnt);
-void WriteRegU (uint32 pa, int32 val, int32 lnt);
+int32 ReadIOU (uint32_t pa, int32 lnt);
+int32 ReadRegU (uint32_t pa, int32 lnt);
+void WriteIOU (uint32_t pa, int32 val, int32 lnt);
+void WriteRegU (uint32_t pa, int32 val, int32 lnt);
 
 extern t_stat sysd_set_diag (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat sysd_show_diag (FILE *st, UNIT *uptr, int32 val, CONST void *desc);

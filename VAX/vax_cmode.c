@@ -579,12 +579,12 @@ switch ((IR >> 12) & 017) {                             /* decode IR<15:12> */
                 src2 = RdRegW (dstspec);
             else src2 = RdMemW (GeteaW (dstspec));
             t = RdRegW (srcspec);
-            src = (((uint32) t) << 16) | RdRegW (srcspec | 1);
+            src = (((uint32_t) t) << 16) | RdRegW (srcspec | 1);
             if (src2 == 0) {                            /* div by 0? */
                 cc = CC_V | CC_C;                       /* set cc's */
                 break;                                  /* done */
                 }
-            if (((uint32)src == LSIGN) && ((uint32)src2 == WMASK)) {    /* -2^31 / -1? */
+            if (((uint32_t)src == LSIGN) && ((uint32_t)src2 == WMASK)) {    /* -2^31 / -1? */
                 cc = CC_V;                              /* overflow */
                 break;                                  /* done */
                 }
@@ -646,17 +646,17 @@ switch ((IR >> 12) & 017) {                             /* decode IR<15:12> */
             else src2 = RdMemW (GeteaW (dstspec));
             src2 = src2 & 077;
             t = RdRegW (srcspec);
-            src = (((uint32) t) << 16) | RdRegW (srcspec | 1);
+            src = (((uint32_t) t) << 16) | RdRegW (srcspec | 1);
             sign = (t & WSIGN)? 1: 0;                   /* get src sign */
             if (src2 == 0) {                            /* [0] */
                 dst = src;                              /* result */
                 oc = 0;                                 /* last bit out */
                 }
             else if (src2 <= 31) {                      /* [1,31] */
-                dst = ((uint32) src) << src2;
+                dst = ((uint32_t) src) << src2;
                 i = ((src >> (32 - src2)) | (-sign << src2)) & LMASK;
                 oc = (i & 1)? CC_C: 0;
-                if ((dst & LSIGN)? ((uint32)i != LMASK): (i != 0))
+                if ((dst & LSIGN)? ((uint32_t)i != LMASK): (i != 0))
                     oc = oc | CC_V;
                 }
             else if (src2 == 32) {                      /* [32] = -32 */

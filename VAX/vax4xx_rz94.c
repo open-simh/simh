@@ -73,23 +73,23 @@
 
 #define RZ_MAXFR        (1u << 16)                      /* max transfer */
 
-uint32 rz_last_cmd = 0;
-uint32 rz_txi = 0;                                      /* transfer count */
-uint32 rz_txc = 0;                                      /* transfer counter */
-uint8 rz_cfg1 = 0;                                      /* config 1 */
-uint8 rz_cfg2 = 0;                                      /* config 2 */
-uint8 rz_cfg3 = 0;                                      /* config 3 */
-uint8 rz_int = 0;                                       /* interrupt */
-uint8 rz_stat = 0;                                      /* status */
-uint32 rz_seq = 0;
-uint32 rz_dest = 1;
-uint8 rz_fifo[16] = { 0 };
-uint32 rz_fifo_t = 0;
-uint32 rz_fifo_b = 0;
-uint32 rz_fifo_c = 0;
-uint32 rz_dma = 0;
-uint32 rz_dir = 0;
-uint8 *rz_buf;
+uint32_t rz_last_cmd = 0;
+uint32_t rz_txi = 0;                                      /* transfer count */
+uint32_t rz_txc = 0;                                      /* transfer counter */
+uint8_t rz_cfg1 = 0;                                      /* config 1 */
+uint8_t rz_cfg2 = 0;                                      /* config 2 */
+uint8_t rz_cfg3 = 0;                                      /* config 3 */
+uint8_t rz_int = 0;                                       /* interrupt */
+uint8_t rz_stat = 0;                                      /* status */
+uint32_t rz_seq = 0;
+uint32_t rz_dest = 1;
+uint8_t rz_fifo[16] = { 0 };
+uint32_t rz_fifo_t = 0;
+uint32_t rz_fifo_b = 0;
+uint32_t rz_fifo_c = 0;
+uint32_t rz_dma = 0;
+uint32_t rz_dir = 0;
+uint8_t *rz_buf;
 SCSI_BUS rz_bus;
 
 /* debugging bitmaps */
@@ -115,7 +115,7 @@ t_stat rz_reset (DEVICE *dptr);
 t_stat rz_attach (UNIT *uptr, CONST char *cptr);
 void rz_sw_reset (void);
 t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void rz_cmd (uint32 cmd);
+void rz_cmd (uint32_t cmd);
 t_stat rz_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat rz_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 const char *rz_description (DEVICE *dptr);
@@ -246,7 +246,7 @@ static const char *rz_wr_regs[] =
      "CFG1", "CLK ", "TEST", "CFG2",
      "CFG3", "RSVD", "RSVD", "FFOB" };
 
-uint8 rz_fifo_rd (void)
+uint8_t rz_fifo_rd (void)
 {
 if (rz_fifo_c) {
     rz_fifo_t &= 0xF;
@@ -257,7 +257,7 @@ else
     return rz_fifo[rz_fifo_b];
 }
 
-void rz_fifo_wr (uint8 data)
+void rz_fifo_wr (uint8_t data)
 {
 if (rz_fifo_c < 16) {
     rz_fifo[rz_fifo_b++] = data;
@@ -432,18 +432,18 @@ SET_INT (SC);
 return SCPE_OK;
 }
 
-void rz_setint (uint32 flag)
+void rz_setint (uint32_t flag)
 {
 rz_int |= flag;
 sim_activate (&rz_unit[8], 50);
 }
 
-void rz_cmd (uint32 cmd)
+void rz_cmd (uint32_t cmd)
 {
-uint32 ini = (rz_cfg1 & CFG1_MYID);
-uint32 tgt = rz_dest;
-uint32 state = scsi_state (&rz_bus, ini);
-uint32 txc, i, old_phase;
+uint32_t ini = (rz_cfg1 & CFG1_MYID);
+uint32_t tgt = rz_dest;
+uint32_t state = scsi_state (&rz_bus, ini);
+uint32_t txc, i, old_phase;
 
 if ((cmd & CMD_DISC) && (state != SCSI_DISC)) {         /* check cmd validity */
     sim_debug (DBG_CMD, &rz_dev, "disconnected cmd when not disconnected\n");
@@ -787,7 +787,7 @@ if (cmd > 0)
 
 void rz_sw_reset ()
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < 9; i++)
     sim_cancel (&rz_unit[i]);
@@ -806,13 +806,13 @@ scsi_reset (&rz_bus);
 
 t_stat rz_reset (DEVICE *dptr)
 {
-uint32 i;
-uint32 dtyp;
+uint32_t i;
+uint32_t dtyp;
 UNIT *uptr;
 t_stat r;
 
 if (rz_buf == NULL)
-    rz_buf = (uint8 *)calloc (RZ_MAXFR, sizeof(uint8));
+    rz_buf = (uint8_t *)calloc (RZ_MAXFR, sizeof(uint8_t));
 if (rz_buf == NULL)
     return SCPE_MEM;
 r = scsi_init (&rz_bus, RZ_MAXFR);                      /* init SCSI bus */
@@ -836,8 +836,8 @@ return SCPE_OK;
 
 t_stat rz_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 cap;
-uint32 max = sim_toffset_64? RZU_EMAXC: RZU_MAXC;
+uint32_t cap;
+uint32_t max = sim_toffset_64? RZU_EMAXC: RZU_MAXC;
 t_stat r;
 
 if ((val < 0) || ((val != RZU_DTYPE) && cptr))
@@ -845,7 +845,7 @@ if ((val < 0) || ((val != RZU_DTYPE) && cptr))
 if (uptr->flags & UNIT_ATT)
     return SCPE_ALATT;
 if (cptr) {
-    cap = (uint32) get_uint (cptr, 10, 0xFFFFFFFF, &r);
+    cap = (uint32_t) get_uint (cptr, 10, 0xFFFFFFFF, &r);
     if ((sim_switches & SWMASK ('L')) == 0)
         cap = cap * 1954;
     if ((r != SCPE_OK) || (cap < RZU_MINC) || (cap > max))

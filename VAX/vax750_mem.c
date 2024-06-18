@@ -86,15 +86,15 @@
 #define MEM_SIZE_64K    (1u << 20)                       /* Board size (64k chips) */
 #define MEM_SIZE_256K   (1u << 22)                       /* Board size (256k chips) */
 #define MEM_64K_MASK     0x5555
-#define MEM_BOARD_MASK_64K(x)  ((((1u << (uint32)(x/MEM_SIZE_64K)) - 1) & MEM_64K_MASK) | MCSR2_CS64)
+#define MEM_BOARD_MASK_64K(x)  ((((1u << (uint32_t)(x/MEM_SIZE_64K)) - 1) & MEM_64K_MASK) | MCSR2_CS64)
 #define MEM_256K_MASK    0x5555
-#define MEM_BOARD_MASK_256K(x) ((((1u << (uint32)(x/MEM_SIZE_256K)) - 1) & MEM_256K_MASK) | MCSR2_CS256)
+#define MEM_BOARD_MASK_256K(x) ((((1u << (uint32_t)(x/MEM_SIZE_256K)) - 1) & MEM_256K_MASK) | MCSR2_CS256)
 
-uint32 mcsr0 = 0;
-uint32 mcsr1 = 0;
-uint32 mcsr2 = 0;
+uint32_t mcsr0 = 0;
+uint32_t mcsr1 = 0;
+uint32_t mcsr2 = 0;
 
-uint32 rom[ROMSIZE/sizeof(uint32)];                     /* boot ROM */
+uint32_t rom[ROMSIZE/sizeof(uint32_t)];                     /* boot ROM */
 
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);
@@ -219,9 +219,9 @@ return;
 
 t_stat mctl_reset (DEVICE *dptr)
 {
-uint32 large_slot_size = MEM_SIZE_16K, large_slots;
-uint32 small_slot_size, small_slots;
-uint32 boards, board_mask;
+uint32_t large_slot_size = MEM_SIZE_16K, large_slots;
+uint32_t small_slot_size, small_slots;
+uint32_t boards, board_mask;
 
 mcsr0 = 0;
 mcsr1 = 0;
@@ -232,7 +232,7 @@ else {
         large_slot_size = MEM_SIZE_64K;
     }
 small_slot_size = large_slot_size >> 2;
-large_slots = (uint32)(MEMSIZE/large_slot_size);
+large_slots = (uint32_t)(MEMSIZE/large_slot_size);
 small_slots = (MEMSIZE & (large_slot_size -1))/small_slot_size;
 boards = ((1u << ((large_slots + small_slots) << 1)) - 1);
 board_mask = (((large_slot_size == MEM_SIZE_16K)? 0xFFFF : 0x5555) & (((1u << (large_slots << 1)) - 1))) | (((large_slot_size == MEM_SIZE_256K) ? 0xAAAA : 0xFFFF) << (large_slots << 1));
@@ -259,9 +259,9 @@ return "Memory controller";
 
 t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
-uint32 baseaddr = 0;
+uint32_t baseaddr = 0;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 4096, "MS750-JD M7199"},

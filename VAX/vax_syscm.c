@@ -272,7 +272,7 @@ t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32 sw)
 {
 int32 i, j, c1, c2, c3, inst, srcm, srcr, dstm, dstr;
 int32 l8b, brdisp, wd1;
-uint32 val[3];
+uint32_t val[3];
 
 for (i = j = 0; i < 3; i++, j = j + 2)
     val[i] = (int32) (bytes[j] | (bytes[j + 1] << 8));

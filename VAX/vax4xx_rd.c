@@ -239,7 +239,7 @@ struct drvtyp {
     int32       tpg;                                    /* trk/grp */
     int32       xbn;                                    /* XBN size */
     int32       dbn;                                    /* DBN size */
-    uint32      lbn;                                    /* LBN size */
+    uint32_t      lbn;                                    /* LBN size */
     int32       rcts;                                   /* RCT size */
     int32       rctc;                                   /* RCT copies */
     int32       rbn;                                    /* RBNs */
@@ -282,7 +282,7 @@ int32 rd_cstat = 0;                                     /* chip status */
 int32 rd_term = 0;                                      /* termination conditions */
 int32 rd_data = 0;
 
-uint16 *rd_xb = NULL;                                   /* xfer buffer */
+uint16_t *rd_xb = NULL;                                   /* xfer buffer */
 
 t_stat rd_svc (UNIT *uptr);
 t_stat rd_reset (DEVICE *dptr);
@@ -640,8 +640,8 @@ return CMD_UNKNOWN;
 
 t_stat rd_rdcyl0 (int32 hd, int32 dtype)
 {
-uint32 i;
-uint16 c;
+uint32_t i;
+uint16_t c;
 
 if (hd <= 2) {
     memset (rd_xb, 0, sizeof(*rd_xb) * 256);            /* fill sector buffer with 0's */
@@ -691,8 +691,8 @@ t_stat rd_rddata (UNIT *uptr, t_lba lba, t_seccnt sects)
 t_seccnt sectsread;
 t_stat r;
 
-r = sim_disk_rdsect (uptr, lba, (uint8 *)rd_xb, &sectsread, sects);
-sim_disk_data_trace (uptr, (uint8 *)rd_xb, lba, sectsread*RD_NUMBY, "sim_disk_rdsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
+r = sim_disk_rdsect (uptr, lba, (uint8_t *)rd_xb, &sectsread, sects);
+sim_disk_data_trace (uptr, (uint8_t *)rd_xb, lba, sectsread*RD_NUMBY, "sim_disk_rdsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
 return r;
 }
 
@@ -700,8 +700,8 @@ t_stat rd_wrdata (UNIT *uptr, t_lba lba, t_seccnt sects)
 {
 t_seccnt sectswritten;
 
-sim_disk_data_trace (uptr, (uint8 *)rd_xb, lba, sects*RD_NUMBY, "sim_disk_wrsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
-return sim_disk_wrsect (uptr, lba, (uint8 *)rd_xb, &sectswritten, sects);
+sim_disk_data_trace (uptr, (uint8_t *)rd_xb, lba, sects*RD_NUMBY, "sim_disk_wrsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
+return sim_disk_wrsect (uptr, lba, (uint8_t *)rd_xb, &sectswritten, sects);
 }
 
 /* Unit service */
@@ -857,7 +857,7 @@ sim_cancel (&rd_unit[0]);                               /* cancel drive 0 */
 sim_cancel (&rd_unit[1]);                               /* cancel drive 1 */
 sim_cancel (&rd_unit[2]);                               /* cancel drive 2 */
 if (rd_xb == NULL)
-    rd_xb = (uint16 *) calloc (RD_MAXFR, sizeof (uint8));
+    rd_xb = (uint16_t *) calloc (RD_MAXFR, sizeof (uint8_t));
 if (rd_xb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -870,7 +870,7 @@ t_stat rd_attach (UNIT *uptr, CONST char *cptr)
 const char *drives[] = {"RX33", "RD31", "RD32", "RD53", "RD54", };
 
 return sim_disk_attach_ex (uptr, cptr, RD_NUMBY,
-                           sizeof (uint8), TRUE, DBG_DSK,
+                           sizeof (uint8_t), TRUE, DBG_DSK,
                            drv_tab[GET_DTYPE (uptr->flags)].name, 0, 0,
                            (uptr->flags & UNIT_NOAUTO) ? NULL: drives);
 }

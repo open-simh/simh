@@ -158,26 +158,26 @@
 #define BIICR_RD        (BIICR_RW | BIICR_W1C)
 
 typedef struct {
-    uint32 dtype;
-    uint32 csr;
-    uint32 ber;
-    uint32 eicr;
-    uint32 idest;
-    uint32 imsk;
-    uint32 fidest;
-    uint32 isrc;
-    uint32 sa;
-    uint32 ea;
-    uint32 bcic;
-    uint32 wsts;
-    uint32 ficmd;
-    uint32 uiic;
-    uint32 gpr0;
-    uint32 gpr1;
-    uint32 gpr2;
-    uint32 gpr3;
-    uint32 sosr;
-    uint32 rxcd;
+    uint32_t dtype;
+    uint32_t csr;
+    uint32_t ber;
+    uint32_t eicr;
+    uint32_t idest;
+    uint32_t imsk;
+    uint32_t fidest;
+    uint32_t isrc;
+    uint32_t sa;
+    uint32_t ea;
+    uint32_t bcic;
+    uint32_t wsts;
+    uint32_t ficmd;
+    uint32_t uiic;
+    uint32_t gpr0;
+    uint32_t gpr1;
+    uint32_t gpr2;
+    uint32_t gpr3;
+    uint32_t sosr;
+    uint32_t rxcd;
 } BIIC;
 
 #endif

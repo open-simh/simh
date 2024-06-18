@@ -79,20 +79,20 @@
 
 extern UNIT fl_unit;
 
-t_bool rtfile_parse (char *pntr, uint16 *file_name);
-uint32 rtfile_lookup (uint16 *file_name, uint32 *start);
-uint32 rtfile_ator50 (uint32 ascii);
-t_bool rtfile_read (uint32 block, uint32 count, uint16 *buffer);
-uint32 rtfile_find (uint32 block, uint32 sector);
+t_bool rtfile_parse (char *pntr, uint16_t *file_name);
+uint32_t rtfile_lookup (uint16_t *file_name, uint32_t *start);
+uint32_t rtfile_ator50 (uint32_t ascii);
+t_bool rtfile_read (uint32_t block, uint32_t count, uint16_t *buffer);
+uint32_t rtfile_find (uint32_t block, uint32_t sector);
 
 /* FLOAD file_name {file_origin} */
 
 t_stat vax780_fload (int32 flag, CONST char *cptr)
 {
 char gbuf[CBUFSIZE];
-uint16 file_name[3], blkbuf[BLK_SIZE];
+uint16_t file_name[3], blkbuf[BLK_SIZE];
 t_stat r;
-uint32 i, j, start, size, origin;
+uint32_t i, j, start, size, origin;
 
 if ((fl_unit.flags & UNIT_ATT) == 0)                    /* floppy attached? */
     return SCPE_UNATT;
@@ -104,7 +104,7 @@ if (!rtfile_parse (gbuf, file_name))                    /* legal file name? */
 if ((size = rtfile_lookup (file_name, &start)) == 0)    /* file on floppy? */
     return SCPE_ARG;
 if (*cptr) {                                            /* origin? */
-    origin = (uint32) get_uint (cptr, 16, MEMSIZE, &r);
+    origin = (uint32_t) get_uint (cptr, 16, MEMSIZE, &r);
     if ((r != SCPE_OK) || (origin & 1))                 /* must be even */
         return SCPE_ARG;
     }
@@ -125,11 +125,11 @@ return SCPE_OK;
 
 /* Parse an RT11 file name and convert it to radix-50 */
 
-t_bool rtfile_parse (char *pntr, uint16 *file_name)
+t_bool rtfile_parse (char *pntr, uint16_t *file_name)
 {
 char c;
-uint16 d;
-uint32 i, j;
+uint16_t d;
+uint32_t i, j;
 
 file_name[0] = file_name[1] = file_name[2] = 0;         /* zero file name */
 for (i = 0; i < 2; i++) {                               /* 6 characters */
@@ -167,23 +167,23 @@ return TRUE;
 
 /* ASCII to radix-50 conversion */
 
-uint32 rtfile_ator50 (uint32 ascii)
+uint32_t rtfile_ator50 (uint32_t ascii)
 {
 static const char *r50 = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
 const char *fptr;
 
 ascii = toupper (ascii);
 if ((fptr = strchr (r50, toupper (ascii))) != NULL)
-    return ((uint32) (fptr - r50));
+    return ((uint32_t) (fptr - r50));
 else return 0;
 }
 
 /* Lookup an RT11 file name in the directory */
 
-uint32 rtfile_lookup (uint16 *file_name, uint32 *start)
+uint32_t rtfile_lookup (uint16_t *file_name, uint32_t *start)
 {
-uint16 dirseg[DS_SIZE];
-uint32 segnum, dirent;
+uint16_t dirseg[DS_SIZE];
+uint32_t segnum, dirent;
 
 for (segnum = 1; (segnum != 0) && (segnum <= DS_MAX);   /* loop thru segments */
      segnum = dirseg[DS_NEXT]) {
@@ -207,20 +207,20 @@ return 0;
 
 /* Read blocks */
 
-t_stat rtfile_read (uint32 block, uint32 count, uint16 *buffer)
+t_stat rtfile_read (uint32_t block, uint32_t count, uint16_t *buffer)
 {
-uint32 i, j;
-uint32 pos;
-uint8 *fbuf = (uint8 *)fl_unit.filebuf;
+uint32_t i, j;
+uint32_t pos;
+uint8_t *fbuf = (uint8_t *)fl_unit.filebuf;
 
 for (; count > 0; count--, block++) {
     for (i = 0; i < 4; i++) {                           /* 4 sectors/block */
         pos = rtfile_find (block, i);                   /* position */
-        if ((pos + 128) >= (uint32) fl_unit.capac)      /* off end of disk? */
+        if ((pos + 128) >= (uint32_t) fl_unit.capac)      /* off end of disk? */
             return FALSE;
         for (j = 0; j < 128; j = j + 2)                 /* copy 128 bytes */
-            *buffer++ = (((uint16) fbuf[pos + j + 1]) << 8) |
-                ((uint16) fbuf[pos + j]);
+            *buffer++ = (((uint16_t) fbuf[pos + j + 1]) << 8) |
+                ((uint16_t) fbuf[pos + j]);
         }
     }
 return TRUE;
@@ -228,10 +228,10 @@ return TRUE;
 
 /* Map an RT-11 block number to a physical byte number */
 
-uint32 rtfile_find (uint32 block, uint32 sector)
+uint32_t rtfile_find (uint32_t block, uint32_t sector)
 {
-uint32 ls, lt, pt, ps;
-uint32 off, bb;
+uint32_t ls, lt, pt, ps;
+uint32_t off, bb;
 
 /* get logical block, track & sector */
 
