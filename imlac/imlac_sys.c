@@ -31,7 +31,7 @@
 int32 sim_emax = 1;
 char sim_name[] = "Imlac";
 
-uint16 M[040000];
+uint16_t M[040000];
 SUBDEV *dev_tab[0100];
 REG *sim_PC = &cpu_reg[0];
 
@@ -62,7 +62,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 };
 
 static t_stat
-get4 (FILE *fileref, uint16 *x)
+get4 (FILE *fileref, uint16_t *x)
 {
   int c;
   for (;;) {
@@ -77,9 +77,9 @@ get4 (FILE *fileref, uint16 *x)
 }
 
 static t_stat
-get8 (FILE *fileref, uint16 *x)
+get8 (FILE *fileref, uint16_t *x)
 {
-  uint16 y;
+  uint16_t y;
   if (get4 (fileref, x) != SCPE_OK)
     return SCPE_IOERR;
   if (get4 (fileref, &y) != SCPE_OK)
@@ -89,9 +89,9 @@ get8 (FILE *fileref, uint16 *x)
 }
 
 static t_stat
-get16 (FILE *fileref, uint16 *x)
+get16 (FILE *fileref, uint16_t *x)
 {
-  uint16 y;
+  uint16_t y;
   if (get8 (fileref, x) != SCPE_OK)
     return SCPE_IOERR;
   if (get8 (fileref, &y) != SCPE_OK)
@@ -104,9 +104,9 @@ static t_stat
 load_stty (FILE *fileref)
 {
   int verbose = sim_switches & SWMASK ('V');
-  uint16 *PC = (uint16 *)sim_PC->loc;
-  uint16 x, count, addr;
-  uint32 csum;
+  uint16_t *PC = (uint16_t *)sim_PC->loc;
+  uint16_t x, count, addr;
+  uint32_t csum;
   int i;
 
   /* Discard block loader. */
@@ -184,7 +184,7 @@ t_bool build_dev_tab (void)
   return SCPE_OK;
 }
 
-static t_stat fprint_class1 (FILE *of, uint16 insn)
+static t_stat fprint_class1 (FILE *of, uint16_t insn)
 { 
   switch (insn & 0777) {
   case 0000: fprintf (of, "NOP"); break;
@@ -205,7 +205,7 @@ static t_stat fprint_class1 (FILE *of, uint16 insn)
   return SCPE_OK;
 }
 
-static t_stat fprint_class2 (FILE *of, uint16 insn)
+static t_stat fprint_class2 (FILE *of, uint16_t insn)
 { 
   switch (insn & 0770) {
   case 0000: fprintf (of, "RAL %o", insn & 7); break;
@@ -218,7 +218,7 @@ static t_stat fprint_class2 (FILE *of, uint16 insn)
   return SCPE_OK;
 }
 
-static t_stat fprint_class3 (FILE *of, uint16 insn)
+static t_stat fprint_class3 (FILE *of, uint16_t insn)
 { 
   switch (insn & 0177777) {
   case 0002001: fprintf (of, "ASZ"); break;
@@ -244,7 +244,7 @@ static t_stat fprint_class3 (FILE *of, uint16 insn)
   return SCPE_OK;
 }
 
-static t_stat fprint_iot (FILE *of, uint16 insn)
+static t_stat fprint_iot (FILE *of, uint16_t insn)
 { 
   SUBDEV *imdev;
 
@@ -258,7 +258,7 @@ static t_stat fprint_iot (FILE *of, uint16 insn)
   return SCPE_OK;
 }
 
-static t_stat fprint_opr (FILE *of, uint16 insn)
+static t_stat fprint_opr (FILE *of, uint16_t insn)
 {
   switch ((insn >> 9) & 0177) {
   case 0000:
@@ -284,7 +284,7 @@ static t_stat fprint_opr (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_cpu (FILE *of, uint16 insn, uint16 addr)
+fprint_cpu (FILE *of, uint16_t insn, uint16_t addr)
 {
   switch ((insn >> 9) & 074) {
   case 000:
@@ -345,7 +345,7 @@ fprint_cpu (FILE *of, uint16 insn, uint16 addr)
 }
 
 static t_stat
-fprint_dopr (FILE *of, uint16 insn)
+fprint_dopr (FILE *of, uint16_t insn)
 {
   if (insn == 04000) {
     fprintf (of, "DNOP");
@@ -388,7 +388,7 @@ fprint_dopr (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_inc_byte (FILE *of, uint16 byte)
+fprint_inc_byte (FILE *of, uint16_t byte)
 {
   if (byte & 0200) {
     if (byte == 0200) {
@@ -438,7 +438,7 @@ fprint_inc_byte (FILE *of, uint16 byte)
 }
 
 static t_stat
-fprint_deim (FILE *of, uint16 insn)
+fprint_deim (FILE *of, uint16_t insn)
 {
   fprintf (of, "DEIM ");
   fprint_inc_byte (of, (insn >> 8) & 0377);
@@ -448,7 +448,7 @@ fprint_deim (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_dp_opt (FILE *of, uint16 insn)
+fprint_dp_opt (FILE *of, uint16_t insn)
 {
   switch (insn) {
   case 077771:
@@ -466,7 +466,7 @@ fprint_dp_opt (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_dp (FILE *of, uint16 insn, uint16 addr)
+fprint_dp (FILE *of, uint16_t insn, uint16_t addr)
 {
   switch ((insn >> 12) & 7) {
   case 0:
@@ -496,7 +496,7 @@ fprint_dp (FILE *of, uint16 insn, uint16 addr)
   return SCPE_OK;
 }
 
-static t_stat fprint_inc (FILE *of, uint16 insn)
+static t_stat fprint_inc (FILE *of, uint16_t insn)
 {
   fprintf (of, "INC ");
   fprint_inc_byte (of, (insn >> 8) & 0377);

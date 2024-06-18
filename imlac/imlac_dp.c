@@ -31,21 +31,21 @@
 
 static t_addr DPC;
 static t_addr DT[8];
-static uint16 SP = 0;
-static uint16 ON = 0;
-static uint16 HALT = 0;
-static uint16 MODE = 0;
-static uint16 XA, YA;
-static uint16 SCALE = 2;
-static uint16 BLOCK = 0;
-static uint16 MIT8K;
-static uint16 SGR;
-static uint16 SYNC = 1;
+static uint16_t SP = 0;
+static uint16_t ON = 0;
+static uint16_t HALT = 0;
+static uint16_t MODE = 0;
+static uint16_t XA, YA;
+static uint16_t SCALE = 2;
+static uint16_t BLOCK = 0;
+static uint16_t MIT8K;
+static uint16_t SGR;
+static uint16_t SYNC = 1;
 
 /* Function declaration. */
-static uint16 dp_iot (uint16, uint16);
+static uint16_t dp_iot (uint16_t, uint16_t);
 static t_stat dp_svc (UNIT *uptr);
-static uint16 sync_iot (uint16, uint16);
+static uint16_t sync_iot (uint16_t, uint16_t);
 static t_stat sync_svc (UNIT *uptr);
 
 static IMDEV dp_imdev = {
@@ -134,14 +134,14 @@ dp_on (int flag)
   ON = flag;
 }
 
-uint16
+uint16_t
 dp_is_on (void)
 {
   return ON;
 }
 
-static uint16
-dp_iot (uint16 insn, uint16 AC)
+static uint16_t
+dp_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0001) { /* DLZ */
     sim_debug (DBG, &dp_dev, "DPC cleared\n");
@@ -165,7 +165,7 @@ dp_iot (uint16 insn, uint16 AC)
 }
 
 static t_stat
-dp_opr(uint16 insn)
+dp_opr(uint16_t insn)
 {
   if ((insn & 04000) == 0) {
     sim_debug (DBG, &dp_dev, "DHLT ");
@@ -236,7 +236,7 @@ dp_opr(uint16 insn)
 }
 
 static void
-jump (uint16 insn)
+jump (uint16_t insn)
 {
   DPC = insn & 07777;
   if (MIT8K)
@@ -246,7 +246,7 @@ jump (uint16 insn)
 }
 
 static void
-dp_sgr (uint16 insn)
+dp_sgr (uint16_t insn)
 {
   sim_debug (DBG, &dp_dev, "DSGR %o\n", insn & 7);
 
@@ -267,7 +267,7 @@ dp_sgr (uint16 insn)
 }
 
 static void
-dp_opt (uint16 insn)
+dp_opt (uint16_t insn)
 {
   switch (insn & 07770) {
   case 07660: /* ASG-1 */
@@ -291,10 +291,10 @@ dp_opt (uint16 insn)
 }
 
 static void
-dp_inc_vector (uint16 byte)
+dp_inc_vector (uint16_t byte)
 {
-  uint16 x1 = XA, y1 = YA;
-  uint16 dx, dy;
+  uint16_t x1 = XA, y1 = YA;
+  uint16_t dx, dy;
 
   if (byte == 0200) {
     sim_debug (DBG, &dp_dev, "P");
@@ -324,7 +324,7 @@ dp_inc_vector (uint16 byte)
 }
 
 static void
-dp_inc_escape (uint16 byte)
+dp_inc_escape (uint16_t byte)
 {
   if (byte == 0100)
     sim_debug (DBG, &dp_dev, "T");
@@ -356,7 +356,7 @@ dp_inc_escape (uint16 byte)
 }
 
 static void
-dp_inc (uint16 byte)
+dp_inc (uint16_t byte)
 {
   if (byte & 0200) {
     /* Increment byte. */
@@ -368,7 +368,7 @@ dp_inc (uint16 byte)
 }
 
 static void
-dp_deim (uint16 insn)
+dp_deim (uint16_t insn)
 {
   MODE = 1;
   sim_debug (DBG, &dp_dev, "E,");
@@ -377,10 +377,10 @@ dp_deim (uint16 insn)
 }
 
 static void
-dp_dlvh (uint16 insn1, uint16 insn2, uint16 insn3)
+dp_dlvh (uint16_t insn1, uint16_t insn2, uint16_t insn3)
 {
-  uint16 x1 = XA, y1 = YA;
-  uint16 m, n, dx, dy;
+  uint16_t x1 = XA, y1 = YA;
+  uint16_t m, n, dx, dy;
   m = insn2 & 07777;
   n = insn3 & 07777;
   if (insn3 & 010000) {
@@ -403,7 +403,7 @@ dp_dlvh (uint16 insn1, uint16 insn2, uint16 insn3)
 }
 
 static void
-dp_insn (uint16 insn)
+dp_insn (uint16_t insn)
 {
   switch ((insn >> 12) & 7) {
   case 0: /* DOPR */
@@ -447,7 +447,7 @@ dp_insn (uint16 insn)
 static t_stat
 dp_svc(UNIT * uptr)
 {
-  uint16 insn;
+  uint16_t insn;
 
   if (sim_brk_summ && sim_brk_test(DPC, SWMASK('D'))) {
     sim_activate_abs (&dp_unit, 0);
@@ -485,8 +485,8 @@ sync_svc (UNIT *uptr)
   return SCPE_OK;
 }
 
-static uint16
-sync_iot (uint16 insn, uint16 AC)
+static uint16_t
+sync_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0071) { /* SCF */
     sim_debug (DBG, &sync_dev, "Clear flag\n");
