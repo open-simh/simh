@@ -38,7 +38,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
     DEVICE* dptr;
     PNP_INFO* pnp;
     t_stat rc;
-    uint16 newbase;
+    uint16_t newbase;
 
     if (!cptr) return SCPE_ARG;
     if (!uptr) return SCPE_IERR;
@@ -94,9 +94,9 @@ t_stat m68k_show_cpu(FILE* st,UNIT *uptr, int32 value, CONST void *desc)
 t_stat m68k_alloc_mem() 
 {
     if (M == NULL)
-        M = (uint8*)calloc(MEMORYSIZE, 1);
+        M = (uint8_t*)calloc(MEMORYSIZE, 1);
     else
-        M = (uint8*)realloc(M, MEMORYSIZE);
+        M = (uint8_t*)realloc(M, MEMORYSIZE);
     return M == NULL ? SCPE_MEM : SCPE_OK;
 }
 
@@ -134,7 +134,7 @@ t_stat m68kcpu_set_noflag(UNIT *uptr, int32 value, CONST char *cptr, void *desc)
 
 t_stat m68kcpu_ex(t_value* eval_array, t_addr addr, UNIT* uptr, int32 sw)
 {
-    uint32 val = 0;
+    uint32_t val = 0;
     t_stat rc = (sw & SWMASK('V')) ? ReadVW(addr,&val) : ReadPW(addr,&val);
     if (rc==SCPE_OK) *eval_array = val;
     return rc;
@@ -234,8 +234,8 @@ error:
 t_stat sim_load(FILE* fptr, CONST char* cptr, CONST char* fnam, t_bool flag)
 {
     int i,len,rc;
-    uint16 data;
-    uint8 s;
+    uint16_t data;
+    uint8_t s;
     int32 addr = saved_PC;
     
     /* no dump */
@@ -243,7 +243,7 @@ t_stat sim_load(FILE* fptr, CONST char* cptr, CONST char* fnam, t_bool flag)
 
     /* check whether Motorola S-Record format was presented */
     fseek(fptr,0L,SEEK_SET);
-    if (fread(&s,sizeof(uint8),1,fptr) == 1) {
+    if (fread(&s,sizeof(uint8_t),1,fptr) == 1) {
         if (s == 'S') {
             /* asssume S record format */
             if (m68k_sread(fptr) == SCPE_OK) return SCPE_OK;
@@ -257,7 +257,7 @@ t_stat sim_load(FILE* fptr, CONST char* cptr, CONST char* fnam, t_bool flag)
 
     fseek(fptr,0L,SEEK_SET);
     for (i=0; i<len; i+=2) {
-        if (fread(&data,sizeof(uint16),1,fptr) != 1) return SCPE_FMT;
+        if (fread(&data,sizeof(uint16_t),1,fptr) != 1) return SCPE_FMT;
         if ((rc=WritePW(addr,data)) != SCPE_OK) return rc;
         addr += 2;
     }
@@ -319,7 +319,7 @@ static t_stat _fsymea(FILE* of,t_addr addr,int ea, int oplen,t_value* rest)
         return -2;
     case 070: 
         switch (eareg) {
-        case '0': fprintf(of,"($%x).w",(uint32)((uint16)offw)); return -2;
+        case '0': fprintf(of,"($%x).w",(uint32_t)((uint16_t)offw)); return -2;
         case '1': 
             if (offw)
                 fprintf(of,"($%x%04x).l",offw,offw2);

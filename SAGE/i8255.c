@@ -36,7 +36,7 @@ static t_stat i8255_error(const char* err)
     return STOP_IMPL;
 }
 
-t_stat i8255_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
+t_stat i8255_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask)
 {
     int port = ioh->offset;
     I8255* chip = (I8255*)ioh->ctxt;
@@ -47,7 +47,7 @@ t_stat i8255_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
     }
 }
 
-t_stat i8255_read(I8255* chip,int port,uint32* data)
+t_stat i8255_read(I8255* chip,int port,uint32_t* data)
 {
     t_stat rc;
     switch (port) {
@@ -71,10 +71,10 @@ t_stat i8255_read(I8255* chip,int port,uint32* data)
     }
 }
 
-t_stat i8255_write(I8255* chip,int port,uint32 data)
+t_stat i8255_write(I8255* chip,int port,uint32_t data)
 {
     t_stat rc;
-    uint32 bit;
+    uint32_t bit;
     switch(port) {
     case 0: /*port a*/
         chip->last_porta = chip->porta;
