@@ -34,19 +34,19 @@
 #include "lgp_defs.h"
 #include <ctype.h>
 
-uint32 tt_wait = WPS / 10;
-uint32 tti_buf = 0;
-uint32 tti_rdy = 0;
-uint32 tto_uc = 0;
-uint32 tto_buf = 0;
-uint32 ttr_stopioe = 1;
-uint32 ptr_rdy = 0;
-uint32 ptr_stopioe = 1;
-uint32 ptp_stopioe = 1;
+uint32_t tt_wait = WPS / 10;
+uint32_t tti_buf = 0;
+uint32_t tti_rdy = 0;
+uint32_t tto_uc = 0;
+uint32_t tto_buf = 0;
+uint32_t ttr_stopioe = 1;
+uint32_t ptr_rdy = 0;
+uint32_t ptr_stopioe = 1;
+uint32_t ptp_stopioe = 1;
 
-extern uint32 A;
-extern uint32 inp_strt, inp_done;
-extern uint32 out_strt, out_done;
+extern uint32_t A;
+extern uint32_t inp_strt, inp_done;
+extern uint32_t out_strt, out_done;
 extern UNIT cpu_unit;
 
 t_stat tti_svc (UNIT *uptr);
@@ -67,7 +67,7 @@ t_stat tti_rdrss (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat punch_feed (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat send_start (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 
-extern uint32 shift_in (uint32 a, uint32 dat, uint32 sh4);
+extern uint32_t shift_in (uint32_t a, uint32_t dat, uint32_t sh4);
 
 /* Conversion tables */
 
@@ -110,7 +110,7 @@ const int32 ascii_to_flex[128] = {
     047, 011, 001, -1 , 014, -1 , 036, 077
     };
     
-static const uint8 flex_inp_valid[64] = {
+static const uint8_t flex_inp_valid[64] = {
     1, 1, 1, 1, 0, 1, 1, 1,
     0, 1, 1, 1, 0, 1, 1, 1,
     0, 1, 1, 1, 0, 1, 1, 1,
@@ -301,7 +301,7 @@ DEVICE ptp_dev = {
 
 /* Input instruction */
 
-void op_i_strt (uint32 dev)
+void op_i_strt (uint32_t dev)
 {
 switch (dev) {                                          /* case on device */
 
@@ -318,7 +318,7 @@ switch (dev) {                                          /* case on device */
 return;
 }           
 
-t_stat op_i (uint32 dev, uint32 ch, uint32 sh4)
+t_stat op_i (uint32_t dev, uint32_t ch, uint32_t sh4)
 {
 if (Q_LGP21 && out_strt)                                /* LGP-21? must be idle */
     return STOP_STALL;
@@ -427,7 +427,7 @@ return SCPE_OK;
 
 /* Output instruction */
 
-t_stat op_p (uint32 dev, uint32 ch)
+t_stat op_p (uint32_t dev, uint32_t ch)
 {
 switch (dev) {                                          /* case on device */
 
