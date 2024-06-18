@@ -280,7 +280,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
 int32 c[6], d, i, cnt, csum;
-uint32 org;
+uint32_t org;
 
 if (*cptr != 0)
     return SCPE_ARG;
@@ -309,7 +309,7 @@ do {                                                    /* block loop */
         csum = csum + d;                                /* add into csum */
         if (!ADDR_IS_MEM (org))                         /* invalid addr? */
             return SCPE_NXM;
-        WrMemB (org, ((uint16) d));
+        WrMemB (org, ((uint16_t) d));
         org = (org + 1) & 0177777;                      /* inc origin */
         }
     if ((d = Fgetc (fileref)) == EOF)                    /* get csum */

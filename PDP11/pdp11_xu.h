@@ -86,28 +86,28 @@ struct xu_setup {
    things like incoming runts, collision tests, babbling, etc.
  */
 struct xu_stats {
-  uint16 secs;                                          /* seconds since last clear */
-  uint32 frecv;                                         /* frames received */
-  uint32 mfrecv;                                        /* multicast frames received */
-  uint16 rxerf;                                         /* receive error flags */
-  uint32 frecve;                                        /* frames received with errors */
-  uint32 rbytes;                                        /* data bytes received */
-  uint32 mrbytes;                                       /* multicast data bytes received */
-  uint16 rlossi;                                        /* received frames lost - internal err */
-  uint16 rlossl;                                        /* received frames lost - local buffers */
-  uint32 ftrans;                                        /* frames transmitted */
-  uint32 mftrans;                                       /* multicast frames transmitted */
-  uint32 ftrans3;                                       /* frames transmitted with 3+ tries */
-  uint32 ftrans2;                                       /* frames transmitted - two tries */
-  uint32 ftransd;                                       /* frames transmitted - deferred */
-  uint32 tbytes;                                        /* data bytes transmitted */
-  uint32 mtbytes;                                       /* multicast data bytes transmitted */
-  uint16 txerf;                                         /* transmit error flags summary */
-  uint16 ftransa;                                       /* transmit frames aborted */
-  uint16 txccf;                                         /* transmit collision test failure */
-  uint16 porterr;                                       /* port driver errors */
-  uint16 bablcnt;                                       /* babble counter */
-  uint32 loopf;                                         /* loopback frames processed */
+  uint16_t secs;                                          /* seconds since last clear */
+  uint32_t frecv;                                         /* frames received */
+  uint32_t mfrecv;                                        /* multicast frames received */
+  uint16_t rxerf;                                         /* receive error flags */
+  uint32_t frecve;                                        /* frames received with errors */
+  uint32_t rbytes;                                        /* data bytes received */
+  uint32_t mrbytes;                                       /* multicast data bytes received */
+  uint16_t rlossi;                                        /* received frames lost - internal err */
+  uint16_t rlossl;                                        /* received frames lost - local buffers */
+  uint32_t ftrans;                                        /* frames transmitted */
+  uint32_t mftrans;                                       /* multicast frames transmitted */
+  uint32_t ftrans3;                                       /* frames transmitted with 3+ tries */
+  uint32_t ftrans2;                                       /* frames transmitted - two tries */
+  uint32_t ftransd;                                       /* frames transmitted - deferred */
+  uint32_t tbytes;                                        /* data bytes transmitted */
+  uint32_t mtbytes;                                       /* multicast data bytes transmitted */
+  uint16_t txerf;                                         /* transmit error flags summary */
+  uint16_t ftransa;                                       /* transmit frames aborted */
+  uint16_t txccf;                                         /* transmit collision test failure */
+  uint16_t porterr;                                       /* port driver errors */
+  uint16_t bablcnt;                                       /* babble counter */
+  uint32_t loopf;                                         /* loopback frames processed */
 };
 
 struct xu_device {
@@ -116,13 +116,13 @@ struct xu_device {
   ETH_PCALLBACK     wcallback;                          /* write callback routine */
   ETH_MAC           mac;                                /* MAC address */
   enum xu_type      type;                               /* controller type */
-  uint32            throttle_time;                      /* ms burst time window */
-  uint32            throttle_burst;                     /* packets passed with throttle_time which trigger throttling */
-  uint32            throttle_delay;                     /* ms to delay when throttling.  0 disables throttling */
+  uint32_t            throttle_time;                      /* ms burst time window */
+  uint32_t            throttle_burst;                     /* packets passed with throttle_time which trigger throttling */
+  uint32_t            throttle_delay;                     /* ms to delay when throttling.  0 disables throttling */
                                                         /*- initialized values - DO NOT MOVE */
 
                                                         /* I/O register storage */
-  uint32            irq;                                /* interrupt request flag */
+  uint32_t            irq;                                /* interrupt request flag */
 
                                                         /* buffers, etc. */
   ETH_DEV*          etherface;
@@ -135,27 +135,27 @@ struct xu_device {
   struct xu_stats   stats;                              /* reportable network statistics */
 
                                                         /* copied from dec_deuna.h */
-  uint16          pcsr0;                                /* primary DEUNA registers */
-  uint16          pcsr1;
-  uint16          pcsr2;
-  uint16          pcsr3;
-  uint32          mode;                                 /* mode register */
-  uint32          pcbb;                                 /* port command block base */
-  uint16          stat;                                 /* extended port status */
+  uint16_t          pcsr0;                                /* primary DEUNA registers */
+  uint16_t          pcsr1;
+  uint16_t          pcsr2;
+  uint16_t          pcsr3;
+  uint32_t          mode;                                 /* mode register */
+  uint32_t          pcbb;                                 /* port command block base */
+  uint16_t          stat;                                 /* extended port status */
 
-  uint32          tdrb;                                 /* transmit desc ring base */
-  uint32          telen;                                /* transmit desc ring entry len */
-  uint32          trlen;                                /* transmit desc ring length */
-  uint32          txnext;                               /* transmit buffer pointer */
-  uint32          rdrb;                                 /* receive desc ring base */
-  uint32          relen;                                /* receive desc ring entry len */
-  uint32          rrlen;                                /* receive desc ring length */
-  uint32          rxnext;                               /* receive buffer pointer */
+  uint32_t          tdrb;                                 /* transmit desc ring base */
+  uint32_t          telen;                                /* transmit desc ring entry len */
+  uint32_t          trlen;                                /* transmit desc ring length */
+  uint32_t          txnext;                               /* transmit buffer pointer */
+  uint32_t          rdrb;                                 /* receive desc ring base */
+  uint32_t          relen;                                /* receive desc ring entry len */
+  uint32_t          rrlen;                                /* receive desc ring length */
+  uint32_t          rxnext;                               /* receive buffer pointer */
 
-  uint16          pcb[4];                               /* copy of Port Command Block */
-  uint16          udb[UDBSIZE];                         /* copy of Unibus Data Block */
-  uint16          rxhdr[4];                             /* content of RX ring entry, during wait */
-  uint16          txhdr[4];                             /* content of TX ring entry, during xmit */
+  uint16_t          pcb[4];                               /* copy of Port Command Block */
+  uint16_t          udb[UDBSIZE];                         /* copy of Unibus Data Block */
+  uint16_t          rxhdr[4];                             /* content of RX ring entry, during wait */
+  uint16_t          txhdr[4];                             /* content of TX ring entry, during xmit */
   t_bool          initialized;                          /* flag for one time initializations */
 };
 

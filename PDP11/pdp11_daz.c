@@ -45,8 +45,8 @@ t_stat daz_boot(int32 unit, DEVICE *dptr);
 t_stat daz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *daz_description (DEVICE *dptr);
 
-static uint16 devadd = 0;
-static uint16 buttons[4] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
+static uint16_t devadd = 0;
+static uint16_t buttons[4] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
 
 #define IOLN_DAZ  4
 DIB daz_dib = {
@@ -118,7 +118,7 @@ daz_wr(int32 data, int32 PA, int32 access)
 
 int daz_keyboard (SIM_KEY_EVENT *kev)
 {
-  uint32 mask;
+  uint32_t mask;
   int n;
 
   switch (kev->key) {

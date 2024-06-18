@@ -84,14 +84,14 @@
 
 #if defined (UC15)
 
-#define RKCONTR         uint32                          /* container format */
+#define RKCONTR         uint32_t                          /* container format */
 #define RKWRDSZ         18                              /* word width */
 #define MAP_RDW(a,b,c)  Map_Read18 (a, b, c)
 #define MAP_WRW(a,b,c)  Map_Write18 (a, b, c)
 
 #else
 
-#define RKCONTR         uint16
+#define RKCONTR         uint16_t
 #define RKWRDSZ         16
 #define MAP_RDW(a,b,c)  Map_ReadW (a, b, c)
 #define MAP_WRW(a,b,c)  Map_WriteW (a, b, c)
@@ -680,7 +680,7 @@ t_stat rk_svc (UNIT *uptr)
 int32 i, drv, err, awc, wc, cma, cda, t;
 t_seccnt sectsread;
 int32 da, cyl, track, sect;
-uint32 ma;
+uint32_t ma;
 RKCONTR comp;
 DEVICE *dptr = find_dev_from_unit (uptr);
 
@@ -736,13 +736,13 @@ if (wc && (err == 0)) {                                 /* seek ok? */
                     wc = i;                             /* trim transfer */
                     break;
                     }
-                rkxb[i] = (uint16)(((cda / RK_NUMWD) / (RK_NUMSF * RK_NUMSC)) << RKDA_V_CYL);
+                rkxb[i] = (uint16_t)(((cda / RK_NUMWD) / (RK_NUMSF * RK_NUMSC)) << RKDA_V_CYL);
                 cda = cda + RK_NUMWD;                   /* next sector */
                 }                                       /* end for wc */
             }                                           /* end if format */
         else {                                          /* normal read */
-            err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
-            sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+            err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8_t *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
+            sim_disk_data_trace (uptr, (uint8_t *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
             }
         if (rkcs & RKCS_INH) {                          /* incr inhibit? */
             if ((t = MAP_WRW (ma, 2, &rkxb[wc - 1]))) { /* store last */
@@ -777,14 +777,14 @@ if (wc && (err == 0)) {                                 /* seek ok? */
             awc = (wc + (RK_NUMWD - 1)) & ~(RK_NUMWD - 1); /* clr to */
             for (i = wc; i < awc; i++)                  /* end of blk */
                 rkxb[i] = 0;
-            sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, awc*sizeof(*rkxb), "sim_disk_wrsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
-            err = sim_disk_wrsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, NULL, awc/RK_NUMWD);
+            sim_disk_data_trace (uptr, (uint8_t *)rkxb, da/RK_NUMWD, awc*sizeof(*rkxb), "sim_disk_wrsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+            err = sim_disk_wrsect (uptr, da/RK_NUMWD, (uint8_t *)rkxb, NULL, awc/RK_NUMWD);
             }
         break;                                          /* end write */
 
     case RKCS_WCHK:                                     /* write check */
-        err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
-        sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+        err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8_t *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
+        sim_disk_data_trace (uptr, (uint8_t *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
         if (err) {                                      /* read error? */
             wc = 0;                                     /* no transfer */
             break;
@@ -922,8 +922,8 @@ return auto_config (0, 0);
 t_stat rk_attach (UNIT *uptr, CONST char *cptr)
 {
 t_stat r;
-r = sim_disk_attach_ex2 (uptr, cptr, RK_NUMWD * sizeof (uint16), 
-                         sizeof (uint16), TRUE, 0, 
+r = sim_disk_attach_ex2 (uptr, cptr, RK_NUMWD * sizeof (uint16_t), 
+                         sizeof (uint16_t), TRUE, 0, 
                          "RK05", 0, 0, NULL, RK_RSRVSEC);
 if (r != SCPE_OK)                                       /* error? */
     return r;
@@ -961,7 +961,7 @@ return SCPE_NOFNC;
 #define BOOT_CSR        (BOOT_START + 032)              /* CSR */
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042113,                        /* "KD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012700, 0000000,               /* MOV #unit, R0        ; unit number */

@@ -109,17 +109,17 @@
 #define UST_REV         (OP_REV)                        /* last op was rev */
 #define UST_GAP         01                              /* last op hit gap */
 
-uint32 ta_cs = 0;                                       /* control/status */
-uint32 ta_idb = 0;                                      /* input data buf */
-uint32 ta_odb = 0;                                      /* output data buf */
-uint32 ta_write = 0;                                    /* TU60 write flag */
-uint32 ta_bptr = 0;                                     /* buf ptr */
-uint32 ta_blnt = 0;                                     /* buf length */
+uint32_t ta_cs = 0;                                       /* control/status */
+uint32_t ta_idb = 0;                                      /* input data buf */
+uint32_t ta_odb = 0;                                      /* output data buf */
+uint32_t ta_write = 0;                                    /* TU60 write flag */
+uint32_t ta_bptr = 0;                                     /* buf ptr */
+uint32_t ta_blnt = 0;                                     /* buf length */
 int32 ta_stime = 1000;                                  /* start time */
 int32 ta_ctime = 100;                                   /* char latency */
-uint32 ta_stopioe = 1;                                  /* stop on error */
-uint8 *ta_xb = NULL;                                    /* transfer buffer */
-static uint8 ta_fnc_tab[TACS_M_FNC + 1] = {
+uint32_t ta_stopioe = 1;                                  /* stop on error */
+uint8_t *ta_xb = NULL;                                    /* transfer buffer */
+static uint8_t ta_fnc_tab[TACS_M_FNC + 1] = {
     OP_WRI|OP_FWD, OP_WRI|OP_FWD, OP_FWD, OP_REV,
     OP_REV       , OP_FWD,        OP_FWD, 0
     };
@@ -135,8 +135,8 @@ void ta_go (void);
 t_stat ta_map_err (UNIT *uptr, t_stat st);
 UNIT *ta_busy (void);
 void ta_set_tr (void);
-uint32 ta_updsta (UNIT *uptr);
-uint32 ta_crc (uint8 *buf, uint32 cnt);
+uint32_t ta_updsta (UNIT *uptr);
+uint32_t ta_crc (uint8_t *buf, uint32_t cnt);
 t_stat ta_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *ta_description (DEVICE *dptr);
 
@@ -262,9 +262,9 @@ return SCPE_OK;
 void ta_go (void)
 {
 UNIT *uptr = ta_dev.units + GET_UNIT (ta_cs);
-uint32 fnc = GET_FNC (ta_cs);
-uint32 flg = ta_fnc_tab[fnc];
-uint32 old_ust = uptr->UST;
+uint32_t fnc = GET_FNC (ta_cs);
+uint32_t flg = ta_fnc_tab[fnc];
+uint32_t old_ust = uptr->UST;
 
 if (DEBUG_PRS (ta_dev)) fprintf (sim_deb,
     ">>TA start: op=%o, old_sta = %o, pos=%d\n",
@@ -319,8 +319,8 @@ return;
 
 t_stat ta_svc (UNIT *uptr)
 {
-uint32 i, crc;
-uint32 flg = ta_fnc_tab[uptr->FNC & TACS_M_FNC];
+uint32_t i, crc;
+uint32_t flg = ta_fnc_tab[uptr->FNC & TACS_M_FNC];
 t_mtrlnt tbc;
 t_stat st, r;
 
@@ -396,7 +396,7 @@ switch (uptr->FNC) {                                    /* case on function */
         else {
             if ((ta_bptr < TA_MAXFR) &&                 /* room in buf? */
                 ((uptr->pos + ta_bptr) < uptr->capac))  /* room on tape? */
-                ta_xb[ta_bptr++] = (uint8)ta_odb;       /* store char */
+                ta_xb[ta_bptr++] = (uint8_t)ta_odb;       /* store char */
             ta_set_tr ();                               /* set tra req */
             sim_activate (uptr, ta_ctime);              /* sched next char */
             }
@@ -458,7 +458,7 @@ return r;
 
 /* Update controller status */
 
-uint32 ta_updsta (UNIT *uptr)
+uint32_t ta_updsta (UNIT *uptr)
 {
 if (uptr == NULL) {                                     /* unit specified? */
     if ((uptr = ta_busy ()) == NULL)                    /* use busy */
@@ -492,7 +492,7 @@ return;
 
 UNIT *ta_busy (void)
 {
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 for (u = 0; u < TA_NUMDR; u++) {                        /* loop thru units */
@@ -505,13 +505,13 @@ return NULL;
 
 /* Calculate CRC on buffer */
 
-uint32 ta_crc (uint8 *buf, uint32 cnt)
+uint32_t ta_crc (uint8_t *buf, uint32_t cnt)
 {
-uint32 crc, i, j;
+uint32_t crc, i, j;
 
 crc = 0;
 for (i = 0; i < cnt; i++) {
-    crc = crc ^ (((uint32) buf[i]) << 8);
+    crc = crc ^ (((uint32_t) buf[i]) << 8);
     for (j = 0; j < 8; j++) {
         if (crc & 1)
             crc = (crc >> 1) ^ 0xA001;
@@ -569,7 +569,7 @@ return SCPE_OK;
 
 t_stat ta_reset (DEVICE *dptr)
 {
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 ta_cs = TACS_RDY;                                       /* init sets RDY */
@@ -585,7 +585,7 @@ for (u = 0; u < TA_NUMDR; u++) {                        /* loop thru units */
     sim_tape_reset (uptr);                              /* reset tape */
     }
 if (ta_xb == NULL)
-    ta_xb = (uint8 *) calloc (TA_MAXFR + 2, sizeof (uint8));
+    ta_xb = (uint8_t *) calloc (TA_MAXFR + 2, sizeof (uint8_t));
 if (ta_xb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -624,9 +624,9 @@ return r;
 #define BOOT_START      01000                           /* start */
 #define BOOT_ENTRY      (BOOT_START)
 #define BOOT_CSR        (BOOT_START + 002)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
 0012700,                /* mov #tacs,r0 */
 0177500,
 0005010,                /* clr (r0) */

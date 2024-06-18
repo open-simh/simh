@@ -135,9 +135,9 @@
 
 struct uq_ring {
     int32               ioff;                           /* intr offset */
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* size in bytes */
-    uint32              idx;                            /* current index */
+    uint32_t              ba;                             /* base addr */
+    uint32_t              lnt;                            /* size in bytes */
+    uint32_t              idx;                            /* current index */
     };
 
 /* Ring descriptor entry */

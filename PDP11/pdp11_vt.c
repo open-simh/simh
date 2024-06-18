@@ -257,7 +257,7 @@ vt_rd(int32 *data, int32 PA, int32 access)
 t_stat
 vt_wr(int32 data, int32 PA, int32 access)
 {
-    uint16 d = data & 0177777;          /* mask just in case */
+    uint16_t d = data & 0177777;          /* mask just in case */
     
     sim_debug (DEB_RWR, &vt_dev, "vt_wr(%s-PA=0%o,data=0x%X(0%o),access=%d)\n", vt_regnam[(PA & 036)>>1], (int)PA, (int)data, (int)data, (int)access);
 
@@ -359,7 +359,7 @@ vt_reset(DEVICE *dptr)
 
 t_addr vt_rom_base = 017766000;
 
-uint16 vt_boot_rom[] = {
+uint16_t vt_boot_rom[] = {
                                       //                                 ;       .ASECT
                                       //                                 
                                       //                                 ;BOOTVT.S09  5/2/72
@@ -905,7 +905,7 @@ vt_name_intr(void)
 
 /* fetch memory */
 int
-vt_fetch(uint32 addr, vt11word *wp)
+vt_fetch(uint32_t addr, vt11word *wp)
 {
     /* On PDP-11 Unibus 22-bit systems, the VT11/VS60 behaves as
        an 18-bit Unibus peripheral and must go through the I/O map. */
@@ -920,7 +920,7 @@ vt_fetch(uint32 addr, vt11word *wp)
      * we need to sign extend the the address so it resides in
      * the I/O page.
      */
-    if (addr >= (uint32)(IOPAGEBASE & DMASK)) {
+    if (addr >= (uint32_t)(IOPAGEBASE & DMASK)) {
         sim_debug (DEB_VT11, &vt_dev, "vt_fetch(addr=0%o) Adjusting ROM address to 0%o\n", (int)addr, (int)(addr | IOPAGEBASE));
         addr |= IOPAGEBASE;
         }

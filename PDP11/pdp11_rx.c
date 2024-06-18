@@ -117,7 +117,7 @@ int32 rx_stopioe = 1;                                   /* stop on error */
 int32 rx_cwait = 100;                                   /* command time */
 int32 rx_swait = 10;                                    /* seek, per track */
 int32 rx_xwait = 1;                                     /* tr set time */
-uint8 rx_buf[RX_NUMBY] = { 0 };                         /* sector buffer */
+uint8_t rx_buf[RX_NUMBY] = { 0 };                         /* sector buffer */
 int32 rx_bptr = 0;                                      /* buffer pointer */
 int32 rx_enb = 1;                                       /* device enable */
 
@@ -329,7 +329,7 @@ return SCPE_OK;
 t_stat rx_svc (UNIT *uptr)
 {
 int32 i, func;
-uint32 da;
+uint32_t da;
 int8 *fbuf = (int8 *) uptr->filebuf;
 
 func = RXCS_GETFNC (rx_csr);                            /* get function */
@@ -349,7 +349,7 @@ switch (rx_state) {                                     /* case on state */
         break;
 
     case FILL:                                          /* fill buffer */
-        rx_buf[rx_bptr] = (uint8)rx_dbr;                /* write next */
+        rx_buf[rx_bptr] = (uint8_t)rx_dbr;                /* write next */
         rx_bptr = rx_bptr + 1;
         if (rx_bptr < RX_NUMBY)                         /* more? set xfer */
             rx_csr = rx_csr | RXCS_TR;
@@ -484,7 +484,7 @@ return auto_config (0, 0);                              /* run autoconfig */
 #define BOOT_CSR        (BOOT_START + 026)              /* CSR */
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     042130,                         /* "XD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012700, 0000000,               /* MOV #unit, R0        ; unit number */

@@ -43,7 +43,7 @@
 
 /* Constants */
 
-#define RPCONTR         uint16
+#define RPCONTR         uint16_t
 #define RPWRDSZ         16
 #define MAP_RDW(a,c,b)  (Map_ReadW (a, (c) << 1, b) >> 1)
 #define MAP_WRW(a,c,b)  (Map_WriteW(a, (c) << 1, b) >> 1)
@@ -899,7 +899,7 @@ static t_stat rr_svc (UNIT *uptr)
     int16 func = uptr->FUNC;
     t_seccnt todo, done;
     t_stat ioerr;
-    uint32 ma;
+    uint32_t ma;
     t_bool wr;
 
     assert(func);
@@ -1027,9 +1027,9 @@ static t_stat rr_svc (UNIT *uptr)
         } else {                                        /* normal read: */
             DEVICE* dptr = find_dev_from_unit(uptr);
             todo = (wc + (RP_NUMWD - 1)) / RP_NUMWD;    /* sectors to read */
-            ioerr = sim_disk_rdsect(uptr, da, (uint8*) rpxb, &done, todo);
+            ioerr = sim_disk_rdsect(uptr, da, (uint8_t*) rpxb, &done, todo);
             n = RP_SIZE(done);                          /* words read */
-            sim_disk_data_trace(uptr, (uint8*) rpxb, da, n * sizeof(*rpxb), "rr_read",
+            sim_disk_data_trace(uptr, (uint8_t*) rpxb, da, n * sizeof(*rpxb), "rr_read",
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
             assert(done <= todo);
             if (done >= todo)
@@ -1043,7 +1043,7 @@ static t_stat rr_svc (UNIT *uptr)
             }
         }
         if (func == RPCS_WCHK) {
-            uint32 a = ma;
+            uint32_t a = ma;
             for (n = 0;  n < wc;  ++n) {                /* loop thru buf */
                 RPCONTR data;
                 if (MAP_RDW(a, 1, &data)) {             /* mem wd */
@@ -1076,11 +1076,11 @@ static t_stat rr_svc (UNIT *uptr)
             DEVICE* dptr = find_dev_from_unit(uptr);
             int32 m = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1); /* clr to... */
             memset(rpxb + wc, 0, (m - wc) * sizeof(*rpxb)); /* ...end of sect */
-            sim_disk_data_trace(uptr, (uint8*) rpxb, da, m * sizeof(*rpxb), "rr_write",
+            sim_disk_data_trace(uptr, (uint8_t*) rpxb, da, m * sizeof(*rpxb), "rr_write",
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
             todo = m / RP_NUMWD;                        /* sectors to write */
             assert(!(m % RP_NUMWD));
-            ioerr = sim_disk_wrsect(uptr, da, (uint8*) rpxb, &done, todo);
+            ioerr = sim_disk_wrsect(uptr, da, (uint8_t*) rpxb, &done, todo);
             assert(done <= todo);
             if (done < todo) {                          /* short write? */
                 wc = RP_SIZE(done);                     /* words written */
@@ -1340,7 +1340,7 @@ static t_stat rr_set_wloa (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR + 12 */
 #define BOOT_LEN        (sizeof (rr_boot_rom) / sizeof (rr_boot_rom[0]))
 
-static const uint16 rr_boot_rom[] = {
+static const uint16_t rr_boot_rom[] = {
 /* EXPECTED M9312 REGISTER USE FOR BOOT PROMS (IN THE BOOTED SOFTWARE):                                *
  * R0     = UNIT NUMBER                                                                                *
  * R1     = CONTROLLER CSR                                                                             *
@@ -1412,8 +1412,8 @@ static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
     "        Cylinders    Heads  Sects/Trk     Capacity    Average access\n"
     "      Total   Spare                   Nominal  Usable    time, ms\n", st);
     for (i = 0;  i < sizeof(drv_tab)/sizeof(drv_tab[0]);  ++i) {
-        uint32 spare = GET_DA(drv_tab[i].spare, RP_NUMSF, RP_NUMSC);
-        uint32 total = drv_tab[i].size;
+        uint32_t spare = GET_DA(drv_tab[i].spare, RP_NUMSF, RP_NUMSC);
+        uint32_t total = drv_tab[i].size;
         fprintf(st, "%.6s: %5u   %5u  %5u  %5u"
                 "    %5.1fMB  %5.1fMB   %5u.%1u\n", drv_tab[i].name,
                 drv_tab[i].cyl, drv_tab[i].spare, RP_NUMSF, RP_NUMSC,
