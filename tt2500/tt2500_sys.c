@@ -28,14 +28,14 @@
 
 #include "tt2500_defs.h"
 
-static uint16 null_read (uint16 reg);
-static void null_write (uint16 reg, uint16 data);
+static uint16_t null_read (uint16_t reg);
+static void null_write (uint16_t reg, uint16_t data);
 
 int32 sim_emax = 1;
 char sim_name[] = "TT2500";
 
-uint16 CRM[4096];
-uint16 MEM[65536];
+uint16_t CRM[4096];
+uint16_t MEM[65536];
 REG *sim_PC = &cpu_reg[0];
 TTDEV *dev_tab[0100];
 
@@ -66,7 +66,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 };
 
 static t_stat
-get4 (FILE *fileref, uint16 *x)
+get4 (FILE *fileref, uint16_t *x)
 {
   int c = Fgetc (fileref);
   if (c == EOF)
@@ -76,7 +76,7 @@ get4 (FILE *fileref, uint16 *x)
 }
 
 static t_stat
-get6 (FILE *fileref, uint16 *x)
+get6 (FILE *fileref, uint16_t *x)
 {
   int c = Fgetc (fileref);
   if (c == EOF)
@@ -86,9 +86,9 @@ get6 (FILE *fileref, uint16 *x)
 }
 
 static t_stat
-get8 (FILE *fileref, uint16 *x)
+get8 (FILE *fileref, uint16_t *x)
 {
-  uint16 y;
+  uint16_t y;
   t_stat r;
   r = get4 (fileref, x);
   if (r != SCPE_OK)
@@ -101,9 +101,9 @@ get8 (FILE *fileref, uint16 *x)
 }
 
 static t_stat
-get16 (FILE *fileref, uint16 *x)
+get16 (FILE *fileref, uint16_t *x)
 {
-  uint16 y;
+  uint16_t y;
   t_stat r;
   r = get8 (fileref, x);
   if (r != SCPE_OK)
@@ -115,12 +115,12 @@ get16 (FILE *fileref, uint16 *x)
   return SCPE_OK;
 }
 
-static uint16 checksum;
+static uint16_t checksum;
 
 static t_stat
-get18 (FILE *fileref, uint16 *x)
+get18 (FILE *fileref, uint16_t *x)
 {
-  uint16 y;
+  uint16_t y;
   t_stat r;
   r = get6 (fileref, x);
   if (r != SCPE_OK)
@@ -139,7 +139,7 @@ get18 (FILE *fileref, uint16 *x)
 
 static t_stat load_loader (FILE *f, int verbose)
 {
-  uint16 i, x, y, count, addr;
+  uint16_t i, x, y, count, addr;
   t_stat r;
 
   x = 0;
@@ -173,7 +173,7 @@ static t_stat load_loader (FILE *f, int verbose)
 
 static t_stat load_block (FILE *f, int verbose)
 {
-  uint16 i, x, y, type, count, addr;
+  uint16_t i, x, y, type, count, addr;
   t_stat r;
 
   x = 0;
@@ -272,12 +272,12 @@ sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
   }
 }
 
-static uint16 null_read (uint16 reg)
+static uint16_t null_read (uint16_t reg)
 {
   return 0;
 }
 
-static void null_write (uint16 reg, uint16 data)
+static void null_write (uint16_t reg, uint16_t data)
 {
 }
 
@@ -315,10 +315,10 @@ static const char *register_names[] =
   };
 
 static t_stat
-fprint_sto (FILE *of, uint16 insn)
+fprint_sto (FILE *of, uint16_t insn)
 {
-  uint16 a = (insn >> 6) & 7;
-  uint16 b = insn & 017;
+  uint16_t a = (insn >> 6) & 7;
+  uint16_t b = insn & 017;
 
   const char *op;
   switch (insn & 077060) {
@@ -342,14 +342,14 @@ fprint_sto (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_reg (FILE *of, uint16 insn)
+fprint_reg (FILE *of, uint16_t insn)
 {
   static const char *name[] =
     { "A", "ANDN", "AND", "NOR", "IOR", "XOR", "MROT", "??",
       "ROT", "DEC", "XADD", "ADD", "SUB", "XSUB", "INC", "ARS" };
-  uint16 op = (insn >> 4) & 3;
-  uint16 a = (insn >> 6) & 7;
-  uint16 b = insn & 017;
+  uint16_t op = (insn >> 4) & 3;
+  uint16_t a = (insn >> 6) & 7;
+  uint16_t b = insn & 017;
 
   if (insn == 010000) {
     fprintf (of, "NOP");
@@ -376,7 +376,7 @@ fprint_reg (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_dis (FILE *of, uint16 insn)
+fprint_dis (FILE *of, uint16_t insn)
 {
   fprintf (of, "DIS ");
   switch (insn & 01400) {
@@ -390,10 +390,10 @@ fprint_dis (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_bus (FILE *of, uint16 insn)
+fprint_bus (FILE *of, uint16_t insn)
 {
-  uint16 a = (insn >> 6) & 7;
-  uint16 b = insn & 077;
+  uint16_t a = (insn >> 6) & 7;
+  uint16_t b = insn & 077;
 
   if ((insn & 076000) == 072000)
     return fprint_dis (of, insn);
@@ -414,12 +414,12 @@ fprint_bus (FILE *of, uint16 insn)
 }
 
 static t_stat
-fprint_branch (FILE *of, uint16 insn, uint16 addr)
+fprint_branch (FILE *of, uint16_t insn, uint16_t addr)
 {
   static const char *condition[] =
     { "CC", "CS", "VS", "VC", "MI", "PL", "NE", "EQ",
       "GE", "LT", "IS", "IC", "XCI", "XSI", "FS", "FC" };
-  uint16 target = insn & 03777;
+  uint16_t target = insn & 03777;
   if (insn & 02000)
     target = target - 04000;
   target += addr + 1;
@@ -428,7 +428,7 @@ fprint_branch (FILE *of, uint16 insn, uint16 addr)
 }
 
 static t_stat
-fprint_cpu (FILE *of, uint16 insn, uint16 addr)
+fprint_cpu (FILE *of, uint16_t insn, uint16_t addr)
 {
   switch ((insn >> 12) & 017) {
   case 000: case 001: case 002: case 003:

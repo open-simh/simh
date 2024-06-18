@@ -32,8 +32,8 @@
 static t_stat tv_svc (UNIT *uptr);
 static t_stat tv_reset (DEVICE *dptr);
 
-static uint32 surface[8 * 16 * 72];
-static uint32 palette[2];
+static uint32_t surface[8 * 16 * 72];
+static uint32_t palette[2];
 static VID_DISPLAY *vptr = NULL;
 
 /* Debug */
@@ -106,9 +106,9 @@ tv_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-static void tv_character (int row, int col, uint8 c, uint8 *font)
+static void tv_character (int row, int col, uint8_t c, uint8_t *font)
 {
-  uint16 i, j, pixels, address;
+  uint16_t i, j, pixels, address;
 
   address = 16 * c;
   for (i = 0; i < 16; i++) {
@@ -120,7 +120,7 @@ static void tv_character (int row, int col, uint8 c, uint8 *font)
   }
 }
 
-void tv_line (int row, uint8 *line, uint8 *font)
+void tv_line (int row, uint8_t *line, uint8_t *font)
 {
   int col;
 
