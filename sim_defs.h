@@ -219,9 +219,9 @@ extern "C" {
 typedef __int8           int8;
 typedef __int16          int16;
 typedef __int32          int32;
-typedef unsigned __int8  uint8;
-typedef unsigned __int16 uint16;
-typedef unsigned __int32 uint32;
+typedef unsigned __int8  uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
 #else
 /* All modern/standard compiler environments */
 /* any other environment needa a special case above */
@@ -229,9 +229,9 @@ typedef unsigned __int32 uint32;
 typedef int8_t          int8;
 typedef int16_t         int16;
 typedef int32_t         int32;
-typedef uint8_t         uint8;
-typedef uint16_t        uint16;
-typedef uint32_t        uint32;
+typedef uint8_t         uint8_t;
+typedef uint16_t        uint16_t;
+typedef uint32_t        uint32_t;
 #endif                                                  /* end standard integers */
 
 typedef int             t_stat;                         /* status */
@@ -266,7 +266,7 @@ typedef t_uint64        t_value;                        /* value */
 #define T_SVALUE_MAX    0x7fffffffffffffffLL
 #else                                                   /* 32b data */
 typedef int32           t_svalue;
-typedef uint32          t_value;
+typedef uint32_t          t_value;
 #define T_VALUE_MAX     0xffffffffUL
 #define T_SVALUE_MAX    0x7fffffffL
 #endif                                                  /* end 64b data */
@@ -275,7 +275,7 @@ typedef uint32          t_value;
 typedef t_uint64        t_addr;
 #define T_ADDR_W        64
 #else                                                   /* 32b address */
-typedef uint32          t_addr;
+typedef uint32_t          t_addr;
 #define T_ADDR_W        32
 #endif                                                  /* end 64b address */
 
@@ -499,12 +499,12 @@ struct DEVICE {
     UNIT                *units;                         /* units */
     REG                 *registers;                     /* registers */
     MTAB                *modifiers;                     /* modifiers */
-    uint32              numunits;                       /* #units */
-    uint32              aradix;                         /* address radix */
-    uint32              awidth;                         /* address width */
-    uint32              aincr;                          /* addr increment */
-    uint32              dradix;                         /* data radix */
-    uint32              dwidth;                         /* data width */
+    uint32_t              numunits;                       /* #units */
+    uint32_t              aradix;                         /* address radix */
+    uint32_t              awidth;                         /* address width */
+    uint32_t              aincr;                          /* addr increment */
+    uint32_t              dradix;                         /* data radix */
+    uint32_t              dwidth;                         /* data width */
     t_stat              (*examine)(t_value *v, t_addr a, UNIT *up,
                             int32 sw);                  /* examine routine */
     t_stat              (*deposit)(t_value v, t_addr a, UNIT *up,
@@ -516,8 +516,8 @@ struct DEVICE {
                                                         /* attach routine */
     t_stat              (*detach)(UNIT *up);            /* detach routine */
     void                *ctxt;                          /* context */
-    uint32              flags;                          /* flags */
-    uint32              dctrl;                          /* debug control */
+    uint32_t              flags;                          /* flags */
+    uint32_t              dctrl;                          /* debug control */
     DEBTAB              *debflags;                      /* debug flags */
     t_stat              (*msize)(UNIT *up, int32 v, CONST char *cp, void *dp);
                                                         /* mem size routine */
@@ -590,14 +590,14 @@ struct UNIT {
     FILE                *fileref;                       /* file reference */
     void                *filebuf;                       /* memory buffer */
     void                *filebuf2;                      /* copy of initial memory buffer */
-    uint32              hwmark;                         /* high water mark */
+    uint32_t              hwmark;                         /* high water mark */
     int32               time;                           /* time out */
-    uint32              flags;                          /* flags */
-    uint32              dynflags;                       /* dynamic flags */
+    uint32_t              flags;                          /* flags */
+    uint32_t              dynflags;                       /* dynamic flags */
     t_addr              capac;                          /* capacity */
     t_addr              pos;                            /* file position */
     void                (*io_flush)(UNIT *up);          /* io flush routine */
-    uint32              iostarttime;                    /* I/O start time */
+    uint32_t              iostarttime;                    /* I/O start time */
     int32               buf;                            /* buffer */
     int32               wait;                           /* wait */
     int32               u3;                             /* device specific */
@@ -606,9 +606,9 @@ struct UNIT {
     int32               u6;                             /* device specific */
     void                *up7;                           /* device specific */
     void                *up8;                           /* device specific */
-    uint16              us9;                            /* device specific */
-    uint16              us10;                           /* device specific */
-    uint32              disk_type;                      /* Disk specific info */
+    uint16_t              us9;                            /* device specific */
+    uint16_t              us10;                           /* device specific */
+    uint32_t              disk_type;                      /* Disk specific info */
     void                *tmxr;                          /* TMXR linkage */
     size_t              recsize;                        /* Tape specific info */
     t_addr              tape_eom;                       /* Tape specific info */
@@ -616,7 +616,7 @@ struct UNIT {
     double              usecs_remaining;                /* time balance for long delays */
     char                *uname;                         /* Unit name */
     DEVICE              *dptr;                          /* DEVICE linkage (backpointer) */
-    uint32              dctrl;                          /* debug control */
+    uint32_t              dctrl;                          /* debug control */
 #ifdef SIM_ASYNCH_IO
     void                (*a_check_completion)(UNIT *);
     t_bool              (*a_is_active)(UNIT *);
@@ -688,8 +688,8 @@ struct UNIT {
 
 struct BITFIELD {
     const char      *name;                              /* field name */
-    uint32          offset;                             /* starting bit */
-    uint32          width;                              /* width */
+    uint32_t          offset;                             /* starting bit */
+    uint32_t          width;                              /* width */
     const char      **valuenames;                       /* map of values to strings */
     const char      *format;                            /* value format string */
     };
@@ -699,19 +699,19 @@ struct BITFIELD {
 struct REG {
     CONST char          *name;                          /* name */
     void                *loc;                           /* location */
-    uint32              radix;                          /* radix */
-    uint32              width;                          /* width */
-    uint32              offset;                         /* starting bit */
-    uint32              depth;                          /* save depth */
+    uint32_t              radix;                          /* radix */
+    uint32_t              width;                          /* width */
+    uint32_t              offset;                         /* starting bit */
+    uint32_t              depth;                          /* save depth */
     const char          *desc;                          /* description */
     BITFIELD            *fields;                        /* bit fields */
-    uint32              qptr;                           /* circ q ptr */
+    uint32_t              qptr;                           /* circ q ptr */
     size_t              stride;                         /* structure/object size (for indexing) */
     size_t              obj_size;                       /* sizeof(*loc) */
     size_t              size;                           /* sizeof(**loc) or sizeof(*loc) if depth == 1 */
     const char          *macro;                         /* Initializer Macro Name */
     /* NOTE: Flags and maxval MUST always be last since they are initialized outside of macro definitions */
-    uint32              flags;                          /* flags */
+    uint32_t              flags;                          /* flags */
     t_value             maxval;                         /* maximum value */
     };
 
@@ -764,8 +764,8 @@ struct SHTAB {
 /* Modifier table - only extended entries have disp, reg, or flags */
 
 struct MTAB {
-    uint32              mask;                           /* mask */
-    uint32              match;                          /* match */
+    uint32_t              mask;                           /* mask */
+    uint32_t              match;                          /* match */
     const char          *pstring;                       /* print string */
     const char          *mstring;                       /* match string */
     t_stat              (*valid)(UNIT *up, int32 v, CONST char *cp, void *dp);
@@ -790,14 +790,14 @@ struct MTAB {
 #define MTAB_NC         (0040 | MTAB_XTD)               /* no UC conversion */
 #define MTAB_QUOTE      (0100 | MTAB_XTD)               /* quoted string */
 #define MTAB_SHP        (0200 | MTAB_XTD)               /* show takes parameter */
-#define MODMASK(mptr,flag) (((mptr)->mask & (uint32)(flag)) == (uint32)(flag))/* flag mask test */
+#define MODMASK(mptr,flag) (((mptr)->mask & (uint32_t)(flag)) == (uint32_t)(flag))/* flag mask test */
 
 /* Search table */
 
 struct SCHTAB {
     size_t              logic;                          /* logical operator */
     size_t              boolop;                         /* boolean operator */
-    uint32              count;                          /* value count in mask and comp arrays */
+    uint32_t              count;                          /* value count in mask and comp arrays */
     t_value             *mask;                          /* mask for logical */
     t_value             *comp;                          /* comparison for boolean */
     };
@@ -806,7 +806,7 @@ struct SCHTAB {
 
 struct BRKTAB {
     t_addr              addr;                           /* address */
-    uint32              typ;                            /* mask of types */
+    uint32_t              typ;                            /* mask of types */
 #define BRK_TYP_USR_TYPES       ((1 << ('Z'-'A'+1)) - 1)/* all types A-Z */
 #define BRK_TYP_DYN_STEPOVER    (SWMASK ('Z'+1))
 #define BRK_TYP_DYN_USR         (SWMASK ('Z'+2))
@@ -822,7 +822,7 @@ struct BRKTAB {
 /* Breakpoint table */
 
 struct BRKTYPTAB {
-    uint32      btyp;                                   /* type mask */
+    uint32_t      btyp;                                   /* type mask */
     const char *desc;                                   /* description */
     };
 #define BRKTYPE(typ,descrip) {SWMASK(typ), descrip}
@@ -830,11 +830,11 @@ struct BRKTYPTAB {
 /* Expect rule */
 
 struct EXPTAB {
-    uint8               *match;                         /* match string */
+    uint8_t               *match;                         /* match string */
     size_t              size;                           /* match string size */
     char                *match_pattern;                 /* match pattern for format */
     int32               cnt;                            /* proceed count */
-    uint32              after;                          /* delay before halting */
+    uint32_t              after;                          /* delay before halting */
     int32               switches;                       /* flags */
 #define EXP_TYP_PERSIST         (SWMASK ('P'))      /* rule persists after match, default is once a rule matches, it is removed */
 #define EXP_TYP_CLEARALL        (SWMASK ('C'))      /* clear all rules after matching this rule, default is to once a rule matches, it is removed */
@@ -852,10 +852,10 @@ struct EXPTAB {
 
 struct EXPECT {
     DEVICE              *dptr;                          /* Device (for Debug) */
-    uint32              dbit;                           /* Debugging Bit */
+    uint32_t              dbit;                           /* Debugging Bit */
     EXPTAB              *rules;                         /* match rules */
     size_t              size;                           /* count of match rules */
-    uint8               *buf;                           /* buffer of output data which has produced */
+    uint8_t               *buf;                           /* buffer of output data which has produced */
     size_t              buf_ins;                        /* buffer insertion point for the next output data */
     size_t              buf_size;                       /* buffer size */
     size_t              buf_data;                       /* count of data in buffer */
@@ -864,13 +864,13 @@ struct EXPECT {
 /* Send Context */
 
 struct SEND {
-    uint32              delay;                          /* instruction delay between sent data */
+    uint32_t              delay;                          /* instruction delay between sent data */
 #define SEND_DEFAULT_DELAY  1000                        /* default delay instruction count */
     DEVICE              *dptr;                          /* Device (for Debug) */
-    uint32              dbit;                           /* Debugging Bit */
-    uint32              after;                          /* instruction delay before sending any data */
+    uint32_t              dbit;                           /* Debugging Bit */
+    uint32_t              after;                          /* instruction delay before sending any data */
     double              next_time;                      /* execution time when next data can be sent */
-    uint8               *buffer;                        /* buffer */
+    uint8_t               *buffer;                        /* buffer */
     size_t              bufsize;                        /* buffer size */
     size_t              insoff;                         /* insert offset */
     size_t              extoff;                         /* extra offset */
@@ -880,7 +880,7 @@ struct SEND {
 
 struct DEBTAB {
     const char          *name;                          /* control name */
-    uint32              mask;                           /* control bit */
+    uint32_t              mask;                           /* control bit */
     const char          *desc;                          /* description */
     };
 

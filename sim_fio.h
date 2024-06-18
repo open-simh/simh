@@ -68,8 +68,8 @@ t_stat sim_set_file_times (const char *file_name, time_t access_time, time_t wri
 int sim_set_fifo_nonblock (FILE *fptr);
 size_t sim_fread (void *bptr, size_t size, size_t count, FILE *fptr);
 size_t sim_fwrite (const void *bptr, size_t size, size_t count, FILE *fptr);
-uint32 sim_fsize (FILE *fptr);
-uint32 sim_fsize_name (const char *fname);
+uint32_t sim_fsize (FILE *fptr);
+uint32_t sim_fsize_name (const char *fname);
 t_offset sim_ftell (FILE *st);
 t_offset sim_fsize_ex (FILE *fptr);
 t_offset sim_fsize_name_ex (const char *fname);

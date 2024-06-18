@@ -77,17 +77,17 @@
 #define SCSI_QIC_BLKSZ  0x200
 
 struct scsi_dev_t {
-    uint8 devtype;                                      /* device type */
-    uint8 pqual;                                        /* peripheral qualifier */
-    uint32 scsiver;                                     /* SCSI version */
+    uint8_t devtype;                                      /* device type */
+    uint8_t pqual;                                        /* peripheral qualifier */
+    uint32_t scsiver;                                     /* SCSI version */
     t_bool removeable;                                  /* removable flag */
-    uint32 block_size;                                  /* device block size */
-    uint32 lbn;                                         /* device size (blocks) */
+    uint32_t block_size;                                  /* device block size */
+    uint32_t lbn;                                         /* device size (blocks) */
     const char *manufacturer;                           /* manufacturer string */
     const char *product;                                /* product string */
     const char *rev;                                    /* revision string */
     const char *name;                                   /* gap length for tapes */
-    uint32 gaplen;
+    uint32_t gaplen;
     };
 
 struct scsi_bus_t {
@@ -97,35 +97,35 @@ struct scsi_bus_t {
     int32 target;                                       /* current target */
     t_bool atn;                                         /* attention flag */
     t_bool req;                                         /* request flag */
-    uint8 *buf;                                         /* transfer buffer */
-    uint8 cmd[10];                                      /* command buffer */
-    uint32 buf_b;                                       /* buffer bottom ptr */
-    uint32 buf_t;                                       /* buffer top ptr */
-    uint32 phase;                                       /* current bus phase */
-    uint32 lun;                                         /* selected lun */
-    uint32 status;
-    uint32 sense_key;
-    uint32 sense_code;
-    uint32 sense_qual;
-    uint32 sense_info;
+    uint8_t *buf;                                         /* transfer buffer */
+    uint8_t cmd[10];                                      /* command buffer */
+    uint32_t buf_b;                                       /* buffer bottom ptr */
+    uint32_t buf_t;                                       /* buffer top ptr */
+    uint32_t phase;                                       /* current bus phase */
+    uint32_t lun;                                         /* selected lun */
+    uint32_t status;
+    uint32_t sense_key;
+    uint32_t sense_code;
+    uint32_t sense_qual;
+    uint32_t sense_info;
 };
 
 typedef struct scsi_bus_t SCSI_BUS;
 typedef struct scsi_dev_t SCSI_DEV;
 
-t_bool scsi_arbitrate (SCSI_BUS *bus, uint32 initiator);
+t_bool scsi_arbitrate (SCSI_BUS *bus, uint32_t initiator);
 void scsi_release (SCSI_BUS *bus);
 void scsi_set_atn (SCSI_BUS *bus);
 void scsi_release_atn (SCSI_BUS *bus);
-t_bool scsi_select (SCSI_BUS *bus, uint32 target);
-uint32 scsi_write (SCSI_BUS *bus, uint8 *data, uint32 len);
-uint32 scsi_read (SCSI_BUS *bus, uint8 *data, uint32 len);
-uint32 scsi_state (SCSI_BUS *bus, uint32 id);
-void scsi_add_unit (SCSI_BUS *bus, uint32 id, UNIT *uptr);
+t_bool scsi_select (SCSI_BUS *bus, uint32_t target);
+uint32_t scsi_write (SCSI_BUS *bus, uint8_t *data, uint32_t len);
+uint32_t scsi_read (SCSI_BUS *bus, uint8_t *data, uint32_t len);
+uint32_t scsi_state (SCSI_BUS *bus, uint32_t id);
+void scsi_add_unit (SCSI_BUS *bus, uint32_t id, UNIT *uptr);
 void scsi_set_unit (SCSI_BUS *bus, UNIT *uptr, SCSI_DEV *dev);
 void scsi_reset_unit (UNIT *uptr);
 void scsi_reset (SCSI_BUS *bus);
-t_stat scsi_init (SCSI_BUS *bus, uint32 maxfr);
+t_stat scsi_init (SCSI_BUS *bus, uint32_t maxfr);
 
 t_stat scsi_set_fmt (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat scsi_set_wlk (UNIT *uptr, int32 val, CONST char *cptr, void *desc);

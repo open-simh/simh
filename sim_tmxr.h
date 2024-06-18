@@ -145,14 +145,14 @@ struct tmln {
     int32               acl_accepted_sessions;          /* count of ACL accepted tcp connections */
     int32               acl_rejected_sessions;          /* count of ACL rejected tcp connections */
     int32               sessions;                       /* count of tcp connections received */
-    uint32              cnms;                           /* conn time */
+    uint32_t              cnms;                           /* conn time */
     int32               tsta;                           /* Telnet state */
     int32               rcve;                           /* rcv enable */
     int32               xmte;                           /* xmt enable */
     int32               dstb;                           /* disable Telnet binary mode */
     t_bool              notelnet;                       /* raw binary data (no telnet interpretation) */
     t_bool              nomessage;                      /* no connect/disconnect message on line even if telnet */
-    uint8               *telnet_sent_opts;              /* Telnet Options which we have sent a DON'T/WON'T */
+    uint8_t               *telnet_sent_opts;              /* Telnet Options which we have sent a DON'T/WON'T */
     int32               rxbpr;                          /* rcv buf remove */
     int32               rxbpi;                          /* rcv buf insert */
     int32               rxbsz;                          /* rcv buffer size */
@@ -175,22 +175,22 @@ struct tmln {
     char                *rxb;                           /* rcv buffer */
     char                *rbr;                           /* rcv break */
     char                *txb;                           /* xmt buffer */
-    uint8               *rxpb;                          /* rcv packet buffer */
-    uint32              rxpbsize;                       /* rcv packet buffer size */
-    uint32              rxpboffset;                     /* rcv packet buffer offset */
-    uint32              rxbps;                          /* rcv bps speed (0 - unlimited) */
+    uint8_t               *rxpb;                          /* rcv packet buffer */
+    uint32_t              rxpbsize;                       /* rcv packet buffer size */
+    uint32_t              rxpboffset;                     /* rcv packet buffer offset */
+    uint32_t              rxbps;                          /* rcv bps speed (0 - unlimited) */
     double              bpsfactor;                      /* receive speed factor (scaled to usecs) */
 #define USECS_PER_SECOND 1000000.0
-    uint32              rxdeltausecs;                   /* rcv inter character min time (usecs) */
+    uint32_t              rxdeltausecs;                   /* rcv inter character min time (usecs) */
     double              rxnexttime;                     /* min time for next receive character */
-    uint32              txbps;                          /* xmt bps speed (0 - unlimited) */
-    uint32              txdeltausecs;                   /* xmt inter character min time (usecs) */
+    uint32_t              txbps;                          /* xmt bps speed (0 - unlimited) */
+    uint32_t              txdeltausecs;                   /* xmt inter character min time (usecs) */
     double              txnexttime;                     /* min time for next transmit character */
     t_bool              txdone;                         /* sent data complete indicator - private */
-    uint8               *txpb;                          /* xmt packet buffer */
-    uint32              txpbsize;                       /* xmt packet buffer size */
-    uint32              txppsize;                       /* xmt packet packet size */
-    uint32              txppoffset;                     /* xmt packet buffer offset */
+    uint8_t               *txpb;                          /* xmt packet buffer */
+    uint32_t              txpbsize;                       /* xmt packet buffer size */
+    uint32_t              txppsize;                       /* xmt packet packet size */
+    uint32_t              txppoffset;                     /* xmt packet buffer offset */
     TMXR                *mp;                            /* back pointer to mux */
     char                *serconfig;                     /* line config */
     SERHANDLE           serport;                        /* serial port handle */
@@ -229,9 +229,9 @@ struct tmxr {
     int32               txcount;                        /* count of transmit bytes */
     int32               buffered;                       /* Buffered Line Behavior and Buffer Size Flag */
     int32               sessions;                       /* count of tcp connections received */
-    uint32              poll_interval;                  /* frequency of connection polls (seconds) */
-    uint32              last_poll_time;                 /* time of last connection poll */
-    uint32              ring_start_time;                /* time ring signal was raised */
+    uint32_t              poll_interval;                  /* frequency of connection polls (seconds) */
+    uint32_t              last_poll_time;                 /* time of last connection poll */
+    uint32_t              ring_start_time;                /* time ring signal was raised */
     char                *ring_ipad;                     /* incoming connection address awaiting DTR */
     SOCKET              ring_sock;                      /* incoming connection socket awaiting DTR */
     t_bool              notelnet;                       /* default telnet capability for incoming connections */
@@ -247,17 +247,17 @@ t_stat tmxr_reset_ln (TMLN *lp);
 t_stat tmxr_detach_ln (TMLN *lp);
 int32 tmxr_input_pending_ln (TMLN *lp);
 int32 tmxr_getc_ln (TMLN *lp);
-t_stat tmxr_get_packet_ln (TMLN *lp, const uint8 **pbuf, size_t *psize);
-t_stat tmxr_get_packet_ln_ex (TMLN *lp, const uint8 **pbuf, size_t *psize, uint8 frame_byte);
+t_stat tmxr_get_packet_ln (TMLN *lp, const uint8_t **pbuf, size_t *psize);
+t_stat tmxr_get_packet_ln_ex (TMLN *lp, const uint8_t **pbuf, size_t *psize, uint8_t frame_byte);
 void tmxr_poll_rx (TMXR *mp);
 t_stat tmxr_putc_ln (TMLN *lp, int32 chr);
-t_stat tmxr_put_packet_ln (TMLN *lp, const uint8 *buf, size_t size);
-t_stat tmxr_put_packet_ln_ex (TMLN *lp, const uint8 *buf, size_t size, uint8 frame_byte);
+t_stat tmxr_put_packet_ln (TMLN *lp, const uint8_t *buf, size_t size);
+t_stat tmxr_put_packet_ln_ex (TMLN *lp, const uint8_t *buf, size_t size, uint8_t frame_byte);
 void tmxr_poll_tx (TMXR *mp);
 int32 tmxr_send_buffered_data (TMLN *lp);
 t_stat tmxr_open_master (TMXR *mp, CONST char *cptr);
 t_stat tmxr_close_master (TMXR *mp);
-t_stat tmxr_connection_poll_interval (TMXR *mp, uint32 seconds);
+t_stat tmxr_connection_poll_interval (TMXR *mp, uint32_t seconds);
 t_stat tmxr_attach_ex (TMXR *mp, UNIT *uptr, CONST char *cptr, t_bool async);
 t_stat tmxr_detach (TMXR *mp, UNIT *uptr);
 t_stat tmxr_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
@@ -311,8 +311,8 @@ t_stat tmxr_show_sync (FILE* st, UNIT* uptr, int32 val, CONST void *desc);
 t_stat tmxr_flush_log_files (void);
 t_stat tmxr_activate (UNIT *uptr, int32 interval);
 t_stat tmxr_activate_abs (UNIT *uptr, int32 interval);
-t_stat tmxr_activate_after (UNIT *uptr, uint32 usecs_walltime);
-t_stat tmxr_activate_after_abs (UNIT *uptr, uint32 usecs_walltime);
+t_stat tmxr_activate_after (UNIT *uptr, uint32_t usecs_walltime);
+t_stat tmxr_activate_after_abs (UNIT *uptr, uint32_t usecs_walltime);
 t_stat tmxr_clock_coschedule (UNIT *uptr, int32 interval);
 t_stat tmxr_clock_coschedule_abs (UNIT *uptr, int32 interval);
 t_stat tmxr_clock_coschedule_tmr (UNIT *uptr, int32 tmr, int32 ticks);
@@ -332,7 +332,7 @@ t_stat tmxr_stop_poll (void);
 void tmxr_start_framer (TMLN *line, int dmc_mode);
 void tmxr_stop_framer (TMLN *line);
 
-void _tmxr_debug (uint32 dbits, TMLN *lp, const char *msg, char *buf, int bufsize);
+void _tmxr_debug (uint32_t dbits, TMLN *lp, const char *msg, char *buf, int bufsize);
 #define tmxr_debug(dbits, lp, msg, buf, bufsize) do {if (sim_deb && (lp)->mp && (lp)->mp->dptr && ((dbits) & (lp)->mp->dptr->dctrl)) _tmxr_debug (dbits, lp, msg, buf, bufsize); } while (0)
 #define tmxr_debug_msg(dbits, lp, msg) do {if (sim_deb && (lp)->mp && (lp)->mp->dptr && ((dbits) & (lp)->mp->dptr->dctrl)) sim_debug (dbits, (lp)->mp->dptr, "%s", msg); } while (0)
 #define tmxr_debug_return(lp, val) do {if (sim_deb && (val) && (lp)->mp && (lp)->mp->dptr && (TMXR_DBG_RET & (lp)->mp->dptr->dctrl)) { if ((lp)->rxbps) sim_debug (TMXR_DBG_RET, (lp)->mp->dptr, "Ln%d: 0x%x - Next after: %.0f\n", (int)((lp)-(lp)->mp->ldsc), val, (lp)->rxnexttime); else sim_debug (TMXR_DBG_RET, (lp)->mp->dptr, "Ln%d: 0x%x\n", (int)((lp)-(lp)->mp->ldsc), val); } } while (0)
