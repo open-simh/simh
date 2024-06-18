@@ -58,7 +58,7 @@
 #define botf            u3                              /* bot tape flag */
 #define eotf            u4                              /* eot tape flag */
 
-extern uint32 xfr_req;
+extern uint32_t xfr_req;
 extern int32 stop_invins, stop_invdev, stop_inviop;
 int32 mt_inst = 0;                                      /* saved instr */
 int32 mt_eof = 0;                                       /* end of file */
@@ -69,7 +69,7 @@ int32 mt_blnt = 0;                                      /* buf length */
 int32 mt_ctime = 10;                                    /* char time */
 int32 mt_gtime = 1000;                                  /* gap time */
 int32 mt_stopioe = 1;                                   /* stop on err */
-uint8 mtxb[MT_MAXFR];                                   /* record buffer */
+uint8_t mtxb[MT_MAXFR];                                   /* record buffer */
 DSPT mt_tplt[] = {                                      /* template */
     { MT_NUMDR, 0 },
     { MT_NUMDR, DEV_MTS },
@@ -86,9 +86,9 @@ t_stat mt_detach (UNIT *uptr);
 t_stat mt_readrec (UNIT *uptr);
 t_mtrlnt mt_readbc (UNIT *uptr);
 void mt_readend (UNIT *uptr);
-t_stat mt_wrend (uint32 dev);
+t_stat mt_wrend (uint32_t dev);
 void mt_set_err (UNIT *uptr);
-t_stat mt (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat mt (uint32_t fnc, uint32_t inst, uint32_t *dat);
 
 static const char sds_to_bcd[64] = {
     012, 001, 002, 003, 004, 005, 006, 007,
@@ -184,12 +184,12 @@ DEVICE mt_dev = {
    write -      inst = device number, dat = ptr to result
 */
 
-t_stat mt (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat mt (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
 int32 u = inst & MT_UNIT;                               /* get unit */
 UNIT *uptr = mt_dev.units + u;                          /* get unit ptr */
 int32 t, new_ch;
-uint8 chr;
+uint8_t chr;
 t_stat r;
 
 switch (fnc) {                                          /* case function */
@@ -406,7 +406,7 @@ return;
 
 /* Write complete (end of record or disconnect) */
 
-t_stat mt_wrend (uint32 dev)
+t_stat mt_wrend (uint32_t dev)
 {
 UNIT *uptr = mt_dev.units + (dev & MT_UNIT);
 t_stat st;
@@ -501,7 +501,7 @@ return sim_tape_detach (uptr);
 
 t_stat mt_boot (int32 unitno, DEVICE *dptr)
 {
-extern uint32 P, M[];
+extern uint32_t P, M[];
 
 if (unitno)                                             /* only unit 0 */
     return SCPE_ARG;

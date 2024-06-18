@@ -101,22 +101,22 @@
 
 /* Data */
 
-extern uint32 alert, int_req;
+extern uint32_t alert, int_req;
 extern int32 stop_invins, stop_invdev, stop_inviop;
 extern UNIT cpu_unit;
 
-uint8 mux_rbuf[MUX_LINES];                              /* rcv buf */
-uint8 mux_xbuf[MUX_LINES];                              /* xmt buf */
-uint8 mux_sta[MUX_LINES];                               /* status */
-uint8 mux_flags[MUX_SCANMAX];                           /* flags */
-uint32 mux_tps = 100;                                   /* polls/second */
-uint32 mux_scan = 0;                                    /* scanner */
-uint32 mux_slck = 0;                                    /* scanner locked */
+uint8_t mux_rbuf[MUX_LINES];                              /* rcv buf */
+uint8_t mux_xbuf[MUX_LINES];                              /* xmt buf */
+uint8_t mux_sta[MUX_LINES];                               /* status */
+uint8_t mux_flags[MUX_SCANMAX];                           /* flags */
+uint32_t mux_tps = 100;                                   /* polls/second */
+uint32_t mux_scan = 0;                                    /* scanner */
+uint32_t mux_slck = 0;                                    /* scanner locked */
 
 TMLN mux_ldsc[MUX_LINES] = { {0} };                     /* line descriptors */
 TMXR mux_desc = { MUX_LINES, 0, 0, mux_ldsc };          /* mux descriptor */
 
-t_stat mux (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat mux (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat muxi_svc (UNIT *uptr);
 t_stat muxo_svc (UNIT *uptr);
 t_stat mux_reset (DEVICE *dptr);
@@ -248,9 +248,9 @@ DEVICE muxl_dev = {
 
 /* Mux routine -  EOM 30001 or EOM 77777,2 */
 
-t_stat mux (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat mux (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-uint32 ln;
+uint32_t ln;
 
 switch (fnc) {
 
@@ -286,17 +286,17 @@ return SCPE_OK;
 
 /* PIN routine */
 
-t_stat pin_mux (uint32 num, uint32 *dat)
+t_stat pin_mux (uint32_t num, uint32_t *dat)
 {
-uint32 ln = mux_scan >> 2;
-uint32 flag = mux_scan & MUX_FLAGMASK;
+uint32_t ln = mux_scan >> 2;
+uint32_t flag = mux_scan & MUX_FLAGMASK;
 
 if (!mux_slck)                                          /* scanner must be locked */
     return SCPE_IERR;
 mux_scan = mux_scan & MUX_SCANMASK;                     /* mask scan */
 mux_flags[mux_scan] = 0;                                /* clear flag */
 if (flag == MUX_FRCV) {                                 /* rcv event? */
-    *dat = ln | ((uint32) mux_rbuf[ln] << P_V_CHAR) |   /* line + char + */
+    *dat = ln | ((uint32_t) mux_rbuf[ln] << P_V_CHAR) |   /* line + char + */
         ((mux_sta[ln] & MUX_SOVR)? PIN_OVR: 0);         /* overrun */
     mux_sta[ln] = mux_sta[ln] & ~(MUX_SCHP | MUX_SOVR);
     }
@@ -306,10 +306,10 @@ mux_scan_next ();                                       /* kick scanner */
 return SCPE_OK;
 }
 
-t_stat pot_mux (uint32 num, uint32 *dat)
+t_stat pot_mux (uint32_t num, uint32_t *dat)
 {
-uint32 ln = P_CHAN (*dat);
-uint32 chr = P_CHAR (*dat);
+uint32_t ln = P_CHAN (*dat);
+uint32_t chr = P_CHAR (*dat);
 
 if (PROJ_GENIE && ((*dat & POT_GLNE) == 0)) {           /* Genie disable? */
     mux_sta[ln] = mux_sta[ln] & ~MUX_SLNE;              /* clear status */
@@ -394,7 +394,7 @@ return SCPE_OK;
 t_stat muxo_svc (UNIT *uptr)
 {
 int32 c;
-uint32 ln = uptr - muxl_unit;                           /* line # */
+uint32_t ln = uptr - muxl_unit;                           /* line # */
 
 if (mux_ldsc[ln].conn) {                                /* connected? */
     if (mux_ldsc[ln].xmte) {                            /* xmt enabled? */
