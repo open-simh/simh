@@ -36,7 +36,7 @@
 #define PIA_FLG         07
 #define CLK_IRQ         010
 
-t_stat         pclk_devio(uint32 dev, uint64 *data);
+t_stat         pclk_devio(uint32_t dev, uint64 *data);
 const char *pclk_description (DEVICE *dptr);
 t_stat         pclk_srv(UNIT *uptr);
 t_stat         pclk_set_on(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -67,7 +67,7 @@ DEVICE pclk_dev = {
 
         The original PCLK was installed on the PDP-6 I/O bus at the SAIL D.C.Power Lab in 1967.
 */
-t_stat pclk_devio(uint32 dev, uint64 *data)
+t_stat pclk_devio(uint32_t dev, uint64 *data)
 {
     time_t t=sim_get_time(NULL);
     struct tm *dt;

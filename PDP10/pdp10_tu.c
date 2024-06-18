@@ -336,7 +336,7 @@ static const char *tu_fname[CS1_N_FNC] = {
     "20", "21", "22", "23", "WRCHKF", "25", "26", "WRCHKR",
     "WRITE", "31", "32", "33", "READF", "35", "36" "READR"
     };
-static uint8 *xbuf = NULL;                              /* xfer buffer */
+static uint8_t *xbuf = NULL;                              /* xfer buffer */
 
 t_stat tu_rd (int32 *data, int32 PA, int32 access);
 t_stat tu_wr (int32 data, int32 PA, int32 access);
@@ -948,12 +948,12 @@ switch (fnc) {                                          /* case on function */
                 MAPM (ba10 + i, mpa10, 0);
                 }
             val = M[mpa10];
-            xbuf[j++] = (uint8) ((val >> 28) & 0377);
-            xbuf[j++] = (uint8) ((val >> 20) & 0377);
-            xbuf[j++] = (uint8) ((val >> 12) & 0377);
-            xbuf[j++] = (uint8) ((val >> 4) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 28) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 20) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 12) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 4) & 0377);
             if (fmt == TC_10C)
-                xbuf[j++] = (uint8) (val & 017);
+                xbuf[j++] = (uint8_t) (val & 017);
             mpa10 = mpa10 + 1;
             }                                           /* end for */
         if (j < fc)                                     /* short record? */
@@ -1181,7 +1181,7 @@ for (u = 0; u < TU_NUMDR; u++) {                        /* loop thru units */
     uptr->USTAT = 0;
     }
 if (xbuf == NULL)
-    xbuf = (uint8 *) calloc (MT_MAXFR + 4, sizeof (uint8));
+    xbuf = (uint8_t *) calloc (MT_MAXFR + 4, sizeof (uint8_t));
 if (xbuf == NULL)
     return SCPE_MEM;
 return SCPE_OK;

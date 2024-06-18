@@ -336,7 +336,7 @@ DEBTAB rp_debug[] = {
 };
 extern int32 ubmap[UBANUM][UMAP_MEMSIZE];               /* Unibus maps */
 extern int32 ubcs[UBANUM];
-extern uint32 fe_bootrh;
+extern uint32_t fe_bootrh;
 extern int32 fe_bootunit;
 
 int32 rpcs1 = 0;                                        /* control/status 1 */
@@ -344,18 +344,18 @@ int32 rpwc = 0;                                         /* word count */
 int32 rpba = 0;                                         /* bus address */
 int32 rpcs2 = 0;                                        /* control/status 2 */
 int32 rpdb = 0;                                         /* data buffer */
-uint16 rpda[RP_NUMDR] = { 0 };                          /* track/sector */
-uint16 rpds[RP_NUMDR] = { 0 };                          /* drive status */
-uint16 rper1[RP_NUMDR] = { 0 };                         /* error status 1 */
-uint16 rmhr[RP_NUMDR] = { 0 };                          /* holding reg */
-uint16 rpmr[RP_NUMDR] = { 0 };                          /* maint reg */
-uint16 rmmr2[RP_NUMDR] = { 0 };                         /* maint reg 2 */
-uint16 rpof[RP_NUMDR] = { 0 };                          /* offset */
-uint16 rpdc[RP_NUMDR] = { 0 };                          /* cylinder */
-uint16 rper2[RP_NUMDR] = { 0 };                         /* error status 2 */
-uint16 rper3[RP_NUMDR] = { 0 };                         /* error status 3 */
-uint16 rpec1[RP_NUMDR] = { 0 };                         /* ECC correction 1 */
-uint16 rpec2[RP_NUMDR] = { 0 };                         /* ECC correction 2 */
+uint16_t rpda[RP_NUMDR] = { 0 };                          /* track/sector */
+uint16_t rpds[RP_NUMDR] = { 0 };                          /* drive status */
+uint16_t rper1[RP_NUMDR] = { 0 };                         /* error status 1 */
+uint16_t rmhr[RP_NUMDR] = { 0 };                          /* holding reg */
+uint16_t rpmr[RP_NUMDR] = { 0 };                          /* maint reg */
+uint16_t rmmr2[RP_NUMDR] = { 0 };                         /* maint reg 2 */
+uint16_t rpof[RP_NUMDR] = { 0 };                          /* offset */
+uint16_t rpdc[RP_NUMDR] = { 0 };                          /* cylinder */
+uint16_t rper2[RP_NUMDR] = { 0 };                         /* error status 2 */
+uint16_t rper3[RP_NUMDR] = { 0 };                         /* error status 3 */
+uint16_t rpec1[RP_NUMDR] = { 0 };                         /* ECC correction 1 */
+uint16_t rpec2[RP_NUMDR] = { 0 };                         /* ECC correction 2 */
 int32 rpiff = 0;                                        /* INTR flip/flop */
 int32 rp_stopioe = 1;                                   /* stop on error */
 int32 rp_swait = 10;                                    /* seek time */
@@ -622,7 +622,7 @@ if (reg_in_drive[j] && sim_is_active (uptr) && (uptr->flags & UNIT_UTS)) { /* un
     update_rpcs (0, drv);
     return SCPE_OK;
     }
-rmhr[drv] = (uint16)data;
+rmhr[drv] = (uint16_t)data;
 
 switch (j) {                                            /* decode PA<5:1> */
 
@@ -674,7 +674,7 @@ switch (j) {                                            /* decode PA<5:1> */
     case 003:                                           /* RPDA */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rpda[drv] = (uint16)(data & ~DA_MBZ);
+        rpda[drv] = (uint16_t)(data & ~DA_MBZ);
         break;
 
     case 004:                                           /* RPCS2 */
@@ -695,7 +695,7 @@ switch (j) {                                            /* decode PA<5:1> */
     case 006:                                           /* RPER1 */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rper1[drv] = (uint16)data;
+        rper1[drv] = (uint16_t)data;
         break;
 
     case 007:                                           /* RPAS */
@@ -716,17 +716,17 @@ switch (j) {                                            /* decode PA<5:1> */
     case 012:                                           /* RPMR */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rpmr[drv] = (uint16)data;
+        rpmr[drv] = (uint16_t)data;
         break;
 
     case 015:                                           /* RPOF */
-        rpof[drv] = (uint16)(data & ~OF_MBZ);
+        rpof[drv] = (uint16_t)(data & ~OF_MBZ);
         break;
 
     case 016:                                           /* RPDC */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rpdc[drv] = (uint16)(data & ~DC_MBZ);
+        rpdc[drv] = (uint16_t)(data & ~DC_MBZ);
         break;
 
     case 005:                                           /* RPDS */
@@ -965,13 +965,13 @@ switch (uptr->FUNC) {                                   /* case on function */
                 for (i = 0; i < fc10; i++)
                     dbuf[twc10 + i] = 0;
                 }
-            r = sim_disk_wrsect (uptr, da/RP_NUMWD, (uint8 *)dbuf,
+            r = sim_disk_wrsect (uptr, da/RP_NUMWD, (uint8_t *)dbuf,
                                  NULL, (twc10 + fc10 + RP_NUMWD - 1)/RP_NUMWD);
             }                                           /* end if */
         else {                                          /* read, wchk, readh */
             t_seccnt sectsread;
 
-            r = sim_disk_rdsect (uptr, da/RP_NUMWD, (uint8 *)dbuf,
+            r = sim_disk_rdsect (uptr, da/RP_NUMWD, (uint8_t *)dbuf,
                                  &sectsread, (wc10 + RP_NUMWD - 1)/RP_NUMWD);
             awc10 = sectsread * RP_NUMWD;
             for ( ; awc10 < wc10; awc10++)
@@ -1010,10 +1010,10 @@ switch (uptr->FUNC) {                                   /* case on function */
         if (da >= drv_tab[dtype].size)
             rpds[drv] = rpds[drv] | DS_LST;
         da = da / RP_NUMWD;
-        rpda[drv] = (uint16)(da % drv_tab[dtype].sect);
+        rpda[drv] = (uint16_t)(da % drv_tab[dtype].sect);
         da = da / drv_tab[dtype].sect;
-        rpda[drv] = (uint16)(rpda[drv] | ((da % drv_tab[dtype].surf) << DA_V_SF));
-        rpdc[drv] = (uint16)(da / drv_tab[dtype].surf);
+        rpda[drv] = (uint16_t)(rpda[drv] | ((da % drv_tab[dtype].surf) << DA_V_SF));
+        rpdc[drv] = (uint16_t)(da / drv_tab[dtype].surf);
 
         if (r != SCPE_OK) {                             /* error? */
             set_rper (ER1_PAR, drv);                    /* set drive error */

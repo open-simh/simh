@@ -150,7 +150,7 @@
 #define DT_LIN2WD(p,u)  ((DT_LIN2OF (p,u) - DT_HTLIN) / DT_WSIZE)
 #define DT_BLK2LN(p,u)  (((p) * DTU_LPERB (u)) + DT_EZLIN)
 #define DT_QREZ(u)      (((u)->pos) < DT_EZLIN)
-#define DT_QFEZ(u)      (((u)->pos) >= ((uint32) DTU_FWDEZ (u)))
+#define DT_QFEZ(u)      (((u)->pos) >= ((uint32_t) DTU_FWDEZ (u)))
 #define DT_QEZ(u)       (DT_QREZ (u) || DT_QFEZ (u))
 
 /* Command register, status A */
@@ -238,7 +238,7 @@ int32 dtc_dtsa = 0;                           /* status A */
 int32 dtc_dtsb = 0;                           /* status B */
 int   dtc_dct = 0;
 
-t_stat         dtc_devio(uint32 dev, uint64 *data);
+t_stat         dtc_devio(uint32_t dev, uint64 *data);
 t_stat         dtc_svc (UNIT *uptr);
 t_stat         dtc_boot(int32 unit_num, DEVICE * dptr);
 t_stat         dtc_set_dct (UNIT *, int32, CONST char *, void *);
@@ -331,14 +331,14 @@ int delay[] = { 0, 50, 100, 500 };
 
 /* IOT routines */
 t_stat
-dtc_devio(uint32 dev, uint64 *data) {
+dtc_devio(uint32_t dev, uint64 *data) {
      int      i;
 
      switch(dev & 07) {
      case CONI:
           *data = (uint64)dtc_dtsa;
           sim_debug(DEBUG_CONI, &dtc_dev, "DTC %03o CONI %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
           break;
 
      case CONO:
@@ -348,7 +348,7 @@ dtc_devio(uint32 dev, uint64 *data) {
                          DTC_START|DTC_JDONE|DTC_ETF|DTC_SEL);
           dtc_dtsb = 0;
           sim_debug(DEBUG_CONO, &dtc_dev, "DTC %03o CONO %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
           i = DTC_GETUNI(*data);
 #if DTC_NUMDR < 8
           if (i >= DTC_NUMDR) {
@@ -432,7 +432,7 @@ dtc_svc (UNIT *uptr)
 {
    int        word;
    uint64     data = 0;
-   uint32     *fbuf = (uint32 *) uptr->filebuf;         /* file buffer */
+   uint32_t     *fbuf = (uint32_t *) uptr->filebuf;         /* file buffer */
    int        u = uptr-dtc_unit;
    int        blk;
    int        off;
@@ -1070,7 +1070,7 @@ t_stat
 dtc_boot(int32 unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint32             *fbuf = (uint32 *) uptr->filebuf;    /* file buffer */
+    uint32_t             *fbuf = (uint32_t *) uptr->filebuf;    /* file buffer */
     uint64              word = 0;
     int                 off;
     int                 wc, addr;
@@ -1156,9 +1156,9 @@ dtc_reset (DEVICE *dptr)
 t_stat
 dtc_attach (UNIT *uptr, CONST char *cptr)
 {
-    uint16 pdp8b[D8_NBSIZE];
-    uint16 pdp11b[D18_BSIZE];
-    uint32 ba, sz, k, *fbuf;
+    uint16_t pdp8b[D8_NBSIZE];
+    uint16_t pdp11b[D18_BSIZE];
+    uint32_t ba, sz, k, *fbuf;
     int32 u = uptr - dtc_dev.units;
     t_stat r;
     
@@ -1180,12 +1180,12 @@ dtc_attach (UNIT *uptr, CONST char *cptr)
         }
     }
     uptr->capac = DTU_CAPAC (uptr);                         /* set capacity */
-    uptr->filebuf = calloc (uptr->capac, sizeof (uint32));
+    uptr->filebuf = calloc (uptr->capac, sizeof (uint32_t));
     if (uptr->filebuf == NULL) {                            /* can't alloc? */
         detach_unit (uptr);
         return SCPE_MEM;
     }
-    fbuf = (uint32 *) uptr->filebuf;                        /* file buffer */
+    fbuf = (uint32_t *) uptr->filebuf;                        /* file buffer */
     sim_printf ("%s%d: ", sim_dname (&dtc_dev), u);
     if (uptr->flags & UNIT_8FMT)
         sim_printf ("12b format");
@@ -1197,23 +1197,23 @@ dtc_attach (UNIT *uptr, CONST char *cptr)
     uptr->io_flush = dtc_flush;
     if (uptr->flags & UNIT_8FMT) {                          /* 12b? */
         for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
-            k = fxread (pdp8b, sizeof (uint16), D8_NBSIZE, uptr->fileref);
+            k = fxread (pdp8b, sizeof (uint16_t), D8_NBSIZE, uptr->fileref);
             if (k == 0)
                 break;
             for ( ; k < D8_NBSIZE; k++)
                 pdp8b[k] = 0;
             for (k = 0; k < D8_NBSIZE; k = k + 3) {         /* loop thru blk */
-                fbuf[ba] = ((uint32) (pdp8b[k] & 07777) << 6) |
-                    ((uint32) (pdp8b[k + 1] >> 6) & 077);
-                fbuf[ba + 1] = ((uint32) (pdp8b[k + 1] & 077) << 12) |
-                    ((uint32) pdp8b[k + 2] & 07777);
+                fbuf[ba] = ((uint32_t) (pdp8b[k] & 07777) << 6) |
+                    ((uint32_t) (pdp8b[k + 1] >> 6) & 077);
+                fbuf[ba + 1] = ((uint32_t) (pdp8b[k + 1] & 077) << 12) |
+                    ((uint32_t) pdp8b[k + 2] & 07777);
                 ba = ba + 2;                                /* end blk loop */
             }
         }                                                   /* end file loop */
         uptr->hwmark = ba;
     } else if (uptr->flags & UNIT_11FMT) {                  /* 16b? */
         for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
-            k = fxread (pdp11b, sizeof (uint16), D18_BSIZE, uptr->fileref);
+            k = fxread (pdp11b, sizeof (uint16_t), D18_BSIZE, uptr->fileref);
             if (k == 0)
                 break;
             for ( ; k < D18_BSIZE; k++)
@@ -1222,7 +1222,7 @@ dtc_attach (UNIT *uptr, CONST char *cptr)
                 fbuf[ba++] = pdp11b[k];
         }
         uptr->hwmark = ba;
-    } else uptr->hwmark = fxread (uptr->filebuf, sizeof (uint32),
+    } else uptr->hwmark = fxread (uptr->filebuf, sizeof (uint32_t),
         uptr->capac, uptr->fileref);
     uptr->flags = uptr->flags | UNIT_BUF;                   /* set buf flag */
     uptr->pos = DT_EZLIN;                                   /* beyond leader */
@@ -1241,13 +1241,13 @@ dtc_attach (UNIT *uptr, CONST char *cptr)
 void
 dtc_flush (UNIT* uptr)
 {
-    uint16 pdp8b[D8_NBSIZE];
-    uint16 pdp11b[D18_BSIZE];
-    uint32 ba, k, *fbuf;
+    uint16_t pdp8b[D8_NBSIZE];
+    uint16_t pdp11b[D18_BSIZE];
+    uint32_t ba, k, *fbuf;
     
     if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO) == 0)) {   /* any data? */
         sim_printf ("%s: writing buffer to file: %s\n", sim_uname (uptr), uptr->filename);
-        fbuf = (uint32 *) uptr->filebuf;                        /* file buffer */
+        fbuf = (uint32_t *) uptr->filebuf;                        /* file buffer */
         rewind (uptr->fileref);                             /* start of file */
         if (uptr->flags & UNIT_8FMT) {                      /* 12b? */
             for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru file */
@@ -1258,7 +1258,7 @@ dtc_flush (UNIT* uptr)
                     pdp8b[k + 2] = fbuf[ba + 1] & 07777;
                     ba = ba + 2;
                 }                                           /* end loop blk */
-                fxwrite (pdp8b, sizeof (uint16), D8_NBSIZE, uptr->fileref);
+                fxwrite (pdp8b, sizeof (uint16_t), D8_NBSIZE, uptr->fileref);
                 if (ferror (uptr->fileref))
                     break;
             }                                               /* end loop file */
@@ -1266,11 +1266,11 @@ dtc_flush (UNIT* uptr)
             for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru file */
                 for (k = 0; k < D18_BSIZE; k++)             /* loop blk */
                     pdp11b[k] = fbuf[ba++] & 0177777;
-                fxwrite (pdp11b, sizeof (uint16), D18_BSIZE, uptr->fileref);
+                fxwrite (pdp11b, sizeof (uint16_t), D18_BSIZE, uptr->fileref);
                 if (ferror (uptr->fileref))
                     break;
             }                                              /* end loop file */
-        } else fxwrite (uptr->filebuf, sizeof (uint32),    /* write file */
+        } else fxwrite (uptr->filebuf, sizeof (uint32_t),    /* write file */
             uptr->hwmark, uptr->fileref);
         if (ferror (uptr->fileref))
             sim_perror ("I/O error");

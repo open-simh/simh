@@ -45,34 +45,34 @@ extern uint64 SW;         /* Switch register */
 extern t_addr AS;         /* Address switches */
 extern uint64 MB;         /* Memory Bus register */
 extern uint64 MI;         /* Memory indicator register */
-extern uint8  MI_flag;    /* Memory indicator mode */
-extern uint32 FLAGS;      /* Flags register */
-extern uint8  RUN;        /* Run flag */
-extern uint32 IR;         /* Instruction register */
-extern uint32 AC;         /* Accumulator */
-extern uint8  IX;         /* Index register */
-extern uint8  IND;        /* Indirect flag */
+extern uint8_t  MI_flag;    /* Memory indicator mode */
+extern uint32_t FLAGS;      /* Flags register */
+extern uint8_t  RUN;        /* Run flag */
+extern uint32_t IR;         /* Instruction register */
+extern uint32_t AC;         /* Accumulator */
+extern uint8_t  IX;         /* Index register */
+extern uint8_t  IND;        /* Indirect flag */
 extern t_addr AB;         /* Memory address register */
 extern t_addr PC;         /* Program counter register */
 #if KA | KI
 extern int    nxm_stop;   /* Stop if non-existent memory access */
 extern int    adr_cond;   /* Address stop condition */
 #endif
-extern uint8  IOB_PI;     /* Pending Interrupt requests */
-extern uint8  PIR;        /* Current Interrupt requests */
-extern uint8  PIH;        /* Currently held interrupts */
-extern uint8  PIE;        /* Currently enabled interrupts */
+extern uint8_t  IOB_PI;     /* Pending Interrupt requests */
+extern uint8_t  PIR;        /* Current Interrupt requests */
+extern uint8_t  PIH;        /* Currently held interrupts */
+extern uint8_t  PIE;        /* Currently enabled interrupts */
 extern int    pi_enable;  /* Interrupt system enabled */
-extern uint8  prog_stop;  /* Program stop */
-extern uint8  examine_sw; /* Examine memory */
-extern uint8  deposit_sw; /* Deposit memory */
-extern uint8  sing_inst_sw;/* Execute single instruction */
-extern uint8  xct_sw;     /* Execute an instruction */
-extern uint8  stop_sw;    /* Stop the simulator */
-extern uint8  MI_disable; /* Disable MI display */
+extern uint8_t  prog_stop;  /* Program stop */
+extern uint8_t  examine_sw; /* Examine memory */
+extern uint8_t  deposit_sw; /* Deposit memory */
+extern uint8_t  sing_inst_sw;/* Execute single instruction */
+extern uint8_t  xct_sw;     /* Execute an instruction */
+extern uint8_t  stop_sw;    /* Stop the simulator */
+extern uint8_t  MI_disable; /* Disable MI display */
 extern int    watch_stop; /* Memory Stop */
-extern uint32 rdrin_dev;  /* Read in device. */
-extern uint8  MI_disable; /* Disable MI */
+extern uint32_t rdrin_dev;  /* Read in device. */
+extern uint8_t  MI_disable; /* Disable MI */
 int           repeat_sw;  /* Repeat switch state */
 int           par_stop;   /* Parity stop */
 int           pwr_off;    /* Power off system */
@@ -295,7 +295,7 @@ void *blink(void *ptr)
     int        *terminate = (int *)ptr;
     int        col, row, i;
     int        num_gpios, ret;
-    uint32     leds;
+    uint32_t     leds;
     t_addr     new_as;
     struct timespec spec;
     struct sched_param sp;

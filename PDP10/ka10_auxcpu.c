@@ -52,7 +52,7 @@
 #define STATUS      u4
 t_addr auxcpu_base = 03000000;
 
-static t_stat auxcpu_devio(uint32 dev, uint64 *data);
+static t_stat auxcpu_devio(uint32_t dev, uint64 *data);
 static t_stat auxcpu_svc (UNIT *uptr);
 static t_stat auxcpu_reset (DEVICE *dptr);
 static t_stat auxcpu_attach (UNIT *uptr, CONST char *ptr);
@@ -220,7 +220,7 @@ static int error (const char *message)
 
 static int transaction (unsigned char *request, unsigned char *response)
 {
-  const uint8 *auxcpu_request;
+  const uint8_t *auxcpu_request;
   size_t size;
   t_stat stat;
 
@@ -343,7 +343,7 @@ static int auxcpu_interrupt (void)
   return 0;
 }
 
-t_stat auxcpu_devio(uint32 dev, uint64 *data)
+t_stat auxcpu_devio(uint32_t dev, uint64 *data)
 {
     UNIT   *uptr = &auxcpu_unit[0];
 

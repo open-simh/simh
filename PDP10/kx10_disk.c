@@ -74,7 +74,7 @@ disk_read(UNIT *uptr, uint64 *buffer, int sector, int wps)
     int      bc;
     int      wp;
     uint64   temp;
-    uint8    conv_buff[2048];
+    uint8_t    conv_buff[2048];
     switch(GET_FMT(uptr->flags)) {
     case SIMH:
             da = sector * wps;
@@ -140,7 +140,7 @@ disk_write(UNIT *uptr, uint64 *buffer, int sector, int wps)
     int      bc;
     int      wp;
     uint64   temp;
-    uint8    conv_buff[2048];
+    uint8_t    conv_buff[2048];
     switch(GET_FMT(uptr->flags)) {
     case SIMH:
             da = sector * wps;
@@ -151,17 +151,17 @@ disk_write(UNIT *uptr, uint64 *buffer, int sector, int wps)
             bc = (wps / 2) * 9;
             for (wp = wc = 0; wp < wps;) {
                 temp = buffer[wp++];
-                conv_buff[wc++] = (uint8)((temp >> 28) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 20) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 12) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 4) & 0xff);
-                conv_buff[wc] = (uint8)((temp & 0xf) << 4);
+                conv_buff[wc++] = (uint8_t)((temp >> 28) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 20) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 12) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 4) & 0xff);
+                conv_buff[wc] = (uint8_t)((temp & 0xf) << 4);
                 temp = buffer[wp++];
-                conv_buff[wc++] |= (uint8)((temp >> 32) & 0xf);
-                conv_buff[wc++] = (uint8)((temp >> 24) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 16) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 8) & 0xff);
-                conv_buff[wc++] = (uint8)(temp & 0xff);
+                conv_buff[wc++] |= (uint8_t)((temp >> 32) & 0xf);
+                conv_buff[wc++] = (uint8_t)((temp >> 24) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 16) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 8) & 0xff);
+                conv_buff[wc++] = (uint8_t)(temp & 0xff);
             }
             da = sector * bc;
             (void)sim_fseek(uptr->fileref, da, SEEK_SET);
@@ -171,17 +171,17 @@ disk_write(UNIT *uptr, uint64 *buffer, int sector, int wps)
             bc = (wps / 2) * 9;
             for (wp = wc = 0; wp < wps;) {
                 temp = buffer[wp++];
-                conv_buff[wc++] = (uint8)(temp & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 8) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 16) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 24) & 0xff);
-                conv_buff[wc] = (uint8)((temp >> 32)  & 0xf);
+                conv_buff[wc++] = (uint8_t)(temp & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 8) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 16) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 24) & 0xff);
+                conv_buff[wc] = (uint8_t)((temp >> 32)  & 0xf);
                 temp = buffer[wp++];
-                conv_buff[wc++] |= (uint8)((temp << 4) & 0xf0);
-                conv_buff[wc++] = (uint8)((temp >> 4) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 12) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 20) & 0xff);
-                conv_buff[wc++] = (uint8)((temp >> 28) & 0xff);
+                conv_buff[wc++] |= (uint8_t)((temp << 4) & 0xf0);
+                conv_buff[wc++] = (uint8_t)((temp >> 4) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 12) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 20) & 0xff);
+                conv_buff[wc++] = (uint8_t)((temp >> 28) & 0xff);
             }
             da = sector * bc;
             (void)sim_fseek(uptr->fileref, da, SEEK_SET);
@@ -267,7 +267,7 @@ t_stat disk_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const ch
     fprintf (st, "    DLD9   Compatible with KLH10 is a packed little endian word\n");
     
     if (dptr->numunits > 1) {
-        uint32 i;
+        uint32_t i;
     
         for (i=0; (i < dptr->numunits); ++i)
             if ((dptr->units[i].flags & UNIT_ATTABLE) &&

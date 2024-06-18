@@ -92,7 +92,7 @@ t_stat ch10_svc(UNIT *);
 t_stat ch10_reset (DEVICE *);
 t_stat ch10_attach (UNIT *, CONST char *);
 t_stat ch10_detach (UNIT *);
-t_stat ch10_devio(uint32 dev, uint64 *data);
+t_stat ch10_devio(uint32_t dev, uint64 *data);
 t_stat ch10_show_peer (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
 t_stat ch10_set_peer (UNIT* uptr, int32 val, CONST char* cptr, void* desc);
 t_stat ch10_show_node (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
@@ -107,8 +107,8 @@ static uint64 ch10_status;
 static int rx_count;
 static int rx_pos;
 static int tx_count;
-static uint8 rx_buffer[514+100];
-static uint8 tx_buffer[514+100];
+static uint8_t rx_buffer[514+100];
+static uint8_t tx_buffer[514+100];
 
 TMLN ch10_lines[1] = { {0} };
 TMXR ch10_tmxr = { 1, NULL, 0, ch10_lines};
@@ -157,7 +157,7 @@ DEVICE ch10_dev = {
     &ch10_description
   };
 
-uint16 ch10_checksum (const uint8 *p, int count)
+uint16_t ch10_checksum (const uint8_t *p, int count)
 {
   int32 sum = 0;
 
@@ -192,9 +192,9 @@ int ch10_test_int (void)
   }
 }
 
-void ch10_validate (const uint8 *p, int count)
+void ch10_validate (const uint8_t *p, int count)
 {
-  uint16 chksum;
+  uint16_t chksum;
   int size;
 
   sim_debug (DBG_TRC, &ch10_dev, "Packet opcode: %02x\n", p[0]);
@@ -225,7 +225,7 @@ t_stat ch10_transmit ()
   size_t len;
   t_stat r;
   int i = CHUDP_HEADER + tx_count;
-  uint16 chk;
+  uint16_t chk;
 
   if (tx_count > (514 - CHUDP_HEADER)) {
     sim_debug (DBG_PKT, &ch10_dev, "Pack size failed, %d bytes.\n", (int)tx_count);
@@ -242,7 +242,7 @@ t_stat ch10_transmit ()
 
   tmxr_poll_tx (&ch10_tmxr);
   len = CHUDP_HEADER + (size_t)tx_count;
-  r = tmxr_put_packet_ln (&ch10_lines[0], (const uint8 *)&tx_buffer, len);
+  r = tmxr_put_packet_ln (&ch10_lines[0], (const uint8_t *)&tx_buffer, len);
   if (r == SCPE_OK) {
     sim_debug (DBG_PKT, &ch10_dev, "Sent UDP packet, %d bytes. %04x checksum\n", (int)len, chk);
     tmxr_poll_tx (&ch10_tmxr);
@@ -259,8 +259,8 @@ t_stat ch10_transmit ()
 int ch10_receive (void)
 {
   size_t count;
-  const uint8 *p;
-  uint16 dest;
+  const uint8_t *p;
+  uint16_t dest;
 
   tmxr_poll_rx (&ch10_tmxr);
   if (tmxr_get_packet_ln (&ch10_lines[0], &p, &count) != SCPE_OK) {
@@ -311,7 +311,7 @@ void ch10_clear (void)
   ch10_test_int ();
 }
 
-void ch10_command (uint32 data)
+void ch10_command (uint32_t data)
 {
   if (data & RXD) {
      sim_debug (DBG_REG, &ch10_dev, "Clear RX\n");
@@ -338,12 +338,12 @@ void ch10_command (uint32 data)
   }
 }
 
-t_stat ch10_devio(uint32 dev, uint64 *data)
+t_stat ch10_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONO:
         sim_debug (DBG_REG, &ch10_dev, "CONO %012llo %012llo \n", *data, ch10_status);
-        ch10_command ((uint32)(*data & RMASK));
+        ch10_command ((uint32_t)(*data & RMASK));
         ch10_status &= ~STATUS_BITS;
         ch10_status |= *data & STATUS_BITS;
         ch10_test_int ();

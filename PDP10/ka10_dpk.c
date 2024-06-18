@@ -63,7 +63,7 @@
 #define PORT_OUTPUT   1
 #define PORT_INPUT    2
 
-static t_stat       dpk_devio(uint32 dev, uint64 *data);
+static t_stat       dpk_devio(uint32_t dev, uint64 *data);
 static t_stat       dpk_input_svc (UNIT *uptr);
 static t_stat       dpk_output_svc (UNIT *uptr);
 static t_stat       dpk_reset (DEVICE *dptr);
@@ -126,7 +126,7 @@ static void dpk_set_ospeed (int port, uint64 data)
     tmxr_set_line_speed(&dpk_ldsc[port], speed);
 }
 
-static t_stat dpk_devio(uint32 dev, uint64 *data)
+static t_stat dpk_devio(uint32_t dev, uint64 *data)
 {
     static int scan = 0;
     int port;

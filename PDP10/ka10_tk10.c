@@ -52,7 +52,7 @@
 #define TK10_CONI_BITS   (TK10_PIA | TK10_INT | TK10_TYI | TK10_GO | \
                           TK10_ODONE | TK10_IDONE)
 
-static t_stat       tk10_devio(uint32 dev, uint64 *data);
+static t_stat       tk10_devio(uint32_t dev, uint64 *data);
 static t_stat       tk10_svc (UNIT *uptr);
 static t_stat       tk10_reset (DEVICE *dptr);
 static t_stat       tk10_attach (UNIT *uptr, CONST char *cptr);
@@ -95,7 +95,7 @@ DEVICE tk10_dev = {
     NULL, NULL, tk10_help, NULL, NULL, tk10_description
 };
 
-static t_stat tk10_devio(uint32 dev, uint64 *data)
+static t_stat tk10_devio(uint32_t dev, uint64 *data)
 {
     TMLN *lp;
     int port;

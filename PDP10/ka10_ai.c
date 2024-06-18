@@ -186,7 +186,7 @@ enum image_state {
 static enum image_state image_state = IMAGE_ERROR;
 static int image_count, image_sector_length;
 
-static t_stat ai_devio(uint32 dev, uint64 *data);
+static t_stat ai_devio(uint32_t dev, uint64 *data);
 static t_stat ai_svc(UNIT *);
 static t_stat ai_reset(DEVICE *);
 static t_stat ai_attach(UNIT *, CONST char *);
@@ -886,7 +886,7 @@ static void channel_run (void)
     channel_command (data);
 }
 
-t_stat ai_devio(uint32 dev, uint64 *data) {
+t_stat ai_devio(uint32_t dev, uint64 *data) {
     struct timespec ts;
     int latency_timer;
 

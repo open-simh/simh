@@ -608,16 +608,16 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define VEC_DEVMAX      8                               /* max device vec */
 
 struct pdp_dib {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
+    uint32_t              ba;                             /* base addr */
+    uint32_t              lnt;                            /* length */
     t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
     t_stat              (*wr)(int32 dat, int32 ad, int32 md);
     int32               vnum;                           /* vectors: number */
     int32               vloc;                           /* locator */
     int32               vec;                            /* value */
     int32               (*ack[VEC_DEVMAX])(void);       /* ack routines */
-    uint32              ulnt;                           /* IO length per unit */
-    uint32              flags;                          /* Special flags */
+    uint32_t              ulnt;                           /* IO length per unit */
+    uint32_t              flags;                          /* Special flags */
 #define DIB_M_REGSIZE   03                              /* Device register size */
 #define DIB_REG16BIT     00
 #define DIB_REG18BIT     01
@@ -767,15 +767,15 @@ typedef struct pdp_dib DIB;
 
 /* Function prototypes */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_ReadW18 (uint32 ba, int32 bc, uint32 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
-int32 Map_WriteW18 (uint32 ba, int32 bc, const uint32 *buf);
-void uba_debug_dma_in (uint32 ba, a10 pa_start, a10 pa_end);
-void uba_debug_dma_out (uint32 ba, a10 pa_start, a10 pa_end);
-void uba_debug_dma_nxm (const char *msg, a10 pa10, uint32 ba, int32 bc);
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf);
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf);
+int32 Map_ReadW18 (uint32_t ba, int32 bc, uint32_t *buf);
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf);
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf);
+int32 Map_WriteW18 (uint32_t ba, int32 bc, const uint32_t *buf);
+void uba_debug_dma_in (uint32_t ba, a10 pa_start, a10 pa_end);
+void uba_debug_dma_out (uint32_t ba, a10 pa_start, a10 pa_end);
+void uba_debug_dma_nxm (const char *msg, a10 pa10, uint32_t ba, int32 bc);
 
 extern d10 Read (a10 ea, int32 prv);                    /* read, read check */
 extern d10 ReadM (a10 ea, int32 prv);                   /* read, write check */

@@ -85,7 +85,7 @@
 struct _buffer {
     int      in_ptr;     /* Insert pointer */
     int      out_ptr;    /* Remove pointer */
-    uint16   buff[64];   /* Buffer */
+    uint16_t   buff[64];   /* Buffer */
     int      len;        /* Length */
 };
 
@@ -98,21 +98,21 @@ struct _buffer {
 #define LINE_EN   01
 #define DTR_FLAG  02
 
-uint16         dz_csr[NUM_DEVS_DZ];
-uint16         dz_xmit[DZ11_LINES];
-uint8          dz_flags[DZ11_LINES];
-uint8          dz_ring[NUM_DEVS_DZ];
+uint16_t         dz_csr[NUM_DEVS_DZ];
+uint16_t         dz_xmit[DZ11_LINES];
+uint8_t          dz_flags[DZ11_LINES];
+uint8_t          dz_ring[NUM_DEVS_DZ];
 struct _buffer dz_recv[NUM_DEVS_DZ];
 TMLN           dz_ldsc[DZ11_LINES] = { 0 };     /* Line descriptors */
 TMXR           dz_desc = { DZ11_LINES, 0, 0, dz_ldsc };
 extern int32 tmxr_poll;
 
-int    dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int    dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
+int    dz_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access);
+int    dz_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access);
 t_stat dz_svc (UNIT *uptr);
 t_stat dz_reset (DEVICE *dptr);
 void   dz_checkirq(struct pdp_dib   *dibp);
-uint16 dz_vect(struct pdp_dib *dibp);
+uint16_t dz_vect(struct pdp_dib *dibp);
 t_stat dz_set_modem (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat dz_show_modem (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat dz_setnl (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -179,11 +179,11 @@ DEVICE dz_dev = {
 
 
 int
-dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+dz_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     int               base;
-    uint16            temp;
+    uint16_t            temp;
     int               ln;
     TMLN             *lp;
     int               i;
@@ -303,11 +303,11 @@ dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 }
 
 int
-dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+dz_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     int               base;
-    uint16            temp;
+    uint16_t            temp;
     int               ln;
     TMLN             *lp;
     int               i;
@@ -360,7 +360,7 @@ dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
             break;
 
      case 6:
-            temp = (uint16)dz_ring[base];
+            temp = (uint16_t)dz_ring[base];
             ln = base << 3;
             for (i = 0; i < 8; i++) {
                 lp = &dz_ldsc[ln + i];
@@ -381,7 +381,7 @@ t_stat dz_svc (UNIT *uptr)
 {
     int32             ln;
     int               base;
-    uint16            temp;
+    uint16_t            temp;
     DEVICE           *dptr = find_dev_from_unit (uptr);
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     TMLN             *lp;
@@ -414,7 +414,7 @@ t_stat dz_svc (UNIT *uptr)
                     temp = FRM_ERR;
                 } else {
                     ch = sim_tt_inpcvt (ch, TT_GET_MODE(dz_unit.flags) | TTUF_KSR);
-                    temp = VALID | ((ln & 07) << RXLINE_V) | (uint16)(ch & RBUF);
+                    temp = VALID | ((ln & 07) << RXLINE_V) | (uint16_t)(ch & RBUF);
                 }
                 dz_recv[base].buff[dz_recv[base].in_ptr] = temp;
                 inci(&dz_recv[base]);

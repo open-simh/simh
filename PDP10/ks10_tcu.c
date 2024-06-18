@@ -39,8 +39,8 @@
 #define UNIT_Y2K        (1u << UNIT_V_Y2K)
 
 
-int    tcu_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int    tcu_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
+int    tcu_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access);
+int    tcu_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access);
 t_stat tcu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
         const char *cptr);
 const char *tcu_description (DEVICE *dptr);
@@ -69,7 +69,7 @@ DEVICE tcu_dev = {
 
 /* Time can't be set in device */
 int
-tcu_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+tcu_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access)
 {
     if ((dptr->units[0].flags & UNIT_DIS) != 0)
        return 1;
@@ -79,7 +79,7 @@ tcu_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 
 /* Read current time of day */
 int
-tcu_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+tcu_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access)
 {
     time_t            curtim;
     struct tm        *tptr;

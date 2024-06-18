@@ -59,7 +59,7 @@
 #define CLK_PI          000200
 #define CLK_EXT         001000
 
-t_stat dk_devio(uint32 dev, uint64 *data);
+t_stat dk_devio(uint32_t dev, uint64 *data);
 void   dk_test (UNIT *uptr);
 t_stat dk_svc (UNIT *uptr);
 const char *dk_description (DEVICE *dptr);
@@ -84,7 +84,7 @@ DEVICE dk_dev = {
     NULL, NULL, NULL, NULL, NULL, &dk_description
     };
 
-t_stat dk_devio(uint32 dev, uint64 *data) {
+t_stat dk_devio(uint32_t dev, uint64 *data) {
     int         unit = (dev - DK_DEVNUM) >> 2;
     UNIT        *uptr;
     double      us;
@@ -98,7 +98,7 @@ t_stat dk_devio(uint32 dev, uint64 *data) {
         *data = (uint64)(uptr->STAT_REG);
         *data |= ((uint64)uptr->INT_REG) << 18;
         sim_debug(DEBUG_CONI, &dk_dev, "DK  %03o CONI %06o PC=%o %06o\n",
-               dev, (uint32)*data, PC, uptr->CLK_REG);
+               dev, (uint32_t)*data, PC, uptr->CLK_REG);
         break;
 
     case CONO:
@@ -110,7 +110,7 @@ t_stat dk_devio(uint32 dev, uint64 *data) {
            uptr->STAT_REG = 0;
            sim_cancel(uptr);
         }
-        uptr->STAT_REG |= (uint32)(*data & 07);
+        uptr->STAT_REG |= (uint32_t)(*data & 07);
 
         if (*data & CLK_ADD_ONE)  {
            if ((uptr->STAT_REG & CLK_EN) == 0) {
@@ -144,7 +144,7 @@ t_stat dk_devio(uint32 dev, uint64 *data) {
 set_clock:
         if (sim_is_active(uptr)) {  /* Save current clock time */
            us = sim_activate_time_usecs(uptr);
-           uptr->CLK_REG += uptr->CLK_TIM - (uint32)(us / 10.0);
+           uptr->CLK_REG += uptr->CLK_TIM - (uint32_t)(us / 10.0);
            sim_cancel(uptr);
         }
         if (uptr->INT_REG == uptr->CLK_REG) {
@@ -163,11 +163,11 @@ set_clock:
            sim_cancel(uptr);
         }
         sim_debug(DEBUG_CONO, &dk_dev, "DK %03o CONO %06o PC=%06o %06o\n",
-               dev, (uint32)*data, PC, uptr->STAT_REG);
+               dev, (uint32_t)*data, PC, uptr->STAT_REG);
         break;
 
     case DATAO:
-        uptr->INT_REG = (uint32)(*data & RMASK);
+        uptr->INT_REG = (uint32_t)(*data & RMASK);
         sim_debug(DEBUG_DATAIO, &dk_dev, "DK %03o DATO %012llo PC=%06o\n",
                     dev, *data, PC);
         goto set_clock;
@@ -175,7 +175,7 @@ set_clock:
     case DATAI:
         if (sim_is_active(uptr)) {  /* Save current clock time */
            double us = sim_activate_time_usecs(uptr);
-           uptr->CLK_REG += uptr->CLK_TIM - (uint32)(us / 10.0);
+           uptr->CLK_REG += uptr->CLK_TIM - (uint32_t)(us / 10.0);
            sim_cancel(uptr);
         }
         *data = (uint64)(uptr->CLK_REG);
