@@ -57,7 +57,7 @@ extern t_uint64         M[];
 #define NUM_UNITS_MT    10      /* A, B */
 #define MAXMEMSIZE      (100000)
 #define CHARSPERWORD    1
-extern uint8            M[];
+extern uint8_t            M[];
 #endif
 #ifdef I7030
 /* Not yet */
@@ -96,7 +96,7 @@ extern t_uint64         M[];
 #define NUM_UNITS_HT    10
 #define MAXMEMSIZE      (160000)
 #define CHARSPERWORD    1
-extern uint8            M[];
+extern uint8_t            M[];
 #endif
 #ifdef I704             /* Special build for 704 only */
 #define NUM_CHAN        1
@@ -208,11 +208,11 @@ extern t_uint64         M[];
 
 /* Device information block */
 struct dib {
-        uint8   ctype;                                  /* Type of channel */
-        uint8   upc;                                    /* Units per channel */
-        uint16  addr;                                   /* Unit address */
-        uint16  mask;                                   /* Channel mask type */
-        uint32  (*cmd)(UNIT *up, uint16 cmd, uint16 dev);/* Issue command. */
+        uint8_t   ctype;                                  /* Type of channel */
+        uint8_t   upc;                                    /* Units per channel */
+        uint16_t  addr;                                   /* Unit address */
+        uint16_t  mask;                                   /* Channel mask type */
+        uint32_t  (*cmd)(UNIT *up, uint16_t cmd, uint16_t dev);/* Issue command. */
         void    (*ini)(UNIT *up, t_bool f);
 };
 
@@ -272,12 +272,12 @@ extern DEBTAB crd_debug[];
 /* I/O routine functions */
 /* Channel half of controls */
 /* Channel status */
-extern uint32   chan_flags[NUM_CHAN];         /* Channel flags */
+extern uint32_t   chan_flags[NUM_CHAN];         /* Channel flags */
 extern const char *chname[11];                /* Channel names */
 extern int      num_devs[NUM_CHAN];           /* Number devices per channel*/
-extern uint8    lpr_chan9[NUM_CHAN];
+extern uint8_t    lpr_chan9[NUM_CHAN];
 #ifdef I7010
-extern uint8    lpr_chan12[NUM_CHAN];
+extern uint8_t    lpr_chan12[NUM_CHAN];
 #endif
 
 /* Sense information for 7909 channels */
@@ -354,10 +354,10 @@ t_stat chan9_get_select(FILE *st, UNIT *uptr, int32 v, CONST void *desc);
 int chan_error(int chan);
 
 /* Check channel for flags, clear flags if set */
-int chan_stat(int chan, uint32 flag);
+int chan_stat(int chan, uint32_t flag);
 
 /* Check channel for flags set */
-int chan_test(int chan, uint32 flag);
+int chan_test(int chan, uint32_t flag);
 
 /* Check channel is active */
 int chan_active(int chan);
@@ -366,8 +366,8 @@ int chan_active(int chan);
 int chan_select(int chan);
 
 /* Channel data handling char at a time */
-int chan_write_char(int chan, uint8 *data, int flags);
-int chan_read_char(int chan, uint8 *data, int flags);
+int chan_write_char(int chan, uint8_t *data, int flags);
+int chan_read_char(int chan, uint8_t *data, int flags);
 
 /* Flag end of file on channel */
 void chan_set_eof(int chan);
@@ -383,13 +383,13 @@ void chan_set_sel(int chan, int need);
 void chan_clear_status(int chan);
 
 /* Set or clear a flag */
-void chan_set(int chan, uint32 flag);
-void chan_clear(int chan, uint32 flag);
+void chan_set(int chan, uint32_t flag);
+void chan_clear(int chan, uint32_t flag);
 
 /* Channel 7909 special error posting */
 void chan9_clear_error(int chan, int sel);
 void chan9_set_attn(int chan, int sel);
-void chan9_set_error(int chan, uint32 mask);
+void chan9_set_error(int chan, uint32_t mask);
 
 void chan_proc();
 
@@ -398,7 +398,7 @@ void chan_proc();
 t_stat set_urec(UNIT * uptr, int32 val, CONST char *cptr, void *desc);
 t_stat get_urec(FILE * st, UNIT * uptr, int32 v, CONST void *desc);
 /* Execute the next channel instruction. */
-void chan_set_attn_urec(int chan, uint16 addr);
+void chan_set_attn_urec(int chan, uint16_t addr);
 void chan_set_attn_inq(int chan);
 void chan_clear_attn_inq(int chan);
 #endif
@@ -452,20 +452,20 @@ extern DEVICE       cp_dev;
 
 #ifdef NUM_DEVS_TP
 extern DIB          tp_dib;
-extern uint32       tp_cmd(UNIT *, uint16, uint16);
+extern uint32_t       tp_cmd(UNIT *, uint16_t, uint16_t);
 extern DEVICE       tpa_dev;
 #endif
 
 #ifdef NUM_DEVS_CDR
 extern DIB          cdr_dib;
 extern DEVICE       cdr_dev;
-extern uint32       cdr_cmd(UNIT *, uint16, uint16);
+extern uint32_t       cdr_cmd(UNIT *, uint16_t, uint16_t);
 #endif
 
 #ifdef NUM_DEVS_CDP
 extern DIB          cdp_dib;
 extern DEVICE       cdp_dev;
-extern uint32       cdp_cmd(UNIT *, uint16, uint16);
+extern uint32_t       cdp_cmd(UNIT *, uint16_t, uint16_t);
 extern void         cdp_ini(UNIT *, t_bool);
 #endif
 
@@ -476,46 +476,46 @@ extern DEVICE       stack_dev;
 #ifdef NUM_DEVS_LPR
 extern DIB          lpr_dib;
 extern DEVICE       lpr_dev;
-extern uint32       lpr_cmd(UNIT *, uint16, uint16);
+extern uint32_t       lpr_cmd(UNIT *, uint16_t, uint16_t);
 extern void         lpr_ini(UNIT *, t_bool);
 #endif
 
 #ifdef NUM_DEVS_CON
 extern DIB          con_dib;
 extern DEVICE       con_dev;
-extern uint32       con_cmd(UNIT *, uint16, uint16);
+extern uint32_t       con_cmd(UNIT *, uint16_t, uint16_t);
 extern void         con_ini(UNIT *, t_bool);
 #endif
 
 #ifdef NUM_DEVS_CHRON
 extern DIB         chron_dib;
 extern DEVICE      chron_dev;
-extern uint32      chron_cmd(UNIT *, uint16, uint16);
+extern uint32_t      chron_cmd(UNIT *, uint16_t, uint16_t);
 #endif
 
 #ifdef NUM_DEVS_COM
-extern uint32      com_cmd(UNIT *, uint16, uint16);
+extern uint32_t      com_cmd(UNIT *, uint16_t, uint16_t);
 extern DIB         com_dib;
 extern DEVICE      com_dev;
 extern DEVICE      coml_dev;
 #endif
 
 #ifdef NUM_DEVS_DR
-extern uint32      drm_cmd(UNIT *, uint16, uint16);
+extern uint32_t      drm_cmd(UNIT *, uint16_t, uint16_t);
 extern void        drm_ini(UNIT *, t_bool);
 extern DIB         drm_dib;
 extern DEVICE      drm_dev;
 #endif
 
 #ifdef NUM_DEVS_DSK
-extern uint32      dsk_cmd(UNIT *, uint16, uint16);
+extern uint32_t      dsk_cmd(UNIT *, uint16_t, uint16_t);
 extern void        dsk_ini(UNIT *, t_bool);
 extern DIB         dsk_dib;
 extern DEVICE      dsk_dev;
 #endif
 
 #ifdef NUM_DEVS_HD
-extern uint32      hsdrm_cmd(UNIT *, uint16, uint16);
+extern uint32_t      hsdrm_cmd(UNIT *, uint16_t, uint16_t);
 extern void        hsdrm_ini(UNIT *, t_bool);
 extern DIB         hsdrm_dib;
 extern DEVICE      hsdrm_dev;
@@ -523,7 +523,7 @@ extern DEVICE      hsdrm_dev;
 
 #ifdef NUM_DEVS_HT
 extern DIB         ht_dib;
-extern uint32      ht_cmd(UNIT *, uint16, uint16);
+extern uint32_t      ht_cmd(UNIT *, uint16_t, uint16_t);
 extern DEVICE      hta_dev;
 #if NUM_DEVS_HT > 1
 extern DEVICE      htb_dev;
@@ -532,7 +532,7 @@ extern DEVICE      htb_dev;
 
 #if (NUM_DEVS_MT > 0) || defined(MT_CHANNEL_ZERO)
 extern DIB         mt_dib;
-extern uint32      mt_cmd(UNIT *, uint16, uint16);
+extern uint32_t      mt_cmd(UNIT *, uint16_t, uint16_t);
 extern void        mt_ini(UNIT *, t_bool);
 #ifdef MT_CHANNEL_ZERO
 extern DEVICE      mtz_dev;

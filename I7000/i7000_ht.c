@@ -125,7 +125,7 @@
 #define WRITE_BSY       0x00000004      /* *Controller writing */
 #define BACK_MODE       0x00000002      /* *Backwards mode */
 
-uint32              ht_cmd(UNIT *, uint16, uint16);
+uint32_t              ht_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              ht_srv(UNIT *);
 t_stat              htc_srv(UNIT *);
 void                ht_tape_cmd(DEVICE *, UNIT *);
@@ -137,16 +137,16 @@ t_stat              ht_detach(UNIT *);
 t_stat              ht_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                         const char *cptr);
 const char          *ht_description (DEVICE *dptr);
-void                ht_tape_posterr(UNIT * uptr, uint32 error);
+void                ht_tape_posterr(UNIT * uptr, uint32_t error);
 
 
 
 /* One buffer per channel */
-uint8               ht_unit[NUM_CHAN * 2];      /* Currently selected unit */
-uint8               ht_buffer[NUM_DEVS_HT+1][BUFFSIZE];
+uint8_t               ht_unit[NUM_CHAN * 2];      /* Currently selected unit */
+uint8_t               ht_buffer[NUM_DEVS_HT+1][BUFFSIZE];
 int                 ht_cmdbuffer[NUM_CHAN];     /* Buffer holding command ids */
 int                 ht_cmdcount[NUM_CHAN];      /* Count of command digits recieved */
-uint32              ht_sense[NUM_CHAN * 2];     /* Sense data for unit */
+uint32_t              ht_sense[NUM_CHAN * 2];     /* Sense data for unit */
 
 UNIT                hta_unit[] = {
 /* Controller 1 */
@@ -217,7 +217,7 @@ DEVICE              htb_dev = {
 #endif
 
 
-uint32 ht_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t ht_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     DEVICE             *dptr = find_dev_from_unit(uptr);
     int                 chan = UNIT_G_CHAN(dptr->units[0].flags);
@@ -249,7 +249,7 @@ t_stat htc_srv(UNIT * uptr)
 
     /* Handle sense on unit */
     if (chan_test(chan, CTL_SNS)) {
-        uint8           ch = 0;
+        uint8_t           ch = 0;
         int             eor = 0;
         int             i;
         UNIT           *up;
@@ -380,7 +380,7 @@ t_stat ht_srv(UNIT * uptr)
 
     /* Handle writing of data */
     if (chan_test(chan, CTL_WRITE) && (uptr->u5 & HT_CMDMSK) == HSEL) {
-        uint8               ch;
+        uint8_t               ch;
 
         if (uptr->u6 == 0 && sim_tape_wrp(uptr)) {
             ctlr->u5 &= ~(HT_NOTRDY);
@@ -425,7 +425,7 @@ t_stat ht_srv(UNIT * uptr)
 
     /* Handle reading of data */
     if (chan_test(chan, CTL_READ) && (uptr->u5 & HT_CMDMSK) == (HSEL)) {
-        uint8           ch;
+        uint8_t           ch;
 
         if (uptr->u6 == 0) {
             if (ht_sense[schan] & BACK_MODE)
@@ -496,7 +496,7 @@ t_stat ht_srv(UNIT * uptr)
 
 /* Post a error on a given unit. */
 void
-ht_tape_posterr(UNIT * uptr, uint32 error)
+ht_tape_posterr(UNIT * uptr, uint32_t error)
 {
     int                 chan;
     int                 schan;
@@ -565,7 +565,7 @@ ht_tape_cmd(DEVICE * dptr, UNIT * uptr)
     int                 sel = (uptr->flags & UNIT_SELECT) ? 1 : 0;
     int                 schan = (chan * 2) + sel;
     UNIT               *up;
-    uint8               c;
+    uint8_t               c;
     int                 i;
     int                 t;
     int                 cmd;
@@ -893,7 +893,7 @@ ht_boot(int unit_num, DEVICE * dptr)
     int                 sel = (uptr->flags & UNIT_SELECT) ? 1 : 0;
     int                 dev = uptr->u3;
     int                 msk = (chan / 2) | ((chan & 1) << 11);
-    extern uint16       IC;
+    extern uint16_t       IC;
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_UNATT;      /* attached? */

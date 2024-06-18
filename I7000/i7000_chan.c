@@ -281,7 +281,7 @@ set_chan(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 
    /* Hook up to new channel */
     if (dibp->upc > 1) {
-        uint32  unit;
+        uint32_t  unit;
         for (unit = 0; unit < dptr->numunits; unit++) {
             /* Set the new channel */
             dptr->units[unit].flags &= ~UNIT_CHAN;
@@ -309,7 +309,7 @@ print_chan(FILE * st, UNIT * uptr, int32 v, CONST void *desc)
     for (i = 0; sim_devices[i] != NULL; i++) {
         UNIT               *u = sim_devices[i]->units;
         DIB                *dibp = (DIB *) sim_devices[i]->ctxt;
-        uint32              num;
+        uint32_t              num;
 
         /* If no DIB, not channel device */
         if (dibp == NULL)
@@ -386,7 +386,7 @@ chan9_set_select(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 
    /* Change to new selection. */
     if (dibp->upc > 1) {
-        uint32  unit;
+        uint32_t  unit;
         for (unit = 0; unit < dptr->numunits; unit++) {
             if (newsel)
                 dptr->units[unit].flags |= UNIT_SELECT;
@@ -421,7 +421,7 @@ int chan_error(int chan)
 }
 
 /* Check channel for flag, clear it if it was set */
-int chan_stat(int chan, uint32 flag)
+int chan_stat(int chan, uint32_t flag)
 {
     if (chan_flags[chan] & flag) {
         chan_flags[chan] &= ~flag;
@@ -431,7 +431,7 @@ int chan_stat(int chan, uint32 flag)
 }
 
 /* Check channel for flag */
-int chan_test(int chan, uint32 flag)
+int chan_test(int chan, uint32_t flag)
 {
     if (chan_flags[chan] & flag)
         return 1;
@@ -487,13 +487,13 @@ chan_clear_status(int chan)
 }
 
 void
-chan_set(int chan, uint32 flag)
+chan_set(int chan, uint32_t flag)
 {
     chan_flags[chan] |= flag;
 }
 
 void
-chan_clear(int chan, uint32 flag)
+chan_clear(int chan, uint32_t flag)
 {
     chan_flags[chan] &= ~flag;
 }
@@ -506,7 +506,7 @@ chan9_clear_error(int chan, int sel) {
 void
 chan9_set_attn(int chan, int sel)
 {
-    uint16              mask = SNS_ATTN1 >> sel;
+    uint16_t              mask = SNS_ATTN1 >> sel;
 
     chan9_set_error(chan, mask);
 }
