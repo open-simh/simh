@@ -50,7 +50,7 @@ extern DEVICE cdr_dev, cdp_dev, stack_dev;
 extern DEVICE dp_dev, mt_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint8 M[];
+extern uint8_t M[];
 extern int32 store_addr_h (int32 addr);
 extern int32 store_addr_t (int32 addr);
 extern int32 store_addr_u (int32 addr);

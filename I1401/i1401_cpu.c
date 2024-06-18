@@ -147,9 +147,9 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    uint16              is;
-    uint16              ilnt;
-    uint8               inst[MAX_L];
+    uint16_t              is;
+    uint16_t              ilnt;
+    uint8_t               inst[MAX_L];
     } InstHistory;
 
 /* These macros validate addresses.  If an addresses error is detected,
@@ -189,14 +189,14 @@ typedef struct {
                         IS = AS;
 
 
-uint8 M[MAXMEMSIZE] = { 0 };                            /* main memory */
+uint8_t M[MAXMEMSIZE] = { 0 };                            /* main memory */
 int32 saved_IS = 0;                                     /* saved IS */
 int32 AS = 0;                                           /* AS */
 int32 BS = 0;                                           /* BS */
 int32 D = 0;                                            /* modifier */
 int32 as_err = 0, bs_err = 0;                           /* error flags */
 int32 hb_pend = 0;                                      /* halt br pending */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 int32 ind[64] = { 0 };                                  /* indicators */
@@ -1862,7 +1862,7 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val % 1000) != 0))
     return SCPE_ARG;
