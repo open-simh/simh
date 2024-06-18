@@ -160,13 +160,13 @@ const char         *dtc_description(DEVICE *);
 
 int32               tmxr_poll;
 
-uint8               dtc_buf[DTC_MLINES][DTC_BUFSIZ];
+uint8_t               dtc_buf[DTC_MLINES][DTC_BUFSIZ];
 TMLN                dtc_ldsc[DTC_MLINES];                       /* line descriptors */
 TMXR                dtc_desc = { DTC_TLINES, 0, 0, dtc_ldsc };  /* mux descriptor */
-uint8               dtc_lstatus[DTC_MLINES];                    /* Line status */
-uint16              dtc_bufptr[DTC_MLINES];                     /* Buffer pointer */
-uint16              dtc_bsize[DTC_MLINES];                      /* Buffer size */
-uint16              dtc_blimit[DTC_MLINES];                     /* Buffer size */
+uint8_t               dtc_lstatus[DTC_MLINES];                    /* Line status */
+uint16_t              dtc_bufptr[DTC_MLINES];                     /* Buffer pointer */
+uint16_t              dtc_bsize[DTC_MLINES];                      /* Buffer size */
+uint16_t              dtc_blimit[DTC_MLINES];                     /* Buffer size */
 int                 dtc_bufsize = DTC_BUFSIZ;
 
 
@@ -197,9 +197,9 @@ REG                 dtc_reg[] = {
     {ORDATAD(NLINES, dtc_desc.lines, 8, "Buffer size"), REG_HRO},
     {CRDATA(BUF, dtc_buf, 16, 8, sizeof(dtc_buf)), REG_HRO},
     {BRDATA(LSTAT, dtc_lstatus, 16, 8, sizeof(dtc_lstatus)), REG_HRO},
-    {BRDATA(BUFPTR, dtc_bufptr, 16, 16, sizeof(dtc_bufptr)/sizeof(uint16)), REG_HRO},
-    {BRDATA(BUFSIZ, dtc_bsize, 16, 16, sizeof(dtc_bsize)/sizeof(uint16)), REG_HRO},
-    {BRDATA(BUFLIM, dtc_blimit, 16, 16, sizeof(dtc_blimit)/sizeof(uint16)), REG_HRO},
+    {BRDATA(BUFPTR, dtc_bufptr, 16, 16, sizeof(dtc_bufptr)/sizeof(uint16_t)), REG_HRO},
+    {BRDATA(BUFSIZ, dtc_bsize, 16, 16, sizeof(dtc_bsize)/sizeof(uint16_t)), REG_HRO},
+    {BRDATA(BUFLIM, dtc_blimit, 16, 16, sizeof(dtc_blimit)/sizeof(uint16_t)), REG_HRO},
     {0}
 };
 
@@ -222,7 +222,7 @@ DEVICE              dtc_dev = {
 
 
 /* Start off a terminal controller command */
-t_stat dtc_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+t_stat dtc_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     UNIT        *uptr;
     int         ttu;
@@ -275,7 +275,7 @@ t_stat dtc_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
 t_stat dtc_srv(UNIT * uptr)
 {
     int                 chan = uptr->CMD & DTC_CHAN;
-    uint8               ch;
+    uint8_t               ch;
     int                 ttu;
     int                 buf;
     int                 i;
@@ -920,7 +920,7 @@ t_stat dtc_show_buf (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 t_stat
 dtc_summ(FILE * st, UNIT * uptr, int32 val, CONST void *desc)
 {
-    uint32              i, t;
+    uint32_t              i, t;
 
     t = 0;
     for (i = 0; i < DTC_MLINES; i++)
