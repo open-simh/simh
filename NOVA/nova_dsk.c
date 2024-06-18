@@ -97,7 +97,7 @@ static const int32 sector_map[] = {
 #define GET_SECTOR(x)   ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) DSK_NUMSC)))
 
-extern uint16 M[];
+extern uint16_t M[];
 extern UNIT cpu_unit;
 extern int32 int_req, dev_busy, dev_done, dev_disable;
 extern int32 saved_PC, SR, AMASK;
@@ -212,7 +212,7 @@ if ((pulse == iopP) && ((dsk_wlk >> GET_DISK (dsk_da)) & 1)) {  /* wrt lock? */
     }
 
 if (pulse & 1) {                                        /* read or write? */
-    if (((uint32) (dsk_da * DSK_NUMWD)) >= dsk_unit.capac) { /* inv sev? */
+    if (((uint32_t) (dsk_da * DSK_NUMWD)) >= dsk_unit.capac) { /* inv sev? */
         DEV_SET_DONE( INT_DSK ) ;
         DEV_UPDATE_INTR ;
         dsk_stat = DSKS_ERR + DSKS_NSD;                 /* set status */
@@ -260,7 +260,7 @@ else if (uptr->FUNC == iopP) {                          /* write? */
         pa = MapAddr (0, (dsk_ma + i) & AMASK);         /* map address */
         fbuf[da + i] = M[pa];
         }
-    if (((uint32) (da + i)) >= uptr->hwmark)            /* past end? */
+    if (((uint32_t) (da + i)) >= uptr->hwmark)            /* past end? */
         uptr->hwmark = da + i + 1;                      /* upd hwmark */
     dsk_ma = (dsk_ma + DSK_NUMWD + 3) & AMASK;
     }
@@ -299,7 +299,7 @@ t_stat dsk_boot (int32 unitno, DEVICE *dptr)
 {
 size_t i;
 
-for (i = 0; i < BOOT_LEN; i++) M[BOOT_START + i] = (uint16) boot_rom[i];
+for (i = 0; i < BOOT_LEN; i++) M[BOOT_START + i] = (uint16_t) boot_rom[i];
 saved_PC = BOOT_START;
 SR = 0100000 + DEV_DSK;
 return SCPE_OK;
@@ -310,8 +310,8 @@ return SCPE_OK;
 
 t_stat dsk_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 sz, p;
-uint32 ds_bytes = DSK_DKSIZE * sizeof (int16);
+uint32_t sz, p;
+uint32_t ds_bytes = DSK_DKSIZE * sizeof (int16);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;

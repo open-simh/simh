@@ -347,7 +347,7 @@
 #define UNIT_UP         (1 << UNIT_V_UP)
 #define UNIT_MSIZE      (1 << UNIT_V_MSIZE)
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
+uint16_t M[MAXMEMSIZE] = { 0 };                           /* memory */
 int32 AC[4] = { 0 };                                    /* accumulators */
 int32 C = 0;                                            /* carry flag */
 int32 saved_PC = 0;                                     /* program counter */
@@ -379,13 +379,13 @@ struct ndev dev_table[64];                              /* dispatch table */
 int32 hnext = 0;                                        /* # of current entry */
 int32 hwrap = 0;                                        /* 1 if wrapped */
 int32 hmax = HISTMAX;                                   /* Maximum entries b4 wrap */
-uint16 hpc[HISTMAX];
-uint16 hinst[HISTMAX];
-uint16 hinst2[HISTMAX];
-uint16 hac0[HISTMAX];
-uint16 hac1[HISTMAX];
-uint16 hac2[HISTMAX];
-uint16 hac3[HISTMAX];
+uint16_t hpc[HISTMAX];
+uint16_t hinst[HISTMAX];
+uint16_t hinst2[HISTMAX];
+uint16_t hac0[HISTMAX];
+uint16_t hac1[HISTMAX];
+uint16_t hac2[HISTMAX];
+uint16_t hac3[HISTMAX];
 unsigned short hflags[HISTMAX];
 
 /* Flags:       0x01 - carry bit
@@ -452,13 +452,13 @@ int32 FPFault = 0;                                      /* Save Fault State */
 typedef struct _SHORT_FLOAT {
         int32   short_fract;                            /* Fraction                  */
         short   expo;                                   /* Exponent + 64             */
-        uint8   sign;                                   /* Sign                      */
+        uint8_t   sign;                                   /* Sign                      */
 } SHORT_FLOAT;
 
 typedef struct _LONG_FLOAT {
         t_int64 long_fract;                             /* Fraction                  */
         short   expo;                                   /* Exponent + 64             */
-        uint8   sign;                                   /* Sign                      */
+        uint8_t   sign;                                   /* Sign                      */
 } LONG_FLOAT;
 
 LONG_FLOAT dfl,dfl2;                                    /* Double Precision Work Fields */
@@ -695,7 +695,7 @@ DEVICE pit_dev = {
 t_stat sim_instr (void)
 {
 register int32 PC, IR, i, t, MA, j, k, tac;
-register uint32 mddata, uAC0, uAC1, uAC2, uAC3;
+register uint32_t mddata, uAC0, uAC1, uAC2, uAC3;
 int16 sAC0, sAC1, sAC2;
 int32 sddata, mi1, mi2, fpnum32;
 t_int64 fpnum, expon;
@@ -1626,9 +1626,9 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
     /* Multiply / Divide */
     
     if (IR == 0143710) {                                /* MUL: Unsigned Multiply */
-        uAC0 = (uint32) AC[0];
-        uAC1 = (uint32) AC[1];
-        uAC2 = (uint32) AC[2];
+        uAC0 = (uint32_t) AC[0];
+        uAC1 = (uint32_t) AC[1];
+        uAC2 = (uint32_t) AC[2];
 
         mddata = (uAC1 * uAC2) + uAC0;
         AC[0] = (mddata >> 16) & 0177777;
@@ -1646,9 +1646,9 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if (IR == 0153710) {                                /* DIV: Unsigned Divide */
-        uAC0 = (uint32) AC[0];
-        uAC1 = (uint32) AC[1];
-        uAC2 = (uint32) AC[2];
+        uAC0 = (uint32_t) AC[0];
+        uAC1 = (uint32_t) AC[1];
+        uAC2 = (uint32_t) AC[2];
 
         if (uAC0 >= uAC2) C = 0200000;
         else {
@@ -6045,7 +6045,7 @@ return SCPE_OK;
 
 void get_sf (SHORT_FLOAT *fl, t_int64 *fpr)
 {
-    fl->sign = (uint8)(*fpr >> 63) & 1;
+    fl->sign = (uint8_t)(*fpr >> 63) & 1;
     fl->expo = (short)(*fpr >> 56) & 0x007F;
     fl->short_fract = (int32)(*fpr >> 32) & 0x00FFFFFF;
 } 
@@ -6064,7 +6064,7 @@ void store_sf (SHORT_FLOAT *fl, t_int64 *fpr)
 
 void get_lf (LONG_FLOAT *fl, t_int64 *fpr)
 {
-    fl->sign = (uint8)(*fpr >> 63) & 1;
+    fl->sign = (uint8_t)(*fpr >> 63) & 1;
     fl->expo = (short)(*fpr >> 56) & 0x007F;
     fl->long_fract = (t_int64)*fpr & 0x00FFFFFFFFFFFFFF;
 

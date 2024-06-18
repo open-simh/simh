@@ -73,7 +73,7 @@
 
 #define MAXMEMSIZE      1048576                         /* max memory size in 16-bit words */
 #define PAMASK          (MAXMEMSIZE - 1)                /* physical addr mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < (uint32) MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < (uint32_t) MEMSIZE)
 
 #else
                                 /*----------------------*/
@@ -83,7 +83,7 @@
 #define MAXMEMSIZE      65536                           /* max memory size in 16-bit words: 32KW = DG max, */
                                                         /* 64 KW = 3rd-party extended memory feature  */
 #define DFTMEMSIZE      32768                           /* default/initial mem size  */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < (uint32) MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < (uint32_t) MEMSIZE)
 
 #endif
 
