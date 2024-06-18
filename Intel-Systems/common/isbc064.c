@@ -41,14 +41,14 @@
 
 /* prototypes */
 
-t_stat isbc064_cfg(uint16 base, uint16 size, uint8 dummy);
+t_stat isbc064_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 t_stat isbc064_clr(void);
 t_stat isbc064_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat isbc064_set_base(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat isbc064_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat isbc064_reset(DEVICE *dptr);
-uint8 isbc064_get_mbyte(uint16 addr);
-void isbc064_put_mbyte(uint16 addr, uint8 val);
+uint8_t isbc064_get_mbyte(uint16_t addr);
+void isbc064_put_mbyte(uint16_t addr, uint8_t val);
 
 /* external function prototypes */
 
@@ -60,7 +60,7 @@ static const char* isbc064_desc(DEVICE *dptr) {
 
 /* external globals */
 
-extern uint8 xack;
+extern uint8_t xack;
 
 /* isbc064 Standard SIMH Device Data Structures */
 
@@ -141,11 +141,11 @@ DEVICE isbc064_dev = {
 
 // isbc064 configuration
 
-t_stat isbc064_cfg(uint16 base, uint16 size, uint8 dummy)
+t_stat isbc064_cfg(uint16_t base, uint16_t size, uint8_t dummy)
 {
     isbc064_unit.capac = size;
     isbc064_unit.u3 = base; 
-    isbc064_dev.units->filebuf = (uint8 *)calloc(isbc064_unit.capac, sizeof(uint8)); //alloc buffer
+    isbc064_dev.units->filebuf = (uint8_t *)calloc(isbc064_unit.capac, sizeof(uint8_t)); //alloc buffer
     if (isbc064_dev.units->filebuf == NULL) { //CALLOC error
         sim_printf ("    SBC064: Calloc error\n");
         return SCPE_MEM;
@@ -167,7 +167,7 @@ t_stat isbc064_clr(void)
 
 t_stat isbc064_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     
     if (cptr == NULL)
         return SCPE_ARG;
@@ -190,7 +190,7 @@ t_stat isbc064_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat isbc064_set_base(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result, i;
+    uint32_t size, result, i;
     
     if (cptr == NULL)
         return SCPE_ARG;
@@ -231,19 +231,19 @@ t_stat isbc064_reset (DEVICE *dptr)
 
 /*  get a byte from memory */
 
-uint8 isbc064_get_mbyte(uint16 addr)
+uint8_t isbc064_get_mbyte(uint16_t addr)
 {
-    uint8 val;
+    uint8_t val;
 
-    val = *((uint8 *)isbc064_unit.filebuf + (addr - isbc064_unit.u3));
+    val = *((uint8_t *)isbc064_unit.filebuf + (addr - isbc064_unit.u3));
     return (val & BYTEMASK);
 }
 
 /*  put a byte into memory */
 
-void isbc064_put_mbyte(uint16 addr, uint8 val)
+void isbc064_put_mbyte(uint16_t addr, uint8_t val)
 {
-    *((uint8 *)isbc064_unit.filebuf + (addr - isbc064_unit.u3)) = val & BYTEMASK;
+    *((uint8_t *)isbc064_unit.filebuf + (addr - isbc064_unit.u3)) = val & BYTEMASK;
     return;
 }
 

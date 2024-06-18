@@ -127,8 +127,8 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
@@ -137,19 +137,19 @@ static const char* i8251_desc(DEVICE *dptr) {
 }
 int     i8251_num = 0;
 int     i8251_baseport[4] = { -1, -1, -1, -1 }; //base port
-uint8   i8251_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
-uint8   i8251_verb[4] = { 0, 0, 0, 0 }; //verbose flag
+uint8_t   i8251_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
+uint8_t   i8251_verb[4] = { 0, 0, 0, 0 }; //verbose flag
 
 /* function prototypes */
 
-t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat i8251_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat i8251_clr(void);
 t_stat i8251_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat i8251_svc (UNIT *uptr);
 t_stat i8251_reset (DEVICE *dptr);
-uint8 i8251s(t_bool io, uint8 data, uint8 devnum);
-uint8 i8251d(t_bool io, uint8 data, uint8 devnum);
-void i8251_reset_dev(uint16 devnum);
+uint8_t i8251s(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8251d(t_bool io, uint8_t data, uint8_t devnum);
+void i8251_reset_dev(uint16_t devnum);
 
 /* i8251 Standard I/O Data Structures */
 /* up to 4 i8251 devices */
@@ -231,7 +231,7 @@ DEVICE i8251_dev = {
 
 // i8251 configuration
 
-t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat i8251_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     i8251_baseport[devnum] = base & BYTEMASK;
     sim_printf("    i8251%d: installed at base port 0%02XH\n",
@@ -303,7 +303,7 @@ t_stat i8251_svc (UNIT *uptr)
 
 t_stat i8251_reset (DEVICE *dptr)
 {
-    uint8 devnum;
+    uint8_t devnum;
     
     for (devnum=0; devnum<i8251_num+1; devnum++) {
         i8251_reset_dev(devnum);
@@ -313,7 +313,7 @@ t_stat i8251_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-void i8251_reset_dev(uint16 devnum)
+void i8251_reset_dev(uint16_t devnum)
 {
     i8251_unit[devnum].u3 = TXR + TXE;          /* status */
     i8251_unit[devnum].u4 = 0;                  /* mode instruction */
@@ -327,7 +327,7 @@ void i8251_reset_dev(uint16 devnum)
     IN or OUT instruction is issued.
 */
 
-uint8 i8251s(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8251s(t_bool io, uint8_t data, uint8_t devnum)
 {
      if (io == 0) {                      /* read status port */
         return i8251_unit[devnum].u3;
@@ -344,7 +344,7 @@ uint8 i8251s(t_bool io, uint8 data, uint8 devnum)
      return 0;
 }
 
-uint8 i8251d(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8251d(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         i8251_unit[devnum].u3 &= ~RXR;

@@ -96,7 +96,7 @@ DEVICE RAM_dev = {
 
 /* global variables */
 
-uint8 *RAM_buf = NULL;                                  /* RAM buffer pointer */
+uint8_t *RAM_buf = NULL;                                  /* RAM buffer pointer */
 
 /* RAM functions */
 

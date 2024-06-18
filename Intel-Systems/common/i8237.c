@@ -241,33 +241,33 @@
 
 /* internal function prototypes */
 
-t_stat i8237_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat i8237_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat i8237_clr(void);
 t_stat i8237_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat i8237_reset (DEVICE *dptr);
 void i8237_reset_dev (void);
 t_stat i8237_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-uint8 i8237_r0x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r1x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r2x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r3x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r4x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r5x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r6x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r7x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r8x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r9x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rAx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rBx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rCx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rDx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rEx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rFx(t_bool io, uint8 data, uint8 devnum);
+uint8_t i8237_r0x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r1x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r2x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r3x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r4x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r5x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r6x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r7x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r8x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_r9x(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_rAx(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_rBx(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_rCx(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_rDx(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_rEx(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8237_rFx(t_bool io, uint8_t data, uint8_t devnum);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint8, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint8_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
@@ -275,32 +275,32 @@ static const char* i8237_desc(DEVICE *dptr) {
     return i8237_NAME;
 }
 int     i8237_baseport = -1;            //base port
-uint8   i8237_verb = 0;                 //verbose flag
+uint8_t   i8237_verb = 0;                 //verbose flag
 
 /* 8237 physical register definitions */
 
-uint16 i8237_r0;                     // 8237 ch 0 address register
-uint16 i8237_r1;                     // 8237 ch 0 count register
-uint16 i8237_r2;                     // 8237 ch 1 address register
-uint16 i8237_r3;                     // 8237 ch 1 count register
-uint16 i8237_r4;                     // 8237 ch 2 address register
-uint16 i8237_r5;                     // 8237 ch 2 count register
-uint16 i8237_r6;                     // 8237 ch 3 address register
-uint16 i8237_r7;                     // 8237 ch 3 count register
-uint8 i8237_r8;                      // 8237 status register
-uint8 i8237_r9;                      // 8237 command register
-uint8 i8237_rA;                      // 8237 mode register
-uint8 i8237_rB;                      // 8237 mask register
-uint8 i8237_rC;                      // 8237 request register
-uint8 i8237_rD;                      // 8237 first/last ff
-uint8 i8237_rE;                      // 8237 
-uint8 i8237_rF;                      // 8237 
+uint16_t i8237_r0;                     // 8237 ch 0 address register
+uint16_t i8237_r1;                     // 8237 ch 0 count register
+uint16_t i8237_r2;                     // 8237 ch 1 address register
+uint16_t i8237_r3;                     // 8237 ch 1 count register
+uint16_t i8237_r4;                     // 8237 ch 2 address register
+uint16_t i8237_r5;                     // 8237 ch 2 count register
+uint16_t i8237_r6;                     // 8237 ch 3 address register
+uint16_t i8237_r7;                     // 8237 ch 3 count register
+uint8_t i8237_r8;                      // 8237 status register
+uint8_t i8237_r9;                      // 8237 command register
+uint8_t i8237_rA;                      // 8237 mode register
+uint8_t i8237_rB;                      // 8237 mask register
+uint8_t i8237_rC;                      // 8237 request register
+uint8_t i8237_rD;                      // 8237 first/last ff
+uint8_t i8237_rE;                      // 8237 
+uint8_t i8237_rF;                      // 8237 
 
 /* i8237 physical register definitions */
 
-uint16 i8237_sr;                     // 8237 segment register
-uint8 i8237_i;                       // 8237 interrupt register
-uint8 i8237_a;                       // 8237 auxillary port register
+uint16_t i8237_sr;                     // 8237 segment register
+uint8_t i8237_i;                       // 8237 interrupt register
+uint8_t i8237_a;                       // 8237 auxillary port register
 
 /* i8237 Standard SIMH Device Data Structures - 1 unit */
 
@@ -377,7 +377,7 @@ DEVICE i8237_dev = {
 
 // i8237 configuration
 
-t_stat i8237_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat i8237_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     i8237_baseport = base & 0x3ff;
     sim_printf("    i8237: at base port 0%03XH\n",
@@ -483,7 +483,7 @@ t_stat i8237_set_mode(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
     to the device.
 */
 
-uint8 i8237_r0x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r0x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 0 */
         if (i8237_rD) {                 /* high byte */
@@ -509,7 +509,7 @@ uint8 i8237_r0x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r1x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r1x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 0 */
         if (i8237_rD) {                 /* high byte */
@@ -535,7 +535,7 @@ uint8 i8237_r1x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r2x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r2x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 1 */
         if (i8237_rD) {                 /* high byte */
@@ -561,7 +561,7 @@ uint8 i8237_r2x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r3x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r3x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 1 */
         if (i8237_rD) {                 /* high byte */
@@ -587,7 +587,7 @@ uint8 i8237_r3x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r4x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r4x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 2 */
         if (i8237_rD) {                 /* high byte */
@@ -613,7 +613,7 @@ uint8 i8237_r4x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r5x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r5x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 2 */
         if (i8237_rD) {                 /* high byte */
@@ -639,7 +639,7 @@ uint8 i8237_r5x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r6x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r6x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 3 */
         if (i8237_rD) {                 /* high byte */
@@ -665,7 +665,7 @@ uint8 i8237_r6x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r7x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r7x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 3 */
         if (i8237_rD) {                 /* high byte */
@@ -691,7 +691,7 @@ uint8 i8237_r7x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r8x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r8x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read status register */
         sim_debug (DEBUG_reg, &i8237_dev, "i8237_r8 (status) read as %02X\n", i8237_r8);
@@ -703,7 +703,7 @@ uint8 i8237_r8x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r9x(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_r9x(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_r9\n");
@@ -715,7 +715,7 @@ uint8 i8237_r9x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rAx(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_rAx(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rA\n");
@@ -752,7 +752,7 @@ uint8 i8237_rAx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rBx(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_rBx(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rB\n");
@@ -764,7 +764,7 @@ uint8 i8237_rBx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rCx(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_rCx(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rC\n");
@@ -776,7 +776,7 @@ uint8 i8237_rCx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rDx(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_rDx(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read temporary register */
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rD\n");
@@ -788,7 +788,7 @@ uint8 i8237_rDx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rEx(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_rEx(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rE\n");
@@ -800,7 +800,7 @@ uint8 i8237_rEx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rFx(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8237_rFx(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rF\n");

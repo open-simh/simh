@@ -34,18 +34,18 @@
 /* function prototypes */
 
 t_stat fp_reset (DEVICE *dptr);
-t_stat fp_cfg (uint16 base, uint16 size, uint8 devnum);
+t_stat fp_cfg (uint16_t base, uint16_t size, uint8_t devnum);
 
 /* external function prototypes */
 
 extern t_stat EPROM_reset(DEVICE *dptr);
-extern t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum);
+extern t_stat EPROM_cfg(uint16_t base, uint16_t size, uint8_t devnum);
 
 /* external globals */
 
 extern DEVICE EPROM_dev[];
 
-t_stat fp_cfg(uint16 base, uint16 size, uint8 devnum)
+t_stat fp_cfg(uint16_t base, uint16_t size, uint8_t devnum)
 {
     return SCPE_OK;
 }

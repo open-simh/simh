@@ -41,8 +41,8 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
@@ -51,42 +51,42 @@ static const char* i8253_desc(DEVICE *dptr) {
 }
 int     i8253_num = 0;
 int     i8253_baseport[] = { -1, -1, -1, -1 }; //base port
-uint8   i8253_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
-uint8   i8253_verb[4] = { 0, 0, 0, 0 }; //verbose flag
+uint8_t   i8253_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
+uint8_t   i8253_verb[4] = { 0, 0, 0, 0 }; //verbose flag
 
-uint8   i8253_T0_control_word[4];
-uint8   i8253_T0_flag[4];
-uint16  i8253_T0_load[4];
-uint16  i8253_T0_latch[4];
-uint16  i8253_T0_count[4];
+uint8_t   i8253_T0_control_word[4];
+uint8_t   i8253_T0_flag[4];
+uint16_t  i8253_T0_load[4];
+uint16_t  i8253_T0_latch[4];
+uint16_t  i8253_T0_count[4];
 int     i8253_T0_gate[4];
 int     i8253_T0_out[4];
-uint8   i8253_T1_control_word[4];
-uint8   i8253_T1_flag[4];
-uint16  i8253_T1_load[4];
-uint16  i8253_T1_latch[4];
-uint16  i8253_T1_count[4];
+uint8_t   i8253_T1_control_word[4];
+uint8_t   i8253_T1_flag[4];
+uint16_t  i8253_T1_load[4];
+uint16_t  i8253_T1_latch[4];
+uint16_t  i8253_T1_count[4];
 int     i8253_T1_gate[4];
 int     i8253_T1_out[4];
-uint8   i8253_T2_control_word[4];
-uint8   i8253_T2_flag[4];
-uint16  i8253_T2_load[4];
-uint16  i8253_T2_latch[4];
-uint16  i8253_T2_count[4];
+uint8_t   i8253_T2_control_word[4];
+uint8_t   i8253_T2_flag[4];
+uint16_t  i8253_T2_load[4];
+uint16_t  i8253_T2_latch[4];
+uint16_t  i8253_T2_count[4];
 int     i8253_T2_gate[4];
 int     i8253_T2_out[4];
 
 /* function prototypes */
 
-t_stat i8253_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat i8253_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat i8253_clr(void);
 t_stat i8253_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat i8253_svc (UNIT *uptr);
 t_stat i8253_reset (DEVICE *dptr);
-uint8 i8253t0(t_bool io, uint8 data, uint8 devnum);
-uint8 i8253t1(t_bool io, uint8 data, uint8 devnum);
-uint8 i8253t2(t_bool io, uint8 data, uint8 devnum);
-uint8 i8253c(t_bool io, uint8 data, uint8 devnum);
+uint8_t i8253t0(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8253t1(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8253t2(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i8253c(t_bool io, uint8_t data, uint8_t devnum);
 
 /* i8253 Standard I/O Data Structures */
 /* up to 4 i8253 devices */
@@ -156,7 +156,7 @@ DEVICE i8253_dev = {
 
 // i8253 configuration
 
-t_stat i8253_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat i8253_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     UNIT *uptr;
 
@@ -361,9 +361,9 @@ t_stat i8253_reset (DEVICE *dptr)
     IN or OUT instruction is issued.
 */
 
-uint8 i8253t0(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8253t0(t_bool io, uint8_t data, uint8_t devnum)
 {
-    uint8 rl;
+    uint8_t rl;
 
     rl = (i8253_T1_control_word[devnum] >> 4) & 0x03;
     if (io == 0) {                  /* read data port */
@@ -418,9 +418,9 @@ uint8 i8253t0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8253t1(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8253t1(t_bool io, uint8_t data, uint8_t devnum)
 {
-    uint8 rl;
+    uint8_t rl;
 
     rl = (i8253_T1_control_word[devnum] >> 4) & 0x03;
     if (io == 0) {                  /* read data port */
@@ -475,9 +475,9 @@ uint8 i8253t1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8253t2(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8253t2(t_bool io, uint8_t data, uint8_t devnum)
 {
-    uint8 rl;
+    uint8_t rl;
 
     rl = (i8253_T2_control_word[devnum] >> 4) & 0x03;
     if (io == 0) {                  /* read data port */
@@ -533,9 +533,9 @@ uint8 i8253t2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8253c(t_bool io, uint8 data, uint8 devnum)
+uint8_t i8253c(t_bool io, uint8_t data, uint8_t devnum)
 {
-    uint8 sc;
+    uint8_t sc;
 
     if (io == 0) {                  /* read status port */
         return 0xff;

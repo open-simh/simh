@@ -1048,7 +1048,7 @@ t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1141,12 +1141,12 @@ while (isspace (*cptr))
     cptr++;                                             /* absorb spaces */
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = (uint32) cptr[0];
+    val[0] = (uint32_t) cptr[0];
     return SCPE_OK;
 }
 if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII string? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = ((uint32) cptr[0] << 8) + (uint32) cptr[1];
+    val[0] = ((uint32_t) cptr[0] << 8) + (uint32_t) cptr[1];
     return SCPE_OK;
 }
 
