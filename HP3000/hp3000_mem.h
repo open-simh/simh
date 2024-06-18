@@ -62,11 +62,11 @@
        cpu_read_memory and cpu_write_memory routines has an operand override
        that invokes the slower instruction fetch path.  There is a negligible
        difference in the Memory Pattern Test diagnostic execution speeds for the
-       uint32 vs. uint16 definition, whereas the VM requirements are doubled for
+       uint32_t vs. uint16_t definition, whereas the VM requirements are doubled for
        the former.
 */
 
-typedef uint16              MEMORY_WORD;        /* HP 16-bit memory word representation */
+typedef uint16_t              MEMORY_WORD;        /* HP 16-bit memory word representation */
 
 
 /* Byte accessors.
@@ -102,14 +102,14 @@ typedef struct {                                        /* byte access descripto
     HP_WORD       *byte_offset;                         /*   relative byte offset of the next byte */
     HP_WORD       data_word;                            /*   memory data word containing the current byte */
     ACCESS_CLASS  class;                                /*   memory access classification */
-    uint32        word_address;                         /*   logical word address containing the next byte */
+    uint32_t        word_address;                         /*   logical word address containing the next byte */
     t_bool        write_needed;                         /*   TRUE if the data word must be written to memory */
-    uint32        count;                                /*   current count of bytes accessed */
-    uint32        length;                               /*   (trace) length of extent of access */
-    uint32        initial_byte_address;                 /*   (trace) initial absolute byte address */
-    uint32        initial_byte_offset;                  /*   (trace) initial relative byte offset */
-    uint32        first_byte_address;                   /*   (trace) lowest absolute byte address accessed */
-    uint32        first_byte_offset;                    /*   (trace) lowest relative byte offset accessed */
+    uint32_t        count;                                /*   current count of bytes accessed */
+    uint32_t        length;                               /*   (trace) length of extent of access */
+    uint32_t        initial_byte_address;                 /*   (trace) initial absolute byte address */
+    uint32_t        initial_byte_offset;                  /*   (trace) initial relative byte offset */
+    uint32_t        first_byte_address;                   /*   (trace) lowest absolute byte address accessed */
+    uint32_t        first_byte_offset;                    /*   (trace) lowest relative byte offset accessed */
     } BYTE_ACCESS;
 
 
@@ -141,22 +141,22 @@ t_stat mem_deposit (t_value value,       t_addr address, UNIT *uptr, int32 switc
    fmt_bcd_operand  : format a BCD operand in memory into a character string
 */
 
-extern t_bool mem_initialize (uint32 memory_size);
-extern t_bool mem_is_empty   (uint32 starting_address);
-extern void   mem_fill       (uint32 starting_address, HP_WORD fill_value);
+extern t_bool mem_initialize (uint32_t memory_size);
+extern t_bool mem_is_empty   (uint32_t starting_address);
+extern void   mem_fill       (uint32_t starting_address, HP_WORD fill_value);
 
-extern t_bool mem_read  (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD *value);
-extern t_bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD  value);
+extern t_bool mem_read  (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD *value);
+extern t_bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD  value);
 
-extern void   mem_init_byte   (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32 block_length);
+extern void   mem_init_byte   (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32_t block_length);
 extern void   mem_set_byte    (BYTE_ACCESS *bap);
-extern uint8  mem_lookup_byte (BYTE_ACCESS *bap, uint8 index);
-extern uint8  mem_read_byte   (BYTE_ACCESS *bap);
-extern void   mem_write_byte  (BYTE_ACCESS *bap, uint8 byte);
-extern void   mem_modify_byte (BYTE_ACCESS *bap, uint8 byte);
+extern uint8_t  mem_lookup_byte (BYTE_ACCESS *bap, uint8_t index);
+extern uint8_t  mem_read_byte   (BYTE_ACCESS *bap);
+extern void   mem_write_byte  (BYTE_ACCESS *bap, uint8_t byte);
+extern void   mem_modify_byte (BYTE_ACCESS *bap, uint8_t byte);
 extern void   mem_post_byte   (BYTE_ACCESS *bap);
 extern void   mem_update_byte (BYTE_ACCESS *bap);
 
-extern char   *fmt_byte_operand            (uint32 byte_address, uint32 byte_count);
-extern char   *fmt_translated_byte_operand (uint32 byte_address, uint32 byte_count, uint32 table_address);
-extern char   *fmt_bcd_operand             (uint32 byte_address, uint32 digit_count);
+extern char   *fmt_byte_operand            (uint32_t byte_address, uint32_t byte_count);
+extern char   *fmt_translated_byte_operand (uint32_t byte_address, uint32_t byte_count, uint32_t table_address);
+extern char   *fmt_bcd_operand             (uint32_t byte_address, uint32_t digit_count);

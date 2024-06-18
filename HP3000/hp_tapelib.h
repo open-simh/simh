@@ -29,7 +29,7 @@
    10-Oct-16    JDB     Moved "hp3000_defs.h" inclusion to "hp_tapelib.c"
    13-May-16    JDB     Modified for revised SCP API function parameter types
    24-Mar-16    JDB     Added the TL_BUFFER type to define the tape buffer array
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    11-Nov-15    JDB     First release version
    24-Mar-13    JDB     Created tape controller common library from MS simulator
 
@@ -60,7 +60,7 @@
    for compatibility with the simulator tape support library (sim_tape).
 */
 
-typedef uint8               TL_BUFFER;          /* a buffer containing 8-bit tape data words */
+typedef uint8_t               TL_BUFFER;          /* a buffer containing 8-bit tape data words */
 
 
 /* Program limits */
@@ -243,7 +243,7 @@ typedef HP_WORD CNTLR_IBUS;                     /* the interface data bus */
 #define NO_DATA         (CNTLR_IBUS) 0          /* no data asserted */
 
 
-typedef uint32 CNTLR_IFN_IBUS;                  /* a combined interface function set and data bus value */
+typedef uint32_t CNTLR_IFN_IBUS;                  /* a combined interface function set and data bus value */
 
 
 /* Controller opcodes.
@@ -371,9 +371,9 @@ typedef struct {
     CNTLR_TYPE        type;                     /* controller type */
     DEVICE            *device;                  /* controlling device pointer */
     CNTLR_STATE       state;                    /* controller state */
-    uint32            status;                   /* controller status */
-    uint32            unit_selected;            /* unit number currently selected */
-    uint32            unit_attention;           /* bitmap of units needing attention */
+    uint32_t            status;                   /* controller status */
+    uint32_t            unit_selected;            /* unit number currently selected */
+    uint32_t            unit_attention;           /* bitmap of units needing attention */
     TL_BUFFER         *buffer;                  /* data buffer pointer */
     t_stat            call_status;              /* simulator tape support library call status */
     t_mtrlnt          length;                   /* data buffer valid length */

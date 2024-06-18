@@ -31,7 +31,7 @@
    08-Jun-16    JDB     Corrected %d format to %u for unsigned values
    07-Jun-16    JDB     Corrected ACKSR assertion in State A for chained orders
    16-May-16    JDB     abort_channel parameter is now a pointer-to-constant
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    06-Oct-15    JDB     First release version
    11-Sep-14    JDB     Passes the multiplexer channel diagnostic (D422A)
    10-Feb-13    JDB     Created
@@ -403,7 +403,7 @@ static const char *const state_name [16] = {    /* indexed by MPX_STATE */
     "invalid state 1111"
     };
 
-static const uint8 state_parity [16] = {        /* State RAM parity */
+static const uint8_t state_parity [16] = {        /* State RAM parity */
     1, 0, 0, 1,                                 /*   0000, 0001, 0010, 0011 */
     0, 1, 1, 1,                                 /*   0100, 0101, 0110, 0111 */
     0, 1, 1, 1,                                 /*   1000, 1001, 1010, 1011 */
@@ -629,13 +629,13 @@ static const BITSET_FORMAT aux_format =         /* names, offset, direction, alt
 /* Channel global state */
 
 t_bool mpx_is_idle     = TRUE;                  /* TRUE if the multiplexer channel is idle */
-uint32 mpx_request_set = 0;                     /* set of service request bits */
+uint32_t mpx_request_set = 0;                     /* set of service request bits */
 
 
 /* Channel local state */
 
 static DIB    *srs [INTRF_COUNT];               /* indexed by service request number for channel requests */
-static uint32 active_count  = 0;                /* count of active transfers */
+static uint32_t active_count  = 0;                /* count of active transfers */
 static  int32 excess_cycles = 0;                /* count of cycles in excess of allocation */
 
 static HP_WORD   control_word = 0;              /* diagnostic control word */
@@ -661,15 +661,15 @@ static FLIP_FLOP device_end   = CLEAR;          /* SET if DEVEND is asserted by 
        type MPX_STATE.
 */
 
-static uint8   state_ram [INTRF_COUNT];         /* state RAM */
-static uint8   aux_ram   [INTRF_COUNT];         /* auxiliary RAM */
-static uint8   order_ram [INTRF_COUNT];         /* I/O order RAM */
+static uint8_t   state_ram [INTRF_COUNT];         /* state RAM */
+static uint8_t   aux_ram   [INTRF_COUNT];         /* auxiliary RAM */
+static uint8_t   order_ram [INTRF_COUNT];         /* I/O order RAM */
 static HP_WORD cntr_ram  [INTRF_COUNT];         /* counter RAM */
 static HP_WORD addr_ram  [INTRF_COUNT];         /* I/O address RAM */
 
-static uint8   state_reg;                       /* state register */
-static uint8   aux_reg;                         /* auxiliary register */
-static uint8   order_reg;                       /* order register */
+static uint8_t   state_reg;                       /* state register */
+static uint8_t   aux_reg;                         /* auxiliary register */
+static uint8_t   order_reg;                       /* order register */
 static HP_WORD cntr_reg;                        /* word counter register */
 static HP_WORD addr_reg;                        /* address register */
 
@@ -682,7 +682,7 @@ static t_stat      mpx_reset     (DEVICE *dptr);
 
 /* Channel local utility routines */
 
-static uint8        next_state    (uint8 current_state, SIO_ORDER order, t_bool abort);
+static uint8_t        next_state    (uint8_t current_state, SIO_ORDER order, t_bool abort);
 static void         end_channel   (DIB   *dibptr);
 static SIGNALS_DATA abort_channel (DIB   *dibptr, const char *reason);
 
@@ -820,7 +820,7 @@ DEVICE mpx_dev = {
 
 void mpx_initialize (void)
 {
-uint32 idx;
+uint32_t idx;
 DIB    *dibptr;
 const  DEVICE *dptr;
 
@@ -876,7 +876,7 @@ return;
 
 void mpx_assert_REQ (DIB *dibptr)
 {
-const uint32 srn = dibptr->service_request_number;      /* get the SR number for the RAM index */
+const uint32_t srn = dibptr->service_request_number;      /* get the SR number for the RAM index */
 
 dprintf (mpx_dev, DEB_CSRW, "Device number %u asserted REQ for channel initialization\n",
          dibptr->device_number);
@@ -1193,11 +1193,11 @@ return;
        even though all paths through the while statement set its value.
 */
 
-void mpx_service (uint32 ticks_elapsed)
+void mpx_service (uint32_t ticks_elapsed)
 {
 DIB          *dibptr;
 int32        cycles;
-uint32       srn, mask, priority_mask;
+uint32_t       srn, mask, priority_mask;
 HP_WORD      inbound_data, outbound_data, iocw, ioaw;
 t_bool       store_ioaw;
 SIO_ORDER    sio_order;
@@ -1637,7 +1637,7 @@ return;
 
 static SIGNALS_DATA mpx_interface (DIB *dibptr, INBOUND_SET inbound_signals, HP_WORD inbound_value)
 {
-uint32         address;
+uint32_t         address;
 SIO_ORDER      sio_order;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set      = inbound_signals;
@@ -1888,7 +1888,7 @@ return SCPE_OK;
    state C, which is skipped.  Following the abort, the next state is state A.
 */
 
-static uint8 next_state (uint8 current_state, SIO_ORDER order, t_bool abort)
+static uint8_t next_state (uint8_t current_state, SIO_ORDER order, t_bool abort)
 {
 switch (current_state) {
 

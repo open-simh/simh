@@ -48,8 +48,8 @@
    08-Jun-16    JDB     Corrected %d format to %u for unsigned values
    16-May-16    JDB     ACCESS_PROPERTIES.name is now a pointer-to-constant
    13-May-16    JDB     Modified for revised SCP API function parameter types
-   24-Mar-16    JDB     Changed memory word type from uint16 to MEMORY_WORD
-   21-Mar-16    JDB     Changed cpu_ccb_table type from uint16 to HP_WORD
+   24-Mar-16    JDB     Changed memory word type from uint16_t to MEMORY_WORD
+   21-Mar-16    JDB     Changed cpu_ccb_table type from uint16_t to HP_WORD
    11-Mar-16    JDB     Fixed byte EA calculations with negative indexes
    22-Dec-15    JDB     First release version
    01-Apr-15    JDB     First successful run of MPE-V/R through account login
@@ -877,7 +877,7 @@ const HP_WORD cpu_ccb_table [256] = {
 /* CPU global state */
 
 jmp_buf     cpu_save_env;                       /* the saved environment for microcode aborts */
-uint32      cpu_stop_flags;                     /* the simulation stop flag set */
+uint32_t      cpu_stop_flags;                     /* the simulation stop flag set */
 
 POWER_STATE cpu_power_state   = power_on;       /* the power supply state */
 EXEC_STATE  cpu_micro_state   = halted;         /* the microcode execution state */
@@ -888,10 +888,10 @@ UNIT       *cpu_pclk_uptr     = &cpu_unit [0];  /* a (constant) pointer to the p
 
 /* CPU local state */
 
-static uint32  sim_stops      = 0;              /* the current simulation stop flag settings */
-static uint32  cpu_speed      = 1;              /* the CPU speed, expressed as a multiplier of a real machine */
-static uint32  pclk_increment = 1;              /* the process clock increment per event service */
-static uint32  dump_control   = 0002006u;       /* the cold dump control word (default CNTL = 4, DEVNO = 6 */
+static uint32_t  sim_stops      = 0;              /* the current simulation stop flag settings */
+static uint32_t  cpu_speed      = 1;              /* the CPU speed, expressed as a multiplier of a real machine */
+static uint32_t  pclk_increment = 1;              /* the process clock increment per event service */
+static uint32_t  dump_control   = 0002006u;       /* the cold dump control word (default CNTL = 4, DEVNO = 6 */
 static HP_WORD exec_mask      = 0;              /* the current instruction execution trace mask */
 static HP_WORD exec_match     = D16_UMAX;       /* the current instruction execution trace matching value */
 
@@ -980,9 +980,9 @@ static const char *const trap_name [] = {       /* trap names, indexed by TRAP_C
 */
 
 struct FEATURE_TABLE {
-    uint32      typ;                            /* standard features plus typically configured options */
-    uint32      opt;                            /* complete list of optional features */
-    uint32      maxmem;                         /* maximum configurable memory in 16-bit words */
+    uint32_t      typ;                            /* standard features plus typically configured options */
+    uint32_t      opt;                            /* complete list of optional features */
+    uint32_t      maxmem;                         /* maximum configurable memory in 16-bit words */
     };
 
 static const struct FEATURE_TABLE cpu_features [] = {   /* features indexed by CPU_MODEL */
@@ -1424,7 +1424,7 @@ int        abortval;
 HP_WORD    label, parameter;
 TRAP_CLASS trap;
 t_bool     exec_test;
-volatile   uint32  debug_save;
+volatile   uint32_t  debug_save;
 volatile   HP_WORD device;
 volatile   t_stat  status = SCPE_OK;
 
@@ -2347,7 +2347,7 @@ return;
        underflow after each word is moved rather than only after the last word.
 */
 
-void cpu_adjust_sr (uint32 target)
+void cpu_adjust_sr (uint32_t target)
 {
 do {
     cpu_read_memory (stack, SM, &TR [SR]);              /* read the value from memory into a TOS register */
@@ -2696,9 +2696,9 @@ return;
     1. This routine implements the DBBC microcode subroutine.
 */
 
-uint32 cpu_byte_ea (ACCESS_CLASS class, uint32 byte_offset, uint32 block_length)
+uint32_t cpu_byte_ea (ACCESS_CLASS class, uint32_t byte_offset, uint32_t block_length)
 {
-uint32 starting_word, ending_word, increment;
+uint32_t starting_word, ending_word, increment;
 
 if (block_length & D16_SIGN)                            /* if the block length is negative */
     increment = 0177777;                                /*   then the memory increment is negative also */
@@ -3505,7 +3505,7 @@ return SCPE_OK;                                         /* indicate that the res
 static t_stat set_stops (UNIT *uptr, int32 option, CONST char *cptr, void *desc)
 {
 char gbuf [CBUFSIZE];
-uint32 stop;
+uint32_t stop;
 
 if (cptr == NULL) {                                     /* if there are no arguments */
     sim_stops = 0;                                      /*   then clear all of the stop flags */
@@ -3560,7 +3560,7 @@ return SCPE_OK;                                         /* the stops were succes
 static t_stat set_exec (UNIT *uptr, int32 option, CONST char *cptr, void *desc)
 {
 char   gbuf [CBUFSIZE];
-uint32 match, mask, radix;
+uint32_t match, mask, radix;
 t_stat status;
 
 if (option == 0)                                        /* if this is a NOEXEC request */
@@ -3588,7 +3588,7 @@ else {                                                  /* otherwise at least on
     else                                                /* otherwise */
         radix = cpu_dev.dradix;                         /*   use the current CPU data radix */
 
-    match = (uint32) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the match value */
+    match = (uint32_t) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the match value */
 
     if (status != SCPE_OK)                              /* if a parsing error occurred */
         return status;                                  /*   then return the error status */
@@ -3602,7 +3602,7 @@ else {                                                  /* otherwise at least on
     else {                                              /* otherwise another argument is present */
         cptr = get_glyph (cptr, gbuf, ';');             /*   so get the mask argument */
 
-        mask = (uint32) get_uint (gbuf, radix, D16_UMAX, &status);  /* parse the mask value */
+        mask = (uint32_t) get_uint (gbuf, radix, D16_UMAX, &status);  /* parse the mask value */
 
         if (status != SCPE_OK)                          /* if a parsing error occurred */
             return status;                              /*   then return the error status */
@@ -3658,7 +3658,7 @@ else if (option == 0) {                                 /* otherwise if a device
     if (status == SCPE_OK)                                  /* if it is valid */
         if (value >= 3)                                     /*   and in the proper range */
             dump_control = REPLACE_LOWER (dump_control,     /*     then set the new device number */
-                                          (uint32) value);  /*       into the dump control word */
+                                          (uint32_t) value);  /*       into the dump control word */
         else                                                /*   otherwise the device number */
             status = SCPE_ARG;                              /*     is invalid */
     }
@@ -3669,7 +3669,7 @@ else {                                                  /* otherwise a control b
 
     if (status == SCPE_OK)                              /* if it is valid */
         dump_control = REPLACE_UPPER (dump_control,     /*   then set the new control value */
-                                      (uint32) value);  /*     into the dump control word */
+                                      (uint32_t) value);  /*     into the dump control word */
     }
 
 return status;                                          /* return the operation status */
@@ -3708,9 +3708,9 @@ static t_stat set_size (UNIT *uptr, int32 new_size, CONST char *cptr, void *desc
 {
 static CONST char confirm [] = "Really truncate memory [N]?";
 
-const uint32 model = CPU_MODEL (uptr->flags);           /* the current CPU model index */
+const uint32_t model = CPU_MODEL (uptr->flags);           /* the current CPU model index */
 
-if ((uint32) new_size > cpu_features [model].maxmem)    /* if the new memory size is not supported on current model */
+if ((uint32_t) new_size > cpu_features [model].maxmem)    /* if the new memory size is not supported on current model */
     return SCPE_NOFNC;                                  /*   then report the error */
 
 if (!(sim_switches & SWMASK ('F'))                      /* if truncation is not explicitly forced */
@@ -3749,15 +3749,15 @@ return SCPE_OK;                                         /* confirm that the chan
 
 static t_stat set_model (UNIT *uptr, int32 new_model, CONST char *cptr, void *desc)
 {
-const uint32 new_index = CPU_MODEL (new_model);         /* the new index into the CPU features table */
-uint32 new_memsize;
+const uint32_t new_index = CPU_MODEL (new_model);         /* the new index into the CPU features table */
+uint32_t new_memsize;
 t_stat status;
 
 if (MEMSIZE == 0                                        /* if this is the initial establishing call */
   || MEMSIZE > cpu_features [new_index].maxmem)         /*   or if the current memory size is unsupported */
     new_memsize = cpu_features [new_index].maxmem;      /*     then set the new size to the maximum supported size */
 else                                                    /* otherwise the current size is valid for the new model */
-    new_memsize = (uint32) MEMSIZE;                     /*   so leave it unchanged */
+    new_memsize = (uint32_t) MEMSIZE;                     /*   so leave it unchanged */
 
 status = set_size (uptr, new_memsize, NULL, NULL);      /* set the new memory size */
 
@@ -3786,7 +3786,7 @@ return status;                                          /* return the validation
 
 static t_stat set_option (UNIT *uptr, int32 new_option, CONST char *cptr, void *desc)
 {
-const uint32 model = CPU_MODEL (uptr->flags);           /* the current CPU model index */
+const uint32_t model = CPU_MODEL (uptr->flags);           /* the current CPU model index */
 
 if ((cpu_features [model].opt & new_option) != 0)       /* if the option is supported on the current model */
     return SCPE_OK;                                     /*   then confirm the change */
@@ -3836,7 +3836,7 @@ return SCPE_OK;                                         /* confirm the change */
 
 static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 stop;
+uint32_t stop;
 t_bool need_spacer = FALSE;
 
 if (sim_stops == 0)                                     /* if no simulation stops are set */
@@ -3874,7 +3874,7 @@ return SCPE_OK;                                         /* report the success of
 
 static t_stat show_exec (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 radix;
+uint32_t radix;
 
 if (exec_mask == 0)                                     /* if the instruction is entirely masked */
     fputs ("Execution trace disabled\n", st);           /*   then report that matching is disabled */
@@ -4044,7 +4044,7 @@ return SCPE_OK;                                         /*   and report success 
 static t_stat halt_mode_interrupt (HP_WORD device_number)
 {
 static HP_WORD cold_device, sio_pointer, status, offset, pointer;
-static uint32 address;
+static uint32_t address;
 static t_bool error_recovery;
 
 if (CPX2 & cpx2_RUNSWCH) {                              /* if the RUN switch is pressed */

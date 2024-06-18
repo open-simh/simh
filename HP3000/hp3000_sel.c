@@ -33,7 +33,7 @@
    30-Jun-16    JDB     Reestablish active_dib pointer during sel_initialize
    08-Jun-16    JDB     Corrected %d format to %u for unsigned values
    16-May-16    JDB     abort_channel parameter is now a pointer-to-constant
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    23-Sep-15    JDB     First release version
    27-Jan-15    JDB     Passes the selector channel diagnostic (D429A)
    10-Feb-13    JDB     Created
@@ -260,7 +260,7 @@
        sel_request TRUE if the device has a service request pending or FALSE
        otherwise.
 
-     sel_service (uint32)
+     sel_service (uint32_t)
 
        Called to service a request from the device interface or an internal
        request from the selector channel.  Executes one or more channel cycles
@@ -334,7 +334,7 @@
 #define CYCLES_PER_READ     4
 #define CYCLES_PER_WRITE    4
 
-#define CYCLES_PER_EVENT    (uint32) (USEC_PER_EVENT * 1000 / NS_PER_CYCLE)
+#define CYCLES_PER_EVENT    (uint32_t) (USEC_PER_EVENT * 1000 / NS_PER_CYCLE)
 
 #define CNTR_MASK           0007777u            /* word counter count mask */
 #define CNTR_MAX            0007777u            /* word counter maximum value */
@@ -393,13 +393,13 @@ t_bool sel_request = FALSE;                     /* TRUE if the channel sequencer
 static SEQ_STATE sequencer = Idle_Sequence;     /* the current sequencer execution state */
 static SIO_ORDER order;                         /* the current SIO order */
 static DIB      *active_dib;                    /* a pointer to the participating interface's DIB */
-static uint32    device_index;                  /* the index into the device table */
+static uint32_t    device_index;                  /* the index into the device table */
 static t_bool    prefetch_control;              /* TRUE if the IOCW should be prefetched */
 static t_bool    prefetch_address;              /* TRUE if the IOAW should be prefetched */
 
-static uint32    device_number;                 /* the participating interface's device number */
-static uint32    bank;                          /* the transfer bank register */
-static uint32    word_count;                    /* the transfer word count register */
+static uint32_t    device_number;                 /* the participating interface's device number */
+static uint32_t    bank;                          /* the transfer bank register */
+static uint32_t    word_count;                    /* the transfer word count register */
 
 static HP_WORD   program_counter;               /* the I/O program counter */
 static HP_WORD   control_word;                  /* the current IOCW */
@@ -798,13 +798,13 @@ return;
        though all cases are covered.
 */
 
-void sel_service (uint32 ticks_elapsed)
+void sel_service (uint32_t ticks_elapsed)
 {
 HP_WORD      inbound_data, outbound_data;
 INBOUND_SET  inbound_signals;
 SIGNALS_DATA outbound;
 int32        cycles;
-uint32       return_address;
+uint32_t       return_address;
 
 cycles = CYCLES_PER_EVENT - excess_cycles;              /* decrease the cycles available by any left over */
 
