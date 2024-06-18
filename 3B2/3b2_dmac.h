@@ -45,44 +45,44 @@
 #define DMA_XFER(C)      ((dma_state.channels[(C)].mode >> 2) & 3)
 
 typedef struct {
-    uint8 mode;      /* Channel mode        */
-    uint16 page;     /* Memory page         */
-    uint16 addr;     /* Original addr       */
-    uint16 wcount;   /* Original wcount     */
-    uint16 addr_c;   /* Current addr        */
+    uint8_t mode;      /* Channel mode        */
+    uint16_t page;     /* Memory page         */
+    uint16_t addr;     /* Original addr       */
+    uint16_t wcount;   /* Original wcount     */
+    uint16_t addr_c;   /* Current addr        */
     int32  wcount_c; /* Current word-count  */
-    uint16 ptr;      /* Pointer into memory */
+    uint16_t ptr;      /* Pointer into memory */
 } dma_channel;
 
 typedef struct {
     /* Byte (high/low) flip-flop */
-    uint8 bff;
+    uint8_t bff;
 
     /* Address and count registers for channels 0-3 */
     dma_channel channels[4];
 
     /* DMAC programmable registers */
-    uint8 command;
-    uint8 request;
-    uint8 mask;
-    uint8 status;
+    uint8_t command;
+    uint8_t request;
+    uint8_t mask;
+    uint8_t status;
 } DMA_STATE;
 
 typedef struct {
-    uint8  channel;
-    uint32 service_address;
+    uint8_t  channel;
+    uint32_t service_address;
     t_bool *drq;
-    void  (*dma_handler)(uint8 channel, uint32 service_address);
+    void  (*dma_handler)(uint8_t channel, uint32_t service_address);
     void  (*after_dma_callback)();
 } dmac_dma_handler;
 
 /* DMAC */
 t_stat dmac_reset(DEVICE *dptr);
-uint32 dmac_read(uint32 pa, size_t size);
-void dmac_write(uint32 pa, uint32 val, size_t size);
+uint32_t dmac_read(uint32_t pa, size_t size);
+void dmac_write(uint32_t pa, uint32_t val, size_t size);
 void dmac_service_drqs();
-void dmac_generic_dma(uint8 channel, uint32 service_address);
-uint32 dma_address(uint8 channel, uint32 offset);
+void dmac_generic_dma(uint8_t channel, uint32_t service_address);
+uint32_t dma_address(uint8_t channel, uint32_t offset);
 
 extern DMA_STATE dma_state;
 

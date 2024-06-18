@@ -183,35 +183,35 @@
 #define PPC_VERS        80      /* EXP, COMP queues: Version */
 
 typedef struct {
-    uint32 tx_addr;      /* Address to next read from */
-    uint32 tx_req_addr;  /* Original request address */
-    uint32 tx_chars;     /* Number of chars left to transfer */
-    uint32 tx_req_chars; /* Original number of chars */
-    uint8  rlp;          /* Last known load pointer */
-    uint16 iflag;        /* Line Discipline: Input flags */
-    uint16 oflag;        /* Line Discipline: Output flags */
+    uint32_t tx_addr;      /* Address to next read from */
+    uint32_t tx_req_addr;  /* Original request address */
+    uint32_t tx_chars;     /* Number of chars left to transfer */
+    uint32_t tx_req_chars; /* Original number of chars */
+    uint8_t  rlp;          /* Last known load pointer */
+    uint16_t iflag;        /* Line Discipline: Input flags */
+    uint16_t oflag;        /* Line Discipline: Output flags */
     t_bool crlf;         /* Indicates we are in a CRLF output transform */
     t_bool conn;         /* TRUE if connected, FALSE otherwise */
 } PORTS_LINE_STATE;
 
 typedef struct {
-    uint16 line;    /* line discipline */
-    uint16 pad1;
-    uint16 iflag;   /* input options word */
-    uint16 oflag;   /* output options word */
-    uint16 cflag;   /* hardware options */
-    uint16 lflag;   /* line discipline options */
-    uint8  cerase;  /* "erase" character */
-    uint8  ckill;   /* "kill" character */
-    uint8  cinter;  /* "interrupt" character */
-    uint8  cquit;   /* "quit" character */
-    uint8  ceof;    /* "end of file" character */
-    uint8  ceol;    /* "end of line" character */
-    uint8  itime;   /* inter character timer multiplier */
-    uint8  vtime;   /* user-specified inter char timer */
-    uint8  vcount;  /* user-specified maximum buffer char count */
-    uint8  pad2;
-    uint16 pad3;
+    uint16_t line;    /* line discipline */
+    uint16_t pad1;
+    uint16_t iflag;   /* input options word */
+    uint16_t oflag;   /* output options word */
+    uint16_t cflag;   /* hardware options */
+    uint16_t lflag;   /* line discipline options */
+    uint8_t  cerase;  /* "erase" character */
+    uint8_t  ckill;   /* "kill" character */
+    uint8_t  cinter;  /* "interrupt" character */
+    uint8_t  cquit;   /* "quit" character */
+    uint8_t  ceof;    /* "end of file" character */
+    uint8_t  ceol;    /* "end of line" character */
+    uint8_t  itime;   /* inter character timer multiplier */
+    uint8_t  vtime;   /* user-specified inter char timer */
+    uint8_t  vcount;  /* user-specified maximum buffer char count */
+    uint8_t  pad2;
+    uint16_t pad3;
 } PORTS_OPTIONS;
 
 t_stat ports_reset(DEVICE *dptr);
@@ -226,8 +226,8 @@ t_stat lpt_attach (UNIT *uptr, CONST char *ptr);
 t_stat lpt_detach (UNIT *uptr);
 t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *lpt_description (DEVICE *dptr);
-void ports_sysgen(uint8 slot);
-void ports_express(uint8 slot);
-void ports_full(uint8 slot);
+void ports_sysgen(uint8_t slot);
+void ports_express(uint8_t slot);
+void ports_full(uint8_t slot);
 
 #endif /* _3B2_PORTS_H_ */

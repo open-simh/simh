@@ -65,10 +65,10 @@
 #endif
 
 #define ATOW(arr, i)                                                           \
-  ((uint32)(arr)[i + 3] + ((uint32)(arr)[i + 2] << 8) +                        \
-   ((uint32)(arr)[i + 1] << 16) + ((uint32)(arr)[i] << 24))
+  ((uint32_t)(arr)[i + 3] + ((uint32_t)(arr)[i + 2] << 8) +                        \
+   ((uint32_t)(arr)[i + 1] << 16) + ((uint32_t)(arr)[i] << 24))
 
-#define ATOH(arr, i) ((uint32)(arr)[i + 1] + ((uint32)(arr)[i] << 8))
+#define ATOH(arr, i) ((uint32_t)(arr)[i + 1] + ((uint32_t)(arr)[i] << 8))
 
 #define CSRBIT(bit, sc)                                                        \
   {                                                                            \

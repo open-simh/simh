@@ -108,13 +108,13 @@ t_bool ni_conf = FALSE;
 static void dump_packet(const char *direction, ETH_PACK *pkt);
 static void ni_enable();
 static void ni_disable();
-static void ni_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data, t_bool is_exp);
+static void ni_cmd(uint8_t slot, cio_entry *rentry, uint8_t *rapp_data, t_bool is_exp);
 
 /*
  * A list of pumped code CRCs that will cause Force Function Call to
  * respond with "Test Passed". Must be null-terminated.
  */
-static const uint32 NI_DIAG_CRCS[] = {
+static const uint32_t NI_DIAG_CRCS[] = {
     0x795268a4,
     0xfab1057c,
     0x10ca00cd,
@@ -132,7 +132,7 @@ static const uint32 NI_DIAG_CRCS[] = {
  * respond with a full completion request instead of an express
  * completion request. Must be null-terminated.
  */
-static const uint32 NI_PUMP_CRCS[] = {
+static const uint32_t NI_PUMP_CRCS[] = {
     0xfab1057c, /* Rev 2 NI, SVR 3.x */
     0xf6744bed, /* Rev 2 NI, SVR 3.x */
     0x96d0506e, /* Rev 3 NI, SVR 3.2.3 */
@@ -217,7 +217,7 @@ static void dump_packet(const char *direction, ETH_PACK *pkt)
 {
     char dumpline[82];
     char *p;
-    uint32 char_offset, i;
+    uint32_t char_offset, i;
 
     if (!direction) {
         return;
@@ -304,15 +304,15 @@ static void ni_disable()
     CIO_CLR_INT(ni.slot);
 }
 
-static void ni_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data, t_bool is_exp)
+static void ni_cmd(uint8_t slot, cio_entry *rentry, uint8_t *rapp_data, t_bool is_exp)
 {
     int i, j;
     int32 delay;
-    uint16 hdrsize;
+    uint16_t hdrsize;
     t_stat status;
     int prot_info_offset;
     cio_entry centry = {0};
-    uint8 app_data[4] = {rapp_data[0], rapp_data[1], rapp_data[2], rapp_data[3]};
+    uint8_t app_data[4] = {rapp_data[0], rapp_data[1], rapp_data[2], rapp_data[3]};
 
     /* Assume some default values, but let the handlers below
      * override these where appropriate */
@@ -605,12 +605,12 @@ t_stat ni_show_filters(FILE* st, UNIT* uptr, int32 val, CONST void* desc)
     return SCPE_OK;
 }
 
-void ni_sysgen(uint8 slot)
+void ni_sysgen(uint8_t slot)
 {
     int i;
     t_bool pumped = FALSE;
     cio_entry cqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
 
     ni_disable();
 
@@ -646,10 +646,10 @@ void ni_sysgen(uint8 slot)
 /*
  * Handler for CIO INT0 (express job) requests.
  */
-void ni_express(uint8 slot)
+void ni_express(uint8_t slot)
 {
     cio_entry rqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
 
     sim_debug(DBG_TRACE, &ni_dev,
               "[ni_express] Handling express CIO request.\n");
@@ -661,10 +661,10 @@ void ni_express(uint8 slot)
 /*
  * Handler for CIO INT1 (full job) requests.
  */
-void ni_full(uint8 slot)
+void ni_full(uint8_t slot)
 {
     cio_entry rqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
 
     sim_debug(DBG_TRACE, &ni_dev,
               "[ni_full] INT1 received. Handling full CIO request.\n");
@@ -678,7 +678,7 @@ void ni_full(uint8 slot)
 /*
  * Handler for CIO RESET requests.
  */
-void ni_cio_reset(uint8 slot)
+void ni_cio_reset(uint8_t slot)
 {
     UNUSED(slot);
 
@@ -688,7 +688,7 @@ void ni_cio_reset(uint8 slot)
 t_stat ni_reset(DEVICE *dptr)
 {
     t_stat r;
-    uint8 slot;
+    uint8_t slot;
     char uname[16];
 
     if (dptr->flags & DEV_DIS) {
@@ -767,7 +767,7 @@ t_stat ni_rq_svc(UNIT *uptr)
     t_bool rq_taken;
     int i, wp, no_rque;
     cio_entry rqe = {0};
-    uint8 slot[4] = {0};
+    uint8_t slot[4] = {0};
 
     UNUSED(uptr);
 
@@ -829,7 +829,7 @@ t_stat ni_rq_svc(UNIT *uptr)
 t_stat ni_sanity_svc(UNIT *uptr)
 {
     cio_entry cqe = {0};
-    uint8 app_data[4] = {0};
+    uint8_t app_data[4] = {0};
 
     UNUSED(uptr);
 
@@ -863,13 +863,13 @@ t_stat ni_cio_svc(UNIT *uptr)
 void ni_process_packet()
 {
     int i, rp;
-    uint32 addr;
-    uint8 slot;
+    uint32_t addr;
+    uint8_t slot;
     cio_entry centry = {0};
-    uint8 capp_data[4] = {0};
+    uint8_t capp_data[4] = {0};
     int len = 0;
     int que_num = 0;
-    uint8 *rbuf;
+    uint8_t *rbuf;
 
     len = ni.rd_buf.len;
     rbuf = ni.rd_buf.msg;
@@ -999,7 +999,7 @@ t_stat ni_detach(UNIT *uptr)
 t_stat ni_set_stats(UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 {
     int init, elements, i;
-    uint32 *stats_array;
+    uint32_t *stats_array;
 
     UNUSED(uptr);
     UNUSED(val);
@@ -1008,8 +1008,8 @@ t_stat ni_set_stats(UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 
     if (cptr) {
         init = atoi(cptr);
-        stats_array = (uint32 *)&ni.stats;
-        elements = sizeof(ni_stat_info) / sizeof(uint32);
+        stats_array = (uint32_t *)&ni.stats;
+        elements = sizeof(ni_stat_info) / sizeof(uint32_t);
 
         for (i = 0 ; i < elements; i++) {
             stats_array[i] = init;

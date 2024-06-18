@@ -58,65 +58,65 @@
 #define ID_CMD_WAIT         140
 
 /* Static function declarations */
-static SIM_INLINE t_lba id_lba(uint16 cyl, uint8 head, uint8 sec);
+static SIM_INLINE t_lba id_lba(uint16_t cyl, uint8_t head, uint8_t sec);
 
 /* Data FIFO pointer - Read */
-uint8    id_dpr = 0;
+uint8_t    id_dpr = 0;
 /* Data FIFO pointer - Write */
-uint8    id_dpw = 0;
+uint8_t    id_dpw = 0;
 /* Controller Status Register */
-uint8    id_status = 0;
+uint8_t    id_status = 0;
 /* Unit Interrupt Status */
-uint8    id_int_status = 0;
+uint8_t    id_int_status = 0;
 /* Last command received */
-uint8    id_cmd = 0;
+uint8_t    id_cmd = 0;
 /* DMAC request */
 t_bool   id_drq = FALSE;
 /* 8-byte FIFO */
-uint8    id_data[ID_FIFO_LEN] = {0};
+uint8_t    id_data[ID_FIFO_LEN] = {0};
 /* SRQM bit */
 t_bool   id_srqm = FALSE;
 /* The logical unit number (0-1) */
-uint8    id_unit_num = 0;
+uint8_t    id_unit_num = 0;
 /* The physical unit number (0-3) */
-uint8    id_ua = 0;
+uint8_t    id_ua = 0;
 /* Cylinder the drive is positioned on */
-uint16   id_cyl[ID_NUM_UNITS] = {0};
+uint16_t   id_cyl[ID_NUM_UNITS] = {0};
 /* Ending Track Number (from Specify) */
-uint8    id_etn = 0;
+uint8_t    id_etn = 0;
 /* Ending Sector Number (from Specify) */
-uint8    id_esn = 0;
+uint8_t    id_esn = 0;
 /* DTLH word (from Specify) */
-uint8    id_dtlh = 0;
+uint8_t    id_dtlh = 0;
 /* Physical sector number */
-uint8    id_psn = 0;
+uint8_t    id_psn = 0;
 /* Physical head number */
-uint8    id_phn = 0;
+uint8_t    id_phn = 0;
 /* Logical cylinder number, high byte */
-uint8    id_lcnh = 0;
+uint8_t    id_lcnh = 0;
 /* Logical cylinder number, low byte */
-uint8    id_lcnl = 0;
+uint8_t    id_lcnl = 0;
 /* Logical head number */
-uint8    id_lhn = 0;
+uint8_t    id_lhn = 0;
 /* Logical sector number */
-uint8    id_lsn = 0;
+uint8_t    id_lsn = 0;
 /* Number of sectors to transfer, decremented after each sector */
-uint8    id_scnt = 0;
+uint8_t    id_scnt = 0;
 /* Whether we are using polling mode or not */
 t_bool   id_polling = FALSE;
 /* Sector buffer */
-uint8    id_buf[ID_SEC_SIZE];
+uint8_t    id_buf[ID_SEC_SIZE];
 /* Buffer pointer */
 size_t   id_buf_ptr = 0;
 
-uint8    id_idfield[ID_IDFIELD_LEN];
-uint8    id_idfield_ptr = 0;
+uint8_t    id_idfield[ID_IDFIELD_LEN];
+uint8_t    id_idfield_ptr = 0;
 
 int8     id_seek_state[ID_NUM_UNITS] = {ID_SEEK_NONE};
 
 struct id_dtype {
-    uint8  hd;    /* Number of heads */
-    uint32 capac; /* Capacity (in sectors) */
+    uint8_t  hd;    /* Number of heads */
+    uint32_t capac; /* Capacity (in sectors) */
     const char *name;
 };
 
@@ -195,13 +195,13 @@ DEVICE id_dev = {
         }                                                 \
     }
 
-static SIM_INLINE void id_set_status(uint8 flags)
+static SIM_INLINE void id_set_status(uint8_t flags)
 {
     id_status |= flags;
     UPDATE_INT;
 }
 
-static SIM_INLINE void id_clr_status(uint8 flags)
+static SIM_INLINE void id_clr_status(uint8_t flags)
 {
     id_status &= ~(flags);
     UPDATE_INT;
@@ -233,7 +233,7 @@ static SIM_INLINE void id_activate(UNIT *uptr, int32 delay)
  */
 t_stat id_ctlr_svc(UNIT *uptr)
 {
-    uint8 cmd;
+    uint8_t cmd;
 
     cmd = uptr->u4;  /* The command that caused the activity */
 
@@ -264,7 +264,7 @@ t_stat id_ctlr_svc(UNIT *uptr)
  */
 t_stat id_unit_svc(UNIT *uptr)
 {
-    uint8 unit, other, cmd;
+    uint8_t unit, other, cmd;
 
     unit  = uptr->u3;  /* The unit number that needs an interrupt */
     cmd   = uptr->u4;  /* The command that caused the activity    */
@@ -408,9 +408,9 @@ t_stat id_detach(UNIT *uptr)
 }
 
 /* Return the logical block address of the given sector */
-static t_lba id_lba(uint16 cyl, uint8 head, uint8 sec)
+static t_lba id_lba(uint16_t cyl, uint8_t head, uint8_t sec)
 {
-    uint8 dtype;
+    uint8_t dtype;
 
     dtype = ID_GET_DTYPE(id_sel_unit->flags);
 
@@ -421,7 +421,7 @@ static t_lba id_lba(uint16 cyl, uint8 head, uint8 sec)
 
 /* At the end of each sector read or write, we update the FIFO
  * with the correct return parameters. */
-static void SIM_INLINE id_end_rw(uint8 est)
+static void SIM_INLINE id_end_rw(uint8_t est)
 {
     id_clear_fifo();
     id_data[0] = est;
@@ -451,15 +451,15 @@ static void SIM_INLINE id_update_chs()
     }
 }
 
-uint32 id_read(uint32 pa, size_t size)
+uint32_t id_read(uint32_t pa, size_t size)
 {
-    uint8 reg;
-    uint16 cyl;
+    uint8_t reg;
+    uint16_t cyl;
     t_lba lba;
-    uint32 data;
+    uint32_t data;
     t_seccnt sectsread;
 
-    reg = (uint8) (pa - IDBASE);
+    reg = (uint8_t) (pa - IDBASE);
 
     switch(reg) {
     case ID_DATA_REG:     /* Data Buffer Register */
@@ -493,7 +493,7 @@ uint32 id_read(uint32 pa, size_t size)
                 if (id_buf_ptr == 0 || id_buf_ptr >= ID_SEC_SIZE) {
                     /* It's time to read a new sector into our sector buf */
                     id_buf_ptr = 0;
-                    cyl = (uint16) (((uint16)id_lcnh << 8)|(uint16)id_lcnl);
+                    cyl = (uint16_t) (((uint16_t)id_lcnh << 8)|(uint16_t)id_lcnl);
                     id_cyl[id_unit_num] = cyl;
                     lba = id_lba(cyl, id_lhn, id_lsn);
                     if (sim_disk_rdsect(id_sel_unit, lba, id_buf, &sectsread, 1) == SCPE_OK) {
@@ -582,14 +582,14 @@ uint32 id_read(uint32 pa, size_t size)
     return 0;
 }
 
-void id_write(uint32 pa, uint32 val, size_t size)
+void id_write(uint32_t pa, uint32_t val, size_t size)
 {
-    uint8 reg;
-    uint16 cyl;
+    uint8_t reg;
+    uint16_t cyl;
     t_lba lba;
     t_seccnt sectswritten;
 
-    reg = (uint8) (pa - IDBASE);
+    reg = (uint8_t) (pa - IDBASE);
 
     switch(reg) {
     case ID_DATA_REG:
@@ -608,10 +608,10 @@ void id_write(uint32 pa, uint32 val, size_t size)
 
             /* Write to the disk buffer */
             if (id_buf_ptr < ID_SEC_SIZE) {
-                id_buf[id_buf_ptr++] = (uint8)(val & 0xff);
+                id_buf[id_buf_ptr++] = (uint8_t)(val & 0xff);
                 sim_debug(WRITE_MSG, &id_dev,
                           "DATA\t%02x\n",
-                          (uint8)(val & 0xff));
+                          (uint8_t)(val & 0xff));
             } else {
                 sim_debug(WRITE_MSG, &id_dev,
                           "ERROR\tWDATA OVERRUN\n");
@@ -623,7 +623,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
             if (id_buf_ptr >= ID_SEC_SIZE) {
                 /* It's time to start the next sector, and flush the old. */
                 id_buf_ptr = 0;
-                cyl = (uint16) (((uint16) id_lcnh << 8)|(uint16)id_lcnl);
+                cyl = (uint16_t) (((uint16_t) id_lcnh << 8)|(uint16_t)id_lcnl);
                 id_cyl[id_unit_num] = cyl;
                 lba = id_lba(cyl, id_lhn, id_lsn);
                 if (sim_disk_wrsect(id_sel_unit, lba, id_buf, &sectswritten, 1) == SCPE_OK) {
@@ -651,7 +651,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
                       "DATA\t%02x\n",
                       val);
             if (id_dpw < ID_FIFO_LEN) {
-                id_data[id_dpw++] = (uint8) val;
+                id_data[id_dpw++] = (uint8_t) val;
             } else {
                 sim_debug(WRITE_MSG, &id_dev,
                           "ERROR\tFIFO OVERRUN\n");
@@ -659,18 +659,18 @@ void id_write(uint32 pa, uint32 val, size_t size)
         }
         return;
     case ID_CMD_STAT_REG:
-        id_handle_command((uint8) val);
+        id_handle_command((uint8_t) val);
         return;
     default:
         return;
     }
 }
 
-void id_handle_command(uint8 val)
+void id_handle_command(uint8_t val)
 {
-    uint8 cmd, aux_cmd, sec, pattern;
-    uint16 cyl;
-    uint32 time;
+    uint8_t cmd, aux_cmd, sec, pattern;
+    uint16_t cyl;
+    uint32_t time;
     t_lba lba;
 
     /* Reset the FIFO pointer */
@@ -803,7 +803,7 @@ void id_handle_command(uint8 val)
         id_lcnh = id_data[0];
         id_lcnl = id_data[1];
         cyl = id_lcnh << 8 | id_lcnl;
-        time = (uint32) abs(id_cyl[id_unit_num] - cyl);
+        time = (uint32_t) abs(id_cyl[id_unit_num] - cyl);
         id_cyl[id_unit_num] = cyl;
         id_seek_state[id_unit_num] = ID_SEEK_0;
 
