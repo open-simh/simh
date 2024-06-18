@@ -50,11 +50,11 @@
 #define UTTI            1
 #define UTTO            0
 
-uint32 tti_unlock = 0;                                  /* expecting input */
-uint32 tti_flag = 0;                                    /* flag typed */
+uint32_t tti_unlock = 0;                                  /* expecting input */
+uint32_t tti_flag = 0;                                    /* flag typed */
 int32 tto_col = 1;                                      /* one-based, char loc to print next */
 
-uint8 tto_tabs[TTO_COLMAX + 1] = {  /* Zero-based access, one-based UI */
+uint8_t tto_tabs[TTO_COLMAX + 1] = {  /* Zero-based access, one-based UI */
  0,0,0,0,0,0,0,0,
  1,0,0,0,0,0,0,0,
  1,0,0,0,0,0,0,0,
@@ -68,14 +68,14 @@ uint8 tto_tabs[TTO_COLMAX + 1] = {  /* Zero-based access, one-based UI */
  1
 };
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
-extern uint32 cpuio_inp, cpuio_opc, cpuio_cnt, PAR;
+extern uint32_t io_stop;
+extern uint32_t cpuio_inp, cpuio_opc, cpuio_cnt, PAR;
 
 t_stat tto_num (void);
-t_stat tto_write (uint32 c);
+t_stat tto_write (uint32_t c);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tty_reset (DEVICE *dptr);
@@ -255,7 +255,7 @@ const char alp_to_tto[256] = {
      If IO stop is set, the system halts at the end of the operation.
 */
 
-t_stat tty (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat tty (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 switch (op) {                                           /* case on op */
 
@@ -388,7 +388,7 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr) {
 
-uint8 d;
+uint8_t d;
 int8 ttc;
 t_stat sta = SCPE_OK;
 
@@ -440,7 +440,7 @@ return sta;
 t_stat tto_num (void)
 {
 t_stat r;
-uint8 d;
+uint8_t d;
 
 d = M[PAR];                                             /* get char */
 if (tty_unit[UTTO].flags & UF_1DIG)                     /* how display flagged digits? */
@@ -470,7 +470,7 @@ if (tto_col > TTO_COLMAX) {                             /* line wrap? */
 
 /* Write, maintaining position */
 
-t_stat tto_write (uint32 c)
+t_stat tto_write (uint32_t c)
 {
 if (c == '\t') {                                        /* tab? */
     tto_wrap();

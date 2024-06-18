@@ -50,12 +50,12 @@
 #define K_LCNT          0x03                            /* line count */
 #define K_CHAN          0x0F                            /* channel */
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
+extern uint32_t io_stop;
 
-uint32 cct[CCT_LNT] = { 03 };                           /* car ctrl tape */
+uint32_t cct[CCT_LNT] = { 03 };                           /* car ctrl tape */
 int32 cct_lnt = 66, cct_ptr = 0;                        /* cct len, ptr */
 int32 lpt_bptr = 0;                                     /* lpt buf ptr */
 char lpt_buf[LPT_BSIZE + 1];                            /* lpt buf */
@@ -65,8 +65,8 @@ t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, CONST char *cptr);
 void lpt_buf_init (void);
-t_stat lpt_num(uint32 pa, uint32 f1, t_bool dump);
-t_stat lpt_print (uint32 flag);
+t_stat lpt_num(uint32_t pa, uint32_t f1, t_bool dump);
+t_stat lpt_print (uint32_t flag);
 t_stat lpt_spcop (int32 ctrl);
 t_stat lpt_space (int32 lines, int32 lflag);
 
@@ -184,10 +184,10 @@ static const int8 lpt_ktbl[128] = {
      flags, and halt the system if IO stop is set.
 */
 
-t_stat lpt (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat lpt (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 int8 lpc;
-uint8 z, d;
+uint8_t z, d;
 int32 ctrl;
 t_stat r, sta;
 
@@ -246,9 +246,9 @@ return SCPE_OK;
 
 /* Print numeric */
 
-t_stat lpt_num (uint32 pa, uint32 f1, t_bool dump)
+t_stat lpt_num (uint32_t pa, uint32_t f1, t_bool dump)
 {
-uint8 d;
+uint8_t d;
 int8 lpc;
 t_stat r, sta;
 
@@ -278,7 +278,7 @@ return sta;
 
 /* Print and possibly space - any spacing operation is non-immediate */
 
-t_stat lpt_print (uint32 flag)
+t_stat lpt_print (uint32_t flag)
 {
 int32 i, cc;
 

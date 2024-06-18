@@ -40,7 +40,7 @@ extern DEVICE cdr_dev, cdp_dev;
 extern DEVICE dp_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint8 M[MAXMEMSIZE];
+extern uint8_t M[MAXMEMSIZE];
 
 /* SCP data structures and interface routines
 
@@ -125,11 +125,11 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
-uint32 col, mask, cctbuf[CCT_LNT];
+uint32_t col, mask, cctbuf[CCT_LNT];
 int32 ptr, rpt;
 t_stat r;
 extern int32 cct_lnt, cct_ptr;
-extern uint32 cct[CCT_LNT];
+extern uint32_t cct[CCT_LNT];
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
 if ((*cptr != 0) || (flag != 0))
@@ -170,8 +170,8 @@ return SCPE_OK;
 
 struct opc {
     const char          *str;                           /* mnemonic */
-    uint32              opv;                            /* opcode & flags */
-    uint32              qv;                             /* q field */
+    uint32_t              opv;                            /* opcode & flags */
+    uint32_t              qv;                             /* q field */
     };
 
 #define I_V_FL          16                              /* flags */
@@ -314,9 +314,9 @@ return;
         *fl     =       opcode flags (optional)
 */
 
-const char *opc_lookup (uint32 op, uint32 qv, uint32 *fl)
+const char *opc_lookup (uint32_t op, uint32_t qv, uint32_t *fl)
 {
-uint32 i, opfl;
+uint32_t i, opfl;
 
 for (i = 0; opcode[i].str != NULL; i++) {               /* find opcode */
     opfl = opcode[i].opv & 0xFF0000;                    /* get flags */
@@ -350,7 +350,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
 int32 pmp, qmp, i, c, d, any;
-uint32 op, qv, opfl;
+uint32_t op, qv, opfl;
 const char *opstr;
 
 if (uptr == NULL)
