@@ -33,25 +33,25 @@
 
 extern char INTprefix[];
 
-extern uint16 Areg, Preg, Qreg, IOAreg, IOQreg, M[];
+extern uint16_t Areg, Preg, Qreg, IOAreg, IOQreg, M[];
 
 extern t_bool IOFWinitialized;
 
 extern DEVICE *IOdev[];
 extern UNIT cpu_unit;
 
-extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern t_bool IOStoreToMem(uint16_t, uint16_t, t_bool);
 
 extern void rebuildPending(void);
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16);
+extern IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16_t);
 extern enum IOstatus fw_doIO(DEVICE *, t_bool);
-extern enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16 *, t_bool, uint8);
+extern enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16_t *, t_bool, uint8_t);
 
-extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern t_bool IOStoreToMem(uint16_t, uint16_t, t_bool);
 
 t_stat set_intr(UNIT *uptr, int32 val, CONST char *, void *);
 t_stat show_intr(FILE *, UNIT *, int32, CONST void *);
@@ -61,9 +61,9 @@ t_stat dc_svc(UNIT *);
 t_stat dc_reset(DEVICE *);
 
 void DCstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool DCreject(IO_DEVICE *, t_bool, uint8);
-enum IOstatus DCin(IO_DEVICE *, uint8);
-enum IOstatus DCout(IO_DEVICE *, uint8);
+t_bool DCreject(IO_DEVICE *, t_bool, uint8_t);
+enum IOstatus DCin(IO_DEVICE *, uint8_t);
+enum IOstatus DCout(IO_DEVICE *, uint8_t);
 
 t_stat dc_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
@@ -312,7 +312,7 @@ t_stat dc_svc(UNIT *uptr)
 {
   DEVICE *dptr;
   enum IOstatus status;
-  uint16 temp = 0;
+  uint16_t temp = 0;
 
   if ((dptr = find_dev_from_unit(uptr)) != NULL) {
     IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
@@ -550,7 +550,7 @@ t_stat show_target(FILE *st, UNIT *uptr, int32 val, CONST void *desc)
  *  02          Not busy                        Always allowed
  *  03          Not busy                        Always allowed
  */
-t_bool DCreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+t_bool DCreject(IO_DEVICE *iod, t_bool output, uint8_t reg)
 {
   if (output || (reg == 0))
     return (DCSTATUS(iod) & IO_ST_BUSY) != 0;
@@ -594,7 +594,7 @@ enum IOstatus DCxfer(IO_DEVICE *iod, IO_DEVICE *target, t_bool output)
 /*
  * Perform a buffered data channel input operation
  */
-enum IOstatus DCin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DCin(IO_DEVICE *iod, uint8_t reg)
 {
   IO_DEVICE *target;
   enum IOstatus status;
@@ -656,7 +656,7 @@ enum IOstatus DCin(IO_DEVICE *iod, uint8 reg)
 /*
  * Perform a buffered data channel output operation
  */
-enum IOstatus DCout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DCout(IO_DEVICE *iod, uint8_t reg)
 {
   IO_DEVICE *target;
   enum IOstatus status;
@@ -733,7 +733,7 @@ enum IOstatus DCout(IO_DEVICE *iod, uint8 reg)
 void buildDCtables(void)
 {
   int i;
-  uint8 chan;
+  uint8_t chan;
   DEVICE *dptr;
   UNIT *uptr;
 
@@ -765,9 +765,9 @@ void buildDCtables(void)
 /*
  * Create bit map of interrupts asserted by the Buffered Data Channels.
  */
-uint16 dcINTR(void)
+uint16_t dcINTR(void)
 {
-  uint16 result = 0;
+  uint16_t result = 0;
 
   if ((DCSTATUS(&DCAdev) & IO_ST_INT) != 0)
     result |= DCAdev.iod_interrupt;

@@ -140,23 +140,23 @@
 
 #include "cdc1700_defs.h"
 
-uint16 M[MAXMEMSIZE];
-uint8 P[MAXMEMSIZE];
+uint16_t M[MAXMEMSIZE];
+uint8_t P[MAXMEMSIZE];
 
 t_uint64 Instructions;
-uint16 Preg, Areg, Qreg, Mreg, CAenable, OrigPreg, Pending, IOAreg, IOQreg;
-uint16 R1reg, R2reg, R3reg, R4reg;
-uint8 Pfault, Protected, lastP, Oflag, INTflag, DEFERflag;
+uint16_t Preg, Areg, Qreg, Mreg, CAenable, OrigPreg, Pending, IOAreg, IOQreg;
+uint16_t R1reg, R2reg, R3reg, R4reg;
+uint8_t Pfault, Protected, lastP, Oflag, INTflag, DEFERflag;
 
 t_bool ExecutionStarted = FALSE;
-uint16 CharAddrMode[16];
+uint16_t CharAddrMode[16];
 
-uint16 INTlevel;
+uint16_t INTlevel;
 
 char INTprefix[8];
 
 t_bool FirstRejSeen = FALSE;
-uint32 CountRejects = 0;
+uint32_t CountRejects = 0;
 
 t_bool FirstAddr = TRUE;
 
@@ -165,9 +165,9 @@ t_bool FirstAddr = TRUE;
  */
 #define NMON    0x00F4
 
-extern void MSOS5request(uint16, uint16);
+extern void MSOS5request(uint16_t, uint16_t);
 
-extern int disassem(char *, uint16, t_bool, t_bool, t_bool);
+extern int disassem(char *, uint16_t, t_bool, t_bool, t_bool);
 
 extern enum IOstatus doIO(t_bool, DEVICE **);
 extern void fw_init(void);
@@ -310,7 +310,7 @@ static t_bool storagemode[] = {
 /*
  * Table of parity values
  */
-static uint8 parity[256] = {
+static uint8_t parity[256] = {
   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
@@ -332,7 +332,7 @@ static uint8 parity[256] = {
 /*
  * Table of interrupt bits
  */
-static uint16 interruptBit[] = {
+static uint16_t interruptBit[] = {
   0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080,
   0x0100, 0x0200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000, 0x8000
 };
@@ -412,8 +412,8 @@ t_stat cpu_reset(DEVICE *dptr)
  */
 t_stat cpu_set_size(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-  uint16 mc = 0;
-  uint32 i;
+  uint16_t mc = 0;
+  uint32_t i;
 
   if ((val <= 0) || (val > MAXMEMSIZE))
     return SCPE_ARG;
@@ -475,7 +475,7 @@ t_bool inProtectedMode(void)
  * Returns CPU interrupt status. This always returns 0 since the interrupt
  * has already been set in the Pending register.
  */
-uint16 cpuINTR(DEVICE *dptr)
+uint16_t cpuINTR(DEVICE *dptr)
 {
   return 0;
 }
@@ -500,7 +500,7 @@ void RaiseInternalInterrupt(void)
 void RaiseExternalInterrupt(DEVICE *dev)
 {
   IO_DEVICE *iod = IODEVICE(dev);
-  uint16 Opending = Pending;
+  uint16_t Opending = Pending;
 
   /*
    * Don't touch the STATUS register if the device has completely
@@ -512,7 +512,7 @@ void RaiseExternalInterrupt(DEVICE *dev)
   rebuildPending();
 
   if ((cpu_dev.dctrl & DBG_INTR) != 0) {
-    uint16 level = iod->iod_equip;
+    uint16_t level = iod->iod_equip;
 
     fprintf(DBGOUT,
             "%sINT(%d, %s)[A: %04X, Q: %04X, M: %04X, P: %04x->%04x, Ovf: %d, I: %d, D: %d]\r\n",
@@ -528,7 +528,7 @@ void RaiseExternalInterrupt(DEVICE *dev)
 /*
  * Reads are always allowed
  */
-uint16 LoadFromMem(uint16 addr)
+uint16_t LoadFromMem(uint16_t addr)
 {
   return M[MEMADDR(addr)];
 }
@@ -538,7 +538,7 @@ uint16 LoadFromMem(uint16 addr)
  * if the write succeeded and FALSE if the write failed and an interrupt
  * has been scheduled.
  */
-t_bool StoreToMem(uint16 addr, uint16 value)
+t_bool StoreToMem(uint16_t addr, uint16_t value)
 {
   if (inProtectedMode()) {
     if (!Protected) {
@@ -565,7 +565,7 @@ t_bool StoreToMem(uint16 addr, uint16 value)
  * the device status. Return TRUE if the write succeeded and FALSE if the
  * write failed due to a protect failure.
  */
-t_bool IOStoreToMem(uint16 addr, uint16 value, t_bool prot)
+t_bool IOStoreToMem(uint16_t addr, uint16_t value, t_bool prot)
 {
   if (inProtectedMode()) {
     if (!prot) {
@@ -583,11 +583,11 @@ t_bool IOStoreToMem(uint16 addr, uint16 value, t_bool prot)
  * eliminates minus zero in all but one case (the only case is when minus zero
  * is added to minus zero).
  */
-uint16 doSUB(uint16 a, uint16 b)
+uint16_t doSUB(uint16_t a, uint16_t b)
 {
-  uint32 ea = EXTEND16(a);
-  uint32 eb = EXTEND16(b);
-  uint32 result = ea - eb;
+  uint32_t ea = EXTEND16(a);
+  uint32_t eb = EXTEND16(b);
+  uint32_t result = ea - eb;
 
   if (((a - b) & 0x10000) != 0)
     result -= 1;
@@ -598,7 +598,7 @@ uint16 doSUB(uint16 a, uint16 b)
 
   return TRUNC16(result);
 }
-uint16 doADD(uint16 a, uint16 b)
+uint16_t doADD(uint16_t a, uint16_t b)
 {
   return doSUB(a, TRUNC16(~b));
 }
@@ -607,9 +607,9 @@ uint16 doADD(uint16 a, uint16 b)
  * Internal operations such as address computations do not modify the
  * overflow flag.
  */
-uint16 doADDinternal(uint16 a, uint16 b)
+uint16_t doADDinternal(uint16_t a, uint16_t b)
 {
-  uint32 result = a - TRUNC16(~b);
+  uint32_t result = a - TRUNC16(~b);
 
   if ((result & 0x10000) != 0)
     result -= 1;
@@ -621,10 +621,10 @@ uint16 doADDinternal(uint16 a, uint16 b)
  * For multiply, we do the actual multiply in the positive domain and adjust
  * the resulting sign based on the input values.
  */
-void doMUL(uint16 a)
+void doMUL(uint16_t a)
 {
-  uint32 val1, result = 0;
-  uint16 sign = Areg ^ a;
+  uint32_t val1, result = 0;
+  uint16_t sign = Areg ^ a;
   int i;
 
   val1 = ABS(Areg) & 0xFFFF;
@@ -651,11 +651,11 @@ void doMUL(uint16 a)
  * For divide, we once again do the actual division in the positive domain
  * and adjust the resulting signs based on the input values.
  */
-void doDIV(uint16 a)
+void doDIV(uint16_t a)
 {
-  uint32 result = 0, divisor, remainder = (Qreg << 16) | Areg;
-  uint32 mask = 1;
-  uint8 sign = 0, rsign = 0;
+  uint32_t result = 0, divisor, remainder = (Qreg << 16) | Areg;
+  uint32_t mask = 1;
+  uint8_t sign = 0, rsign = 0;
 
   if ((Qreg & SIGN) != 0) {
     remainder = ~remainder;
@@ -726,11 +726,11 @@ void doDIV(uint16 a)
 /*
  * Compute the effective address of an instruction
  */
-t_stat getEffectiveAddr(uint16 p, uint16 instr, uint16 *addr)
+t_stat getEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *addr)
 {
-  uint16 count = MAXINDIRECT;
-  uint16 delta = instr & OPC_ADDRMASK;
-  uint32 result = delta;
+  uint16_t count = MAXINDIRECT;
+  uint16_t delta = instr & OPC_ADDRMASK;
+  uint32_t result = delta;
 
   if (delta == 0) {
     result = Preg;
@@ -814,11 +814,11 @@ t_stat getEffectiveAddr(uint16 p, uint16 instr, uint16 *addr)
 /*
  * Compute the effective address of an instruction
  */
-t_stat disEffectiveAddr(uint16 p, uint16 instr, uint16 *base, uint16 *addr)
+t_stat disEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *base, uint16_t *addr)
 {
-  uint16 count = MAXINDIRECT;
-  uint16 delta = instr & OPC_ADDRMASK;
-  uint32 result = delta;
+  uint16_t count = MAXINDIRECT;
+  uint16_t delta = instr & OPC_ADDRMASK;
+  uint32_t result = delta;
 
   if (delta == 0) {
     result = MEMADDR(p + 1);
@@ -897,8 +897,8 @@ t_stat disEffectiveAddr(uint16 p, uint16 instr, uint16 *base, uint16 *addr)
 t_stat executeAnInstruction(void)
 {
   DEVICE *dev;
-  uint16 instr, operand, operand1, operand2, from;
-  uint32 temp;
+  uint16_t instr, operand, operand1, operand2, from;
+  uint32_t temp;
   t_stat status;
 
   INTprefix[0] = '\0';
@@ -1075,7 +1075,7 @@ t_stat executeAnInstruction(void)
         operand = LoadFromMem(operand);
 
       if ((cpu_unit.flags & UNIT_CHAR) != 0) {
-        uint16 xxx = operand;
+        uint16_t xxx = operand;
         if (CAenable != 0) {
           if ((LoadFromMem(0xFF) & 0x01) == 0)
             operand >>= 8;
@@ -1685,7 +1685,7 @@ t_stat executeAnInstruction(void)
           /* Assume shifts without A or Q are a NOP */
           if ((instr & (MOD_S_A | MOD_S_Q)) != 0) {
             int i, count = instr & OPC_SHIFTCOUNT;
-            uint32 temp32;
+            uint32_t temp32;
 
             if (count) {
               switch (instr & (OPC_SHIFTS | OPC_SHIFTMASK)) {
@@ -1743,7 +1743,7 @@ t_stat executeAnInstruction(void)
                 case OPC_LLS:
                   temp32 = (Qreg << 16) | Areg;
                   for (i = 0; i < count; i++) {
-                    uint32 sign = temp32 & 0x80000000;
+                    uint32_t sign = temp32 & 0x80000000;
                     
                     temp32 <<= 1;
                     if (sign)

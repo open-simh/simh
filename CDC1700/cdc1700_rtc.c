@@ -35,7 +35,7 @@
 
 extern char INTprefix[];
 
-extern t_stat checkReset(DEVICE *, uint8);
+extern t_stat checkReset(DEVICE *, uint8_t);
 
 extern t_stat show_addr(FILE *, UNIT *, int32, CONST void *);
 
@@ -44,7 +44,7 @@ extern t_stat set_equipment(UNIT *, int32, CONST char *, void *);
 extern void RaiseExternalInterrupt(DEVICE *);
 extern void rebuildPending(void);
 
-extern uint16 Areg;
+extern uint16_t Areg;
 
 extern t_bool IOFWinitialized;
 
@@ -52,9 +52,9 @@ t_stat rtc_show_rate(FILE *, UNIT *, int32, CONST void *);
 t_stat rtc_set_rate(UNIT *, int32, CONST char *, void *);
 
 void RTCstate(char *, DEVICE *, IO_DEVICE *);
-uint16 RTCraised(DEVICE *);
-enum IOstatus RTCin(IO_DEVICE *, uint8);
-enum IOstatus RTCout(IO_DEVICE *, uint8);
+uint16_t RTCraised(DEVICE *);
+enum IOstatus RTCin(IO_DEVICE *, uint8_t);
+enum IOstatus RTCout(IO_DEVICE *, uint8_t);
 
 t_stat rtc_svc(UNIT *);
 t_stat rtc_reset(DEVICE *);
@@ -226,7 +226,7 @@ t_stat rtc_set_rate(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
  * Determine if the clock interrupt is asserted, returning the appropriate
  * interrupt bit or 0.
  */
-uint16 RTCraised(DEVICE *dptr)
+uint16_t RTCraised(DEVICE *dptr)
 {
   IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
 
@@ -273,7 +273,7 @@ t_stat rtc_reset(DEVICE * dptr)
 
 /* Perform I/O */
 
-enum IOstatus RTCin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus RTCin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * The framework only passes IN operations for the data register.
@@ -281,7 +281,7 @@ enum IOstatus RTCin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus RTCout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus RTCout(IO_DEVICE *iod, uint8_t reg)
 {
   switch (reg) {
     case 0x00:

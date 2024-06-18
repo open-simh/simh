@@ -42,7 +42,7 @@
  * ASCII. If The mapping is 0xFF, the character is illegal and results in the
  * ALARM status bit being raised.
  */
-uint8 LPmap[128] = {
+uint8_t LPmap[128] = {
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -64,19 +64,19 @@ uint8 LPmap[128] = {
 extern char INTprefix[];
 
 extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
-extern void fw_IOunderwayData(IO_DEVICE *, uint16);
-extern void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOunderwayEOP(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_setForced(IO_DEVICE *, uint16);
-extern void fw_clearForced(IO_DEVICE *, uint16);
+extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8_t);
+extern void fw_IOunderwayData(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
+extern void fw_IOunderwayEOP(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteEOP(t_bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
+extern void fw_setForced(IO_DEVICE *, uint16_t);
+extern void fw_clearForced(IO_DEVICE *, uint16_t);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern t_bool doDirectorFunc(DEVICE *, t_bool);
 
-extern t_stat checkReset(DEVICE *, uint8);
+extern t_stat checkReset(DEVICE *, uint8_t);
 
 extern t_stat show_addr(FILE *, UNIT *, int32, CONST void *);
 
@@ -88,7 +88,7 @@ extern t_stat clear_protected(UNIT *, int32, CONST char *, void *);
 
 extern t_stat set_equipment(UNIT *, int32, CONST char *, void *);
 
-extern uint16 Areg, IOAreg;
+extern uint16_t Areg, IOAreg;
 
 extern t_bool IOFWinitialized;
 
@@ -99,10 +99,10 @@ t_stat lp_svc(UNIT *);
 t_stat lp_reset(DEVICE *);
 
 void LPstate(const char *, DEVICE *, IO_DEVICE *);
-enum IOstatus LPin(IO_DEVICE *, uint8);
-enum IOstatus LPout(IO_DEVICE *, uint8);
+enum IOstatus LPin(IO_DEVICE *, uint8_t);
+enum IOstatus LPout(IO_DEVICE *, uint8_t);
 
-uint8 LPbuf[COLUMNS];
+uint8_t LPbuf[COLUMNS];
 
 t_stat lp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
@@ -404,7 +404,7 @@ static void lp_puts(char *s)
   lp_unit.pos += strlen(s);
 }
 
-static void lp_putc(uint8 ch)
+static void lp_putc(uint8_t ch)
 {
   if (putc(ch, lp_unit.fileref) == EOF) {
     perror("LP I/O error (putc)");
@@ -458,7 +458,7 @@ t_stat lp_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-enum IOstatus LPin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus LPin(IO_DEVICE *iod, uint8_t reg)
 {
   /*
    * The framework only passes IN operations for the data register.
@@ -466,9 +466,9 @@ enum IOstatus LPin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus LPout(IO_DEVICE *iod, uint8_t reg)
 {
-  uint8 *buffer = (uint8 *)iod->iod_LPbuffer;
+  uint8_t *buffer = (uint8_t *)iod->iod_LPbuffer;
   t_bool printwait = FALSE, changed;
 
   /*
@@ -485,7 +485,7 @@ enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
     case 0x00:
       if (iod->iod_LPcolumn < COLUMNS) {
         if (iod->iod_type == DEVTYPE_1740) {
-          uint8 ch1, ch2;
+          uint8_t ch1, ch2;
 
           ch1 = (Areg >> 8) & 0x7F;
           ch2 = Areg & 0x7F;
@@ -506,7 +506,7 @@ enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
         }
 
         if (iod->iod_type == DEVTYPE_1742) {
-          uint8 ch = LPmap[Areg & 0x7F];
+          uint8_t ch = LPmap[Areg & 0x7F];
 
           /*
            * If this is the first character after a "Print" command, it
