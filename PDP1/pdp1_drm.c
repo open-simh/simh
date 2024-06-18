@@ -79,24 +79,24 @@ extern UNIT cpu_unit;
 
 /* Serial drum variables */
 
-uint32 drm_da = 0;                                      /* track address */
-uint32 drm_ma = 0;                                      /* memory address */
-uint32 drm_err = 0;                                     /* error flag */
-uint32 drm_wlk = 0;                                     /* write lock */
+uint32_t drm_da = 0;                                      /* track address */
+uint32_t drm_ma = 0;                                      /* memory address */
+uint32_t drm_err = 0;                                     /* error flag */
+uint32_t drm_wlk = 0;                                     /* write lock */
 int32 drm_time = 4;                                     /* inter-word time */
 int32 drm_sbs = 0;                                      /* SBS level */
 int32 drm_stopioe = 1;                                  /* stop on error */
 
 /* Parallel drum variables */
 
-uint32 drp_rde = 0;                                     /* read enable */
-uint32 drp_wre = 0;                                     /* write enable */
-uint32 drp_rdf = 0;                                     /* read field */
-uint32 drp_wrf = 0;                                     /* write field */
-uint32 drp_ta = 0;                                      /* track address */
-uint32 drp_wc = 0;                                      /* word count */
-uint32 drp_ma = 0;                                      /* memory address */
-uint32 drp_err = 0;                                     /* error */
+uint32_t drp_rde = 0;                                     /* read enable */
+uint32_t drp_wre = 0;                                     /* write enable */
+uint32_t drp_rdf = 0;                                     /* read field */
+uint32_t drp_wrf = 0;                                     /* write field */
+uint32_t drp_ta = 0;                                      /* track address */
+uint32_t drp_wc = 0;                                      /* word count */
+uint32_t drp_ma = 0;                                      /* memory address */
+uint32_t drp_err = 0;                                     /* error */
 int32 drp_time = 2;                                     /* inter-word time */
 int32 drp_stopioe = 1;                                  /* stop on error */
 
@@ -276,8 +276,8 @@ return (stop_inst << IOT_V_REASON) | dat;               /* stop if requested */
 
 t_stat drm_svc (UNIT *uptr)
 {
-uint32 i, da;
-uint32 *fbuf = (uint32 *) uptr->filebuf;
+uint32_t i, da;
+uint32_t *fbuf = (uint32_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     drm_err = 1;                                        /* set error */
@@ -326,8 +326,8 @@ return SCPE_OK;
 
 t_stat drp_svc (UNIT *uptr)
 {
-uint32 i, lim;
-uint32 *fbuf = (uint32 *)uptr->filebuf;
+uint32_t i, lim;
+uint32_t *fbuf = (uint32_t *)uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     drp_err = 1;                                        /* set error */
