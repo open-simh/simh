@@ -55,10 +55,10 @@ extern char             IAS_Symbolic_Buffer[60 * 80];
 extern t_int64          IOSync[10];
 extern int              IOSync_NegativeZeroFlag[10];
 
-#define STOR            ((uint32)cpu_unit.flags & OPTION_STOR)                // return non zero if set cpu storage option set
-#define CNTRL           ((uint32)cpu_unit.flags & OPTION_CNTRL)               // return non zero if set cpu cntrl option set
-#define FAST            ((uint32)(cpu_unit.flags & OPTION_FAST) ? 1:0)        // return non zero if set cpu fast option set
-#define DRUM4K          ((uint32)cpu_unit.flags & MEMAMOUNT(2))               // return 0 if drum size < 4k, non zero if = 4k
+#define STOR            ((uint32_t)cpu_unit.flags & OPTION_STOR)                // return non zero if set cpu storage option set
+#define CNTRL           ((uint32_t)cpu_unit.flags & OPTION_CNTRL)               // return non zero if set cpu cntrl option set
+#define FAST            ((uint32_t)(cpu_unit.flags & OPTION_FAST) ? 1:0)        // return non zero if set cpu fast option set
+#define DRUM4K          ((uint32_t)cpu_unit.flags & MEMAMOUNT(2))               // return 0 if drum size < 4k, non zero if = 4k
 
 extern t_int64          IAS[60];
 extern int              IAS_NegativeZeroFlag[60];
@@ -80,8 +80,8 @@ extern t_int64 GlobalWordTimeCount;
 
 /* Device information block */
 struct dib {
-        uint8   upc;                        // Number of Units in device 
-        uint32  (*cmd)(UNIT *up, uint16 cmd, uint16 dev);/* Issue command. */
+        uint8_t   upc;                        // Number of Units in device 
+        uint32_t  (*cmd)(UNIT *up, uint16_t cmd, uint16_t dev);/* Issue command. */
         void    (*ini)(UNIT *up, t_bool f);
 };
 
@@ -112,14 +112,14 @@ extern DEVICE       cp_dev;
 
 extern DIB          cdr_dib;
 extern DEVICE       cdr_dev;
-extern uint32       cdr_cmd(UNIT *, uint16, uint16);
+extern uint32_t       cdr_cmd(UNIT *, uint16_t, uint16_t);
 extern UNIT         cdr_unit[4];
-extern uint16       ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
+extern uint16_t       ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
 extern int          ReadStakerLast[3];
 
 extern DIB          cdp_dib;
 extern DEVICE       cdp_dev;
-extern uint32       cdp_cmd(UNIT *, uint16, uint16);
+extern uint32_t       cdp_cmd(UNIT *, uint16_t, uint16_t);
 extern UNIT         cdp_unit[4];
 
 /* Card read-punch device status information stored in u5 */
@@ -130,7 +130,7 @@ extern UNIT         cdp_unit[4];
 
 extern DIB          mt_dib;
 extern DEVICE       mt_dev;
-extern uint32       mt_cmd(UNIT *, uint16, uint16);
+extern uint32_t       mt_cmd(UNIT *, uint16_t, uint16_t);
 extern UNIT         mt_unit[6];
 extern int          LastTapeSelected;
 extern int          LastTapeIndicator;    
@@ -152,7 +152,7 @@ extern void         mt_ini(UNIT * uptr, t_bool f);
 
 extern DIB          dsk_dib;
 extern DEVICE       dsk_dev;
-extern uint32       dsk_cmd(int, int32, uint16);
+extern uint32_t       dsk_cmd(int, int32, uint16_t);
 extern UNIT         dsk_unit[4];
 extern int          dsk_ready(int n, int arm);
 extern void         dsk_ini(UNIT * uptr, t_bool f);
@@ -165,15 +165,15 @@ extern void         dsk_ini(UNIT * uptr, t_bool f);
 #define DIS_IND_NOTRDY      9    // disk arm not ready
 
 extern struct card_wirings {
-    uint32      mode;
+    uint32_t      mode;
     const char  *name;
 } wirings[];
 
 extern char    digits_ascii[31];
 extern char    mem_to_ascii[101];
 extern int     ascii_to_NN(int ch);
-extern uint16  sim_ascii_to_hol(char c);
-extern char    sim_hol_to_ascii(uint16 hol);
+extern uint16_t  sim_ascii_to_hol(char c);
+extern char    sim_hol_to_ascii(uint16_t hol);
 
 /* Generic devices common to all */
 extern DEVICE      cpu_dev;
@@ -331,10 +331,10 @@ extern const char *cpu_description(DEVICE *dptr);
 /* Symbol tables */
 typedef struct 
 {
-    uint16              opbase;         // opcode number
+    uint16_t              opbase;         // opcode number
     const char         *name1;          // opcode name as in operation manual
     const char         *name2;          // opcode name as in soap 
-    uint8               opRW;           // =wDA, rDA or zero
+    uint8_t               opRW;           // =wDA, rDA or zero
     int                 option;         // =0 -> opcode in basic machine, =1 -> Opcode because Storage Unit, =2 -> Opcode because Control Unit
     int                 validDA;        // valid data address for this instruction
     int                 opInterLock;    // Interlock required by opcode

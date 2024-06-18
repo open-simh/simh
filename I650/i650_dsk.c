@@ -33,7 +33,7 @@
                                     // time pregress as drum wordcount progresses
 
 /* Definitions */
-uint32              dsk_cmd(int opcode, int32 addr, uint16 fast);
+uint32_t              dsk_cmd(int opcode, int32 addr, uint16_t fast);
 t_stat              dsk_srv(UNIT *);
 void                dsk_ini(UNIT *, t_bool f);
 t_stat              dsk_reset(DEVICE *);
@@ -288,7 +288,7 @@ void dsk_set_mov_seq(int unit,int arm)
 }
 
 /* Start off a RAMAC command */
-uint32 dsk_cmd(int cmd, int32 addr, uint16 fast)
+uint32_t dsk_cmd(int cmd, int32 addr, uint16_t fast)
 {
     DEVICE             *dptr;
     UNIT               *uptr;
