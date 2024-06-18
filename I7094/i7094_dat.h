@@ -140,7 +140,7 @@ const char bcd_to_pch[64] = {
 
 /* BCD to column binary conversion */
 
-const uint32 bcd_to_colbin[64] = {
+const uint32_t bcd_to_colbin[64] = {
     00000, 00400, 00200, 00100, 00040, 00020, 00010, 00004,
     00002, 00001, 00202, 00102, 00042, 00022, 00012, 00006,
     01000, 01400, 01200, 01100, 01040, 01020, 01010, 01004,

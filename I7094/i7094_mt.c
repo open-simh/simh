@@ -43,19 +43,19 @@
 #define QCHRONO(c,u)    ((cpu_model & I_CT) && \
                          ((c) == CHRONO_CH) && ((u) == CHRONO_UNIT))
 
-uint8 mtxb[NUM_CHAN][MT_MAXFR + 6];                     /* xfer buffer */
-uint32 mt_unit[NUM_CHAN];                               /* unit */
-uint32 mt_bptr[NUM_CHAN];
-uint32 mt_blnt[NUM_CHAN];
+uint8_t mtxb[NUM_CHAN][MT_MAXFR + 6];                     /* xfer buffer */
+uint32_t mt_unit[NUM_CHAN];                               /* unit */
+uint32_t mt_bptr[NUM_CHAN];
+uint32_t mt_blnt[NUM_CHAN];
 t_uint64 mt_chob[NUM_CHAN];
-uint32 mt_chob_v[NUM_CHAN];
-uint32 mt_tshort = 2;                                   /* "a few microseconds" */
-uint32 mt_twef = 25000;                                 /* 50 msec */
-uint32 mt_tstart = 29000;                               /* 58 msec */
-uint32 mt_tstop = 10000;                                /* 20 msec */
-uint32 mt_tword = 50;                                   /* 125 usec */
+uint32_t mt_chob_v[NUM_CHAN];
+uint32_t mt_tshort = 2;                                   /* "a few microseconds" */
+uint32_t mt_twef = 25000;                                 /* 50 msec */
+uint32_t mt_tstart = 29000;                               /* 58 msec */
+uint32_t mt_tstop = 10000;                                /* 20 msec */
+uint32_t mt_tword = 50;                                   /* 125 usec */
 
-static const uint8 odd_par[64] = {
+static const uint8_t odd_par[64] = {
     1, 0, 0, 1, 0, 1, 1, 0,
     0, 1, 1, 0, 1, 0, 0, 1,
     0, 1, 1, 0, 1, 0, 0, 1,
@@ -66,13 +66,13 @@ static const uint8 odd_par[64] = {
     0, 1, 1, 0, 1, 0, 0, 1
     };
 
-extern uint32 PC;
-extern uint32 cpu_model;
-extern uint32 ind_ioc;
+extern uint32_t PC;
+extern uint32_t cpu_model;
+extern uint32_t ind_ioc;
 extern const char *sel_name[];
 
-t_stat mt_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat mt_chwr (uint32 ch, t_uint64 val, uint32 flags);
+t_stat mt_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat mt_chwr (uint32_t ch, t_uint64 val, uint32_t flags);
 t_stat mt_rec_end (UNIT *uptr);
 t_stat mt_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
@@ -80,7 +80,7 @@ t_stat mt_attach (UNIT *uptr, CONST char *cptr);
 t_stat mt_boot (int32 unitno, DEVICE *dptr);
 t_stat mt_map_err (UNIT *uptr, t_stat st);
 
-extern uint32 chrono_rd (uint8 *buf, uint32 bufsiz);
+extern uint32_t chrono_rd (uint8_t *buf, uint32_t bufsiz);
 
 /* MT data structures
 
@@ -441,10 +441,10 @@ static const int mt_will_wrt[CHSL_NUM] = {
     1, 1, 0, 0, 0, 0, 0, 0
     };
 
-t_stat mt_chsel (uint32 ch, uint32 cmd, uint32 unit)
+t_stat mt_chsel (uint32_t ch, uint32_t cmd, uint32_t unit)
 {
 UNIT *uptr;
-uint32 u = unit & 017;
+uint32_t u = unit & 017;
 
 if ((ch >= NUM_CHAN) || (cmd == 0) || (cmd >= CHSL_NUM))
     return SCPE_IERR;                                   /* invalid arg? */
@@ -502,10 +502,10 @@ return SCPE_OK;
 
 /* Channel write routine */
 
-t_stat mt_chwr (uint32 ch, t_uint64 val, uint32 eorfl)
+t_stat mt_chwr (uint32_t ch, t_uint64 val, uint32_t eorfl)
 {
 int32 k, u;
-uint8 by, *xb;
+uint8_t by, *xb;
 UNIT *uptr;
 
 if (ch >= NUM_CHAN)                                     /* invalid chan? */
@@ -522,7 +522,7 @@ if (uptr->UST == (CHSL_WRS|CHSL_2ND)) {                 /* data write? */
     for (k = 30;                                        /* proc 6 bytes */
         (k >= 0) && (mt_bptr[ch] < MT_MAXFR);
          k = k - 6) {
-        by = (uint8) ((val >> k) & 077);                /* get byte */
+        by = (uint8_t) ((val >> k) & 077);                /* get byte */
         if ((mt_unit[ch] & 020) == 0) {                 /* BCD? */
             if (by == 0)                                /* cvt bin 0 */
                 by = BCD_ZERO;
@@ -546,8 +546,8 @@ return SCPE_IERR;
 
 t_stat mt_svc (UNIT *uptr)
 {
-uint32 i, u, ch = uptr->UCH;                            /* get channel number */
-uint8 by, *xb = mtxb[ch];                               /* get xfer buffer */
+uint32_t i, u, ch = uptr->UCH;                            /* get channel number */
+uint8_t by, *xb = mtxb[ch];                               /* get xfer buffer */
 t_uint64 dat;
 t_mtrlnt bc;
 t_stat r;
@@ -724,8 +724,8 @@ return SCPE_OK;
 
 t_stat mt_rec_end (UNIT *uptr)
 {
-uint32 ch = uptr->UCH;
-uint8 *xb = mtxb[ch];
+uint32_t ch = uptr->UCH;
+uint8_t *xb = mtxb[ch];
 t_stat r;
 
 if (mt_bptr[ch]) {                                      /* any data? */
@@ -743,9 +743,9 @@ return SCPE_OK;
 
 t_stat mt_map_err (UNIT *uptr, t_stat st)
 {
-uint32 ch = uptr->UCH;
-uint32 u = mt_unit[ch];
-uint32 up = uptr - mt_dev[ch].units;
+uint32_t ch = uptr->UCH;
+uint32_t u = mt_unit[ch];
+uint32_t up = uptr - mt_dev[ch].units;
 
 if ((st != MTSE_OK) && DEBUG_PRS (mt_dev[ch]))
     fprintf (sim_deb, ">>%s%d status = %s, pos = %d\n",
@@ -800,8 +800,8 @@ return SCPE_OK;
 
 t_stat mt_reset (DEVICE *dptr)
 {
-uint32 ch = dptr - &mt_dev[0];
-uint32 j;
+uint32_t ch = dptr - &mt_dev[0];
+uint32_t j;
 UNIT *uptr;
 
 mt_unit[ch] = 0;                                        /* clear busy */
@@ -840,7 +840,7 @@ static const t_uint64 boot_rom[5] = {
 
 t_stat mt_boot (int32 unitno, DEVICE *dptr)
 {
-uint32 i, chan;
+uint32_t i, chan;
 extern t_uint64 *M;
 
 chan = dptr - &mt_dev[0] + 1;

@@ -106,7 +106,7 @@
 #define COMI_QUIT       02004                           /* quit */
 #define COMI_HANGUP     02005                           /* hangup */
 #define COMI_EOM        03777                           /* end of medium */
-#define COMI_COMP(x)    ((uint16) (03000 + ((x) & COMI_CMAX)))
+#define COMI_COMP(x)    ((uint16_t) (03000 + ((x) & COMI_CMAX)))
 #define COMI_K35        1                               /* KSR-35 ID */
 #define COMI_K37        7                               /* KSR-37 ID */
 #define COMI_2741       8                               /* 2741 ID */
@@ -118,7 +118,7 @@
 
 #define COMO_LIN12B     INT64_C(0200000000000)          /* line is 12b */
 #define COMO_LINCTL     INT64_C(0100000000000)          /* control msg */
-#define COMO_GETLN(x)   (((uint32) ((x) >> 24)) & 0777)
+#define COMO_GETLN(x)   (((uint32_t) ((x) >> 24)) & 0777)
 #define COMO_CTLRST     00000                           /* control reset */
 #define COMO_BITRPT     03777                           /* bit repeat */
 #define COMO_EOM12B     07777                           /* end of medium */
@@ -165,31 +165,31 @@
    Links are done as subscripts in array com_pkt.  This allows the list
    headers and the queues themselves to be saved and restored. */
 
-uint32 com_ch = CH_E;                                   /* saved channel */
-uint32 com_enab = 0;                                    /* 7750 enabled */
-uint32 com_msgn = 0;                                    /* next input msg num */
-uint32 com_sta = 0;                                     /* 7750 state */
-uint32 com_stop = 0;                                    /* channel stop */
-uint32 com_quit = 003;                                  /* quit code */
-uint32 com_intr = 0;                                    /* interrupt code */
-uint32 com_bptr = 0;                                    /* buffer pointer */
-uint32 com_blim = 0;                                    /* buffer count */
-uint32 com_tps = 50;                                    /* polls/second */
+uint32_t com_ch = CH_E;                                   /* saved channel */
+uint32_t com_enab = 0;                                    /* 7750 enabled */
+uint32_t com_msgn = 0;                                    /* next input msg num */
+uint32_t com_sta = 0;                                     /* 7750 state */
+uint32_t com_stop = 0;                                    /* channel stop */
+uint32_t com_quit = 003;                                  /* quit code */
+uint32_t com_intr = 0;                                    /* interrupt code */
+uint32_t com_bptr = 0;                                    /* buffer pointer */
+uint32_t com_blim = 0;                                    /* buffer count */
+uint32_t com_tps = 50;                                    /* polls/second */
 t_uint64 com_sns = 0;                                   /* sense word */
 t_uint64 com_chob = 0;                                  /* chan output buf */
-uint32 com_chob_v = 0;                                  /* valid flag */
+uint32_t com_chob_v = 0;                                  /* valid flag */
 t_uint64 com_buf[COM_BUFSIZ];                           /* channel buffer */
-uint16 com_free[2];                                     /* free list */
-uint32 com_not_ret[COM_TLINES] = { 0 };                 /* chars not returned */
-uint16 com_inpq[COM_TLINES][2] = { {0} };               /* input queues */
-uint16 com_outq[COM_TLINES][2] = { {0} };               /* output queues */
-uint16 com_pkt[COM_PKTSIZ][2];                          /* character packets */
+uint16_t com_free[2];                                     /* free list */
+uint32_t com_not_ret[COM_TLINES] = { 0 };                 /* chars not returned */
+uint16_t com_inpq[COM_TLINES][2] = { {0} };               /* input queues */
+uint16_t com_outq[COM_TLINES][2] = { {0} };               /* output queues */
+uint16_t com_pkt[COM_PKTSIZ][2];                          /* character packets */
 TMLN com_ldsc[COM_MLINES] = { {0} };                    /* line descriptors */
 TMXR com_desc = { COM_MLINES, 0, 0, com_ldsc };         /* mux descriptor */
 
 /* Even parity truth table */
 
-static const uint8 com_epar[128] = {
+static const uint8_t com_epar[128] = {
     0, 1, 1, 0, 1, 0, 0, 1,
     1, 0, 0, 1, 0, 1, 1, 0,
     1, 0, 0, 1, 0, 1, 1, 0,
@@ -208,10 +208,10 @@ static const uint8 com_epar[128] = {
     0, 1, 1, 0, 1, 0, 0, 1
     };
 
-extern uint32 ch_req;
+extern uint32_t ch_req;
 
-t_stat com_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat com_chwr (uint32 ch, t_uint64 val, uint32 flags);
+t_stat com_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat com_chwr (uint32_t ch, t_uint64 val, uint32_t flags);
 t_stat comi_svc (UNIT *uptr);
 t_stat comc_svc (UNIT *uptr);
 t_stat como_svc (UNIT *uptr);
@@ -225,23 +225,23 @@ t_stat com_show_ctrl (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat com_show_freeq (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat com_show_allq (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat com_show_oneq (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-void com_reset_ln (uint32 i);
-uint16 com_get_nexti (uint32 *ln);
-uint16 com_gethd_free (uint16 *lh);
-uint16 com_gethd (uint16 *lh);
-uint16 com_gettl_free (uint16 *lh);
-uint16 com_gettl (uint16 *lh);
-t_bool com_new_puttl (uint16 *lh, uint16 val);
-void com_puttl (uint16 *lh, uint16 ent);
+void com_reset_ln (uint32_t i);
+uint16_t com_get_nexti (uint32_t *ln);
+uint16_t com_gethd_free (uint16_t *lh);
+uint16_t com_gethd (uint16_t *lh);
+uint16_t com_gettl_free (uint16_t *lh);
+uint16_t com_gettl (uint16_t *lh);
+t_bool com_new_puttl (uint16_t *lh, uint16_t val);
+void com_puttl (uint16_t *lh, uint16_t ent);
 t_bool com_test_inp (void);
-void com_set_inpp (uint32 ln);
-t_uint64 com_getob (uint32 ch);
-t_bool com_qdone (uint32 ch);
-void com_end (uint32 ch, uint32 fl, uint32 st);
-t_stat com_send_id (uint32 ln);
-uint32 com_gen_ccmp (uint32 ln);
-t_bool com_queue_in (uint32 ln, uint32 ch);
-uint32 com_queue_out (uint32 ln, uint32 *c1);
+void com_set_inpp (uint32_t ln);
+t_uint64 com_getob (uint32_t ch);
+t_bool com_qdone (uint32_t ch);
+void com_end (uint32_t ch, uint32_t fl, uint32_t st);
+t_stat com_send_id (uint32_t ln);
+uint32_t com_gen_ccmp (uint32_t ln);
+t_bool com_queue_in (uint32_t ln, uint32_t ch);
+uint32_t com_queue_out (uint32_t ln, uint32_t *c1);
 void com_set_sns (t_uint64 stat);
 
 /* COM data structures
@@ -390,7 +390,7 @@ DEVICE coml_dev = {
 
 /* COM: channel select */
 
-t_stat com_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat com_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 com_ch = ch;                                            /* save channel */
 if (sim_is_active (&com_unit[COM_CHU]) ||               /* not idle? */
@@ -423,7 +423,7 @@ return SCPE_OK;
 
 /* Channel write, from 7909 channel program */
 
-t_stat com_chwr (uint32 ch, t_uint64 val, uint32 stopf)
+t_stat com_chwr (uint32_t ch, t_uint64 val, uint32_t stopf)
 {
 if (stopf)
     com_stop = 1;
@@ -483,8 +483,8 @@ return SCPE_OK;
 
 t_stat comc_svc (UNIT *uptr)
 {
-uint32 i, j, k, ccnt, ln, uln;
-uint16 chr, ent;
+uint32_t i, j, k, ccnt, ln, uln;
+uint16_t chr, ent;
 t_uint64 dat;
 
 switch (com_sta) {                                      /* case on state */
@@ -497,7 +497,7 @@ switch (com_sta) {                                      /* case on state */
         for (i = 1, j = 0, ln = 0;                      /* check all lines */
             (ln < COM_TLINES) && (i < COMI_12BMAX);     /* until buffer full */
             ln++) {
-            chr = (uint16) com_gen_ccmp (ln);           /* completion msg? */
+            chr = (uint16_t) com_gen_ccmp (ln);           /* completion msg? */
             if ((chr == 0) && coml_unit[ln].INPP) {     /* no, line input? */
                 ent = com_gethd_free (com_inpq[ln]);    /* get first char */
                 if (ent != 0)                           /* any input? */
@@ -565,7 +565,7 @@ switch (com_sta) {                                      /* case on state */
             ln = COMO_GETLN (dat);                      /* line number */
             if (ln >= (COM_TLINES + COM_LBASE))         /* invalid line? */
                 return STOP_INVLIN;
-            chr = (uint16) ((dat >> 12) & 07777);       /* control message */
+            chr = (uint16_t) ((dat >> 12) & 07777);       /* control message */
             if (chr != COMO_CTLRST)                     /* char must be 0 */
                 return STOP_INVMSG;
             if (ln >= COM_LBASE)
@@ -573,7 +573,7 @@ switch (com_sta) {                                      /* case on state */
             com_end (com_ch, 0, CHSL_WRS|CHSL_4TH);     /* end, last state */
             }
         else {                                          /* data message */
-            ccnt = (((uint32) dat >> 12) & 07777) + 1;  /* char count plus EOM */
+            ccnt = (((uint32_t) dat >> 12) & 07777) + 1;  /* char count plus EOM */
             if (dat & COMO_LIN12B)                      /* 12b? double */
                 ccnt = ccnt << 1;
             com_blim = (ccnt + 6 + 5) / 6;              /* buffer limit */
@@ -598,7 +598,7 @@ switch (com_sta) {                                      /* case on state */
                 for (i = 2, j = 0; i < COMO_12BMAX; i++) { /* unpack 12b char */
                     if ((i % 3) == 0)
                         j++;
-                    chr = (uint16) (com_buf[j] >> ((2 - (i % 3)) * 12)) & 07777;
+                    chr = (uint16_t) (com_buf[j] >> ((2 - (i % 3)) * 12)) & 07777;
                     if (chr == COMO_EOM12B)             /* EOM? */
                         break;
                     if (!com_new_puttl (com_outq[uln], chr))
@@ -631,7 +631,7 @@ return SCPE_OK;
 t_stat comti_svc (UNIT *uptr)
 {
 int32 c, ln = COM_MLINES;
-uint16 ent;
+uint16_t ent;
 
 sim_activate (uptr, uptr->wait);                        /* continue poll */
 c = sim_poll_kbd ();                                    /* get character */
@@ -668,7 +668,7 @@ return SCPE_OK;                                         /* set ATN if input */
 t_stat comi_svc (UNIT *uptr)
 {
 int32 c, ln, t;
-uint16 ent;
+uint16_t ent;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return SCPE_OK;
@@ -726,8 +726,8 @@ return SCPE_OK;
 
 t_stat comto_svc (UNIT *uptr)
 {
-uint32 ln = COM_MLINES;
-uint32 c, c1;
+uint32_t ln = COM_MLINES;
+uint32_t c, c1;
 
 c = com_queue_out (ln, &c1);                            /* get character, cvt */
 if (c)                                                  /* printable? output */
@@ -744,7 +744,7 @@ return SCPE_OK;
 
 t_stat como_svc (UNIT *uptr)
 {
-uint32 c, c1;
+uint32_t c, c1;
 int32 ln = uptr - coml_unit;                            /* line # */
 
 if (com_ldsc[ln].conn) {                                /* connected? */
@@ -765,7 +765,7 @@ return SCPE_OK;
 
 /* Send ID sequence on input */
 
-t_stat com_send_id (uint32 ln)
+t_stat com_send_id (uint32_t ln)
 {
 com_new_puttl (com_inpq[ln], COMI_DIALUP);              /* input message: */
 if (coml_unit[ln].flags & UNIT_K35)                     /* dialup, ID, endID */
@@ -775,7 +775,7 @@ com_new_puttl (com_inpq[ln], 0);
 com_new_puttl (com_inpq[ln], 0);
 com_new_puttl (com_inpq[ln], 0);
 com_new_puttl (com_inpq[ln], 0);
-com_new_puttl (com_inpq[ln], (uint16) (ln + COM_LBASE));
+com_new_puttl (com_inpq[ln], (uint16_t) (ln + COM_LBASE));
 if (!com_new_puttl (com_inpq[ln], COMI_ENDID))          /* make sure there */
     return STOP_NOIFREE;                                /* was room for msg */
 coml_unit[ln].NEEDID = 0;
@@ -785,9 +785,9 @@ return SCPE_OK;
 
 /* Translate and queue input character */
 
-t_bool com_queue_in (uint32 ln, uint32 c)
+t_bool com_queue_in (uint32_t ln, uint32_t c)
 {
-uint16 out;
+uint16_t out;
 
 if (c == com_intr) {
     out = COMI_INTR;
@@ -812,9 +812,9 @@ return com_new_puttl (com_inpq[ln], out);               /* input message */
 
 /* Retrieve and translate output character */
 
-uint32 com_queue_out (uint32 ln, uint32 *c1)
+uint32_t com_queue_out (uint32_t ln, uint32_t *c1)
 {
-uint32 c, ent, raw;
+uint32_t c, ent, raw;
 
 *c1 = 0;                                                /* assume non-printing */
 if ((ent = com_gethd_free (com_outq[ln])) == 0)         /* get character */
@@ -859,9 +859,9 @@ return 0;                                               /* ignore others */
 
 /* Generate completion message, if needed */
 
-uint32 com_gen_ccmp (uint32 ln)
+uint32_t com_gen_ccmp (uint32_t ln)
 {
-uint32 t;
+uint32_t t;
 
 if ((t = com_not_ret[ln]) != 0) {                       /* chars not returned? */
     if (t > COMI_CMAX)                                  /* limit to max */
@@ -874,7 +874,7 @@ return 0;
 
 /* Read and validate output buffer */
 
-t_uint64 com_getob (uint32 ch)
+t_uint64 com_getob (uint32_t ch)
 {
 if (com_chob_v)                                         /* valid? clear */
     com_chob_v = 0;
@@ -889,7 +889,7 @@ return com_chob;
 
 t_bool com_test_inp (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < COM_TLINES; i++) {
     if ((com_not_ret[i] != 0) || coml_unit[i].INPP)
@@ -900,7 +900,7 @@ return FALSE;
 
 /* Set input pending and attention */
 
-void com_set_inpp (uint32 ln)
+void com_set_inpp (uint32_t ln)
 {
 coml_unit[ln].INPP = 1;
 ch9_set_atn (com_ch);
@@ -909,7 +909,7 @@ return;
 
 /* Test for done */
 
-t_bool com_qdone (uint32 ch)
+t_bool com_qdone (uint32_t ch)
 {
 if (com_stop || !ch9_qconn (ch)) {                      /* stop or err disc? */
     com_sta = 0;                                        /* ctrl is idle */
@@ -920,7 +920,7 @@ return FALSE;
 
 /* Channel end */
 
-void com_end (uint32 ch, uint32 fl, uint32 st)
+void com_end (uint32_t ch, uint32_t fl, uint32_t st)
 {
 ch9_set_end (ch, fl);                                   /* set end */
 ch_req |= REQ_CH (ch);
@@ -930,9 +930,9 @@ return;
 
 /* List routines - remove from head and free */
 
-uint16 com_gethd_free (uint16 *lh)
+uint16_t com_gethd_free (uint16_t *lh)
 {
-uint16 ent;
+uint16_t ent;
 
 if ((ent = com_gethd (lh)) != 0)
     com_puttl (com_free, ent);
@@ -941,9 +941,9 @@ return ent;
 
 /* Remove from tail and free */
 
-uint16 com_gettl_free (uint16 *lh)
+uint16_t com_gettl_free (uint16_t *lh)
 {
-uint16 ent;
+uint16_t ent;
 
 if ((ent = com_gethd (lh)) != 0)
     com_puttl (com_free, ent);
@@ -952,9 +952,9 @@ return ent;
 
 /* Get free entry and insert at tail */
 
-t_bool com_new_puttl (uint16 *lh, uint16 val)
+t_bool com_new_puttl (uint16_t *lh, uint16_t val)
 {
-uint16 ent;
+uint16_t ent;
 
 if ((ent = com_gethd (com_free)) != 0) {
     com_pkt[ent][DATA] = val;
@@ -966,9 +966,9 @@ return FALSE;
 
 /* Remove from head */
 
-uint16 com_gethd (uint16 *lh)
+uint16_t com_gethd (uint16_t *lh)
 {
-uint16 ent;
+uint16_t ent;
 
 if ((ent = lh[HEAD]) != 0) {
     lh[HEAD] = com_pkt[ent][NEXT];
@@ -981,10 +981,10 @@ return ent;
 
 /* Remove from tail */
 
-uint16 com_gettl (uint16 *lh)
+uint16_t com_gettl (uint16_t *lh)
 {
-uint16 ent, next;
-uint32 i;
+uint16_t ent, next;
+uint32_t i;
 
 ent = lh[TAIL];
 if (lh[HEAD] == lh[TAIL]) {
@@ -1004,7 +1004,7 @@ return 0;
 
 /* Insert at tail */
 
-void com_puttl (uint16 *lh, uint16 ent)
+void com_puttl (uint16_t *lh, uint16_t ent)
 {
 if (lh[TAIL] == 0)
     lh[HEAD] = ent;
@@ -1033,7 +1033,7 @@ return;
 
 t_stat com_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 if (dptr->flags & DEV_DIS) {                            /* disabled? */
     com_dev.flags = com_dev.flags | DEV_DIS;            /* disable lines */
@@ -1099,7 +1099,7 @@ return SCPE_OK;
 
 t_stat com_detach (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 t_stat r;
 
 r = tmxr_detach (&com_desc, uptr);                      /* detach */
@@ -1111,7 +1111,7 @@ return r;
 
 /* Reset an individual line */
 
-void com_reset_ln (uint32 ln)
+void com_reset_ln (uint32_t ln)
 {
 while (com_gethd_free (com_inpq[ln])) ;
 while (com_gethd_free (com_outq[ln])) ;
@@ -1127,9 +1127,9 @@ return;
 
 /* Special show commands */
 
-uint32 com_show_qsumm (FILE *st, uint16 *lh, const char *name)
+uint32_t com_show_qsumm (FILE *st, uint16_t *lh, const char *name)
 {
-uint32 i, next;
+uint32_t i, next;
 
 next = lh[HEAD];
 for (i = 0; i < COM_PKTSIZ; i++) {
@@ -1147,9 +1147,9 @@ fprintf (st, "%s is corrupt\n", name);
 return 0;
 }
 
-void com_show_char (FILE *st, uint32 ch)
+void com_show_char (FILE *st, uint32_t ch)
 {
-uint32 c;
+uint32_t c;
 
 fprintf (st, "%03o", ch);
 c = (~ch) & 0177;
@@ -1166,8 +1166,8 @@ return SCPE_OK;
 
 t_stat com_show_oneq (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 entc, ln, i, next;
-uint16 *lh;
+uint32_t entc, ln, i, next;
+uint16_t *lh;
 char name[20];
 
 ln = uptr - coml_dev.units;
@@ -1189,7 +1189,7 @@ return SCPE_OK;
 
 t_stat com_show_allq (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < COM_TLINES; i++)
     com_show_oneq (st, coml_dev.units + i, val, desc);
