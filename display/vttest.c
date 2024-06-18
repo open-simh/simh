@@ -1219,7 +1219,7 @@ unsigned short WF[] = {
 };
 
 static unsigned short *df;              /* -> start of current display file */
-static uint16 start;                    /* initial DPC for section of d.file */
+static uint16_t start;                    /* initial DPC for section of d.file */
 static int more;                        /* set until end of d.file seen */
 
 static void
@@ -1336,8 +1336,8 @@ main(void) {
     puts("following tests require VS60");
     for (df = VS, start = 0, more = 1; more; ) {
         vt11_reset(NULL, 0);            /* reset everything */
-        vt11_set_str((uint16)(0200 | '~'));     /* set terminating char. */
-        vt11_set_anr((uint16)(040000 | (2<<12) | 04000 | 01234));
+        vt11_set_str((uint16_t)(0200 | '~'));     /* set terminating char. */
+        vt11_set_anr((uint16_t)(040000 | (2<<12) | 04000 | 01234));
                                         /* set associative name 0123x */
         vt11_set_dpc(start);            /* start section */
         c = 0;
@@ -1394,14 +1394,14 @@ cpu_set_switches(unsigned long w1, unsigned long w2) {
  */
 
 int
-vt_fetch(uint32 addr, vt11word *w) {
+vt_fetch(uint32_t addr, vt11word *w) {
     *w = df[addr/2];
     return 0;
 }
 
 void
 vt_stop_intr(void) {
-    uint16 dpc = vt11_get_dpc();        /* -> just after DSTOP instruction */
+    uint16_t dpc = vt11_get_dpc();        /* -> just after DSTOP instruction */
     if (df[dpc/2] == 0) {               /* ENDSECT */
 #ifdef FRAME1STOP
         int c;
@@ -1446,20 +1446,20 @@ vt_lpen_intr(void) {
                 (unsigned)vt11_get_ypr() & 01777);
         fflush(stdout);
     }
-    vt11_set_dpc((uint16)1);            /* resume */
+    vt11_set_dpc((uint16_t)1);            /* resume */
 }
 
 void
 vt_char_intr(void) {
     puts("VT11 illegal character/timeout interrupt");
     fflush(stdout);
-    vt11_set_dpc((uint16)1);            /* resume */
+    vt11_set_dpc((uint16_t)1);            /* resume */
 }
 
 void
 vt_name_intr(void) {
     puts("VS60 name-match interrupt");
     fflush(stdout);
-    vt11_set_dpc((uint16)1);            /* resume */
+    vt11_set_dpc((uint16_t)1);            /* resume */
 }
 
