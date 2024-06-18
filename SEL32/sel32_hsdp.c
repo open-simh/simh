@@ -32,7 +32,7 @@
 
 #define UNIT_HSDP   UNIT_ATTABLE|UNIT_DISABLE
 
-extern  uint32  SPAD[];                         /* cpu SPAD memory */
+extern  uint32_t  SPAD[];                         /* cpu SPAD memory */
 
 /* useful conversions */
 /* Fill STAR value from cyl, trk, sec data */
@@ -244,7 +244,7 @@ Byte 1 bits 7-15
 27  char ldatrscnt;     sectors per track (again)
 28  char ldatrmhdc;     MHD head count
 29  char ldatrfhdc;     FHD head count
-30  uint32 lcrc;        Label CRC-32 value
+30  uint32_t lcrc;        Label CRC-32 value
  */
 
 /*************************************/
@@ -292,7 +292,7 @@ Byte 1 bits 7-15
 27  char ldatrscnt;     sectors per track (again)
 28  char ldatrmhdc;     MHD head count
 29  char ldatrfhdc;     FHD head count
-30  uint32 lcrc;        Label CRC-32 value
+30  uint32_t lcrc;        Label CRC-32 value
  */
 
 /* track label / sector label definations */
@@ -480,19 +480,19 @@ bits 24-31 - FHD head count (number of heads on FHD or
 /* us10 byte 0 unused */
 /* us10 byte 1 holds logical sector count from track 0 byte 25 */
 
-static uint8   obuf[1024], bbuf[1024];
-static uint32  decc[512] = {0};
+static uint8_t   obuf[1024], bbuf[1024];
+static uint32_t  decc[512] = {0};
 
 /* disk definition structure */
 struct hsdp_t
 {
     const char  *name;                          /* Device ID Name */
-    uint16      nhds;                           /* Number of heads */
-    uint16      ssiz;                           /* sector size in words */
-    uint16      spt;                            /* # sectors per track(head) */
-    uint16      ucyl;                           /* Number of cylinders used */
-    uint16      cyl;                            /* Number of cylinders on disk */
-    uint8       type;                           /* Device type code */
+    uint16_t      nhds;                           /* Number of heads */
+    uint16_t      ssiz;                           /* sector size in words */
+    uint16_t      spt;                            /* # sectors per track(head) */
+    uint16_t      ucyl;                           /* Number of cylinders used */
+    uint16_t      cyl;                            /* Number of cylinders on disk */
+    uint8_t       type;                           /* Device type code */
     /* bit 1 mhd */
     /* bits 6/7 = 0 768 byte blk */             /* not used on UDP/DPII */
     /*          = 1 1024 byte blk */            /* not used on UDP/DPII */
@@ -520,8 +520,8 @@ hsdp_type[] =
     {NULL}
 };
 
-t_stat  hsdp_preio(UNIT *uptr, uint16 chan) ;
-t_stat  hsdp_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd) ;
+t_stat  hsdp_preio(UNIT *uptr, uint16_t chan) ;
+t_stat  hsdp_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd) ;
 t_stat  hsdp_haltio(UNIT *uptr);
 t_stat  hsdp_rsctl(UNIT *uptr);
 t_stat  hsdp_iocl(CHANP *chp, int32 tic_ok);
@@ -535,13 +535,13 @@ t_stat  hsdp_set_type(UNIT * uptr, int32 val, CONST char *cptr, void *desc);
 t_stat  hsdp_get_type(FILE * st, UNIT * uptr, int32 v, CONST void *desc);
 t_stat  hsdp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char  *hsdp_description (DEVICE *dptr);
-extern  uint32  inbusy;
-extern  uint32  outbusy;
-extern  uint32  readfull(CHANP *chp, uint32 maddr, uint32 *word);
+extern  uint32_t  inbusy;
+extern  uint32_t  outbusy;
+extern  uint32_t  readfull(CHANP *chp, uint32_t maddr, uint32_t *word);
 extern  int     irq_pend;                       /* go scan for pending int or I/O */
 extern  UNIT    itm_unit;
-extern  uint32  PSD[];                          /* PSD */
-extern  uint32  cont_chan(uint16 chsa);
+extern  uint32_t  PSD[];                          /* PSD */
+extern  uint32_t  cont_chan(uint16_t chsa);
 
 /* channel program information */
 CHANP   dpa_chp[NUM_UNITS_HSDP] = {0};
@@ -553,8 +553,8 @@ IOCLQ   dpa_ioclq[NUM_UNITS_HSDP] = {0};
 struct _trk_data
 {
     int32   age;
-    uint32  track;
-    uint8   label[30];
+    uint32_t  track;
+    uint8_t   label[30];
 };
 
 struct _trk_label
@@ -585,8 +585,8 @@ UNIT            dpa_unit[] = {
 };
 
 DIB             dpa_dib = {
-    hsdp_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    hsdp_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    hsdp_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    hsdp_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     hsdp_haltio,    /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     hsdp_haltio,    /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
@@ -597,12 +597,12 @@ DIB             dpa_dib = {
     dpa_unit,       /* UNIT* units */                           /* Pointer to units structure */
     dpa_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     dpa_ioclq,      /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_HSDP, /* uint8 numunits */                        /* number of units defined */
-    0x0F,           /* uint8 mask */                            /* 8 devices - device mask */
-    0x0800,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_HSDP, /* uint8_t numunits */                        /* number of units defined */
+    0x0F,           /* uint8_t mask */                            /* 8 devices - device mask */
+    0x0800,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE          dpa_dev = {
@@ -634,8 +634,8 @@ UNIT            dpb_unit[] = {
 
 
 DIB             dpb_dib = {
-    hsdp_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    hsdp_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    hsdp_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    hsdp_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     hsdp_haltio,    /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     hsdp_haltio,    /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
@@ -646,12 +646,12 @@ DIB             dpb_dib = {
     dpb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     dpb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     dpb_ioclq,      /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_HSDP, /* uint8 numunits */                        /* number of units defined */
-    0x0F,           /* uint8 mask */                            /* 8 devices - device mask */
-    0x0C00,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_HSDP, /* uint8_t numunits */                        /* number of units defined */
+    0x0F,           /* uint8_t mask */                            /* 8 devices - device mask */
+    0x0C00,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE          dpb_dev = {
@@ -664,15 +664,15 @@ DEVICE          dpb_dev = {
 };
 #endif
 
-uint32 dple_ecc32(uint8 *str, int32 len)
+uint32_t dple_ecc32(uint8_t *str, int32 len)
 {
     int i, j;
-    uint32 ch, ecc = 0;
-    uint32 pmask = 0x7e11f439;                  /* SEL LE poly mask */
+    uint32_t ch, ecc = 0;
+    uint32_t pmask = 0x7e11f439;                  /* SEL LE poly mask */
 
     ecc = (~ecc & MASK32);                      /* initialize ecc to all bits (~0) */
     for (j=0; j<len; j++) {
-        ch = (uint32)(str[j]) & 0xff;           /* get a char from string */
+        ch = (uint32_t)(str[j]) & 0xff;           /* get a char from string */
         for (i=0; i<8; i++) {
             if ((ecc ^ ch) & BIT31) {           /* bit set? */
                 ecc >>= 1;                      /* just shift out the bit */
@@ -685,15 +685,15 @@ uint32 dple_ecc32(uint8 *str, int32 len)
     return (~ecc & MASK32);                     /* return ecc value */
 }
 
-uint32 dpbe_ecc32(uint8 *str, int32 len)
+uint32_t dpbe_ecc32(uint8_t *str, int32 len)
 {
     int i, j;
-    uint32 ch, ecc = 0;
-    uint32 pmask = 0x9C2F887E;                  /* SEL BE poly mask */
+    uint32_t ch, ecc = 0;
+    uint32_t pmask = 0x9C2F887E;                  /* SEL BE poly mask */
 
     ecc = (~ecc & MASK32);                      /* initialize ecc to all bits (~0) */
     for (j=0; j<len; j++) {
-        ch = (uint32)(str[j] << 24) & 0xff000000; /* get a char from string */
+        ch = (uint32_t)(str[j] << 24) & 0xff000000; /* get a char from string */
         for (i=0; i<8; i++) {
             if ((ecc ^ ch) & BIT0) {            /* bit set? */
                 ecc <<= 1;                      /* just shift out the bit */
@@ -707,7 +707,7 @@ uint32 dpbe_ecc32(uint8 *str, int32 len)
 }
 
 /* convert sector disk address to star values (c,h,s) */
-uint32 hsdpsec2star(uint32 daddr, int type)
+uint32_t hsdpsec2star(uint32_t daddr, int type)
 {
     int32 sec = daddr % hsdp_type[type].spt;    /* get sector value */
     int32 spc = hsdp_type[type].nhds * hsdp_type[type].spt; /* sec per cyl */
@@ -719,10 +719,10 @@ uint32 hsdpsec2star(uint32 daddr, int type)
 }
 
 /* read alternate track label and return new STAR */
-uint32 get_dpatrk(UNIT *uptr, uint32 star, uint8 buf[])
+uint32_t get_dpatrk(UNIT *uptr, uint32_t star, uint8_t buf[])
 {
-    uint32  nstar, tstart, offset;
-    uint32  sec=0, trk=0, cyl=0;
+    uint32_t  nstar, tstart, offset;
+    uint32_t  sec=0, trk=0, cyl=0;
     int     type = GET_TYPE(uptr->flags);
     DEVICE  *dptr = get_dev(uptr);
     int     unit = (uptr - dptr->units);        /* get the UNIT number */
@@ -826,10 +826,10 @@ uint32 get_dpatrk(UNIT *uptr, uint32 star, uint8 buf[])
 }
 
 /* start a disk operation */
-t_stat hsdp_preio(UNIT *uptr, uint16 chan)
+t_stat hsdp_preio(UNIT *uptr, uint16_t chan)
 {
     DEVICE      *dptr = get_dev(uptr);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     int         unit = (uptr - dptr->units);    /* get the UNIT number */
     DIB*        dibp = (DIB *)dptr->ctxt;       /* get the DIB pointer */
     int32       cnt;
@@ -855,13 +855,13 @@ t_stat hsdp_preio(UNIT *uptr, uint16 chan)
 /* return = 1 error, chan_status will have reason */
 t_stat  hsdp_iocl(CHANP *chp, int32 tic_ok)
 {
-    uint32      word1 = 0;
-    uint32      word2 = 0;
+    uint32_t      word1 = 0;
+    uint32_t      word2 = 0;
     int32       docmd = 0;
     UNIT        *uptr = chp->unitptr;           /* get the unit ptr */
-    uint16      chan = get_chan(chp->chan_dev); /* our channel */
-    uint16      chsa = chp->chan_dev;           /* our chan/sa */
-    uint16      devstat = 0;
+    uint16_t      chan = get_chan(chp->chan_dev); /* our channel */
+    uint16_t      chsa = chp->chan_dev;           /* our chan/sa */
+    uint16_t      devstat = 0;
     DEVICE      *dptr = get_dev(uptr);
 
     /* check for valid iocd address if 1st iocd */
@@ -1075,7 +1075,7 @@ loop:
         /* see if command completed */
         /* we have good status */
         if (chp->chan_status & (STATUS_DEND|STATUS_CEND)) {
-            uint16  chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
+            uint16_t  chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
             chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* show I/O complete */
             sim_debug(DEBUG_XIO, dptr,
                 "hsdp_iocl @%06x FIFO #%1x cmd complete chan %04x status %04x count %04x\n",
@@ -1090,9 +1090,9 @@ loop:
     return 0;                                   /* good return */
 }
 
-t_stat hsdp_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
+t_stat hsdp_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
 {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int32       unit = (uptr - dptr->units);
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
@@ -1182,7 +1182,7 @@ t_stat hsdp_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
 
 /* Handle haltio transfers for disk */
 t_stat  hsdp_haltio(UNIT *uptr) {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int         cmd = uptr->CMD & DSK_CMDMSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
@@ -1219,7 +1219,7 @@ t_stat  hsdp_haltio(UNIT *uptr) {
 /* Handle rsctl command for disk */
 t_stat  hsdp_rsctl(UNIT *uptr) {
     DEVICE      *dptr = get_dev(uptr);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     int         cmd = uptr->CMD & DSK_CMDMSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
 
@@ -1241,24 +1241,24 @@ t_stat  hsdp_rsctl(UNIT *uptr) {
 /* Handle processing of hsdp requests. */
 t_stat hsdp_srv(UNIT *uptr)
 {
-    uint16          chsa = GET_UADDR(uptr->CMD);
+    uint16_t          chsa = GET_UADDR(uptr->CMD);
     DEVICE          *dptr = get_dev(uptr);
     CHANP           *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
     DIB             *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
     CHANP           *pchp = pdibp->chan_prg;    /* get channel chp */
     int             cmd = uptr->CMD & DSK_CMDMSK;
     int             type = GET_TYPE(uptr->flags);
-    uint32          tcyl=0, trk=0, cyl=0, sec=0, tempt=0;
+    uint32_t          tcyl=0, trk=0, cyl=0, sec=0, tempt=0;
     int             unit = (uptr - dptr->units);
     int             len = chp->ccw_count;
     int             i,j,k;
-    uint32          mema, ecc, cecc, tstar;     /* memory address */
-    uint8           ch;
-    uint16          ssize = hsdp_type[type].ssiz * 4;   /* disk sector size in bytes */
-    uint32          tstart;
-    uint8           lbuf[32];
-    uint8           buf2[1024];
-    uint8           buf[1024];
+    uint32_t          mema, ecc, cecc, tstar;     /* memory address */
+    uint8_t           ch;
+    uint16_t          ssize = hsdp_type[type].ssiz * 4;   /* disk sector size in bytes */
+    uint32_t          tstart;
+    uint8_t           lbuf[32];
+    uint8_t           buf2[1024];
+    uint8_t           buf[1024];
 
     sim_debug(DEBUG_CMD, dptr,
         "hsdp_srv entry unit %02x CMD %08x chsa %04x count %04x %x/%x/%x \n",
@@ -1462,7 +1462,7 @@ t_stat hsdp_srv(UNIT *uptr)
         sec = uptr->CHS & 0xff;                 /* set sec */
 
         ch = ((2*SPT(type))-1) & 0x3f;          /* get index cnt */
-        uptr->SNS2 = (uptr->SNS2 & 0xc0ff) | ((((uint32)ch) & 0x3f) << 8);
+        uptr->SNS2 = (uptr->SNS2 & 0xc0ff) | ((((uint32_t)ch) & 0x3f) << 8);
         sim_debug(DEBUG_CMD, dptr,
            "hsdp_srv RAP %02x cyl %04x trk %02x sec %02x\n",
            ch, cyl&0xffff, trk, sec);
@@ -1710,7 +1710,7 @@ iha_error:
             uptr->SNS2 |= (SNS_SEND|SNS_USEL);  /* selected & seek end */
             /* bits 2-7 have sector pulse count */
             ch = ((sec * 2) % SPT(type)) & 0x3f;/* get index cnt */
-            uptr->SNS2 = (uptr->SNS2 & 0xc0ff) | ((((uint32)ch) & 0x3f) << 8);
+            uptr->SNS2 = (uptr->SNS2 & 0xc0ff) | ((((uint32_t)ch) & 0x3f) << 8);
             ch = (uptr->SNS2 >> 8) & 0xff;      /* seek end and unit selected for now */
             sim_debug(DEBUG_CMD, dptr, "hsdp_srv dsr unit=%02x 1 %02x\n",
                 unit, ch);
@@ -2146,7 +2146,7 @@ iha_error:
             tstart = STAR2SEC(uptr->CHS, SPT(type), SPC(type));
 
             /* see if over end of disk */
-            if (tstart >= (uint32)CAP(type)) {
+            if (tstart >= (uint32_t)CAP(type)) {
                 /* EOM reached, abort */
                 sim_debug(DEBUG_CMD, dptr,
                     "HSDP Read reached EOM for read from disk @ %04x/%02x/%02x\n",
@@ -2377,7 +2377,7 @@ iha_error:
             tstart = STAR2SEC(uptr->CHS, SPT(type), SPC(type));
 
             /* see if over end of disk */
-            if (tstart >= (uint32)CAP(type)) {
+            if (tstart >= (uint32_t)CAP(type)) {
                 /* EOM reached, abort */
                 sim_debug(DEBUG_CMD, dptr,
                     "HSDP Write reached EOM for write to disk @ /%04x/%02x/%02x\n",
@@ -2424,7 +2424,7 @@ iha_error:
         /* for 16 sectors per track, that is 480 bytes */
         /* for 20 sectors per track, that is 600 bytes */
         for (j=0; j<SPT(type); j++) {
-            uint32  seeksec;
+            uint32_t  seeksec;
 
             /* get file offset in sectors */
             tstart = STAR2SEC(uptr->CHS, SPT(type), SPC(type));
@@ -2516,7 +2516,7 @@ iha_error:
         /* for 16 sectors per track, that is 480 bytes */
         /* for 20 sectors per track, that is 600 bytes */
         for (j=0; j<SPT(type); j++) {
-            uint32  seeksec;
+            uint32_t  seeksec;
 
             sim_debug(DEBUG_CMD, dptr, "Sector %x label", uptr->CHS);
             /* now read sector label data */
@@ -2913,7 +2913,7 @@ void hsdp_ini(UNIT *uptr, t_bool f)
 /* handle rschnlio cmds for hsdp */
 t_stat  hsdp_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t  chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & DSK_CMDMSK;
 
     sim_debug(DEBUG_EXP, dptr, "hsdp_rschnl chsa %04x cmd = %02x\n", chsa, cmd);
@@ -2950,14 +2950,14 @@ t_stat hsdp_reset(DEVICE *dptr)
 int hsdp_label(UNIT *uptr, int use_strep) {
     int         type = GET_TYPE(uptr->flags);
     DEVICE      *dptr = get_dev(uptr);
-    uint32      trk, cyl, sec;
-    uint32      ssize = SSB(type);              /* disk sector size in bytes */
-    uint32      tsize = SPT(type);              /* get track size in sectors */
-    uint32      tot_tracks = TRK(type);         /* total tracks on disk */
-    uint32      tot_sectors = CAP(type);        /* total number of sectors on disk */
-    uint32      cap = CAP(type);                /* disk capacity in sectors */
-    uint32      CHS;                            /* cyl, hds, sec format */
-    uint8       label[34];                      /* track/sector label */
+    uint32_t      trk, cyl, sec;
+    uint32_t      ssize = SSB(type);              /* disk sector size in bytes */
+    uint32_t      tsize = SPT(type);              /* get track size in sectors */
+    uint32_t      tot_tracks = TRK(type);         /* total tracks on disk */
+    uint32_t      tot_sectors = CAP(type);        /* total number of sectors on disk */
+    uint32_t      cap = CAP(type);                /* disk capacity in sectors */
+    uint32_t      CHS;                            /* cyl, hds, sec format */
+    uint8_t       label[34];                      /* track/sector label */
     int32       i, j;
                 /* get sector address of vendor defect table VDT */
                 /* put data = 0xf0000004 0xf4000000 */
@@ -3093,7 +3093,7 @@ int hsdp_label(UNIT *uptr, int use_strep) {
         label[27] = label[25];                      /* same as label[25] */
         label[28] = HDS(type) & 0xff;
 
-        if ((sim_fwrite((char *)&label, sizeof(uint8), 30, uptr->fileref)) != 30) {
+        if ((sim_fwrite((char *)&label, sizeof(uint8_t), 30, uptr->fileref)) != 30) {
             sim_debug(DEBUG_CMD, dptr,
                 "Error writing track label to sect %06x offset %06x\n",
                 cap+(i*tsize), cap*ssize+(i*tsize*ssize));
@@ -3165,7 +3165,7 @@ int hsdp_label(UNIT *uptr, int use_strep) {
         label[27] = hsdp_type[type].spt & 0xff;
         label[28] = hsdp_type[type].nhds & 0xff;
 
-        if ((sim_fwrite((char *)&label, sizeof(uint8), 30, uptr->fileref)) != 30) {
+        if ((sim_fwrite((char *)&label, sizeof(uint8_t), 30, uptr->fileref)) != 30) {
             sim_debug(DEBUG_CMD, dptr,
                 "Error writing sector label to sect %06x offset %06x\n",
                 i, CAPB(type)+TRK(type)*30+i*ssize);
@@ -3185,19 +3185,19 @@ int hsdp_label(UNIT *uptr, int use_strep) {
 int hsdp_format(UNIT *uptr) {
     int         type = GET_TYPE(uptr->flags);
     DEVICE      *dptr = get_dev(uptr);
-    uint32      ssize = SSB(type);              /* disk sector size in bytes */
-    uint32      tsize = SPT(type);              /* get track size in sectors */
-    uint32      csize = SPC(type);              /* get cylinder size in sectors */
-    uint32      cyl = CYL(type);                /* get # cylinders */
-    uint32      cap = CAP(type);                /* disk capacity in sectors */
-    uint32      cylv = cyl;                     /* number of cylinders */
-    uint8       *buff;
+    uint32_t      ssize = SSB(type);              /* disk sector size in bytes */
+    uint32_t      tsize = SPT(type);              /* get track size in sectors */
+    uint32_t      csize = SPC(type);              /* get cylinder size in sectors */
+    uint32_t      cyl = CYL(type);                /* get # cylinders */
+    uint32_t      cap = CAP(type);                /* disk capacity in sectors */
+    uint32_t      cylv = cyl;                     /* number of cylinders */
+    uint8_t       *buff;
     int         i;
     int         use_st_format = 1;              /* assume we use s/t replacement */
     t_stat      oldsw = sim_switches;           /* save switches */
 
                 /* last sector address of disk (cyl * hds * spt) - 1 */
-    uint32      laddr = CAP(type) - 1;          /* last sector of disk */
+    uint32_t      laddr = CAP(type) - 1;          /* last sector of disk */
 
                 /* get sector address of vendor defect table VDT */
                 /* put data = 0xf0000004 0xf4000000 */
@@ -3212,13 +3212,13 @@ int hsdp_format(UNIT *uptr) {
     int32       uaddr = (CYL(type)-4) * SPC(type) + (HDS(type)-3) * SPT(type);
 
                 /* NULL vendor flaw map */
-    uint32      vmap[2] = {0xf0000004, 0xf4000000};
+    uint32_t      vmap[2] = {0xf0000004, 0xf4000000};
 
                 /* NULL diag flaw map */
-    uint32      pdmap[4] = {0xf0000000 | (cap-1), 0x8a000000 | daddr,
+    uint32_t      pdmap[4] = {0xf0000000 | (cap-1), 0x8a000000 | daddr,
                     0x9a000000 | (cap-1), 0xf4000000};
 
-    uint32      dmap[4] = {0xf0000000 | (((cap-1)*(SPT(type)-1))/(SPT(type))),
+    uint32_t      dmap[4] = {0xf0000000 | (((cap-1)*(SPT(type)-1))/(SPT(type))),
                     0x8a000000 | logda,
                     0x9a000000 | (((cap-1)*(SPT(type)-1))/(SPT(type))), 0xf4000000};
 
@@ -3255,7 +3255,7 @@ int hsdp_format(UNIT *uptr) {
     }
 
     /* get buffer for track data in bytes */
-    if ((buff = (uint8 *)calloc(csize*ssize, sizeof(uint8))) == 0) {
+    if ((buff = (uint8_t *)calloc(csize*ssize, sizeof(uint8_t))) == 0) {
         detach_unit(uptr);
         return SCPE_ARG;
     }
@@ -3304,7 +3304,7 @@ int hsdp_format(UNIT *uptr) {
         cap-1, (cap-1)*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&pdmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+    if ((sim_fwrite((char *)&pdmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing DMAP to sect %06x offset %06x\n",
         cap-1, (cap-1)*ssize);
@@ -3318,7 +3318,7 @@ int hsdp_format(UNIT *uptr) {
         vaddr, vaddr*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&vmap, sizeof(uint32), 2, uptr->fileref)) != 2) {
+    if ((sim_fwrite((char *)&vmap, sizeof(uint32_t), 2, uptr->fileref)) != 2) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing VMAP to sect %06x offset %06x\n",
         vaddr, vaddr*ssize);
@@ -3333,7 +3333,7 @@ int hsdp_format(UNIT *uptr) {
         return 1;
     }
     if (use_st_format) {
-        if ((sim_fwrite((char *)&dmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+        if ((sim_fwrite((char *)&dmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
             sim_debug(DEBUG_CMD, dptr,
             "Error writing LDMAP to sect %06x offset %06x\n",
             daddr, daddr*ssize);
@@ -3341,7 +3341,7 @@ int hsdp_format(UNIT *uptr) {
         }
     } else
     {
-        if ((sim_fwrite((char *)&pdmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+        if ((sim_fwrite((char *)&pdmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
             sim_debug(DEBUG_CMD, dptr,
             "Error writing DMAP to sect %06x offset %06x\n",
             daddr, daddr*ssize);
@@ -3373,15 +3373,15 @@ int hsdp_format(UNIT *uptr) {
 /* attach the selected file to the disk */
 t_stat hsdp_attach(UNIT *uptr, CONST char *file)
 {
-    uint16          chsa = GET_UADDR(uptr->CMD);
+    uint16_t          chsa = GET_UADDR(uptr->CMD);
     CHANP           *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
     int             type = GET_TYPE(uptr->flags);
     DEVICE          *dptr = get_dev(uptr);
     DIB             *dibp = 0;
     t_stat          r, s;
-    uint32          ssize;                      /* sector size in bytes */
-    uint32          info, good;
-    uint8           buff[1024];
+    uint32_t          ssize;                      /* sector size in bytes */
+    uint32_t          info, good;
+    uint8_t           buff[1024];
     int             i, j;
     int             use_st_format = 0;
 
@@ -3393,7 +3393,7 @@ t_stat hsdp_attach(UNIT *uptr, CONST char *file)
     int32           daddr = (CYL(type)-4) * SPC(type) + (HDS(type)-2) * SPT(type);
     int32           umapaddr = (CYL(type)-4) * SPC(type) + (HDS(type)-3) * SPT(type);
                     /* defect map */
-    uint32          dmap[4] = {0xf0000000 | (CAP(type)-1), 0x8a000000 | daddr,
+    uint32_t          dmap[4] = {0xf0000000 | (CAP(type)-1), 0x8a000000 | daddr,
                         0x9a000000 | (CAP(type)-1), 0xf4000000};
 
     for (i=0; i<4; i++) {                       /* byte swap data for last sector */
@@ -3461,7 +3461,7 @@ t_stat hsdp_attach(UNIT *uptr, CONST char *file)
         /* must be MPX 1.X disk, extend to MPX 3.X size */
         /* write sectors of zero to end of disk to fill it out */
         for (i=0; i<j; i++) {
-            if ((r = sim_fwrite(buff, sizeof(uint8), ssize, uptr->fileref) != ssize)) {
+            if ((r = sim_fwrite(buff, sizeof(uint8_t), ssize, uptr->fileref) != ssize)) {
                 sim_debug(DEBUG_CMD, dptr, "Disk attach fread ret = %04d\n", r);
                 printf("Disk attach fread ret = %04d\r\n", r);
                 goto fmt;                       /* not setup, go format */
@@ -3481,7 +3481,7 @@ t_stat hsdp_attach(UNIT *uptr, CONST char *file)
     }
 
     /* see if there is disk size-1 in last sector of disk, if not add it */
-    if ((r = sim_fread(buff, sizeof(uint8), ssize, uptr->fileref) != ssize)) {
+    if ((r = sim_fread(buff, sizeof(uint8_t), ssize, uptr->fileref) != ssize)) {
         sim_debug(DEBUG_CMD, dptr, "HSDP Disk format fread error = %04d\n", r);
         printf("HSDP Disk format fread error = %04d\r\n", r);
 add_size:
@@ -3494,7 +3494,7 @@ add_size:
                 (CAP(type)-1), (CAP(type)-1)*ssize);
             goto fmt;
         }
-        if ((sim_fwrite((char *)&dmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+        if ((sim_fwrite((char *)&dmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
             sim_debug(DEBUG_CMD, dptr,
                 "Disk Error writing DMAP to sect %06x offset %06d bytes\n",
                 (CAP(type)-1), (CAP(type)-1)*ssize);
@@ -3549,7 +3549,7 @@ ldone:
     }
     i = SCPE_OK;
     /* see if disk has labels already, seek to sector past end of disk  */
-    if ((r = sim_fread(buff, sizeof(uint8), 30, uptr->fileref) != 30)) {
+    if ((r = sim_fread(buff, sizeof(uint8_t), 30, uptr->fileref) != 30)) {
         use_st_format = 1;
         /* the disk does not have labels, add them on */
         /* create labels for disk */
@@ -3575,7 +3575,7 @@ ldone:
         return SCPE_FMT;                        /* error */
     }
     /* see if disk has labels already, read label for track 0  */
-    if ((r = sim_fread(buff, sizeof(uint8), 30, uptr->fileref) != 30)) {
+    if ((r = sim_fread(buff, sizeof(uint8_t), 30, uptr->fileref) != 30)) {
         detach_unit(uptr);                      /* detach if error */
         return SCPE_FMT;                        /* error */
     }
@@ -3593,7 +3593,7 @@ ldone:
         return SCPE_FMT;                        /* error */
     }
     /* read umap into buff */
-    if ((r = sim_fread(buff, sizeof(uint8), ssize, uptr->fileref) != ssize)) {
+    if ((r = sim_fread(buff, sizeof(uint8_t), ssize, uptr->fileref) != ssize)) {
         detach_unit(uptr);                      /* detach if error */
         return SCPE_FMT;                        /* error */
     }
@@ -3610,7 +3610,7 @@ ldone:
             detach_unit(uptr);                  /* detach if error */
             return SCPE_FMT;                    /* error */
         }
-        if ((r = sim_fwrite(buff, sizeof(uint8), ssize, uptr->fileref) != ssize)) {
+        if ((r = sim_fwrite(buff, sizeof(uint8_t), ssize, uptr->fileref) != ssize)) {
             detach_unit(uptr);                  /* detach if error */
             return SCPE_FMT;                    /* error */
         }

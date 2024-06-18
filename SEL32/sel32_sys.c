@@ -190,10 +190,10 @@
 #include <ctype.h>
 
 extern REG cpu_reg[];
-extern uint32 SPAD[];
-extern uint32 PSD[];
-char *dump_mem(uint32 mp, int cnt);
-char *dump_buf(uint8 *mp, int32 off, int cnt);
+extern uint32_t SPAD[];
+extern uint32_t PSD[];
+char *dump_mem(uint32_t mp, int cnt);
+char *dump_buf(uint8_t *mp, int32 off, int cnt);
 
 /* SCP data structures and interface routines
 
@@ -317,10 +317,10 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 static char line[257];
 /* function to dump SEL32 memory up to 16 bytes with side by side ascii values */
-char *dump_mem(uint32 mp, int cnt)
+char *dump_mem(uint32_t mp, int cnt)
 {
     char    buff[257];
-    uint32  ma = mp;                            /* save memory address */
+    uint32_t  ma = mp;                            /* save memory address */
     char    *cp = &line[0];                     /* output buffer */
     int     cc=0, ch, bp=0, bl=cnt;
 
@@ -359,10 +359,10 @@ char *dump_mem(uint32 mp, int cnt)
 
 /* function to dump caller buffer upto 16 bytes with side by side ascii values */
 /* off is offset in buffer to start */
-char *dump_buf(uint8 *mp, int32 off, int cnt)
+char *dump_buf(uint8_t *mp, int32 off, int cnt)
 {
     char    buff[257];
-    uint32  ma = off;                           /* save memory address */
+    uint32_t  ma = off;                           /* save memory address */
     char    *cp = &line[0];                     /* output buffer */
     int     cc=0, ch, bp=0, bl=cnt;
 
@@ -403,7 +403,7 @@ char *dump_buf(uint8 *mp, int32 off, int cnt)
  * return 1 - OK
  * return 0 - error or eof
  */
-int get_word(FILE *fileref, uint32 *word)
+int get_word(FILE *fileref, uint32_t *word)
 {
     unsigned char cbuf[4];
 
@@ -422,7 +422,7 @@ int get_word(FILE *fileref, uint32 *word)
  * return 1 - OK
  * return 0 - error or eof
  */
-int get_halfword(FILE *fileref, uint16 *word)
+int get_halfword(FILE *fileref, uint16_t *word)
 {
     unsigned char cbuf[2];
 
@@ -430,7 +430,7 @@ int get_halfword(FILE *fileref, uint16 *word)
     if (sim_fread(cbuf, 1, 2, fileref) != 2)
         return 1;                           /* read error or eof */
     /* byte swap while reading data */
-    *word = ((uint16)(cbuf[0]) << 8) | ((uint16)(cbuf[1]));
+    *word = ((uint16_t)(cbuf[0]) << 8) | ((uint16_t)(cbuf[1]));
     return 0;                               /* all OK */
 }
 #endif
@@ -439,8 +439,8 @@ int get_halfword(FILE *fileref, uint16 *word)
 /* return SCPE_OK on load complete */
 t_stat load_mem (FILE *fileref)
 {
-    uint32 data;
-    uint32 ma = 0;  /* start at mem add 0 */
+    uint32_t data;
+    uint32_t ma = 0;  /* start at mem add 0 */
 
     /* read the file until the end */
     for ( ;; ) {
@@ -456,9 +456,9 @@ t_stat load_mem (FILE *fileref)
 /* return SCPE_OK on load complete */
 t_stat load_tap (FILE *fileref)
 {
-    uint32 bdata, edata;
-    uint16 hdata;
-    uint32 ma = 0;                          /* start loading at loc 0 */
+    uint32_t bdata, edata;
+    uint16_t hdata;
+    uint32_t ma = 0;                          /* start loading at loc 0 */
     int32 wc;
 
     for ( ;; ) {                            /* loop until EOF read */
@@ -473,7 +473,7 @@ t_stat load_tap (FILE *fileref)
         while (wc-- != 0) {
             if (get_halfword(fileref, &hdata))  /* get 16 bits of data */
                 return SCPE_FMT;            /* must be error, exit */
-            ((uint16*)M)[ma++] = hdata;     /* put the hw into memory */
+            ((uint16_t*)M)[ma++] = hdata;     /* put the hw into memory */
         }
         /* look only for record byte count */
         if (get_word(fileref, &edata))      /* read 4 bytes of data */
@@ -596,25 +596,25 @@ t_stat load_tap (FILE *fileref)
  * return SCPE_OK for OK
  * or SCPE_ARG for arg error (bad number)
  */
-t_value get_2hex(char *pt, uint32 *val)
+t_value get_2hex(char *pt, uint32_t *val)
 {
     int32 hexval;
-    uint32 c1 = sim_toupper((uint32)pt[0]); /* first hex char */
-    uint32 c2 = sim_toupper((uint32)pt[1]); /* next hex char */
+    uint32_t c1 = sim_toupper((uint32_t)pt[0]); /* first hex char */
+    uint32_t c2 = sim_toupper((uint32_t)pt[1]); /* next hex char */
 
     if (isdigit(c1))                        /* digit */
-        hexval = c1 - (uint32)'0';          /* get value */
+        hexval = c1 - (uint32_t)'0';          /* get value */
     else
     if (isxdigit(c1))                       /* hex digit */
-        hexval = c1 - (uint32)'A' + 10;     /* get hex value */
+        hexval = c1 - (uint32_t)'A' + 10;     /* get hex value */
     else
         return SCPE_ARG;                    /* oops, error */
     hexval <<= 4;                           /* move to upper nibble */
     if (isdigit(c2))                        /* digit */
-        hexval += c2 - (uint32)'0';         /* get value */
+        hexval += c2 - (uint32_t)'0';         /* get value */
     else
     if (isxdigit(c2))                       /* hex digit */
-        hexval += c2 - (uint32)'A' + 10;    /* get hex value */
+        hexval += c2 - (uint32_t)'A' + 10;    /* get hex value */
     else
         return SCPE_ARG;                    /* oops, error */
     *val = hexval;                          /* return value to caller */
@@ -627,13 +627,13 @@ t_value get_2hex(char *pt, uint32 *val)
 t_stat load_icl(FILE *fileref)
 {
     char        *cp;                        /* work pointer in buf[] */
-    uint32      sa;                         /* spad address */
-    uint32      dev;                        /* device entry */
-    uint32      intr;                       /* interrupt entry */
-    uint32      data;                       /* entry data */
-    uint32      cls;                        /* device class */
-    uint32      ivl;                        /* Interrupt Vector Location */
-    uint32      i;                          /* just a tmp */
+    uint32_t      sa;                         /* spad address */
+    uint32_t      dev;                        /* device entry */
+    uint32_t      intr;                       /* interrupt entry */
+    uint32_t      data;                       /* entry data */
+    uint32_t      cls;                        /* device class */
+    uint32_t      ivl;                        /* Interrupt Vector Location */
+    uint32_t      i;                          /* just a tmp */
     char        buf[120];                   /* input buffer */
 
     /* read file input records until the end */
@@ -847,9 +847,9 @@ t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 #define X               0x80                /* 32/55 or 32/75 only */
 
 typedef struct _opcode {
-       uint16       opbase;
-       uint16       mask;
-       uint8        type;
+       uint16_t       opbase;
+       uint16_t       mask;
+       uint8_t        type;
        const char   *name;
 } t_opcode;
 
@@ -1064,9 +1064,9 @@ t_opcode  optab[] = {
 */
 const char *fc_type = "WHDHBBBB";   /* F & C bit values */
 
-int fprint_inst(FILE *of, uint32 val, int32 sw)
+int fprint_inst(FILE *of, uint32_t val, int32 sw)
 {
-    uint16   inst = (val >> 16) & 0xFFFF;
+    uint16_t   inst = (val >> 16) & 0xFFFF;
     int      i;
     int      mode = 0;                      /* assume non base mode instructions */
     t_opcode *tab;
@@ -1261,7 +1261,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
     int         i;
     int         l = 4;                      /* default to full words */
     int         rdx = 16;                   /* default radex is hex */
-    uint32      num;
+    uint32_t      num;
 
     if (sw & SIM_SW_STOP) {                 /* special processing for step */
         if (PSD[0] & 0x02000000) {          /* bit 6 is base mode */
@@ -1317,7 +1317,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
     if (sw & (SWMASK('M') | SWMASK('N'))) { 
         num = 0;
         for (i = 0; i < l && i < 4; i++) {
-            num |= (uint32)val[i] << ((l-i-1) * 8); /* collect 8-32 bit data value to print */
+            num |= (uint32_t)val[i] << ((l-i-1) * 8); /* collect 8-32 bit data value to print */
         }
         if (addr & 0x02)
             num <<= 16;                     /* use rt hw */
@@ -1331,7 +1331,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
         /* print the numeric value of the memory data */
         num = 0;
         for (i = 0; i < l && i < 4; i++) 
-            num |= (uint32)val[i] << ((l-i-1) * 8); /* collect 8-32 bit data value to print */
+            num |= (uint32_t)val[i] << ((l-i-1) * 8); /* collect 8-32 bit data value to print */
         fprint_val(of, num, rdx, l*8, PV_RZRO); /* print it in requested radix */
     }
     return -(l-1);                          /* will be negative if we did anything */
@@ -1340,12 +1340,12 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 /* 
  * Collect offset in radix.
  */
-t_stat get_off (CONST char *cptr, CONST char **tptr, uint32 radix, t_value *val, char *m)
+t_stat get_off (CONST char *cptr, CONST char **tptr, uint32_t radix, t_value *val, char *m)
 {
     t_stat r = SCPE_OK;                     /* assume OK return */
 
     *m = 0;                                 /* left parend found flag if set */
-    *val = (uint32)strtotv(cptr, tptr, radix);  /* convert to value */
+    *val = (uint32_t)strtotv(cptr, tptr, radix);  /* convert to value */
     if (cptr == *tptr)
         r = SCPE_ARG;                       /* no argument found error */
     else {
@@ -1365,12 +1365,12 @@ t_stat get_off (CONST char *cptr, CONST char **tptr, uint32 radix, t_value *val,
 /* 
  * Collect immediate in radix.
  */
-t_stat get_imm (CONST char *cptr, CONST char **tptr, uint32 radix, t_value *val)
+t_stat get_imm (CONST char *cptr, CONST char **tptr, uint32_t radix, t_value *val)
 {
     t_stat r;
 
     r = SCPE_OK;
-    *val = (uint32)strtotv (cptr, tptr, radix);
+    *val = (uint32_t)strtotv (cptr, tptr, radix);
     if ((cptr == *tptr) || (*val > 0xffff))
         r = SCPE_ARG;
     else {
@@ -1401,8 +1401,8 @@ t_stat parse_sym (CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
     char       mod = 0;
     t_opcode   *tab;
     t_stat     r;
-    uint32     num;
-    uint32     max[5] = {0, 0xff, 0xffff, 0, 0xffffffff};
+    uint32_t     num;
+    uint32_t     max[5] = {0, 0xff, 0xffff, 0, 0xffffffff};
     CONST char *tptr;
     char       gbuf[CBUFSIZE];
 

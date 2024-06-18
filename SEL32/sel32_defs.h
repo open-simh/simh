@@ -302,50 +302,50 @@ extern DEVICE ec_dev;
 typedef struct chp {
     /* channel program values */
     UNIT        *unitptr;               /* Back pointer to units structure */
-    uint32      chan_inch_addr;         /* Current channel status dw addr in memory */
-    uint32      base_inch_addr;         /* Original channel status dw addr in memory */
-    uint16      max_inch_addr;          /* maximum inch buffer pointer */
-    uint32      chan_caw;               /* Channel command address word */
-    uint32      ccw_addr;               /* Channel address */
+    uint32_t      chan_inch_addr;         /* Current channel status dw addr in memory */
+    uint32_t      base_inch_addr;         /* Original channel status dw addr in memory */
+    uint16_t      max_inch_addr;          /* maximum inch buffer pointer */
+    uint32_t      chan_caw;               /* Channel command address word */
+    uint32_t      ccw_addr;               /* Channel address */
 #ifdef TEST_FOR_IOCL_CHANGE
-    uint32      new_iocla;              /* start iocl address */
-    uint32      new_iocd1;              /* start word 1 of iocd */
-    uint32      new_iocd2;              /* start word 2 of iocd */
+    uint32_t      new_iocla;              /* start iocl address */
+    uint32_t      new_iocd1;              /* start word 1 of iocd */
+    uint32_t      new_iocd2;              /* start word 2 of iocd */
 #endif
-    uint32      chan_buf;               /* Channel data buffer */
-    uint16      ccw_count;              /* Channel count */
-    uint16      ccw_flags;              /* Channel flags */
-    uint16      chan_status;            /* Channel status */
-    uint16      chan_dev;               /* Device on channel */
-    uint8       ccw_cmd;                /* Channel command and flags */
-    uint8       chan_byte;              /* Current byte, empty/full */
-    uint8       chan_int;               /* channel interrupt level */
-    uint8       chan_info;              /* misc flags for channel */
+    uint32_t      chan_buf;               /* Channel data buffer */
+    uint16_t      ccw_count;              /* Channel count */
+    uint16_t      ccw_flags;              /* Channel flags */
+    uint16_t      chan_status;            /* Channel status */
+    uint16_t      chan_dev;               /* Device on channel */
+    uint8_t       ccw_cmd;                /* Channel command and flags */
+    uint8_t       chan_byte;              /* Current byte, empty/full */
+    uint8_t       chan_int;               /* channel interrupt level */
+    uint8_t       chan_info;              /* misc flags for channel */
 } CHANP;
 
 /* Device information block */
 #define FIFO_SIZE 256                   /* fifo to hold 128 double words of status */
-extern  int32   FIFO_Put(uint16 chsa, uint32 entry);
-extern  int32   FIFO_Get(uint16 chsa, uint32 *old);
-extern  int32   FIFO_Num(uint16 chsa);
+extern  int32   FIFO_Put(uint16_t chsa, uint32_t entry);
+extern  int32   FIFO_Get(uint16_t chsa, uint32_t *old);
+extern  int32   FIFO_Num(uint16_t chsa);
 
 #define IOCLQ_SIZE 32                   /* fifo to hold 32 iocl cmds */
 
 typedef struct ioclq {
-        uint32  ioclq_fifo[IOCLQ_SIZE];
+        uint32_t  ioclq_fifo[IOCLQ_SIZE];
         int16   ioclq_in;
         int16   ioclq_out;
 } IOCLQ;
 
-extern  int32   IOCLQ_Put(IOCLQ *qptr, uint32 entry);
-extern  int32   IOCLQ_Get(IOCLQ *qptr, uint32 *old);
+extern  int32   IOCLQ_Put(IOCLQ *qptr, uint32_t entry);
+extern  int32   IOCLQ_Get(IOCLQ *qptr, uint32_t *old);
 extern  int32   IOCLQ_Num(IOCLQ *qptr);
 
 typedef struct dib {
         /* Pre start I/O operation */
-        t_stat      (*pre_io)(UNIT *uptr, uint16 chan);
+        t_stat      (*pre_io)(UNIT *uptr, uint16_t chan);
         /* Start a channel command SIO */
-        t_stat      (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd);
+        t_stat      (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd);
         /* Halt I/O HIO */
         t_stat      (*halt_io)(UNIT *uptr); /* Halt I/O */
         /* Test I/O STOPIO */
@@ -363,12 +363,12 @@ typedef struct dib {
         UNIT        *units;             /* Pointer to units structure */
         CHANP       *chan_prg;          /* Pointer to channel program */
         IOCLQ       *ioclq_ptr;         /* pointer to array of IOCLQ entries */
-        uint8       numunits;           /* number of units */
-        uint8       mask;               /* device mask */
-        uint16      chan_addr;          /* parent channel address */
-        uint32      chan_fifo_in;       /* fifo input index */
-        uint32      chan_fifo_out;      /* fifo output index */
-        uint32      chan_fifo[FIFO_SIZE];   /* interrupt status fifo for each channel */
+        uint8_t       numunits;           /* number of units */
+        uint8_t       mask;               /* device mask */
+        uint16_t      chan_addr;          /* parent channel address */
+        uint32_t      chan_fifo_in;       /* fifo input index */
+        uint32_t      chan_fifo_out;      /* fifo output index */
+        uint32_t      chan_fifo[FIFO_SIZE];   /* interrupt status fifo for each channel */
 } DIB;
 
 extern  DIB     *dib_unit[MAX_DEV];     /* Pointer to Device info block */
@@ -420,8 +420,8 @@ extern DEBTAB dev_debug[];
 #define MSIGN           0x80000000      /* 32 bit minus sign */
 #define DMSIGN          0x8000000000000000LL    /* 64 bit minus sign */
 #define FSIGN           0x80000000      /* 32 bit minus sign */
-/* sign extend 16 bit value to uint32 */
-#define SEXT16(x)       (x&0x8000?(uint32)(((uint32)x&RMASK)|LMASK):(uint32)x)
+/* sign extend 16 bit value to uint32_t */
+#define SEXT16(x)       (x&0x8000?(uint32_t)(((uint32_t)x&RMASK)|LMASK):(uint32_t)x)
 /* sign extend 16 bit value to uint64 */
 #define DSEXT16(x)      (x&0x8000?(l_uint64)(((l_uint64)x&RMASK)|D48LMASK):(t_uint64)x)
 /* sign extend 32 bit value to uint64 */
@@ -580,58 +580,58 @@ extern DEBTAB dev_debug[];
 /* Definitions for commonly used functions */
 extern  t_stat  set_dev_addr(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern  t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32 v, CONST void *desc);
-extern  void    chan_end(uint16 chan, uint16 flags);
-extern  int     chan_read_byte(uint16 chsa, uint8 *data);
-extern  int     chan_write_byte(uint16 chsa, uint8 *data);
-extern  void    set_devattn(uint16 addr, uint16 flags);
-extern  void    set_devwake(uint16 chsa, uint16 flags);
-extern  t_stat  chan_boot(uint16 addr, DEVICE *dptr);
-extern  int     test_write_byte_end(uint16 chsa);
+extern  void    chan_end(uint16_t chan, uint16_t flags);
+extern  int     chan_read_byte(uint16_t chsa, uint8_t *data);
+extern  int     chan_write_byte(uint16_t chsa, uint8_t *data);
+extern  void    set_devattn(uint16_t addr, uint16_t flags);
+extern  void    set_devwake(uint16_t chsa, uint16_t flags);
+extern  t_stat  chan_boot(uint16_t addr, DEVICE *dptr);
+extern  int     test_write_byte_end(uint16_t chsa);
 extern  DEVICE *get_dev(UNIT *uptr);
-extern  t_stat  set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch);    /* set inch addr */
-extern  CHANP  *find_chanp_ptr(uint16 chsa);    /* find chanp pointer */
+extern  t_stat  set_inch(UNIT *uptr, uint32_t inch_addr, uint32_t num_inch);    /* set inch addr */
+extern  CHANP  *find_chanp_ptr(uint16_t chsa);    /* find chanp pointer */
 
 #ifndef CPUONLY
 #ifndef USE_IPU_THREAD
 extern  struct ipcom *IPC;
-extern  uint32  *M;                     /* our memory shared with fork IPU */
+extern  uint32_t  *M;                     /* our memory shared with fork IPU */
 #else
 extern  struct ipcom *IPC;
-extern  uint32  M[];                    /* our local memory with thread IPU */
+extern  uint32_t  M[];                    /* our local memory with thread IPU */
 #endif
 #else
-extern  uint32  M[];                    /* our local memory without IPU */
+extern  uint32_t  M[];                    /* our local memory without IPU */
 #endif
 
 #ifndef USE_IPU_CODE
-extern  uint32  SPAD[];                 /* cpu SPAD memory */
+extern  uint32_t  SPAD[];                 /* cpu SPAD memory */
 #endif
-extern  uint32  attention_trap;
+extern  uint32_t  attention_trap;
 extern  int     irq_pend;               /* pending interrupt flag */
 
 #ifdef NOT_USED
-extern  uint32  RDYQ[];                 /* ready queue */
-extern  uint32  RDYQIN;                 /* input index */
-extern  uint32  RDYQOUT;                /* output index */
-extern  int32   RDYQ_Put(uint32 entry);
-extern  int32   RDYQ_Get(uint32 *old);
+extern  uint32_t  RDYQ[];                 /* ready queue */
+extern  uint32_t  RDYQIN;                 /* input index */
+extern  uint32_t  RDYQOUT;                /* output index */
+extern  int32   RDYQ_Put(uint32_t entry);
+extern  int32   RDYQ_Get(uint32_t *old);
 extern  int32   RDYQ_Num(void);
 #define RDYQ_SIZE 128
 #endif
 
 struct InstHistory
 {
-    uint32   opsd1;                     /* original PSD1 */
-    uint32   opsd2;                     /* original PSD2 */
-    uint32   npsd1;                     /* new PSD1 after instruction */
-    uint32   npsd2;                     /* new PSD2 after instruction */
-    uint32   oir;                       /* the instruction itself */
-    uint32   modes;                     /* current ipu mode bits */
-    uint32   reg[16];                   /* regs/bregs for operation */
+    uint32_t   opsd1;                     /* original PSD1 */
+    uint32_t   opsd2;                     /* original PSD2 */
+    uint32_t   npsd1;                     /* new PSD1 after instruction */
+    uint32_t   npsd2;                     /* new PSD2 after instruction */
+    uint32_t   oir;                       /* the instruction itself */
+    uint32_t   modes;                     /* current ipu mode bits */
+    uint32_t   reg[16];                   /* regs/bregs for operation */
 };
 
-extern  char *dump_mem(uint32 mp, int cnt);
-extern  char *dump_buf(uint8 *mp, int32 off, int cnt);
+extern  char *dump_mem(uint32_t mp, int cnt);
+extern  char *dump_buf(uint8_t *mp, int32 off, int cnt);
 
 #define get_chan(chsa)  ((chsa>>8)&0x7f)    /* get channel number from ch/sa */
 

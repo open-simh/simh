@@ -36,7 +36,7 @@
 
 #define UNIT_CLK UNIT_IDLE|UNIT_DISABLE
 
-void rtc_setup (uint32 ss, uint32 level);
+void rtc_setup (uint32_t ss, uint32_t level);
 t_stat rtc_srv (UNIT *uptr);
 t_stat rtc_reset (DEVICE *dptr);
 t_stat rtc_set_freq (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -45,10 +45,10 @@ t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, CONST char *cptr
 const char *rtc_desc(DEVICE *dptr);
 
 extern  int      irq_pend;                  /* go scan for pending int or I/O */
-extern  uint32   INTS[];                    /* interrupt control flags */
-extern  uint32   SPAD[];                    /* computer SPAD */
-extern  uint32   outbusy;                   /* output waiting on timeout */
-extern  uint32   inbusy;                    /* input waiting on timeout */
+extern  uint32_t   INTS[];                    /* interrupt control flags */
+extern  uint32_t   SPAD[];                    /* computer SPAD */
+extern  uint32_t   outbusy;                   /* output waiting on timeout */
+extern  uint32_t   inbusy;                    /* input waiting on timeout */
 
 int32 rtc_pie = 0;                          /* rtc pulse ie */
 int32 rtc_tps = 60;                         /* rtc ticks/sec */
@@ -146,9 +146,9 @@ t_stat rtc_srv (UNIT *uptr)
 /* ss = 1 - starting clock */
 /* ss = 0 - stopping clock */
 /* level = interrupt level */
-void rtc_setup(uint32 ss, uint32 level)
+void rtc_setup(uint32_t ss, uint32_t level)
 {
-    uint32 addr = SPAD[0xf1] + (level<<2);  /* vector address in SPAD */
+    uint32_t addr = SPAD[0xf1] + (level<<2);  /* vector address in SPAD */
 
     rtc_lvl = level;                        /* save the interrupt level */
     addr = M[addr>>2];                      /* get the interrupt context block addr */
@@ -239,7 +239,7 @@ t_stat itm_set_freq (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat itm_reset (DEVICE *dptr);
 t_stat itm_show_freq (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat itm_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, CONST char *cptr);
-void itm_setup(uint32 ss, uint32 level);
+void itm_setup(uint32_t ss, uint32_t level);
 const char *itm_desc(DEVICE *dptr);
 
 /* Clock data structures
@@ -359,9 +359,9 @@ t_stat itm_srv (UNIT *uptr)
 /*     = 0x79 read/reload and start timer */
 /* cnt = value to write to timer */
 /* ret = return value read from timer */
-int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
+int32 itm_rdwr(uint32_t cmd, int32 cnt, uint32_t level)
 {
-    uint32  temp;
+    uint32_t  temp;
 
     cmd &= 0x7f;                            /* just need the cmd */
     itm_cmd = cmd;                          /* save last cmd */
@@ -377,7 +377,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
             cmd, cnt, cnt, temp);
         if (itm_run) {                      /* if we were running save curr cnt */
             /* read timer value */
-            temp = (uint32)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
+            temp = (uint32_t)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv 0x%2x temp value %08x (%d)\n", cmd, temp, temp);
             if (itm_strt) {                 /* see if running neg */
@@ -442,7 +442,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
         temp = itm_load;                    /* get last loaded value */
         if (itm_run) {                      /* if we were running save curr cnt */
             /* read timer value */
-            temp = (uint32)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
+            temp = (uint32_t)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv 0x%2x temp value %08x (%d)\n", cmd, temp, temp);
             if (itm_strt) {                 /* see if running neg */
@@ -503,7 +503,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
         temp = itm_load;                    /* get last loaded value */
         if (itm_run) {                      /* if we were running save curr cnt */
             /* read timer value */
-            temp = (uint32)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
+            temp = (uint32_t)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv 0x%2x read value %08x (%d)\n", cmd, temp, temp);
             if (itm_strt) {                 /* see if running neg */
@@ -522,7 +522,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
         temp = itm_load;                    /* get last loaded value */
         if (itm_run) {                      /* if we were running save curr cnt */
             /* read timer value */
-            temp = (uint32)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
+            temp = (uint32_t)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv 0x%2x read value %08x (%d)\n", cmd, temp, temp);
             if (itm_strt) {                 /* see if running neg */
@@ -548,7 +548,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
         temp = itm_load;                    /* get last loaded value */
         if (itm_run) {                      /* if we were running save curr cnt */
             /* read timer value */
-            temp = (uint32)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
+            temp = (uint32_t)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv 0x%2x read value %08x (%d)\n", cmd, temp, temp);
             if (itm_strt) {                 /* see if running neg */
@@ -582,7 +582,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
         temp = itm_load;                    /* get last loaded value */
         if (itm_run) {                      /* if we were running save curr cnt */
             /* read timer value */
-            temp = (uint32)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
+            temp = (uint32_t)(100.0*sim_activate_time_usecs(&itm_unit)/itm_tick_size_x_100);
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv 0x%2x read value %08x (%d)\n", cmd, temp, temp);
             if (itm_strt) {                 /* see if running neg */
@@ -622,7 +622,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
 /* ss = 1 - clock interrupt enabled */
 /* ss = 0 - clock interrupt disabled */
 /* level = interrupt level */
-void itm_setup(uint32 ss, uint32 level)
+void itm_setup(uint32_t ss, uint32_t level)
 {
     if (ss && itm_pie && (level == itm_lvl)) {    /* timer enabled? */
         /* already setup, just return */

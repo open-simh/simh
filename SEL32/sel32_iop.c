@@ -38,8 +38,8 @@
 #define UNIT_IOP    UNIT_DISABLE
 
 /* forward definitions */
-t_stat  iop_preio(UNIT *uptr, uint16 chan);
-t_stat  iop_startcmd(UNIT *uptr, uint16 chan, uint8 cmd);
+t_stat  iop_preio(UNIT *uptr, uint16_t chan);
+t_stat  iop_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd);
 void    iop_ini(UNIT *uptr, t_bool f);
 t_stat  iop_rschnlio(UNIT *uptr);
 t_stat  iop_srv(UNIT *uptr);
@@ -81,8 +81,8 @@ const char  *iop_desc(DEVICE *dptr);
 
 struct _iop_data
 {
-    uint8       ibuff[145];                 /* Input line buffer */
-    uint8       incnt;                      /* char count */
+    uint8_t       ibuff[145];                 /* Input line buffer */
+    uint8_t       incnt;                      /* char count */
 }
 iop_data[NUM_UNITS_IOP];
 
@@ -100,8 +100,8 @@ UNIT            iop_unit[] = {
 };
 
 DIB             iop_dib = {
-    iop_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/ /* Pre Start I/O */
-    iop_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command SIO */
+    iop_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/ /* Pre Start I/O */
+    iop_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command SIO */
     NULL,           /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O HIO */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O HIO */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O TIO */
@@ -112,12 +112,12 @@ DIB             iop_dib = {
     iop_unit,       /* UNIT* units */                           /* Pointer to units structure */
     iop_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_IOP,  /* uint8 numunits */                        /* number of units defined */
-    0xff,           /* uint8 mask */                            /* 16 devices - device mask */
-    0x7e00,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_IOP,  /* uint8_t numunits */                        /* number of units defined */
+    0xff,           /* uint8_t mask */                            /* 16 devices - device mask */
+    0x7e00,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE          iop_dev = {
@@ -147,7 +147,7 @@ void iop_ini(UNIT *uptr, t_bool f)
 /* handle rschnlio cmds for iop */
 t_stat  iop_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->u3);
+    uint16_t  chsa = GET_UADDR(uptr->u3);
     int     cmd = uptr->u3 & IOP_MSK;
 
     sim_debug(DEBUG_EXP, dptr,
@@ -157,10 +157,10 @@ t_stat  iop_rschnlio(UNIT *uptr) {
 }
 
 /* start an iop operation */
-t_stat iop_preio(UNIT *uptr, uint16 chan) {
+t_stat iop_preio(UNIT *uptr, uint16_t chan) {
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
-    uint16      chsa = GET_UADDR(uptr->u3);
+    uint16_t      chsa = GET_UADDR(uptr->u3);
 
     sim_debug(DEBUG_CMD, dptr, "iop_preio CMD %08x unit %02x chsa %04x\n",
         uptr->u3, unit, chsa);
@@ -176,7 +176,7 @@ t_stat iop_preio(UNIT *uptr, uint16 chan) {
 }
 
 /* start an I/O operation */
-t_stat iop_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
+t_stat iop_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd)
 {
     sim_debug(DEBUG_CMD, &iop_dev,
         "IOP startcmd %02x controller/device %04x\n",
@@ -233,11 +233,11 @@ t_stat iop_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
 /* Handle transfers for other sub-channels on IOP */
 t_stat iop_srv(UNIT *uptr)
 {
-    uint16  chsa = GET_UADDR(uptr->u3);
+    uint16_t  chsa = GET_UADDR(uptr->u3);
     int     cmd = uptr->u3 & IOP_MSK;
     CHANP   *chp = &iop_chp[0];             /* find the chanp pointer */
-    uint32  mema = chp->ccw_addr;           /* get inch or buffer addr */
-    uint32  tstart;
+    uint32_t  mema = chp->ccw_addr;           /* get inch or buffer addr */
+    uint32_t  tstart;
 
     /* test for NOP or INCH cmds */
     if ((cmd != IOP_NOP) && (cmd != IOP_INCH2)) {   /* NOP or INCH */
