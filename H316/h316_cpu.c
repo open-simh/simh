@@ -262,7 +262,7 @@ typedef struct {
     t_bool              iack;      // [RLA] TRUE if an interrupt occurred
     } InstHistory;
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
+uint16_t M[MAXMEMSIZE] = { 0 };                           /* memory */
 int32 saved_AR = 0;                                     /* A register */
 int32 saved_BR = 0;                                     /* B register */
 int32 saved_XR = 0;                                     /* X register */
@@ -277,21 +277,21 @@ int32 sc = 0;                                           /* shift count */
 int32 ss[4];                                            /* sense switches */
 int32 dev_int = 0;                                      /* dev ready */
 int32 dev_enb = 0;                                      /* dev enable */
-uint32 ext_ints = 0;                                    // [RLA] 16 if extended interrupts enabled
-uint16 dev_ext_int = 0;                                 // [RLA] extended interrupt request bitmap
-uint16 dev_ext_enb = 0;                                 // [RLA] extended interrupt enable bitmap
+uint32_t ext_ints = 0;                                    // [RLA] 16 if extended interrupts enabled
+uint16_t dev_ext_int = 0;                                 // [RLA] extended interrupt request bitmap
+uint16_t dev_ext_enb = 0;                                 // [RLA] extended interrupt enable bitmap
 int32 ind_max = 8;                                      /* iadr nest limit */
 int32 stop_inst = 1;                                    /* stop on ill inst */
 int32 stop_dev = 2;                                     /* stop on ill dev */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint16_t pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
 int32 pcq_p = 0;                                        /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-uint32 dma_nch = DMA_MAX;                               /* number of chan */
-uint32 dma_ad[DMA_MAX] = { 0 };                         /* DMA addresses */
-uint32 dma_wc[DMA_MAX] = { 0 };                         /* DMA word count */
-uint32 dma_eor[DMA_MAX] = { 0 };                        /* DMA end of range */
-uint32 chan_req = 0;                                    /* channel requests */
-uint32 chan_map[DMA_MAX + DMC_MAX] = { 0 };             /* chan->dev map */
+uint32_t dma_nch = DMA_MAX;                               /* number of chan */
+uint32_t dma_ad[DMA_MAX] = { 0 };                         /* DMA addresses */
+uint32_t dma_wc[DMA_MAX] = { 0 };                         /* DMA word count */
+uint32_t dma_eor[DMA_MAX] = { 0 };                        /* DMA end of range */
+uint32_t chan_req = 0;                                    /* channel requests */
+uint32_t chan_map[DMA_MAX + DMC_MAX] = { 0 };             /* chan->dev map */
 int32 (*iotab[DEV_MAX])(int32 inst, int32 fnc, int32 dat, int32 dev) = { NULL };
 int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
@@ -403,7 +403,7 @@ DEVICE cpu_dev = {
 t_stat sim_instr (void)
 {
 int32 AR, BR, MB, Y = 0, t1, t2, t3, skip, dev;
-uint32 ut;
+uint32_t ut;
 t_bool iack;                                            // [RLA] TRUE if an interrupt was taken this cycle
 t_stat reason;
 t_stat Ea (int32 inst, int32 *addr);
@@ -1167,7 +1167,7 @@ int32 cpu_ext_interrupt (void) {
   // are edge triggered - there are many cases (modem output, task, RTC) where
   // the IMP code does nothing to clear the interrupt request flag.  So we're
   // going with edge triggered version for now...
-  int32 i;  uint16 m, irq;
+  int32 i;  uint16_t m, irq;
   irq = dev_ext_int & dev_ext_enb;
   for (i = 1, m = SIGN;  m != 0;  ++i, m >>= 1) {
     if ((irq & m) != 0) {
@@ -1490,7 +1490,7 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0) ||
     (((cpu_unit.flags & UNIT_EXT) == 0) && (val > (NX_AMASK + 1))))
@@ -1509,7 +1509,7 @@ return SCPE_OK;
 
 t_stat cpu_set_interrupts (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-  uint32 newint;  t_stat ret;
+  uint32_t newint;  t_stat ret;
   if (cptr == NULL) return SCPE_ARG;
   newint = get_uint (cptr, 10, 49, &ret);
   if (ret != SCPE_OK) return ret;
@@ -1529,7 +1529,7 @@ t_stat cpu_show_interrupts (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 
 t_stat cpu_set_nchan (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i, newmax;
+uint32_t i, newmax;
 t_stat r;
 
 if (cptr == NULL)
@@ -1590,7 +1590,7 @@ t_stat io_set_dma (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newc;
+uint32_t newc;
 t_stat r;
 
 if ((cptr == NULL) || (uptr == NULL))
@@ -1614,7 +1614,7 @@ t_stat io_set_dmc (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newc;
+uint32_t newc;
 t_stat r;
 
 if ((cptr == NULL) || (uptr == NULL))
@@ -1660,7 +1660,7 @@ return SCPE_OK;
 /* Set up I/O dispatch and channel maps */
 // [RLA] Check for DMC conflicts (on both DMC channels!) ...
 
-t_bool set_chanmap (DEVICE *dptr, DIB *dibp, uint32 dno, uint32 chan)
+t_bool set_chanmap (DEVICE *dptr, DIB *dibp, uint32_t dno, uint32_t chan)
 {
   if ((chan < DMC_V_DMC1) && (chan >= dma_nch)) {
     sim_printf ("%s configured for DMA channel %d\n", sim_dname (dptr), chan + 1);
@@ -1682,7 +1682,7 @@ t_bool devtab_init (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, dno;
+uint32_t i, j, dno;
 
 for (i = 0; i < DEV_MAX; i++)
     iotab[i] = NULL;
@@ -1760,7 +1760,7 @@ int32 cr, k, di, op, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
-static uint8 has_opnd[16] = {
+static uint8_t has_opnd[16] = {
     0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1
     };
 

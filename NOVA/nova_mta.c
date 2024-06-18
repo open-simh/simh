@@ -151,7 +151,7 @@
 #define STA_MON         (STA_REW | STA_BOT | STA_WLK | STA_RDY | \
                          STA_PEM)                       /* set status chg */
 
-extern uint16 M[];
+extern uint16_t M[];
 extern UNIT cpu_unit;
 extern int32 int_req, dev_busy, dev_done, dev_disable;
 extern int32 SR, AMASK;
@@ -166,7 +166,7 @@ int32 mta_sta = 0;                                      /* status register */
 int32 mta_ep = 0;                                       /* enable polling */
 int32 mta_cwait = 100;                                  /* command latency */
 int32 mta_rwait = 100;                                  /* record latency */
-uint8 *mtxb = NULL;                                     /* transfer buffer */
+uint8_t *mtxb = NULL;                                     /* transfer buffer */
 
 int32 mta (int32 pulse, int32 code, int32 AC);
 t_stat mta_svc (UNIT *uptr);
@@ -345,7 +345,7 @@ t_stat mta_svc (UNIT *uptr)
 {
 int32 c, p, pa, u;
 t_mtrlnt i, cbc, tbc, wc;
-uint16 c1, c2;
+uint16_t c1, c2;
 t_stat st, r = SCPE_OK;
 
 u = uptr - mta_dev.units;                               /* get unit number */
@@ -590,7 +590,7 @@ for (u = 0; u < MTA_NUMDR; u++) {                       /* loop thru units */
     }
 mta_updcsta (&mta_unit[0]);                             /* update status */
 if (mtxb == NULL)
-    mtxb = (uint8 *) calloc (MTA_MAXFR, sizeof (uint8));
+    mtxb = (uint8_t *) calloc (MTA_MAXFR, sizeof (uint8_t));
 if (mtxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;

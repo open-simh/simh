@@ -106,7 +106,7 @@
                             int_req = int_req | INT_RF; \
                         else int_req = int_req & ~INT_RF
 
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 int_req, stop_inst;
 extern UNIT cpu_unit;
 
@@ -292,7 +292,7 @@ switch (pulse) {                                        /* decode IR<9:11> */
         break;
         }                                               /* end switch */
 
-if ((uint32) rf_da >= rf_unit.capac)
+if ((uint32_t) rf_da >= rf_unit.capac)
     rf_sta = rf_sta | RFS_NXD;
 else rf_sta = rf_sta & ~RFS_NXD;
 RF_INT_UPDATE;
@@ -309,7 +309,7 @@ t_stat rf_svc (UNIT *uptr)
 {
 int32 pa, t, mex;
 int16 *fbuf = (int16 *) uptr->filebuf;
-uint16 wc = 0;
+uint16_t wc = 0;
 
 UPDATE_PCELL;                                           /* update photocell */
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
@@ -321,7 +321,7 @@ if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
 
 mex = GET_MEX (rf_sta);
 do {
-    if ((uint32) rf_da >= rf_unit.capac) {              /* disk overflow? */
+    if ((uint32_t) rf_da >= rf_unit.capac) {              /* disk overflow? */
         rf_sta = rf_sta | RFS_NXD;
         break;
         }
@@ -338,7 +338,7 @@ do {
             rf_sta = rf_sta | RFS_WLS;
         else {                                          /* not locked */
             fbuf[rf_da] = M[pa];                        /* write word */
-            if (((uint32) rf_da) >= uptr->hwmark)
+            if (((uint32_t) rf_da) >= uptr->hwmark)
                 uptr->hwmark = rf_da + 1;
             }
         }
@@ -385,7 +385,7 @@ return SCPE_OK;
 #define DM4_START       00200
 #define DM4_LEN         (sizeof (dm4_rom) / sizeof (int16))
 
-static const uint16 os8_rom[] = {
+static const uint16_t os8_rom[] = {
     07600,                      /* 7750, CLA CLL        ; also word count */
     06603,                      /* 7751, DMAR           ; also address */
     06622,                      /* 7752, DFSC           ; done? */
@@ -393,7 +393,7 @@ static const uint16 os8_rom[] = {
     05752                       /* 7754, JMP @.-2       ; enter boot */
     };
 
-static const uint16 dm4_rom[] = {
+static const uint16_t dm4_rom[] = {
     00200, 07600,               /* 0200, CLA CLL */
     00201, 06603,               /* 0201, DMAR           ; read */
     00202, 06622,               /* 0202, DFSC           ; done? */
@@ -426,8 +426,8 @@ return SCPE_OK;
 
 t_stat rf_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 sz, p;
-uint32 ds_bytes = RF_DKSIZE * sizeof (int16);
+uint32_t sz, p;
+uint32_t ds_bytes = RF_DKSIZE * sizeof (int16);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;

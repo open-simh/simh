@@ -165,11 +165,11 @@ struct drvtyp dp_drv_tab[] = {
 
 
 struct df10   dp_df10[NUM_DEVS_DP];
-uint32        dp_cur_unit[NUM_DEVS_DP];
+uint32_t        dp_cur_unit[NUM_DEVS_DP];
 uint64        dp_buf[NUM_DEVS_DP][RP_NUMWD];
 int           readin_flag = 0;
 
-t_stat        dp_devio(uint32 dev, uint64 *data);
+t_stat        dp_devio(uint32_t dev, uint64 *data);
 t_stat        dp_svc(UNIT *);
 t_stat        dp_boot(int32, DEVICE *);
 void          dp_ini(UNIT *, t_bool);
@@ -394,7 +394,7 @@ DEVICE *dp_devs[] = {
 };
 
 
-t_stat dp_devio(uint32 dev, uint64 *data) {
+t_stat dp_devio(uint32_t dev, uint64 *data) {
      uint64         res;
      int            ctlr = (dev - DP_DEVNUM) >> 2;
      struct df10   *df10;
@@ -467,7 +467,7 @@ t_stat dp_devio(uint32 dev, uint64 *data) {
          }
   
          sim_debug(DEBUG_CONO, dptr, "DP %03o CONO %06o %d PC=%o %06o\n", dev,
-                 (uint32)*data, ctlr, PC, df10->status);
+                 (uint32_t)*data, ctlr, PC, df10->status);
          break;
 
      case DATAI:
@@ -562,7 +562,7 @@ t_stat dp_devio(uint32 dev, uint64 *data) {
                               | (tmp << 3) | ctlr;
              uptr->DATAPTR = 0;      /* Set no data */
              CLR_BUF(uptr);
-             df10_setup(df10, (uint32)*data);
+             df10_setup(df10, (uint32_t)*data);
              uptr->STATUS |= BUSY;
              break;
 
@@ -934,8 +934,8 @@ t_stat
 dp_boot(int32 unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint32              addr;
-    uint32              ptr;
+    uint32_t              addr;
+    uint32_t              ptr;
     int                 sect;
     int                 wc;
 

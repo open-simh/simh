@@ -37,9 +37,9 @@
 /* function prototypes */
 
 t_stat RAM_svc (UNIT *uptr);
-t_stat RAM_reset (DEVICE *dptr, uint32 base, uint32 size);
-uint8 RAM_get_mbyte(uint32 addr);
-void RAM_put_mbyte(uint32 addr, uint8 val);
+t_stat RAM_reset (DEVICE *dptr, uint32_t base, uint32_t size);
+uint8_t RAM_get_mbyte(uint32_t addr);
+void RAM_put_mbyte(uint32_t addr, uint8_t val);
 
 /* external function prototypes */
 
@@ -91,7 +91,7 @@ DEVICE RAM_dev = {
 
 /* RAM reset */
 
-t_stat RAM_reset (DEVICE *dptr, uint32 base, uint32 size)
+t_stat RAM_reset (DEVICE *dptr, uint32_t base, uint32_t size)
 {
     sim_debug (DEBUG_flow, &RAM_dev, "   RAM_reset: base=%05X size=%05X\n", base, size-1);
     if (RAM_unit.capac == 0) {          /* if undefined */
@@ -114,13 +114,13 @@ t_stat RAM_reset (DEVICE *dptr, uint32 base, uint32 size)
 
 /*  get a byte from memory */
 
-uint8 RAM_get_mbyte(uint32 addr)
+uint8_t RAM_get_mbyte(uint32_t addr)
 {
-    uint8 val;
+    uint8_t val;
 
     sim_debug (DEBUG_read, &RAM_dev, "RAM_get_mbyte: addr=%04X\n", addr);
-    if ((addr >= (uint32)RAM_unit.u3) && ( addr < (uint32)(RAM_unit.u3 + RAM_unit.capac))) {
-        val = *((uint8 *)RAM_unit.filebuf + (addr - RAM_unit.u3));
+    if ((addr >= (uint32_t)RAM_unit.u3) && ( addr < (uint32_t)(RAM_unit.u3 + RAM_unit.capac))) {
+        val = *((uint8_t *)RAM_unit.filebuf + (addr - RAM_unit.u3));
         sim_debug (DEBUG_read, &RAM_dev, " val=%04X\n", val); 
         return (val & 0xFF);
     }
@@ -130,11 +130,11 @@ uint8 RAM_get_mbyte(uint32 addr)
 
 /*  put a byte to memory */
 
-void RAM_put_mbyte(uint32 addr, uint8 val)
+void RAM_put_mbyte(uint32_t addr, uint8_t val)
 {
     sim_debug (DEBUG_write, &RAM_dev, "RAM_put_mbyte: addr=%04X, val=%02X\n", addr, val);
-    if ((addr >= (uint32)RAM_unit.u3) && (addr < (uint32)(RAM_unit.u3 + RAM_unit.capac))) {
-        *((uint8 *)RAM_unit.filebuf + (addr - RAM_unit.u3)) = val & 0xFF;
+    if ((addr >= (uint32_t)RAM_unit.u3) && (addr < (uint32_t)(RAM_unit.u3 + RAM_unit.capac))) {
+        *((uint8_t *)RAM_unit.filebuf + (addr - RAM_unit.u3)) = val & 0xFF;
         sim_debug (DEBUG_write, &RAM_dev, "\n");
         return;
     }

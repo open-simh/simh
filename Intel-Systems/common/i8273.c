@@ -106,7 +106,7 @@
 #define UNIT_V_ANSI (UNIT_V_UF + 0)                     /* ANSI mode */
 #define UNIT_ANSI   (1 << UNIT_V_ANSI)
 
-uint8   
+uint8_t   
     wr0 = 0,                            /* command register */
     wr1 = 0,                            /* enable register */
     wr2 = 0,                            /* CH A mode register */

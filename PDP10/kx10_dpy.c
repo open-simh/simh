@@ -176,7 +176,7 @@ extern uint64 SW;        /* switch register */
 #error ST340 bits do not match CONI_INT bits!!
 #endif
 
-t_stat dpy_devio(uint32 dev, uint64 *data);
+t_stat dpy_devio(uint32_t dev, uint64 *data);
 t_stat dpy_svc (UNIT *uptr);
 t_stat dpy_reset (DEVICE *dptr);
 const char *dpy_description (DEVICE *dptr);
@@ -222,10 +222,10 @@ static void dpy_set_int_done(UNIT *uptr)
 static void check_interrupt (UNIT *uptr)
 {
     if (uptr->STAT_REG & CONI_INT_SPEC) {
-        uint32 sc = uptr->STAT_REG & CONX_SC;
+        uint32_t sc = uptr->STAT_REG & CONX_SC;
         set_interrupt(DPY_DEVNUM, sc >> CONX_SC_SHIFT);
     } else if (uptr->STAT_REG & CONI_INT_DONE) {
-        uint32 dc = uptr->STAT_REG & CONX_DC;
+        uint32_t dc = uptr->STAT_REG & CONX_DC;
         set_interrupt(DPY_DEVNUM, dc>>CONX_DC_SHIFT);
     } else {
         clr_interrupt(DPY_DEVNUM);
@@ -251,7 +251,7 @@ int dpy_update_status (UNIT *uptr, ty340word status, int done)
 }
 
 
-t_stat dpy_devio(uint32 dev, uint64 *data) {
+t_stat dpy_devio(uint32_t dev, uint64 *data) {
     int         unit = (dev - DPY_DEVNUM) >> 2;
     UNIT        *uptr;
     int32       inst;
@@ -295,7 +295,7 @@ t_stat dpy_devio(uint32 dev, uint64 *data) {
             dpy_update_status( uptr, ty340_status(), 0);
         }
         sim_debug(DEBUG_CONO, &dpy_dev, "DPY %03o CONO %06o PC=%06o %06o\n",
-                  dev, (uint32)*data, PC, uptr->STAT_REG & ~STAT_VALID);
+                  dev, (uint32_t)*data, PC, uptr->STAT_REG & ~STAT_VALID);
         if (!sim_is_active(uptr))
             sim_activate_after(uptr, DPY_CYCLE_US);
         break;
@@ -308,10 +308,10 @@ t_stat dpy_devio(uint32 dev, uint64 *data) {
         sim_debug(DEBUG_DATAIO, &dpy_dev, "DPY %03o DATO %012llo PC=%06o\n",
                   dev, *data, PC);
 
-        inst = (uint32)LRZ(*data);
+        inst = (uint32_t)LRZ(*data);
         if (dpy_update_status(uptr, ty340_instruction(inst), 0)) {
             /* still running */
-            inst = (uint32)RRZ(*data);
+            inst = (uint32_t)RRZ(*data);
             dpy_update_status(uptr, ty340_instruction(inst), 1);
         }
         if (!sim_is_active(uptr))
@@ -461,18 +461,18 @@ cpu_set_switches(unsigned long w1, unsigned long w2) {
 #define UNIT_JOY      (1 << DEV_V_UF)      /* Use USB gaming devices. */
 #define UNIT_CSCOPE   (1 << (DEV_V_UF+1))  /* Enable color scope. */
 
-t_stat wcnsls_devio(uint32 dev, uint64 *data);
+t_stat wcnsls_devio(uint32_t dev, uint64 *data);
 t_stat wcnsls_svc (UNIT *uptr);
 t_stat wcnsls_reset (DEVICE *dptr);
 const char *wcnsls_description (DEVICE *dptr);
 
 static uint64 dev420_cono = 0;
-static uint8 cscope_r = 0;
-static uint8 cscope_g = 0;
-static uint8 cscope_b = 0;
+static uint8_t cscope_r = 0;
+static uint8_t cscope_g = 0;
+static uint8_t cscope_b = 0;
 static VID_DISPLAY *cscope_display = NULL;
-static uint32 fade[512 * 512];
-static uint32 dot[7 * 7];
+static uint32_t fade[512 * 512];
+static uint32_t dot[7 * 7];
 
 DIB wcnsls_dib[] = {
     { WCNSLS_DEVNUM, 1, &wcnsls_devio, NULL }};
@@ -563,10 +563,10 @@ cscope_plot(int x, int y)
          double intensity = 0xFF/15.0;
          double alpha = 0xFF*exp(-focus*r2);
          dot[i + 7*j] = vid_map_rgba_window (cscope_display,
-                                         (uint8)(intensity*(cscope_r << 4)),
-                                                 (uint8)(intensity*(cscope_g << 4)),
-                                                 (uint8)(intensity*(cscope_b << 4)),
-                                                 (uint8)alpha);
+                                         (uint8_t)(intensity*(cscope_r << 4)),
+                                                 (uint8_t)(intensity*(cscope_g << 4)),
+                                                 (uint8_t)(intensity*(cscope_b << 4)),
+                                                 (uint8_t)alpha);
          }
     }
 
@@ -638,7 +638,7 @@ static uint64 keyboard_switches (void)
         if (spacewar_switches & BIT) {                  \
             switches &= ~(((uint64)FUNC36)<<POS36);     \
             DEBUGSW(("mapping %#o %s %s to %03o<<%d\r\n", \
-                    (uint32)BIT, #POS36, #FUNC36, FUNC36, POS36)); \
+                    (uint32_t)BIT, #POS36, #FUNC36, FUNC36, POS36)); \
         }
         SPACEWAR_SWITCHES;
 #undef SWSW
@@ -683,7 +683,7 @@ wcnsls_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-t_stat wcnsls_devio(uint32 dev, uint64 *data) {
+t_stat wcnsls_devio(uint32_t dev, uint64 *data) {
     switch (dev & 3) {
     case CONO:
         /* CONO WCNSLS,40       ;enable spacewar consoles */
@@ -725,7 +725,7 @@ t_stat wcnsls_devio(uint32 dev, uint64 *data) {
 #if NUM_DEVS_OCNSLS > 0
 #define OCNSLS_DEVNUM 0724
 
-t_stat ocnsls_devio(uint32 dev, uint64 *data);
+t_stat ocnsls_devio(uint32_t dev, uint64 *data);
 const char *ocnsls_description (DEVICE *dptr);
 
 DIB ocnsls_dib[] = {
@@ -793,7 +793,7 @@ static uint64 old_switches (void)
     return switches;
 }
 
-t_stat ocnsls_devio(uint32 dev, uint64 *data) {
+t_stat ocnsls_devio(uint32_t dev, uint64 *data) {
     switch (dev & 3) {
     case DATAI:
         *data = old_switches ();

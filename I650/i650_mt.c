@@ -50,7 +50,7 @@
 
 
 /* Definitions */
-uint32              mt_cmd(UNIT *, uint16, uint16);
+uint32_t              mt_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              mt_srv(UNIT *);
 void                mt_ini(UNIT *, t_bool);
 t_stat              mt_reset(DEVICE *);
@@ -126,7 +126,7 @@ t_stat mt_rew(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
     return sim_tape_rewind(uptr);
 }
 
-int mt_read_numeric_word(uint8 * buf, t_int64 * d, int * ZeroNeg)
+int mt_read_numeric_word(uint8_t * buf, t_int64 * d, int * ZeroNeg)
 {
     int i, neg; 
     char c;
@@ -151,7 +151,7 @@ int mt_read_numeric_word(uint8 * buf, t_int64 * d, int * ZeroNeg)
     return 0;
 }
 
-int mt_read_alpha_word(uint8 * buf, t_int64 * d)
+int mt_read_alpha_word(uint8_t * buf, t_int64 * d)
 {
     int i, n; 
     char c;
@@ -166,7 +166,7 @@ int mt_read_alpha_word(uint8 * buf, t_int64 * d)
     return 0;
 }
 
-int mt_transfer_tape_rec_to_IAS(uint8 * buf, t_mtrlnt reclen, char mode)
+int mt_transfer_tape_rec_to_IAS(uint8_t * buf, t_mtrlnt reclen, char mode)
 {
     int n,ic,r, ZeroNeg;
     t_int64 d, CtrlWord;
@@ -250,7 +250,7 @@ int mt_transfer_tape_rec_to_IAS(uint8 * buf, t_mtrlnt reclen, char mode)
     return 0;
 }
 
-void mt_write_numeric_word(uint8 * buf, t_int64 d, int ZeroNeg)
+void mt_write_numeric_word(uint8_t * buf, t_int64 d, int ZeroNeg)
 {
     int i, neg; 
     char c;
@@ -273,7 +273,7 @@ void mt_write_numeric_word(uint8 * buf, t_int64 d, int ZeroNeg)
     }
 }
 
-void mt_write_alpha_word(uint8 * buf, t_int64 d)
+void mt_write_alpha_word(uint8_t * buf, t_int64 d)
 {
     int i, n; 
     char c;
@@ -285,7 +285,7 @@ void mt_write_alpha_word(uint8 * buf, t_int64 d)
     }
 }
 
-void mt_transfer_IAS_to_tape_rec(uint8 * buf, t_mtrlnt * reclen, char mode)
+void mt_transfer_IAS_to_tape_rec(uint8_t * buf, t_mtrlnt * reclen, char mode)
 {
     int n,ic,ZeroNeg;
     t_int64 d, CtrlWord;
@@ -347,13 +347,13 @@ void mt_transfer_IAS_to_tape_rec(uint8 * buf, t_mtrlnt * reclen, char mode)
 }
 
 /* Start off a mag tape command */
-uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 fast)
+uint32_t mt_cmd(UNIT * uptr, uint16_t cmd, uint16_t fast)
 {
     DEVICE             *dptr = find_dev_from_unit(uptr);
     int                 unit = uptr - &mt_unit[0];
     int                 i, ic, time;
     t_stat              r;   
-    uint8               buf[1024];
+    uint8_t               buf[1024];
     char                cbuf[100];
     t_mtrlnt            reclen;
 

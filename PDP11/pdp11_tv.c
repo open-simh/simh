@@ -40,32 +40,32 @@ const char *tv_description (DEVICE *dptr);
 #define TV_PIXELS    (TV_WIDTH * TV_HEIGHT) /* Total number of pixels. */
 #define TV_KEYS      16                     /* Max keys in buffer. */
 
-static uint32 tv_surface[TV_WINDOWS][TV_PIXELS];
-static uint32 tv_palette[TV_WINDOWS][2];
+static uint32_t tv_surface[TV_WINDOWS][TV_PIXELS];
+static uint32_t tv_palette[TV_WINDOWS][2];
 static VID_DISPLAY *tv_vptr[TV_WINDOWS];
 static char tv_updated[TV_WINDOWS];
 
 static int    tv_keys = 0;
-static uint16 tv_key[TV_KEYS];  /* Buffer for LKBB. */
-static uint16 COLORD;
-static uint16 VIDSW;     /* Video switch register. */
-static uint16 COLORA;
-static uint8  tv_source[256];
-static uint8  tv_display[256];
-static uint16 TVINCR;
-static uint16 TVSEL;     /* Frame buffer select. */
-static uint16 TVRADR;
-static uint16 tvdata;
-static uint16 TVWC;
-static uint16 TVDADR;
-static uint16 TVSHR;
-static uint16 TVMSK;
-static uint16 TVDWIN;
-static uint16 TVRWIN;
-static uint16 TVCNSL[64];
+static uint16_t tv_key[TV_KEYS];  /* Buffer for LKBB. */
+static uint16_t COLORD;
+static uint16_t VIDSW;     /* Video switch register. */
+static uint16_t COLORA;
+static uint8_t  tv_source[256];
+static uint8_t  tv_display[256];
+static uint16_t TVINCR;
+static uint16_t TVSEL;     /* Frame buffer select. */
+static uint16_t TVRADR;
+static uint16_t tvdata;
+static uint16_t TVWC;
+static uint16_t TVDADR;
+static uint16_t TVSHR;
+static uint16_t TVMSK;
+static uint16_t TVDWIN;
+static uint16_t TVRWIN;
+static uint16_t TVCNSL[64];
 
 #define FB (16*1024)
-static uint16 RAM[64*FB];
+static uint16_t RAM[64*FB];
 
 #define BASE ((TVSEL & 077) * FB)
 
@@ -149,10 +149,10 @@ DEVICE tv_dev = {
 };
 
 static void
-render_word (uint8 buffer, uint16 address)
+render_word (uint8_t buffer, uint16_t address)
 {
-  uint8 display = tv_display[buffer];
-  uint16 data;
+  uint8_t display = tv_display[buffer];
+  uint16_t data;
   int i;
 
   if (display >= TV_WINDOWS)
@@ -174,9 +174,9 @@ render_word (uint8 buffer, uint16 address)
 }
 
 static void
-render_display (uint16 display)
+render_display (uint16_t display)
 {
-  uint8 buffer = tv_source[display];
+  uint8_t buffer = tv_source[display];
   int i;
   if (display >= TV_WINDOWS)
     return;
@@ -190,8 +190,8 @@ render_display (uint16 display)
 static void
 tv_alu (void)
 {
-  uint16 data = RAM[BASE + (TVRADR/2)];
-  uint16 data2 = tvdata;
+  uint16_t data = RAM[BASE + (TVRADR/2)];
+  uint16_t data2 = tvdata;
   int sh = (TVSHR & TVSHCN);
 
   if (TVSEL & TVMOV)
@@ -299,7 +299,7 @@ t_stat
 tv_wr(int32 data, int32 PA, int32 access)
 {
   t_stat stat = SCPE_OK;
-  uint16 x;
+  uint16_t x;
   const char *a = "WRITE";
   if (access == WRITEB)
     a = "WRITEB";
@@ -393,7 +393,7 @@ toggle_fullscreen (VID_DISPLAY *vptr)
 #define CTL(NORMAL, SHIFTED, CTLED) \
   (control ? (CTLED) : KEY(NORMAL, SHIFTED))
 
-static uint16
+static uint16_t
 translate_key (SIM_KEY_EVENT *ev)
 {
   static int shifted = 0;
@@ -539,8 +539,8 @@ translate_key (SIM_KEY_EVENT *ev)
   }
 }
 
-static uint16
-keyboard_number (VID_DISPLAY *vptr, uint16 code)
+static uint16_t
+keyboard_number (VID_DISPLAY *vptr, uint16_t code)
 {
   int i;
   for (i = 0; i < TV_WINDOWS; i++) {
@@ -553,7 +553,7 @@ keyboard_number (VID_DISPLAY *vptr, uint16 code)
 t_stat tv_svc(UNIT *uptr)
 {
   SIM_KEY_EVENT ev;
-  uint16 key;
+  uint16_t key;
   int i;
 
   for (i = 0; i < TV_WINDOWS; i++) {

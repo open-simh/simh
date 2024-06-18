@@ -575,11 +575,11 @@ return SCPE_OK;
 static t_stat lp20_svc (UNIT *uptr)
 {
 int32 fnc, i, tbc, txst;
-uint16 wd10;
+uint16_t wd10;
 t_bool cont;
 a10 ba;
 
-static const uint32 txcase[32] = {
+static const uint32_t txcase[32] = {
     TX_CHR, TX_RAM, TX_CHR, TX_DVU, TX_RAM, TX_RAM, TX_DVU, TX_DVU,
     TX_RAM, TX_RAM, TX_DVU, TX_DVU, TX_RAM, TX_RAM, TX_DVU, TX_DVU,
     TX_INT, TX_INT, TX_INT, TX_INT, TX_RAM, TX_INT, TX_DVU, TX_INT,

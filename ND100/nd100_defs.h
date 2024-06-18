@@ -220,9 +220,9 @@ int mm_tra(int reg);
 #define regT    R[6]
 #define regX    R[7]
 
-extern uint16 PM[];
-extern uint16 R[8];
-extern uint16 regSTH;   /* common for all levels */
+extern uint16_t PM[];
+extern uint16_t R[8];
+extern uint16_t regSTH;   /* common for all levels */
 extern int ald;         /* Automatic load descriptor - set by boot */
 extern int curlvl;      /* Current interrupt level */
 extern int userring;    /* Current user ring */
@@ -262,10 +262,10 @@ int iox_clk(int addr);
 
 int dma_rdmem(int addr);
 int dma_wrmem(int addr, int val);
-uint16 prdmem(int addr, int how);
+uint16_t prdmem(int addr, int how);
 void pwrmem(int addr, int val, int how);
-uint16 rdmem(int addr, int how);
-uint8 rdbyte(int vaddr, int lr, int how);
+uint16_t rdmem(int addr, int how);
+uint8_t rdbyte(int vaddr, int lr, int how);
 void wrmem(int addr, int val, int how);
 void wrbyte(int vaddr, int val, int lr, int how);
 void mm_wrpcr(void);

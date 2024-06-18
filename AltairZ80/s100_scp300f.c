@@ -122,21 +122,21 @@
 #define RXRDY_IRQ_OFFSET    7
 
 typedef struct {
-    uint8 config_cnt;
-    uint8 ICW[5];
-    uint8 IMR;      /* OCW1 = IMR */
-    uint8 OCW2;
-    uint8 OCW3;
-    uint8 IRR;
-    uint8 ISR;
+    uint8_t config_cnt;
+    uint8_t ICW[5];
+    uint8_t IMR;      /* OCW1 = IMR */
+    uint8_t OCW2;
+    uint8_t OCW3;
+    uint8_t IRR;
+    uint8_t ISR;
 } I8259_REGS;
 
 typedef struct {
     PNP_INFO pnp;       /* Plug and Play */
-    uint8 rom_enabled;
-    uint8 rom_type;     /* Select Tarbell or Cromemco 16FDC ROM. */
-    uint8* ram;
-    uint8* rom;
+    uint8_t rom_enabled;
+    uint8_t rom_type;     /* Select Tarbell or Cromemco 16FDC ROM. */
+    uint8_t* ram;
+    uint8_t* rom;
 } SCP300F_INFO;
 
 I8259_REGS scp300f_pic[2];
@@ -148,9 +148,9 @@ extern t_stat set_membase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 PCX;
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern uint32_t PCX;
 extern int32 find_unit_index (UNIT *uptr);
 extern int32 sio0d(const int32 port, const int32 io, const int32 data);
 extern int32 sio0s(const int32 port, const int32 io, const int32 data);
@@ -159,8 +159,8 @@ static t_stat scp300f_svc(UNIT* uptr);
 static t_stat scp300f_reset(DEVICE *scp300f_dev);
 static t_stat scp300f_boot(int32 unitno, DEVICE* dptr);
 
-static uint8 SCP300F_Read(const uint32 Addr);
-static uint8 SCP300F_Write(const uint32 Addr, uint8 cData);
+static uint8_t SCP300F_Read(const uint32_t Addr);
+static uint8_t SCP300F_Write(const uint32_t Addr, uint8_t cData);
 static const char* scp300f_description(DEVICE *dptr);
 
 static int32 scp300fdev(const int32 port, const int32 io, const int32 data);
@@ -174,8 +174,8 @@ static UNIT scp300f_unit[] = {
 };
 
 /* 9513 Timer */
-static uint8 data9513[6] = { 0 };
-static uint8 index9513 = 0;
+static uint8_t data9513[6] = { 0 };
+static uint8_t index9513 = 0;
 
 static REG scp300f_reg[] = {
     { HRDATAD(MPIC_IMR,    scp300f_pic[MASTER_PIC].IMR,     8,  "Master IMR register"),     },
@@ -295,13 +295,13 @@ static t_stat scp300f_boot(int32 unitno, DEVICE* dptr)
 }
 
 
-static uint8 scp300f_ram[SCP300F_ROM_SIZE];
+static uint8_t scp300f_ram[SCP300F_ROM_SIZE];
 
 /* ; Seattle Computer Products 8086 Monitor
  * ;   by Tim Paterson
  * ; This software is not copyrighted.
  */
-static uint8 scp300f_rom[2][SCP300F_ROM_SIZE] =
+static uint8_t scp300f_rom[2][SCP300F_ROM_SIZE] =
 {
     {   /* Tarbell Double-Density v1.6 */
         0xFC, 0x33, 0xC0, 0x8E, 0xD0, 0x8E, 0xD8, 0x8E, 0xC0, 0xBC, 0x9C, 0x01, 0xBF, 0x9C, 0x01, 0xB9,
@@ -571,9 +571,9 @@ static uint8 scp300f_rom[2][SCP300F_ROM_SIZE] =
         if(scp300f_info->rom_enabled)
         {
             sim_debug(ROM_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT " WR ROM[0x%05x]: Cannot write to ROM.\n", PCX, Addr);
-            scp300f_ram[Addr & SCP300F_ADDR_MASK] = (uint8)data;
+            scp300f_ram[Addr & SCP300F_ADDR_MASK] = (uint8_t)data;
         } else {
-            scp300f_ram[Addr & SCP300F_ADDR_MASK] = (uint8)data;
+            scp300f_ram[Addr & SCP300F_ADDR_MASK] = (uint8_t)data;
         }
         return 0;
     } else {
@@ -589,7 +589,7 @@ static uint8 scp300f_rom[2][SCP300F_ROM_SIZE] =
 static int32 scp300fdev(const int32 port, const int32 io, const int32 data)
 {
     if(io) {
-        SCP300F_Write(port, (uint8)data);
+        SCP300F_Write(port, (uint8_t)data);
         return 0;
     } else {
         return(SCP300F_Read(port));
@@ -612,10 +612,10 @@ int days_since_1980(void) {
     return (int)floor(difftime(local_now, jan1980) / 86400);
 }
 
-static uint8 SCP300F_Read(const uint32 Addr)
+static uint8_t SCP300F_Read(const uint32_t Addr)
 {
-    uint8 cData = 0xFF;
-    uint8 sel_pic = MASTER_PIC;
+    uint8_t cData = 0xFF;
+    uint8_t sel_pic = MASTER_PIC;
 
     switch(Addr & SCP300F_IO_MASK) {
         case SCP300F_SPIC_0:
@@ -655,9 +655,9 @@ static uint8 SCP300F_Read(const uint32 Addr)
                 sim_get_time(&now);
                 currentTime = *localtime(&now);
                 data9513[0] = 0;
-                data9513[1] = (uint8)((currentTime.tm_sec / 10) << 4) | (currentTime.tm_sec % 10);
-                data9513[2] = (uint8)((currentTime.tm_min / 10) << 4) | (currentTime.tm_min % 10);
-                data9513[3] = (uint8)((currentTime.tm_hour / 10) << 4) | (currentTime.tm_hour % 10);
+                data9513[1] = (uint8_t)((currentTime.tm_sec / 10) << 4) | (currentTime.tm_sec % 10);
+                data9513[2] = (uint8_t)((currentTime.tm_min / 10) << 4) | (currentTime.tm_min % 10);
+                data9513[3] = (uint8_t)((currentTime.tm_hour / 10) << 4) | (currentTime.tm_hour % 10);
             }
             if (index9513 == 4) {
                 days = days_since_1980();
@@ -673,12 +673,12 @@ static uint8 SCP300F_Read(const uint32 Addr)
             sim_debug(TIMER_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT " 9513 STAT RD[%02x]: not implemented.\n", PCX, Addr);
             break;
         case SCP300F_UART_DATA:
-            cData = (uint8)sio0d(Addr, 0, 0);
+            cData = (uint8_t)sio0d(Addr, 0, 0);
             sim_debug(UART_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT
                 " RD: UART Data=0x%02x.\n", PCX, cData);
             break;
         case SCP300F_UART_STATUS:
-            cData = (uint8)sio0s(Addr, 0, 0);
+            cData = (uint8_t)sio0s(Addr, 0, 0);
             sim_debug(UART_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT
                 " RD: UART Stat=0x%02x.\n", PCX, cData);
             break;
@@ -703,9 +703,9 @@ static uint8 SCP300F_Read(const uint32 Addr)
     return (cData);
 }
 
-static uint8 SCP300F_Write(const uint32 Addr, uint8 cData)
+static uint8_t SCP300F_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint8 sel_pic = MASTER_PIC;
+    uint8_t sel_pic = MASTER_PIC;
 
     switch(Addr & SCP300F_IO_MASK) {
         case SCP300F_SPIC_0:
@@ -755,12 +755,12 @@ static uint8 SCP300F_Write(const uint32 Addr, uint8 cData)
             sim_debug(TIMER_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT " 9513 DATA WR[%02x]=%02x: not implemented.\n", PCX, Addr, cData);
             break;
         case SCP300F_9513_STATUS: {
-            uint8 cmd = cData >> 5;
-            uint8 s = cData & 0x1f;
+            uint8_t cmd = cData >> 5;
+            uint8_t s = cData & 0x1f;
 
             switch (cmd) {
                 case CMD_9513_LOAD_DPTR: {
-                    uint8 e, g;
+                    uint8_t e, g;
                     e = (cData >> 3) & 0x03;
                     g = cData & 0x07;
 
@@ -790,7 +790,7 @@ static uint8 SCP300F_Write(const uint32 Addr, uint8 cData)
                     sim_debug(TIMER_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT " 9513 Disarm selected counters: S=0x02%x\n", PCX, s);
                     break;
                 case CMD_9513_MISC: {
-                    uint8 n = cData & 0x07;
+                    uint8_t n = cData & 0x07;
                     switch ((cData >> 3) & 0x03) {
                     case 0:
                         if (n == 0) {
@@ -850,9 +850,9 @@ static uint8 SCP300F_Write(const uint32 Addr, uint8 cData)
     return(0);
 }
 
-void raise_scp300f_interrupt(uint8 isr_index)
+void raise_scp300f_interrupt(uint8_t isr_index)
 {
-    uint8 irq_bit;
+    uint8_t irq_bit;
     if (isr_index < 7) { /* VI0-6 on master PIC */
         irq_bit = (1 << isr_index);
         scp300f_pic[MASTER_PIC].ISR |= irq_bit;
@@ -863,13 +863,13 @@ void raise_scp300f_interrupt(uint8 isr_index)
         generate_scp300f_interrupt();
     }
 }
-extern void cpu_raise_interrupt(uint32 irq);
+extern void cpu_raise_interrupt(uint32_t irq);
 
 static void generate_scp300f_interrupt(void)
 {
-    uint8 irq, irq_pend, irq_index = 0, irq_bit = 0;
+    uint8_t irq, irq_pend, irq_index = 0, irq_bit = 0;
 
-    uint8 pic;
+    uint8_t pic;
 
     for (pic = MASTER_PIC; pic <= SLAVE_PIC; pic++) {
         irq_pend = (~scp300f_pic[pic].IMR) & scp300f_pic[pic].ISR;
@@ -903,12 +903,12 @@ static void generate_scp300f_interrupt(void)
 /* Unit 0 = ISR queue */
 static t_stat scp300f_svc(UNIT* uptr)
 {
-    uint8 cData;
+    uint8_t cData;
 
     sim_debug(IRQ_MSG, &scp300f_dev, "SCP300F: %s() Enter\n", __FUNCTION__);
 
     /* Handle UART Rx interrupts here. */
-    cData = (uint8)sio0s(0xF0 + SCP300F_UART_STATUS, 0, 0);
+    cData = (uint8_t)sio0s(0xF0 + SCP300F_UART_STATUS, 0, 0);
     if (cData & 2) {
         sim_debug(IRQ_MSG, &scp300f_dev, "SCP300F: Generate UART Interrupt\n");
         scp300f_pic[SLAVE_PIC].ISR |= (1 << 1);

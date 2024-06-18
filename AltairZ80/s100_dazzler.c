@@ -65,41 +65,41 @@ VID_DISPLAY *daz_vptr = NULL;
 
 static t_bool daz_0e = 0x00;
 static t_bool daz_0f = 0x80;
-static uint32 daz_addr = 0x0000;
+static uint32_t daz_addr = 0x0000;
 static t_bool daz_frame = 0x3f;
-static uint8 daz_res = 32;
-static uint16 daz_pages = 1;
-static uint16 daz_window_width = 640;
-static uint16 daz_window_height = 640;
-static uint16 daz_screen_width = 32;
-static uint16 daz_screen_height = 32;
-static uint16 daz_screen_pixels = 32 * 32;
-static uint8 daz_color = 0;
-static uint32 daz_surface[DAZ_PIXELS];
-static uint32 daz_cpalette[16];
-static uint32 daz_gpalette[16];
+static uint8_t daz_res = 32;
+static uint16_t daz_pages = 1;
+static uint16_t daz_window_width = 640;
+static uint16_t daz_window_height = 640;
+static uint16_t daz_screen_width = 32;
+static uint16_t daz_screen_height = 32;
+static uint16_t daz_screen_pixels = 32 * 32;
+static uint8_t daz_color = 0;
+static uint32_t daz_surface[DAZ_PIXELS];
+static uint32_t daz_cpalette[16];
+static uint32_t daz_gpalette[16];
 
-static uint8 js1_buttons[JS1_NUM_STICKS] = {0x0f, 0x0f};
-static uint8 js1_joyx[JS1_NUM_STICKS];
-static uint8 js1_joyy[JS1_NUM_STICKS];
+static uint8_t js1_buttons[JS1_NUM_STICKS] = {0x0f, 0x0f};
+static uint8_t js1_joyx[JS1_NUM_STICKS];
+static uint8_t js1_joyy[JS1_NUM_STICKS];
 
 #define DAZ_SHOW_VIDEO(b) (b & DAZ_ON) ? "ON" : "OFF"
 #define DAZ_SHOW_RES(b) (b & DAZ_RESX4) ? "X4" : "NORMAL"
 #define DAZ_SHOW_MEMSIZE(b) (b & DAZ_2K) ? "2K" : "512"
 #define DAZ_SHOW_COLOR(b) (b & DAZ_COLOR) ? "COLOR" : "B/W"
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 extern t_stat exdep_cmd(int32 flag, CONST char *cptr);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
 
 static const char *daz_description(DEVICE *dptr);
 static t_stat daz_svc(UNIT *uptr);
 static t_stat daz_reset(DEVICE *dptr);
 static t_stat daz_boot(int32 unitno, DEVICE *dptr);
-static void daz_set_0f(uint8 val);
+static void daz_set_0f(uint8_t val);
 static t_stat daz_set_video(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat daz_show_video(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat daz_set_resolution(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -488,7 +488,7 @@ static void daz_render_x4(void)
     int32 maddr = daz_addr;
     int32 saddr = 0;
     int32 soffset[] = {0, 1, daz_res, daz_res + 1, 2, 3, daz_res + 2, daz_res + 3};
-    uint32 color;
+    uint32_t color;
 
     if (daz_0f & DAZ_COLOR) {
         color = daz_cpalette[daz_color];
@@ -531,8 +531,8 @@ static int32 daz_quad_surfacey(int q)
     return 0;
 }
 
-static void daz_set_0f(uint8 val) {
-    uint8 old = daz_0f;
+static void daz_set_0f(uint8_t val) {
+    uint8_t old = daz_0f;
 
     /* Update daz_0f register */
     daz_0f = val;
@@ -596,7 +596,7 @@ static t_stat daz_show_video(FILE *st, UNIT *uptr, int32 val, CONST void *desc) 
 
 static t_stat daz_set_resolution(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint8 old = daz_0f;
+    uint8_t old = daz_0f;
 
     if (!cptr) return SCPE_IERR;
     if (!strlen(cptr)) return SCPE_ARG;
@@ -625,7 +625,7 @@ static t_stat daz_show_resolution(FILE *st, UNIT *uptr, int32 val, CONST void *d
 
 static t_stat daz_set_memsize(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint8 old = daz_0f;
+    uint8_t old = daz_0f;
 
     if (!cptr) return SCPE_IERR;
     if (!strlen(cptr)) return SCPE_ARG;
@@ -654,7 +654,7 @@ static t_stat daz_show_memsize(FILE *st, UNIT *uptr, int32 val, CONST void *desc
 
 static t_stat daz_set_color(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint8 old = daz_0f;
+    uint8_t old = daz_0f;
 
     if (!cptr) return SCPE_IERR;
     if (!strlen(cptr)) return SCPE_ARG;
@@ -750,13 +750,13 @@ static int32 js1_io(const int32 port, const int32 io, const int32 data)
 
 static void js1_joy_motion (int device, int axis, int value)
 {
-    uint8 v;
+    uint8_t v;
 
     if (device < JS1_NUM_STICKS && axis < 2) {
         if (value < -32000) value = -32000;
         if (value > 32000) value = 32000;
 
-        v = (uint8) (value >> 8);
+        v = (uint8_t) (value >> 8);
 
         if (axis == 0) {
             js1_joyx[device] = v;

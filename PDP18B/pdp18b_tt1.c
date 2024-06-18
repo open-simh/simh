@@ -54,10 +54,10 @@
 #define TTX_MAXL        1
 #endif
 
-uint32 ttix_done = 0;                                   /* input flags */
-uint32 ttox_done = 0;                                   /* output flags */
-uint8 ttix_buf[TTX_MAXL] = { 0 };                       /* input buffers */
-uint8 ttox_buf[TTX_MAXL] = { 0 };                       /* output buffers */
+uint32_t ttix_done = 0;                                   /* input flags */
+uint32_t ttox_done = 0;                                   /* output flags */
+uint8_t ttix_buf[TTX_MAXL] = { 0 };                       /* input buffers */
+uint8_t ttox_buf[TTX_MAXL] = { 0 };                       /* output buffers */
 TMLN ttx_ldsc[TTX_MAXL] = { {0} };                      /* line descriptors */
 TMXR ttx_desc = { 1, 0, 0, ttx_ldsc };                  /* mux descriptor */
 #define ttx_lines ttx_desc.lines                        /* current number of lines */

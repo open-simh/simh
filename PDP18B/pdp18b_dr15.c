@@ -71,10 +71,10 @@ extern int32 api_vec[API_HLVL][32];
 extern int32 *M;
 extern UNIT cpu_unit;
 
-uint32 dr15_tcbp = 0;                                   /* buffer = TCB ptr */
+uint32_t dr15_tcbp = 0;                                   /* buffer = TCB ptr */
 int32 dr15_tcb_ack = 0;                                 /* TCBP write ack */
 int32 dr15_ie = 0;                                      /* int enable */
-uint32 dr15_int_req = 0;                                /* int req 0-3 */
+uint32_t dr15_int_req = 0;                                /* int req 0-3 */
 int32 dr15_poll = 3;                                    /* polling interval */
 SHMEM *uc15_shmem = NULL;                               /* shared state identifier */
 int32 *uc15_shstate = NULL;                             /* shared state base */
@@ -205,7 +205,7 @@ t_stat uc15_tcbp_wr (int32 tcbp)
 UC15_SHARED_WR (UC15_TCBP, tcbp);                       /* new value */
 UC15_ATOMIC_CAS (UC15_TCBP_WR, 0, 1);                   /* signal UC15 */
 if (DEBUG_PRS (dr15_dev)) {
-    uint32 apiv, apil, fnc, tsk;
+    uint32_t apiv, apil, fnc, tsk;
     t_bool spl;
 
     apiv = (M[tcbp] >> 8) & 0377;
@@ -226,7 +226,7 @@ return SCPE_OK;
 t_stat dr15_svc (UNIT *uptr)
 {
 int32 i, t;
-uint32 old_int_req = dr15_int_req;
+uint32_t old_int_req = dr15_int_req;
 
 t = UC15_SHARED_RD (UC15_TCBP_RD);                      /* TCBP read? */
 if ((t != 0) && UC15_ATOMIC_CAS (UC15_TCBP_RD, 1, 0))   /* for real? clear */

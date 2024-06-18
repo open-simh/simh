@@ -131,7 +131,7 @@ int32 rx_cwait = 100;                                   /* command time */
 int32 rx_swait = 10;                                    /* seek, per track */
 int32 rx_xwait = 1;                                     /* tr set time */
 int32 rx_stopioe = 0;                                   /* stop on error */
-uint8 rx_buf[RX2_NUMBY] = { 0 };                        /* sector buffer */
+uint8_t rx_buf[RX2_NUMBY] = { 0 };                        /* sector buffer */
 int32 rx_bptr = 0;                                      /* buffer pointer */
 
 int32 rx (int32 IR, int32 AC);
@@ -370,7 +370,7 @@ t_stat rx_svc (UNIT *uptr)
 {
 int32 i, func, byptr, bps, wps;
 int8 *fbuf = (int8 *) uptr->filebuf;
-uint32 da;
+uint32_t da;
 #define PTR12(x) (((x) + (x) + (x)) >> 1)
 
 if (rx_28 && (uptr->flags & UNIT_DEN))                  /* RX28 and double density? */
@@ -596,7 +596,7 @@ return SCPE_OK;
 
 t_stat rx_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 sz;
+uint32_t sz;
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     if (sz > RX_SIZE)
@@ -662,7 +662,7 @@ return SCPE_OK;
 #define BOOT2_ENTRY     033
 #define BOOT2_LEN       (sizeof (boot2_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06755,                      /* 22, SDN */
     05022,                      /* 23, JMP .-1 */
     07126,                      /* 24, CLL CML RTL      ; read command + */
@@ -697,7 +697,7 @@ static const uint16 boot_rom[] = {
     06030                       /* 61, KCC */
     };
 
-static const uint16 boot2_rom[] = {
+static const uint16_t boot2_rom[] = {
     01061,                      /* READ, TAD UNIT       ; next unit+den */
     01046,                      /* 21, TAD CON360       ; add in 360 */
     00060,                      /* 22, AND CON420       ; mask to 420 */
@@ -737,7 +737,7 @@ static const uint16 boot2_rom[] = {
 t_stat rx_boot (int32 unitno, DEVICE *dptr)
 {
 size_t i;
-extern uint16 M[];
+extern uint16_t M[];
 
 if (rx_dib.dev != DEV_RX)                               /* only std devno */
     return STOP_NOTSTD;

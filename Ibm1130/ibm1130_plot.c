@@ -284,7 +284,7 @@ void xio_1627_plotter (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
                  if (IS_DEBUG) printf("Wrote to non-ready Plotter\n");
                  break;
             }
-            plot_cmd = (uint16) ( M[iocc_addr & mem_mask] >> 10 );  /* pick up command */
+            plot_cmd = (uint16_t) ( M[iocc_addr & mem_mask] >> 10 );  /* pick up command */
             process_cmd();                                          /* interpret command */
             sim_activate(plot_unit, plot_wait);                     /* schedule interrupt */
             SETBIT(plot_dsw, PLOT1627_DSW_BUSY);                    /* mark it busy */
@@ -724,7 +724,7 @@ static t_stat plot_set_length (UNIT *uptr, int32 set, CONST char *ptr, void *des
         return SCPE_ARG;
     }
 
-    val = strtotv (ptr, &cptr, (uint32) 10);   /* sim routine to get value */
+    val = strtotv (ptr, &cptr, (uint32_t) 10);   /* sim routine to get value */
     if ((val < 1) | (val >= LONGEST_ROLL)) {   /* check valid range */
         if (IS_DEBUG) printf("setting paper more than 120' or less than 1 inch\n");
         return SCPE_ARG;
@@ -745,7 +745,7 @@ static t_stat plot_set_pos (UNIT *uptr, int32 set, CONST char *ptr, void *desc)
     int32 max;
 
     max = (set == 1) ? plot_ymax : plot_xmax;
-    val = strtotv (ptr, &cptr, (uint32) 10);
+    val = strtotv (ptr, &cptr, (uint32_t) 10);
     if ((val < 0) | (val > max)) {
         if (IS_DEBUG) printf("error moving carriage off paper edge\n");
             return SCPE_ARG;

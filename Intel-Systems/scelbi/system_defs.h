@@ -35,7 +35,7 @@
 #define MAXMEMSIZE      16384                            /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                 /* actual memory size */
 #define ADDRMASK        (MAXMEMSIZE - 1)                 /* address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Simulator stop codes */
 

@@ -70,20 +70,20 @@
 /* System registers */
 
 
-uint32 nexus_req[NEXUS_HLVL];                           /* nexus int req */
-uint32 cmi_err = 0;
-uint32 cmi_cadr = 0;
+uint32_t nexus_req[NEXUS_HLVL];                           /* nexus int req */
+uint32_t cmi_err = 0;
+uint32_t cmi_cadr = 0;
 char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
 int32 sys_model = 0;
 int32 vax750_bootdev = 0;                               /* 0-A, 1-B, 2-C, 3-D */
 
-uint32 pcspatchbit = 0;
-uint32 vax750_wcsmem[16384];
+uint32_t pcspatchbit = 0;
+uint32_t vax750_wcsmem[16384];
 
 static t_stat (*nexusR[NEXUS_NUM])(int32 *dat, int32 ad, int32 md);
 static t_stat (*nexusW[NEXUS_NUM])(int32 dat, int32 ad, int32 md);
 
-extern uint32 rom[ROMSIZE/sizeof(uint32)];                     /* boot ROM */
+extern uint32_t rom[ROMSIZE/sizeof(uint32_t)];                     /* boot ROM */
 extern int32 tmr_int, tti_int, tto_int, csi_int, cso_int;
 
 t_stat cmi_reset (DEVICE *dptr);
@@ -433,7 +433,7 @@ return;
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 int32 nexus, val;
 
@@ -467,7 +467,7 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 int32 nexus;
 
@@ -695,7 +695,7 @@ if (gbuf[0]) {
         if ((unitno == -1) && 
             (memcmp (gbuf, boot_tab[i].devname, strlen(boot_tab[i].devname)) == 0)) {
             DIB *dibp;
-            uint32 ba;
+            uint32_t ba;
 
             sprintf(dbuf, "%s%s", boot_tab[i].devname, gbuf + strlen(boot_tab[i].devname));
             dptr = find_unit (dbuf, &uptr);
@@ -817,7 +817,7 @@ return SCPE_OK;
 
 void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -838,7 +838,7 @@ return;
 
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;
@@ -863,7 +863,7 @@ return SCPE_OK;
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;

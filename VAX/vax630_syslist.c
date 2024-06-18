@@ -122,7 +122,7 @@ t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
 t_stat r;
 int32 i;
-uint32 origin, limit, step = 1;
+uint32_t origin, limit, step = 1;
 
 if (flag)                                               /* dump? */
     return sim_messagef (SCPE_NOFNC, "Command Not Implemented\n");
@@ -137,7 +137,7 @@ else if (sim_switches & SWMASK ('N')) {                 /* NVR? */
     }
 else {
     origin = 0;                                         /* memory */
-    limit = (uint32) cpu_unit.capac;
+    limit = (uint32_t) cpu_unit.capac;
     if (sim_switches & SWMASK ('O')) {                  /* origin? */
         origin = (int32) get_uint (cptr, 16, 0xFFFFFFFF, &r);
         if (r != SCPE_OK)

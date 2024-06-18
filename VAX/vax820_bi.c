@@ -59,9 +59,9 @@ struct boot_dev {
     int32               let;
     };
 
-uint32 wcs_addr = 0;
-uint32 wcs_data = 0;
-uint32 nexus_req[NEXUS_HLVL];                           /* nexus int req */
+uint32_t wcs_addr = 0;
+uint32_t wcs_data = 0;
+uint32_t nexus_req[NEXUS_HLVL];                           /* nexus int req */
 int32 ipr_int = 0;
 int32 rxcd_int = 0;
 int32 ipir = 0;
@@ -484,8 +484,8 @@ return;
 }
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa);                      /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
     };
@@ -506,7 +506,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 int32 nexus, val;
 struct reglink *p;
@@ -539,7 +539,7 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 int32 nexus;
 struct reglink *p;
@@ -724,7 +724,7 @@ return SCPE_OK;
 
 void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -744,7 +744,7 @@ return;
 
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;
@@ -769,7 +769,7 @@ return SCPE_OK;
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;

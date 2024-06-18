@@ -46,7 +46,7 @@
 
 /* Memory */
 
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 extern t_uint64         M[MAXMEMSIZE];
 
 /* Arithmetic */
@@ -87,7 +87,7 @@ extern t_uint64         M[MAXMEMSIZE];
 /* 7070 channel specific functions */
 
 /* Issue a command to a channel */
-int chan_cmd(uint16 dev, uint16 cmd, uint16 addr);
+int chan_cmd(uint16_t dev, uint16_t cmd, uint16_t addr);
 
 /* Decimal helper functions */
 int                 dec_add(t_uint64 *a, t_uint64 b);
@@ -96,11 +96,11 @@ void                dec_comp(t_uint64 *a);
 int                 dec_cmp(t_uint64 a, t_uint64 b);
 void                mul_step(t_uint64 *a, t_uint64 b, int c);
 void                div_step(t_uint64 b);
-void                bin_dec(t_uint64 *a, uint32 b, int s, int l);
-uint32              dec_bin_idx(t_uint64 a);
-uint32              dec_bin_lim(t_uint64 a, uint32 b);
-int                 get_rdw(t_uint64 a, uint32 *base, uint32 *limit);
-void                upd_idx(t_uint64 *a, uint32 b);
+void                bin_dec(t_uint64 *a, uint32_t b, int s, int l);
+uint32_t              dec_bin_idx(t_uint64 a);
+uint32_t              dec_bin_lim(t_uint64 a, uint32_t b);
+int                 get_rdw(t_uint64 a, uint32_t *base, uint32_t *limit);
+void                upd_idx(t_uint64 *a, uint32_t b);
 int                 scan_irq();
 
 /* Opcodes */

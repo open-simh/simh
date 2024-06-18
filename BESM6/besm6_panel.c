@@ -70,7 +70,7 @@ static const SDL_Color black = { 0,   0,   0   };
 static const SDL_Color cyan  = { 0,   128, 128 };
 static const SDL_Color grey  = { 64,  64,  64  };
 static t_value old_BRZ [8], old_GRP [2];
-static uint32 old_M [NREGS], old_PRP [2], old_PC;
+static uint32_t old_M [NREGS], old_PRP [2], old_PC;
 static char M_lamps[NREGS][15], BRZ_lamps[8][48],
     GRP_lamps[2][48], PRP_lamps[2][24], PC_lamps[16];
 
@@ -264,11 +264,11 @@ static void draw_grp_periodic (int left, int top)
     draw_full_word (MGRP, &old_GRP[1], GRP_lamps[1], left + TEXTW, top+HEADER+STEPY);
 }
 
-static void draw_partial_word (uint32 val, int bits, uint32 * old,
+static void draw_partial_word (uint32_t val, int bits, uint32_t * old,
                                char * lamps, int hpos, int vpos)
 {
     int x;
-    uint32 anded, ored;
+    uint32_t anded, ored;
     anded = *old & val;
     ored = *old | val;
     *old = val;

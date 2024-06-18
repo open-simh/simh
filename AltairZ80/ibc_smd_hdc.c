@@ -77,45 +77,45 @@
 
 typedef struct {
     UNIT  *uptr;
-    uint8  readonly;    /* Drive is read-only? */
-    uint16 sectsize;    /* sector size */
-    uint16 nsectors;    /* number of sectors/track */
-    uint16 nheads;      /* number of heads */
-    uint16 ncyls;       /* number of cylinders */
-    uint16 cur_cyl;     /* Current cylinder */
-    uint8  cur_head;    /* Current Head */
-    uint8  cur_sect;    /* current starting sector of transfer */
-    uint8  ready;       /* Is drive ready? */
+    uint8_t  readonly;    /* Drive is read-only? */
+    uint16_t sectsize;    /* sector size */
+    uint16_t nsectors;    /* number of sectors/track */
+    uint16_t nheads;      /* number of heads */
+    uint16_t ncyls;       /* number of cylinders */
+    uint16_t cur_cyl;     /* Current cylinder */
+    uint8_t  cur_head;    /* Current Head */
+    uint8_t  cur_sect;    /* current starting sector of transfer */
+    uint8_t  ready;       /* Is drive ready? */
 } IBC_SMD_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8   intenable;  /* Interrupt Enable */
-    uint8   intvector;  /* Interrupt Vector */
-    uint8   sel_drive;  /* Currently selected drive */
-    uint8   arg0;       /* IBC SMD Argument 0 Register */
-    uint8   arg1;       /* IBC SMD Argument 1 Register */
-    uint8   cmd;        /* IBC SMD Command Register */
-    uint8   sec;        /* IBC SMD Sector Register */
-    uint8   status_reg; /* Status Register */
-    uint8   error_reg;  /* Error Register */
-    uint8   retries;    /* Number of retries to attempt */
-    uint8   ndrives;    /* Number of drives attached to the controller */
-    uint8   sectbuf[IBC_SMD_MAX_SECLEN];
-    uint16  secbuf_index;
+    uint8_t   intenable;  /* Interrupt Enable */
+    uint8_t   intvector;  /* Interrupt Vector */
+    uint8_t   sel_drive;  /* Currently selected drive */
+    uint8_t   arg0;       /* IBC SMD Argument 0 Register */
+    uint8_t   arg1;       /* IBC SMD Argument 1 Register */
+    uint8_t   cmd;        /* IBC SMD Command Register */
+    uint8_t   sec;        /* IBC SMD Sector Register */
+    uint8_t   status_reg; /* Status Register */
+    uint8_t   error_reg;  /* Error Register */
+    uint8_t   retries;    /* Number of retries to attempt */
+    uint8_t   ndrives;    /* Number of drives attached to the controller */
+    uint8_t   sectbuf[IBC_SMD_MAX_SECLEN];
+    uint16_t  secbuf_index;
     IBC_SMD_DRIVE_INFO drive[IBC_SMD_MAX_DRIVES];
 } IBC_SMD_INFO;
 
 static IBC_SMD_INFO ibc_smd_info_data = { { 0x0, 0, 0x40, 8 } };
 static IBC_SMD_INFO *ibc_smd_info = &ibc_smd_info_data;
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern int32 vectorInterrupt;     /* Interrupt pending */
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index(UNIT *uptr);
 
 #define UNIT_V_IBC_SMD_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
@@ -129,8 +129,8 @@ static t_stat ibc_smd_unit_set_geometry(UNIT* uptr, int32 value, CONST char* cpt
 static t_stat ibc_smd_unit_show_geometry(FILE* st, UNIT* uptr, int32 value, CONST void* desc);
 static int32 ibcsmddev(const int32 port, const int32 io, const int32 data);
 
-static uint8 IBC_SMD_Read(const uint32 Addr);
-static uint8 IBC_SMD_Write(const uint32 Addr, uint8 cData);
+static uint8_t IBC_SMD_Read(const uint32_t Addr);
+static uint8_t IBC_SMD_Write(const uint32_t Addr, uint8_t cData);
 static t_stat IBC_SMD_doCommand(void);
 static const char* ibc_smd_description(DEVICE *dptr);
 
@@ -308,7 +308,7 @@ static t_stat ibc_smd_unit_set_geometry(UNIT* uptr, int32 value, CONST char* cpt
     IBC_SMD_DRIVE_INFO* pDrive;
     int32 i;
     int32 result;
-    uint16 newCyls, newHeads, newSPT, newSecLen;
+    uint16_t newCyls, newHeads, newSPT, newSecLen;
 
     i = find_unit_index(uptr);
 
@@ -380,7 +380,7 @@ static t_stat ibc_smd_unit_show_geometry(FILE* st, UNIT* uptr, int32 value, CONS
 static int32 ibcsmddev(const int32 port, const int32 io, const int32 data)
 {
     if(io) {
-        IBC_SMD_Write(port, (uint8)data);
+        IBC_SMD_Write(port, (uint8_t)data);
         return 0;
     } else {
         return(IBC_SMD_Read(port));
@@ -388,7 +388,7 @@ static int32 ibcsmddev(const int32 port, const int32 io, const int32 data)
 }
 
 /* I/O Write to IBC SMD Registers */
-static uint8 IBC_SMD_Write(const uint32 Addr, uint8 cData)
+static uint8_t IBC_SMD_Write(const uint32_t Addr, uint8_t cData)
 {
     switch(Addr & 7) {
     case IBC_SMD_REG_ARG0:
@@ -447,9 +447,9 @@ static uint8 IBC_SMD_Write(const uint32 Addr, uint8 cData)
 }
 
 /* I/O Read from IBC SMD Registers */
-static uint8 IBC_SMD_Read(const uint32 Addr)
+static uint8_t IBC_SMD_Read(const uint32_t Addr)
 {
-    uint8 cData = 0xFF;
+    uint8_t cData = 0xFF;
 
     switch (Addr & 7) {
     case IBC_SMD_REG_ERROR:
@@ -520,7 +520,7 @@ static t_stat IBC_SMD_doCommand(void)
 {
     t_stat r = SCPE_OK;
     IBC_SMD_DRIVE_INFO* pDrive = &ibc_smd_info->drive[ibc_smd_info->sel_drive];
-    uint8 cmd = ibc_smd_info->cmd;
+    uint8_t cmd = ibc_smd_info->cmd;
 
     switch (cmd) {
     case IBC_SMD_CMD_00:
@@ -557,8 +557,8 @@ static t_stat IBC_SMD_doCommand(void)
     case IBC_SMD_CMD_READ_SECT:
     case IBC_SMD_CMD_WRITE_SECT:
     {
-        uint32 xfr_len;
-        uint32 file_offset;
+        uint32_t xfr_len;
+        uint32_t file_offset;
 
         pDrive->cur_sect = ibc_smd_info->sec;
         ibc_smd_info->secbuf_index = 0;

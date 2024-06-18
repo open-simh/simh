@@ -254,9 +254,9 @@ enum opcodes {
 
 /* Function declarations */
 
-t_stat cpuio_set_inp (uint32 op, uint32 dev, UNIT *uptr);
+t_stat cpuio_set_inp (uint32_t op, uint32_t dev, UNIT *uptr);
 t_stat cpuio_clr_inp (UNIT *uptr);
-const char *opc_lookup (uint32 op, uint32 qv, uint32 *fl);
+const char *opc_lookup (uint32_t op, uint32_t qv, uint32_t *fl);
 
 extern const int8 cdr_to_alp[128];
 extern const int8 alp_to_cdp[256];

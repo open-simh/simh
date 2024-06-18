@@ -36,7 +36,7 @@
 #include "3b2_csr.h"
 
 /* Static function declarations */
-static SIM_INLINE uint32 if_lba();
+static SIM_INLINE uint32_t if_lba();
 
 /*
  * Disk Format:
@@ -92,19 +92,19 @@ DEVICE if_dev = {
 };
 
 IF_STATE if_state;
-uint8    if_buf[IF_SEC_SIZE];
-uint32   if_sec_ptr = 0;
+uint8_t    if_buf[IF_SEC_SIZE];
+uint32_t   if_sec_ptr = 0;
 
 /* Function implementation */
 
-static SIM_INLINE void if_activate(uint32 delay_us)
+static SIM_INLINE void if_activate(uint32_t delay_us)
 {
     sim_activate_after(&if_unit, delay_us);
 }
 
 t_stat if_svc(UNIT *uptr)
 {
-    uint32 lba; /* Logical block address for write */
+    uint32_t lba; /* Logical block address for write */
     t_seccnt sectswritten;
 
     if_state.status &= ~(IF_BUSY);
@@ -167,12 +167,12 @@ t_stat if_detach(UNIT *uptr)
     return sim_disk_detach(uptr);
 }
 
-uint32 if_read(uint32 pa, size_t size) {
-    uint8 reg, data;
+uint32_t if_read(uint32_t pa, size_t size) {
+    uint8_t reg, data;
     UNIT *uptr;
 
     uptr = &(if_dev.units[0]);
-    reg = (uint8)(pa - IFBASE);
+    reg = (uint8_t)(pa - IFBASE);
 
     switch (reg) {
     case IF_STATUS_REG:
@@ -252,10 +252,10 @@ uint32 if_read(uint32 pa, size_t size) {
 /* Handle the most recently received command */
 void if_handle_command()
 {
-    uint32 delay_ms = 0;
-    uint32 head_switch_delay = 0;
-    uint32 head_load_delay = 0;
-    uint32 lba; /* Logical block address */
+    uint32_t delay_ms = 0;
+    uint32_t head_switch_delay = 0;
+    uint32_t head_load_delay = 0;
+    uint32_t lba; /* Logical block address */
     t_seccnt sectsread;
 
     if_sec_ptr = 0;
@@ -347,7 +347,7 @@ void if_handle_command()
             if_state.status |= IF_WP;
         }
         if_activate(IF_STEP_DELAY);
-        if_state.track = (uint8) MIN(MAX((int) if_state.track + if_state.step_dir, 0), 0x4f);
+        if_state.track = (uint8_t) MIN(MAX((int) if_state.track + if_state.step_dir, 0), 0x4f);
         break;
     case IF_STEP_IN:
     case IF_STEP_IN_T:
@@ -356,7 +356,7 @@ void if_handle_command()
             if_state.status |= IF_WP;
         }
         if_state.step_dir = IF_STEP_IN_DIR;
-        if_state.track = (uint8) MAX((int) if_state.track + if_state.step_dir, 0);
+        if_state.track = (uint8_t) MAX((int) if_state.track + if_state.step_dir, 0);
         if_activate(IF_STEP_DELAY);
         break;
     case IF_STEP_OUT:
@@ -366,7 +366,7 @@ void if_handle_command()
             if_state.status |= IF_WP;
         }
         if_state.step_dir = IF_STEP_OUT_DIR;
-        if_state.track = (uint8) MIN((int) if_state.track + if_state.step_dir, 0x4f);
+        if_state.track = (uint8_t) MIN((int) if_state.track + if_state.step_dir, 0x4f);
         if_activate(IF_STEP_DELAY);
         break;
     case IF_SEEK:
@@ -403,7 +403,7 @@ void if_handle_command()
             if_state.status &= ~(IF_TK_0);
         }
 
-        delay_ms = (uint32) abs(if_state.data - if_state.track);
+        delay_ms = (uint32_t) abs(if_state.data - if_state.track);
 
         if (delay_ms == 0) {
             delay_ms++;
@@ -507,19 +507,19 @@ void if_handle_command()
     }
 }
 
-void if_write(uint32 pa, uint32 val, size_t size)
+void if_write(uint32_t pa, uint32_t val, size_t size)
 {
     UNIT *uptr;
-    uint8 reg;
+    uint8_t reg;
 
     val = val & 0xff;
 
     uptr = &(if_dev.units[0]);
-    reg = (uint8) (pa - IFBASE);
+    reg = (uint8_t) (pa - IFBASE);
 
     switch (reg) {
     case IF_CMD_REG:
-        if_state.cmd = (uint8) val;
+        if_state.cmd = (uint8_t) val;
         /* Writing to the command register always de-asserts the IRQ line */
         CLR_INT;
 
@@ -554,15 +554,15 @@ void if_write(uint32 pa, uint32 val, size_t size)
         if_handle_command();
         break;
     case IF_TRACK_REG:
-        if_state.track = (uint8) val;
+        if_state.track = (uint8_t) val;
         sim_debug(WRITE_MSG, &if_dev, "\tTRACK\t%02x\n", val);
         break;
     case IF_SECTOR_REG:
-        if_state.sector = (uint8) val;
+        if_state.sector = (uint8_t) val;
         sim_debug(WRITE_MSG, &if_dev, "\tSECTOR\t%02x\n", val);
         break;
     case IF_DATA_REG:
-        if_state.data = (uint8) val;
+        if_state.data = (uint8_t) val;
 
         sim_debug(WRITE_MSG, &if_dev, "\tDATA\t%02x\n", val);
 
@@ -578,7 +578,7 @@ void if_write(uint32 pa, uint32 val, size_t size)
         } else if ((if_state.cmd & 0xf0) == IF_WRITE_SEC ||
                    (if_state.cmd & 0xf0) == IF_WRITE_SEC_M) {
 
-            if_buf[if_sec_ptr++] = (uint8) val;
+            if_buf[if_sec_ptr++] = (uint8_t) val;
 
             if (if_sec_ptr >= IF_SEC_SIZE) {
                 if_sec_ptr = 0;
@@ -592,12 +592,12 @@ void if_write(uint32 pa, uint32 val, size_t size)
 }
 
 #if defined(REV3)
-uint32 if_csr_read(uint32 pa, size_t size)
+uint32_t if_csr_read(uint32_t pa, size_t size)
 {
-    return (uint32)(if_state.csr);
+    return (uint32_t)(if_state.csr);
 }
 
-void if_csr_write(uint32 pa, uint32 val, size_t size)
+void if_csr_write(uint32_t pa, uint32_t val, size_t size)
 {
     if_state.csr = val & 0xff;
 }
@@ -629,7 +629,7 @@ t_stat if_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 /*
  * Compute the offset of the currently selected C/H/S (in # of sectors)
  */
-static SIM_INLINE uint32 if_lba()
+static SIM_INLINE uint32_t if_lba()
 {
     /* Reminder that sectors are numbered 1-9 instead
      * of being numbered 0-8 */

@@ -202,7 +202,7 @@ t_stat BOOTROM_reset (DEVICE *dptr)
     j = 0;                              /* load EPROM file */
     c = fgetc(fp);
     while (c != EOF) {
-        *((uint8 *)(BOOTROM_unit.filebuf) + j++) = c & BYTEMASK;
+        *((uint8_t *)(BOOTROM_unit.filebuf) + j++) = c & BYTEMASK;
         c = fgetc(fp);
         if (j > BOOTROM_unit.capac) {
             printf("Bootrom: Image is too large - Load truncated!!!\n");
@@ -226,7 +226,7 @@ int32 BOOTROM_get_mbyte(int32 offset)
     if ((t_addr)offset > BOOTROM_unit.capac) {
         return 0xFF;
     }
-    val = *((uint8 *)(BOOTROM_unit.filebuf) + offset) & BYTEMASK;
+    val = *((uint8_t *)(BOOTROM_unit.filebuf) + offset) & BYTEMASK;
     return val;
 }
 

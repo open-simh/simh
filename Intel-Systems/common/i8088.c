@@ -29,28 +29,28 @@ t_stat i8088_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat i8088_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 
 /* memory read and write absolute address routines */
-extern uint8 get_mbyte(uint32 addr);
-extern uint16 get_mword(uint32 addr);
-extern void put_mbyte(uint32 addr, uint8 val);
-extern void put_mword(uint32 addr, uint16 val);
+extern uint8_t get_mbyte(uint32_t addr);
+extern uint16_t get_mword(uint32_t addr);
+extern void put_mbyte(uint32_t addr, uint8_t val);
+extern void put_mword(uint32_t addr, uint16_t val);
 
 extern void do_trace(void);
-uint16 port;                            //port called in dev_table[port]
+uint16_t port;                            //port called in dev_table[port]
 
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum); 
-    uint16 port;
-    uint16 devnum;
-    uint8 dummy;
+    uint8_t (*routine)(t_bool io, uint8_t data, uint8_t devnum); 
+    uint16_t port;
+    uint16_t devnum;
+    uint8_t dummy;
 };
 
 extern struct idev dev_table[];
 
 uint64 curtimer, lasttimer, timerfreq;
 
-uint8 byteregtable[8] = { regal, regcl, regdl, regbl, regah, regch, regdh, regbh };
+uint8_t byteregtable[8] = { regal, regcl, regdl, regbl, regah, regch, regdh, regbh };
 
-static const uint8 parity[0x100] = {
+static const uint8_t parity[0x100] = {
     1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
@@ -61,41 +61,41 @@ static const uint8 parity[0x100] = {
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
 };
 
-uint8    RAM[0x100000], readonly[0x100000];
-uint8    OP, segoverride, reptype, bootdrive = 0, hdcount = 0;
-uint16 segregs[4], SEG, OFF, IP, useseg, oldsp;
-uint8    tempcf, oldcf, cf, pf, af, zf, sf, tf, ifl, df, of, MOD, REGX, RM;
-uint16 oper1, oper2, res16, disp16, temp16, dummy, stacksize, frametemp;
-uint8    oper1b, oper2b, res8, disp8, temp8, nestlev, addrbyte;
-uint32 temp1, temp2, temp3, temp4, temp5, temp32, tempaddr32, EA;
+uint8_t    RAM[0x100000], readonly[0x100000];
+uint8_t    OP, segoverride, reptype, bootdrive = 0, hdcount = 0;
+uint16_t segregs[4], SEG, OFF, IP, useseg, oldsp;
+uint8_t    tempcf, oldcf, cf, pf, af, zf, sf, tf, ifl, df, of, MOD, REGX, RM;
+uint16_t oper1, oper2, res16, disp16, temp16, dummy, stacksize, frametemp;
+uint8_t    oper1b, oper2b, res8, disp8, temp8, nestlev, addrbyte;
+uint32_t temp1, temp2, temp3, temp4, temp5, temp32, tempaddr32, EA;
 int32    result;
 uint64 totalexec;
 
 int32 AX, BX, CX, DX, DI, SI, BP, SP, CS, DS, SS, ES, PSW, PCX, SGX, DISP, DATA8, DATA16;
 
-//extern uint16    VGA_SC[0x100], VGA_CRTC[0x100], VGA_ATTR[0x100], VGA_GC[0x100];
-//extern uint8 updatedscreen;
+//extern uint16_t    VGA_SC[0x100], VGA_CRTC[0x100], VGA_ATTR[0x100], VGA_GC[0x100];
+//extern uint8_t updatedscreen;
 union _bytewordregs_ regs;
 
-//uint8    portram[0x10000];
-uint8    running = 0, debugmode, showcsip, verbose, mouseemu, didbootstrap = 0;
-//uint8    ethif;
+//uint8_t    portram[0x10000];
+uint8_t    running = 0, debugmode, showcsip, verbose, mouseemu, didbootstrap = 0;
+//uint8_t    ethif;
 
-//extern uint8    vidmode;
-extern uint8 verbose;
-uint32 saved_PC = 0;                    /* saved program counter */
+//extern uint8_t    vidmode;
+extern uint8_t verbose;
+uint32_t saved_PC = 0;                    /* saved program counter */
 int32 int_req = 0;                      /* Interrupt request 0x01 = int, 0x02 = NMI*/
 
 //extern void vidinterrupt();
 
-//extern uint8 readVGA (uint32 addr32);
+//extern uint8_t readVGA (uint32_t addr32);
 
-void intcall86 (uint8 intnum);
+void intcall86 (uint8_t intnum);
 
 #define makeflagsword() \
     ( \
-    2 | (uint16) cf | ((uint16) pf << 2) | ((uint16) af << 4) | ((uint16) zf << 6) | ((uint16) sf << 7) | \
-    ((uint16) tf << 8) | ((uint16) ifl << 9) | ((uint16) df << 10) | ((uint16) of << 11) \
+    2 | (uint16_t) cf | ((uint16_t) pf << 2) | ((uint16_t) af << 4) | ((uint16_t) zf << 6) | ((uint16_t) sf << 7) | \
+    ((uint16_t) tf << 8) | ((uint16_t) ifl << 9) | ((uint16_t) df << 10) | ((uint16_t) of << 11) \
     )
 
 #define decodeflagsword(x) { \
@@ -111,14 +111,14 @@ void intcall86 (uint8 intnum);
     of = (temp16 >> 11) & 1; \
     }
 
-//extern void    writeVGA (uint32 addr32, uint8 value);
-//extern void    portout (uint16 portnum, uint8 value);
-//extern void    portout16 (uint16 portnum, uint16 value);
-//extern uint8    portin (uint16 portnum);
-//extern uint16 portin16 (uint16 portnum);
+//extern void    writeVGA (uint32_t addr32, uint8_t value);
+//extern void    portout (uint16_t portnum, uint8_t value);
+//extern void    portout16 (uint16_t portnum, uint16_t value);
+//extern uint8_t    portin (uint16_t portnum);
+//extern uint16_t portin16 (uint16_t portnum);
 
 /*
-void write86 (uint32 addr32, uint8 value) {
+void write86 (uint32_t addr32, uint8_t value) {
     tempaddr32 = addr32 & 0xFFFFF;
     if (readonly[tempaddr32] || (tempaddr32 >= 0xC0000) ) {
             return;
@@ -144,12 +144,12 @@ void write86 (uint32 addr32, uint8 value) {
         }
 }
 
-void writew86 (uint32 addr32, uint16 value) {
-    write86 (addr32, (uint8) value);
-    write86 (addr32 + 1, (uint8) (value >> 8) );
+void writew86 (uint32_t addr32, uint16_t value) {
+    write86 (addr32, (uint8_t) value);
+    write86 (addr32 + 1, (uint8_t) (value >> 8) );
 }
 
-uint8 read86 (uint32 addr32) {
+uint8_t read86 (uint32_t addr32) {
     addr32 &= 0xFFFFF;
     if ( (addr32 >= 0xA0000) && (addr32 <= 0xBFFFF) ) {
             if ( (vidmode == 0xD) || (vidmode == 0xE) || (vidmode == 0x10) ) return (readVGA (addr32 - 0xA0000) );
@@ -168,8 +168,8 @@ uint8 read86 (uint32 addr32) {
     return (RAM[addr32]);
 }
 
-uint16 readw86 (uint32 addr32) {
-    return ( (uint16) read86 (addr32) | (uint16) (read86 (addr32 + 1) << 8) );
+uint16_t readw86 (uint32_t addr32) {
+    return ( (uint16_t) read86 (addr32) | (uint16_t) (read86 (addr32 + 1) << 8) );
 }
 */
 
@@ -230,7 +230,7 @@ DEVICE i8088_dev = {
     NULL                //lname
 };
 
-void flag_szp8 (uint8 value) {
+void flag_szp8 (uint8_t value) {
     if (!value) {
             zf = 1;
         }
@@ -248,7 +248,7 @@ void flag_szp8 (uint8 value) {
     pf = parity[value]; /* retrieve parity state from lookup table */
 }
 
-void flag_szp16 (uint16 value) {
+void flag_szp16 (uint16_t value) {
     if (!value) {
             zf = 1;
         }
@@ -266,25 +266,25 @@ void flag_szp16 (uint16 value) {
     pf = parity[value & 255];    /* retrieve parity state from lookup table */
 }
 
-void flag_log8 (uint8 value) {
+void flag_log8 (uint8_t value) {
     flag_szp8 (value);
     cf = 0;
     of = 0; /* bitwise logic ops always clear carry and overflow */
 }
 
-void flag_log16 (uint16 value) {
+void flag_log16 (uint16_t value) {
     flag_szp16 (value);
     cf = 0;
     of = 0; /* bitwise logic ops always clear carry and overflow */
 }
 
-void flag_adc8 (uint8 v1, uint8 v2, uint8 v3) {
+void flag_adc8 (uint8_t v1, uint8_t v2, uint8_t v3) {
 
     /* v1 = destination operand, v2 = source operand, v3 = carry flag */
-    uint16    dst;
+    uint16_t    dst;
 
-    dst = (uint16) v1 + (uint16) v2 + (uint16) v3;
-    flag_szp8 ( (uint8) dst);
+    dst = (uint16_t) v1 + (uint16_t) v2 + (uint16_t) v3;
+    flag_szp8 ( (uint8_t) dst);
     if ( ( (dst ^ v1) & (dst ^ v2) & 0x80) == 0x80) {
             of = 1;
         }
@@ -307,12 +307,12 @@ void flag_adc8 (uint8 v1, uint8 v2, uint8 v3) {
         }
 }
 
-void flag_adc16 (uint16 v1, uint16 v2, uint16 v3) {
+void flag_adc16 (uint16_t v1, uint16_t v2, uint16_t v3) {
 
-    uint32    dst;
+    uint32_t    dst;
 
-    dst = (uint32) v1 + (uint32) v2 + (uint32) v3;
-    flag_szp16 ( (uint16) dst);
+    dst = (uint32_t) v1 + (uint32_t) v2 + (uint32_t) v3;
+    flag_szp16 ( (uint16_t) dst);
     if ( ( ( (dst ^ v1) & (dst ^ v2) ) & 0x8000) == 0x8000) {
             of = 1;
         }
@@ -335,12 +335,12 @@ void flag_adc16 (uint16 v1, uint16 v2, uint16 v3) {
         }
 }
 
-void flag_add8 (uint8 v1, uint8 v2) {
+void flag_add8 (uint8_t v1, uint8_t v2) {
     /* v1 = destination operand, v2 = source operand */
-    uint16    dst;
+    uint16_t    dst;
 
-    dst = (uint16) v1 + (uint16) v2;
-    flag_szp8 ( (uint8) dst);
+    dst = (uint16_t) v1 + (uint16_t) v2;
+    flag_szp8 ( (uint8_t) dst);
     if (dst & 0xFF00) {
             cf = 1;
         }
@@ -363,12 +363,12 @@ void flag_add8 (uint8 v1, uint8 v2) {
         }
 }
 
-void flag_add16 (uint16 v1, uint16 v2) {
+void flag_add16 (uint16_t v1, uint16_t v2) {
     /* v1 = destination operand, v2 = source operand */
-    uint32    dst;
+    uint32_t    dst;
 
-    dst = (uint32) v1 + (uint32) v2;
-    flag_szp16 ( (uint16) dst);
+    dst = (uint32_t) v1 + (uint32_t) v2;
+    flag_szp16 ( (uint16_t) dst);
     if (dst & 0xFFFF0000) {
             cf = 1;
         }
@@ -391,14 +391,14 @@ void flag_add16 (uint16 v1, uint16 v2) {
         }
 }
 
-void flag_sbb8 (uint8 v1, uint8 v2, uint8 v3) {
+void flag_sbb8 (uint8_t v1, uint8_t v2, uint8_t v3) {
 
     /* v1 = destination operand, v2 = source operand, v3 = carry flag */
-    uint16    dst;
+    uint16_t    dst;
 
     v2 += v3;
-    dst = (uint16) v1 - (uint16) v2;
-    flag_szp8 ( (uint8) dst);
+    dst = (uint16_t) v1 - (uint16_t) v2;
+    flag_szp8 ( (uint8_t) dst);
     if (dst & 0xFF00) {
             cf = 1;
         }
@@ -421,14 +421,14 @@ void flag_sbb8 (uint8 v1, uint8 v2, uint8 v3) {
         }
 }
 
-void flag_sbb16 (uint16 v1, uint16 v2, uint16 v3) {
+void flag_sbb16 (uint16_t v1, uint16_t v2, uint16_t v3) {
 
     /* v1 = destination operand, v2 = source operand, v3 = carry flag */
-    uint32    dst;
+    uint32_t    dst;
 
     v2 += v3;
-    dst = (uint32) v1 - (uint32) v2;
-    flag_szp16 ( (uint16) dst);
+    dst = (uint32_t) v1 - (uint32_t) v2;
+    flag_szp16 ( (uint16_t) dst);
     if (dst & 0xFFFF0000) {
             cf = 1;
         }
@@ -451,13 +451,13 @@ void flag_sbb16 (uint16 v1, uint16 v2, uint16 v3) {
         }
 }
 
-void flag_sub8 (uint8 v1, uint8 v2) {
+void flag_sub8 (uint8_t v1, uint8_t v2) {
 
     /* v1 = destination operand, v2 = source operand */
-    uint16    dst;
+    uint16_t    dst;
 
-    dst = (uint16) v1 - (uint16) v2;
-    flag_szp8 ( (uint8) dst);
+    dst = (uint16_t) v1 - (uint16_t) v2;
+    flag_szp8 ( (uint8_t) dst);
     if (dst & 0xFF00) {
             cf = 1;
         }
@@ -480,13 +480,13 @@ void flag_sub8 (uint8 v1, uint8 v2) {
         }
 }
 
-void flag_sub16 (uint16 v1, uint16 v2) {
+void flag_sub16 (uint16_t v1, uint16_t v2) {
 
     /* v1 = destination operand, v2 = source operand */
-    uint32    dst;
+    uint32_t    dst;
 
-    dst = (uint32) v1 - (uint32) v2;
-    flag_szp16 ( (uint16) dst);
+    dst = (uint32_t) v1 - (uint32_t) v2;
+    flag_szp16 ( (uint16_t) dst);
     if (dst & 0xFFFF0000) {
             cf = 1;
         }
@@ -619,8 +619,8 @@ void op_sbb16() {
     } \
     }
 
-void getea (uint8 rmval) {
-    uint32    tempea;
+void getea (uint8_t rmval) {
+    uint32_t    tempea;
 
     tempea = 0;
     switch (MOD) {
@@ -687,14 +687,14 @@ void getea (uint8 rmval) {
     EA = (tempea & 0xFFFF) + (useseg << 4);
 }
 
-void push (uint16 pushval) {
+void push (uint16_t pushval) {
     putreg16 (regsp, getreg16 (regsp) - 2);
     putmem16 (segregs[regss], getreg16 (regsp), pushval);
 }
 
-uint16 pop() {
+uint16_t pop() {
 
-    uint16    tempval;
+    uint16_t    tempval;
 
     tempval = getmem16 (segregs[regss], getreg16 (regsp) );
     putreg16 (regsp, getreg16 (regsp) + 2);
@@ -709,18 +709,18 @@ t_stat i8088_reset(DEVICE *dptr) {
     return SCPE_OK;
 }
 
-uint16 readrm16 (uint8 rmval) {
+uint16_t readrm16 (uint8_t rmval) {
     if (MOD < 3) {
             getea (rmval);
-//            return read86 (EA) | ( (uint16) read86 (EA + 1) << 8);
-            return get_mbyte (EA) | (uint16) get_mbyte ((EA + 1) << 8);
+//            return read86 (EA) | ( (uint16_t) read86 (EA + 1) << 8);
+            return get_mbyte (EA) | (uint16_t) get_mbyte ((EA + 1) << 8);
         }
     else {
             return getreg16 (rmval);
         }
 }
 
-uint8 readrm8 (uint8 rmval) {
+uint8_t readrm8 (uint8_t rmval) {
     if (MOD < 3) {
             getea (rmval);
 //            return read86 (EA);
@@ -731,7 +731,7 @@ uint8 readrm8 (uint8 rmval) {
         }
 }
 
-void writerm16 (uint8 rmval, uint16 value) {
+void writerm16 (uint8_t rmval, uint16_t value) {
     if (MOD < 3) {
             getea (rmval);
 //            write86 (EA, value & 0xFF);
@@ -744,7 +744,7 @@ void writerm16 (uint8 rmval, uint16 value) {
         }
 }
 
-void writerm8 (uint8 rmval, uint8 value) {
+void writerm8 (uint8_t rmval, uint8_t value) {
     if (MOD < 3) {
             getea (rmval);
 //            write86 (EA, value);
@@ -755,12 +755,12 @@ void writerm8 (uint8 rmval, uint8 value) {
         }
 }
 
-uint8 op_grp2_8 (uint8 cnt) {
+uint8_t op_grp2_8 (uint8_t cnt) {
 
-    uint16    s;
-    uint16    shift;
-    uint16    oldcf;
-    uint16    msb;
+    uint16_t    s;
+    uint16_t    shift;
+    uint16_t    oldcf;
+    uint16_t    msb;
 
     s = oper1b;
     oldcf = cf;
@@ -848,7 +848,7 @@ uint8 op_grp2_8 (uint8 cnt) {
                         of = 1;
                     }
 
-                flag_szp8 ( (uint8) s);
+                flag_szp8 ( (uint8_t) s);
                 break;
 
             case 5: /* SHR r/m8 */
@@ -864,7 +864,7 @@ uint8 op_grp2_8 (uint8 cnt) {
                         s = s >> 1;
                     }
 
-                flag_szp8 ( (uint8) s);
+                flag_szp8 ( (uint8_t) s);
                 break;
 
             case 7: /* SAR r/m8 */
@@ -875,19 +875,19 @@ uint8 op_grp2_8 (uint8 cnt) {
                     }
 
                 of = 0;
-                flag_szp8 ( (uint8) s);
+                flag_szp8 ( (uint8_t) s);
                 break;
         }
 
     return s & 0xFF;
 }
 
-uint16 op_grp2_16 (uint8 cnt) {
+uint16_t op_grp2_16 (uint8_t cnt) {
 
-    uint32    s;
-    uint32    shift;
-    uint32    oldcf;
-    uint32    msb;
+    uint32_t    s;
+    uint32_t    shift;
+    uint32_t    oldcf;
+    uint32_t    msb;
 
     s = oper1;
     oldcf = cf;
@@ -975,7 +975,7 @@ uint16 op_grp2_16 (uint8 cnt) {
                         of = 1;
                     }
 
-                flag_szp16 ( (uint16) s);
+                flag_szp16 ( (uint16_t) s);
                 break;
 
             case 5: /* SHR r/m8 */
@@ -991,7 +991,7 @@ uint16 op_grp2_16 (uint8 cnt) {
                         s = s >> 1;
                     }
 
-                flag_szp16 ( (uint16) s);
+                flag_szp16 ( (uint16_t) s);
                 break;
 
             case 7: /* SAR r/m8 */
@@ -1002,34 +1002,34 @@ uint16 op_grp2_16 (uint8 cnt) {
                     }
 
                 of = 0;
-                flag_szp16 ( (uint16) s);
+                flag_szp16 ( (uint16_t) s);
                 break;
         }
 
-    return (uint16) s & 0xFFFF;
+    return (uint16_t) s & 0xFFFF;
 }
 
-void op_div8 (uint16 valdiv, uint8 divisor) {
+void op_div8 (uint16_t valdiv, uint8_t divisor) {
     if (divisor == 0) {
             intcall86 (0);
             return;
         }
 
-    if ( (valdiv / (uint16) divisor) > 0xFF) {
+    if ( (valdiv / (uint16_t) divisor) > 0xFF) {
             intcall86 (0);
             return;
         }
 
-    regs.byteregs[regah] = valdiv % (uint16) divisor;
-    regs.byteregs[regal] = valdiv / (uint16) divisor;
+    regs.byteregs[regah] = valdiv % (uint16_t) divisor;
+    regs.byteregs[regal] = valdiv / (uint16_t) divisor;
 }
 
-void op_idiv8 (uint16 valdiv, uint8 divisor) {
+void op_idiv8 (uint16_t valdiv, uint8_t divisor) {
 
-    uint16    s1;
-    uint16    s2;
-    uint16    d1;
-    uint16    d2;
+    uint16_t    s1;
+    uint16_t    s2;
+    uint16_t    d1;
+    uint16_t    d2;
     int    sign;
 
     if (divisor == 0) {
@@ -1054,8 +1054,8 @@ void op_idiv8 (uint16 valdiv, uint8 divisor) {
             d2 = (~d2 + 1) & 0xff;
         }
 
-    regs.byteregs[regah] = (uint8) d2;
-    regs.byteregs[regal] = (uint8) d1;
+    regs.byteregs[regah] = (uint8_t) d2;
+    regs.byteregs[regal] = (uint8_t) d1;
 }
 
 void op_grp3_8() {
@@ -1084,9 +1084,9 @@ void op_grp3_8() {
                 break;
 
             case 4: /* MUL */
-                temp1 = (uint32) oper1b * (uint32) regs.byteregs[regal];
+                temp1 = (uint32_t) oper1b * (uint32_t) regs.byteregs[regal];
                 putreg16 (regax, temp1 & 0xFFFF);
-                flag_szp8 ( (uint8) temp1);
+                flag_szp8 ( (uint8_t) temp1);
                 if (regs.byteregs[regah]) {
                         cf = 1;
                         of = 1;
@@ -1137,27 +1137,27 @@ void op_grp3_8() {
         }
 }
 
-void op_div16 (uint32 valdiv, uint16 divisor) {
+void op_div16 (uint32_t valdiv, uint16_t divisor) {
     if (divisor == 0) {
             intcall86 (0);
             return;
         }
 
-    if ( (valdiv / (uint32) divisor) > 0xFFFF) {
+    if ( (valdiv / (uint32_t) divisor) > 0xFFFF) {
             intcall86 (0);
             return;
         }
 
-    putreg16 (regdx, valdiv % (uint32) divisor);
-    putreg16 (regax, valdiv / (uint32) divisor);
+    putreg16 (regdx, valdiv % (uint32_t) divisor);
+    putreg16 (regax, valdiv / (uint32_t) divisor);
 }
 
-void op_idiv16 (uint32 valdiv, uint16 divisor) {
+void op_idiv16 (uint32_t valdiv, uint16_t divisor) {
 
-    uint32    d1;
-    uint32    d2;
-    uint32    s1;
-    uint32    s2;
+    uint32_t    d1;
+    uint32_t    d2;
+    uint32_t    s1;
+    uint32_t    s2;
     int    sign;
 
     if (divisor == 0) {
@@ -1211,10 +1211,10 @@ void op_grp3_16() {
                 break;
 
             case 4: /* MUL */
-                temp1 = (uint32) oper1 * (uint32) getreg16 (regax);
+                temp1 = (uint32_t) oper1 * (uint32_t) getreg16 (regax);
                 putreg16 (regax, temp1 & 0xFFFF);
                 putreg16 (regdx, temp1 >> 16);
-                flag_szp16 ( (uint16) temp1);
+                flag_szp16 ( (uint16_t) temp1);
                 if (getreg16 (regdx) ) {
                         cf = 1;
                         of = 1;
@@ -1256,11 +1256,11 @@ void op_grp3_16() {
                 break;
 
             case 6: /* DIV */
-                op_div16 ( ( (uint32) getreg16 (regdx) << 16) + getreg16 (regax), oper1);
+                op_div16 ( ( (uint32_t) getreg16 (regdx) << 16) + getreg16 (regax), oper1);
                 break;
 
             case 7: /* DIV */
-                op_idiv16 ( ( (uint32) getreg16 (regdx) << 16) + getreg16 (regax), oper1);
+                op_idiv16 ( ( (uint32_t) getreg16 (regdx) << 16) + getreg16 (regax), oper1);
                 break;
         }
 }
@@ -1292,10 +1292,10 @@ void op_grp5() {
                 push (segregs[regcs]);
                 push (IP);
                 getea (RM);
-//                IP = (uint16) read86 (EA) + (uint16) read86 (EA + 1) * 256;
-//                segregs[regcs] = (uint16) read86 (EA + 2) + (uint16) read86 (EA + 3) * 256;
-                IP = (uint16) get_mbyte (EA) + (uint16) get_mbyte ((EA + 1) * 256);
-                segregs[regcs] = (uint16) get_mbyte (EA + 2) + (uint16) get_mbyte ((EA + 3) * 256);
+//                IP = (uint16_t) read86 (EA) + (uint16_t) read86 (EA + 1) * 256;
+//                segregs[regcs] = (uint16_t) read86 (EA + 2) + (uint16_t) read86 (EA + 3) * 256;
+                IP = (uint16_t) get_mbyte (EA) + (uint16_t) get_mbyte ((EA + 1) * 256);
+                segregs[regcs] = (uint16_t) get_mbyte (EA + 2) + (uint16_t) get_mbyte ((EA + 3) * 256);
                 break;
 
             case 4: /* JMP Ev */
@@ -1304,10 +1304,10 @@ void op_grp5() {
 
             case 5: /* JMP Mp */
                 getea (RM);
-//                IP = (uint16) read86 (EA) + (uint16) read86 (EA + 1) * 256;
-//                segregs[regcs] = (uint16) read86 (EA + 2) + (uint16) read86 (EA + 3) * 256;
-                IP = (uint16) get_mbyte (EA) + (uint16) get_mbyte ((EA + 1) * 256);
-                segregs[regcs] = (uint16) get_mbyte (EA + 2) + (uint16) get_mbyte ((EA + 3) * 256);
+//                IP = (uint16_t) read86 (EA) + (uint16_t) read86 (EA + 1) * 256;
+//                segregs[regcs] = (uint16_t) read86 (EA + 2) + (uint16_t) read86 (EA + 3) * 256;
+                IP = (uint16_t) get_mbyte (EA) + (uint16_t) get_mbyte ((EA + 1) * 256);
+                segregs[regcs] = (uint16_t) get_mbyte (EA + 2) + (uint16_t) get_mbyte ((EA + 3) * 256);
                 break;
 
             case 6: /* PUSH Ev */
@@ -1316,19 +1316,19 @@ void op_grp5() {
         }
 }
 
-uint8 dolog = 0, didintr = 0;
+uint8_t dolog = 0, didintr = 0;
 FILE    *logout;
-uint8 printops = 0;
+uint8_t printops = 0;
 
 //#ifdef NETWORKING_ENABLED
 //extern void nethandler();
 //#endif
 //extern void diskhandler();
-//extern void readdisk (uint8 drivenum, uint16 dstseg, uint16 dstoff, uint16 cyl, uint16 sect, uint16 head, uint16 sectcount);
+//extern void readdisk (uint8_t drivenum, uint16_t dstseg, uint16_t dstoff, uint16_t cyl, uint16_t sect, uint16_t head, uint16_t sectcount);
 
-void intcall86 (uint8 intnum) {
-    static uint16 lastint10ax;
-//    uint16 oldregax;
+void intcall86 (uint8_t intnum) {
+    static uint16_t lastint10ax;
+//    uint16_t oldregax;
     didintr = 1;
 
     if (intnum == 0x19) didbootstrap = 1;
@@ -1382,25 +1382,25 @@ void intcall86 (uint8 intnum) {
     push (makeflagsword() );
     push (segregs[regcs]);
     push (IP);
-    segregs[regcs] = getmem16 (0, (uint16) intnum * 4 + 2);
-    IP = getmem16 (0, (uint16) intnum * 4);
+    segregs[regcs] = getmem16 (0, (uint16_t) intnum * 4 + 2);
+    IP = getmem16 (0, (uint16_t) intnum * 4);
     ifl = 0;
     tf = 0;
 }
 /*
 #if defined(NETWORKING_ENABLED)
 extern struct netstruct {
-    uint8    enabled;
-    uint8    canrecv;
-    uint16    pktlen;
+    uint8_t    enabled;
+    uint8_t    canrecv;
+    uint16_t    pktlen;
 } net;
 #endif
 uint64    frametimer = 0, didwhen = 0, didticks = 0;
-uint32    makeupticks = 0;
+uint32_t    makeupticks = 0;
 extern float    timercomp;
 uint64    timerticks = 0, realticks = 0;
 uint64    lastcountertimer = 0, counterticks = 10000;
-extern uint8    nextintr();
+extern uint8_t    nextintr();
 extern void    timing();
 */
 
@@ -1411,11 +1411,11 @@ void set_cpuint(int32 int_num)
 
 int32 sim_instr (void) {
 
-//    uint32    loopcount;
-    uint32 reason;
-    uint8    docontinue;
-    static uint16 firstip;
-    static uint16 trap_toggle = 0;
+//    uint32_t    loopcount;
+    uint32_t reason;
+    uint8_t    docontinue;
+    static uint16_t firstip;
+    static uint16_t trap_toggle = 0;
 
 //    counterticks = (uint64) ( (double) timerfreq / (double) 65536.0);
 
@@ -3259,7 +3259,7 @@ int32 sim_instr (void) {
                         oper1 = readrm16 (RM);
                         DATA8 = oper2 = getmem8 (segregs[regcs], IP);
                         StepIP (1);
-                        writerm16 (RM, op_grp2_16 ( (uint8) oper2) );
+                        writerm16 (RM, op_grp2_16 ( (uint8_t) oper2) );
                         break;
 
                     case 0xC2:    /* C2 RET Iw */
@@ -3473,7 +3473,7 @@ int32 sim_instr (void) {
                     case 0xE4:    /* E4 IN regs.byteregs[regal] Ib */
                         port = DATA8 = oper1b = getmem8 (segregs[regcs], IP);
                         StepIP (1);
-//                        regs.byteregs[regal] = (uint8) portin (oper1b);
+//                        regs.byteregs[regal] = (uint8_t) portin (oper1b);
                         regs.byteregs[regal] = dev_table[oper1b].routine(0, 0, dev_table[oper1b].devnum & 0xff);
                         break;
 
@@ -3530,7 +3530,7 @@ int32 sim_instr (void) {
 
                     case 0xEC:    /* EC IN regs.byteregs[regal] regdx */
                         port = oper1 = (getreg16 (regdx) );
-//                        regs.byteregs[regal] = (uint8) portin (oper1);
+//                        regs.byteregs[regal] = (uint8_t) portin (oper1);
                         regs.byteregs[regal] = dev_table[oper1].routine(0, 0, dev_table[oper1].devnum & 0xff);
                         break;
 

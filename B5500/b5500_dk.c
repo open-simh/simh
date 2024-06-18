@@ -63,7 +63,7 @@
 #define DFX             (1 << DFX_V)
 #define MODIB           (1 << MODIB_V)
 
-t_stat              dsk_cmd(uint16, uint16, uint8, uint16 *);
+t_stat              dsk_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 t_stat              dsk_srv(UNIT *);
 t_stat              dsk_boot(int32, DEVICE *);
 t_stat              dsk_help (FILE *, DEVICE *, UNIT *, int32, const char *);
@@ -74,7 +74,7 @@ t_stat              esu_detach(UNIT *);
 t_stat              esu_help (FILE *, DEVICE *, UNIT *, int32, const char *);
 const char         *esu_description (DEVICE *);
 
-uint8               dsk_buffer[NUM_DEVS_DSK][DK_SEC_SIZE];
+uint8_t               dsk_buffer[NUM_DEVS_DSK][DK_SEC_SIZE];
 t_stat              set_mod(UNIT *uptr, int32 val, CONST char *cptr, 
                         void *desc);
 
@@ -150,7 +150,7 @@ DEVICE              dsk_dev = {
 
 
 /* Start off a disk command */
-t_stat dsk_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+t_stat dsk_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     UNIT        *uptr;
     int         u = (dev==DSK1_DEV)? 0: 1;
@@ -200,7 +200,7 @@ t_stat dsk_srv(UNIT * uptr)
     DEVICE              *dptr = find_dev_from_unit(uptr);
     int                 i;
     int                 addr;
-    uint8               abuf[8];        /* x-esu-disk-track-segment */
+    uint8_t               abuf[8];        /* x-esu-disk-track-segment */
     int                 u = uptr - dsk_unit;
     int                 esu;
     UNIT                *eptr;

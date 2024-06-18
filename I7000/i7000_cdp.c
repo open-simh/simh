@@ -56,7 +56,7 @@
    cdp_mod      Card Punch modifiers list
 */
 
-uint32              cdp_cmd(UNIT *, uint16, uint16);
+uint32_t              cdp_cmd(UNIT *, uint16_t, uint16_t);
 void                cdp_ini(UNIT *, t_bool);
 t_stat              cdp_srv(UNIT *);
 t_stat              cdp_reset(DEVICE *);
@@ -160,13 +160,13 @@ DEVICE stack_dev = {
 */
 
 
-uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
     int                 stk = dev & 017;
     UNIT               *iuptr = &cdp_input_unit[u];
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t             *image = (uint16_t *)(uptr->up7);
     int                 i;
 
     /* Are we currently tranfering? */
@@ -249,7 +249,7 @@ t_stat
 cdp_srv(UNIT *uptr) {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
-    uint16              *image = (uint16 *)(uptr->up7);
+    uint16_t              *image = (uint16_t *)(uptr->up7);
 
     /* Waiting for disconnect */
     if (uptr->u5 & URCSTA_WDISCO) {
@@ -304,7 +304,7 @@ cdp_srv(UNIT *uptr) {
 
     /* Copy next column over */
     if (uptr->u5 & URCSTA_WRITE && uptr->u4 < 80) {
-        uint8               ch = 0;
+        uint8_t               ch = 0;
 
         switch(chan_read_char(chan, &ch, 0)) {
         case TIME_ERROR:
@@ -352,7 +352,7 @@ cdp_attach(UNIT * uptr, CONST char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = calloc(80, sizeof(uint16));
+        uptr->up7 = calloc(80, sizeof(uint16_t));
         uptr->u5 = 0;
     }
     return SCPE_OK;
@@ -361,7 +361,7 @@ cdp_attach(UNIT * uptr, CONST char *file)
 t_stat
 cdp_detach(UNIT * uptr)
 {
-    uint16        *image = (uint16 *)(uptr->up7);
+    uint16_t        *image = (uint16_t *)(uptr->up7);
 
     if (uptr->u5 & URCSTA_FULL) {
 #ifdef STACK_DEV

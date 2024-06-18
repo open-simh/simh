@@ -163,7 +163,7 @@ static t_bool event_fallback = FALSE;           /* TRUE if semaphores are define
 
 #else
 
-typedef uint32              EVENT;              /* the event type */
+typedef uint32_t              EVENT;              /* the event type */
 
 #define NO_EVENT            0                   /* the initial (undefined) event value */
 
@@ -389,7 +389,7 @@ static int32  edt_delay      = 1;               /* EDT delay (msec) */
 static int32  poll_wait      = 50;              /* maximum poll wait time */
 
 static char   event_name [PATH_MAX];            /* the event name */
-static uint32 event_error    = 0;               /* the host OS error code from a failed process sync call */
+static uint32_t event_error    = 0;               /* the host OS error code from a failed process sync call */
 static t_bool wait_aborted   = FALSE;           /* TRUE if the user aborted a SET IPL WAIT command */
 static EVENT  event_id       = NO_EVENT;        /* the synchronization event */
 static SHMEM  *memory_region = NULL;            /* a pointer to the shared memory region descriptor */
@@ -421,11 +421,11 @@ static void   abort_handler (int signal);
 
 /* Process synchronization routines */
 
-static uint32 create_event       (const char *name, EVENT *event);
-static uint32 destroy_event      (const char *name, EVENT *event);
+static uint32_t create_event       (const char *name, EVENT *event);
+static uint32_t destroy_event      (const char *name, EVENT *event);
 static t_bool event_is_undefined (EVENT event);
-static uint32 wait_event         (EVENT event, uint32 wait_in_ms, t_bool *signaled);
-static uint32 signal_event       (EVENT event);
+static uint32_t wait_event         (EVENT event, uint32_t wait_in_ms, t_bool *signaled);
+static uint32_t signal_event       (EVENT event);
 
 
 /* IPL SCP data structures */
@@ -809,7 +809,7 @@ return outbound;                                        /* return the outbound s
 
 static t_stat card_service (UNIT *uptr)
 {
-static uint32 delta [CARD_COUNT] = { 0, 0 };                /* per-card accumulated time between receptions */
+static uint32_t delta [CARD_COUNT] = { 0, 0 };                /* per-card accumulated time between receptions */
 const CARD_INDEX card = (CARD_INDEX) (uptr == &iplo_unit);  /* set card selector */
 t_stat status = SCPE_OK;
 
@@ -1256,7 +1256,7 @@ return SCPE_OK;
 
 static t_stat ipl_set_sync (UNIT *uptr, int32 value, CONST char *cptr, void *desc)
 {
-const uint32 wait_time = 1000;                          /* the wait time in milliseconds */
+const uint32_t wait_time = 1000;                          /* the wait time in milliseconds */
 t_bool signaled;
 
 if (event_is_undefined (event_id))                      /* if the event has not been defined yet */
@@ -1553,8 +1553,8 @@ static const HP_WORD ipl_ptx = 074u;                    /* the index of the poin
 static const HP_WORD ptr_ptx = 075u;                    /* the index of the pointer to the PTR select code */
 static const HP_WORD ipl_scx = 076u;                    /* the index of the IPL select code */
 static const HP_WORD ptr_scx = 077u;                    /* the index of the PTR select code */
-uint32 start;
-uint32 ptr_sc, ipl_sc;
+uint32_t start;
+uint32_t ptr_sc, ipl_sc;
 DEVICE *ptr_dptr;
 
 ptr_dptr = find_dev ("PTR");                            /* get a pointer to the paper tape reader device */
@@ -1565,7 +1565,7 @@ else                                                    /* otherwise */
     ptr_sc = ((DIB *) ptr_dptr->ctxt)->select_code;     /*   get the select code from the device's DIB */
 
 if (dptr == NULL)                                       /* if we are being called for a BOOT/LOAD CPU command */
-    ipl_sc = (uint32) unitno;                           /*   then get the select code from the "unitno" parameter */
+    ipl_sc = (uint32_t) unitno;                           /*   then get the select code from the "unitno" parameter */
 else                                                    /* otherwise */
     ipl_sc = ipli_dib.select_code;                      /*   use the device select code from the DIB */
 
@@ -1608,7 +1608,7 @@ else {                                                                  /* other
    initially non-signaled.
 */
 
-static uint32 create_event (const char *name, EVENT *event)
+static uint32_t create_event (const char *name, EVENT *event)
 {
 *event = CreateEvent (NULL, FALSE, FALSE, name);      /* create an auto-reset, initially not-signaled event */
 
@@ -1616,7 +1616,7 @@ tprintf (ipli_dev, TRACE_CMD, "Created event %p with identifier \"%s\"\n",
          (void *) *event, name);
 
 if (*event == NULL)                                     /* if event creation failed */
-    return (uint32) GetLastError ();                    /*   then return the error code */
+    return (uint32_t) GetLastError ();                    /*   then return the error code */
 else                                                    /* otherwise the creation succeeded */
     return 0;                                           /*   so return success */
 }
@@ -1631,7 +1631,7 @@ else                                                    /* otherwise the creatio
    The event name parameter is not used but is present for interoperability.
 */
 
-static uint32 destroy_event (const char *name, EVENT *event)
+static uint32_t destroy_event (const char *name, EVENT *event)
 {
 BOOL status;
 
@@ -1643,7 +1643,7 @@ else {                                                  /* otherwise the event e
     *event = NULL;                                      /*     and clear the event handle */
 
     if (status == FALSE)                                /* if the close failed */
-        return (uint32) GetLastError ();                /*   then return the error code */
+        return (uint32_t) GetLastError ();                /*   then return the error code */
     else                                                /* otherwise the close succeeded */
         return 0;                                       /*   so return success */
     }
@@ -1680,7 +1680,7 @@ return (event == NULL);                                 /* return TRUE if the ev
        and return to the SCP prompt.
 */
 
-static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
+static uint32_t wait_event (EVENT event, uint32_t wait_in_ms, t_bool *signaled)
 {
 const DWORD wait_time = (DWORD) wait_in_ms;             /* interval wait time in milliseconds */
 DWORD status;
@@ -1690,7 +1690,7 @@ status = WaitForSingleObject (event, wait_time);        /* wait for the event, b
 tprintf (ipli_dev, TRACE_CMD, "Wait status is %lu\n", status);
 
 if (status == WAIT_FAILED)                              /* if the wait failed */
-    return (uint32) GetLastError ();                    /*   then return the error code */
+    return (uint32_t) GetLastError ();                    /*   then return the error code */
 
 else {                                                  /* otherwise the wait completed */
     *signaled = (status != WAIT_TIMEOUT);               /*   so set the flag TRUE if the wait did not time out */
@@ -1706,14 +1706,14 @@ else {                                                  /* otherwise the wait co
    error value is returned.
 */
 
-static uint32 signal_event (EVENT event)
+static uint32_t signal_event (EVENT event)
 {
 BOOL status;
 
 status = SetEvent (event);                              /* signal the event */
 
 if (status == FALSE)                                    /* if the call failed */
-    return (uint32) GetLastError ();                    /*   then return the error code */
+    return (uint32_t) GetLastError ();                    /*   then return the error code */
 else                                                    /* otherwise the signal succeeded */
     return 0;                                           /*   so return success */
 }
@@ -1749,7 +1749,7 @@ else                                                    /* otherwise the signal 
    The event is created as initially not-signaled.
 */
 
-static uint32 create_event (const char *name, EVENT *event)
+static uint32_t create_event (const char *name, EVENT *event)
 {
 *event = sem_open (name, O_CREAT, S_IRWXU, 0);          /* create an initially not-signaled event */
 
@@ -1763,7 +1763,7 @@ if (*event == SEM_FAILED)                               /* if event creation fai
 
     else {                                              /*   otherwise it is an unexpected error */
         tprintf (ipli_dev, TRACE_CMD, "sem_open error is %u\n", errno);
-        return (uint32) errno;                          /*     so return the error code */
+        return (uint32_t) errno;                          /*     so return the error code */
         }
 
 else {                                                  /* otherwise the creation succeeded */
@@ -1788,7 +1788,7 @@ else {                                                  /* otherwise the creatio
        the routine returns success in this case.
 */
 
-static uint32 destroy_event (const char *name, EVENT *event)
+static uint32_t destroy_event (const char *name, EVENT *event)
 {
 int status;
 
@@ -1801,7 +1801,7 @@ else {                                                  /* otherwise the event e
 
     if (status != 0 && errno != ENOENT) {               /* if the deletion failed */
         tprintf (ipli_dev, TRACE_CMD, "sem_unlink error is %u\n", errno);
-        return (uint32) errno;                          /*   then return the error code */
+        return (uint32_t) errno;                          /*   then return the error code */
         }
 
     else                                                /* otherwise the deletion succeeded */
@@ -1843,7 +1843,7 @@ else                                                    /* otherwise */
        wait and return to the SCP prompt.
 */
 
-static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
+static uint32_t wait_event (EVENT event, uint32_t wait_in_ms, t_bool *signaled)
 {
 const int wait_time = (int) wait_in_ms / 1000;          /* interval wait time in seconds */
 struct timespec until_time;
@@ -1858,7 +1858,7 @@ if (event_fallback) {                                   /* if events are being e
 
 else if (clock_gettime (CLOCK_REALTIME, &until_time)) { /* get the current time; if it failed */
     tprintf (ipli_dev, TRACE_CMD, "clock_gettime error is %u\n", errno);
-    return (uint32) errno;                              /*   then return the error number */
+    return (uint32_t) errno;                              /*   then return the error number */
     }
 
 else                                                    /* otherwise */
@@ -1874,7 +1874,7 @@ if (status)                                             /* if the wait terminate
 
     else {                                              /*   otherwise it's an unexpected error */
         tprintf (ipli_dev, TRACE_CMD, "sem_timedwait error is %u\n", errno);
-        return (uint32) errno;                          /*     so return the error code */
+        return (uint32_t) errno;                          /*     so return the error code */
         }
 
 else                                                    /* otherwise the event is signaled */
@@ -1889,7 +1889,7 @@ else                                                    /* otherwise the event i
    error value is returned.
 */
 
-static uint32 signal_event (EVENT event)
+static uint32_t signal_event (EVENT event)
 {
 int status;
 
@@ -1900,7 +1900,7 @@ else                                                    /* otherwise */
 
 if (status) {                                           /* if the call failed */
     tprintf (ipli_dev, TRACE_CMD, "sem_post error is %u\n", errno);
-    return (uint32) errno;                              /*   then return the error code */
+    return (uint32_t) errno;                              /*   then return the error code */
     }
 
 else                                                    /* otherwise the event was signaled */
@@ -1928,14 +1928,14 @@ else                                                    /* otherwise the event w
        working, provided the other instance isn't preempted during the sleep.
 */
 
-static uint32 create_event (const char *name, EVENT *event)
+static uint32_t create_event (const char *name, EVENT *event)
 {
 tprintf (ipli_dev, TRACE_CMD, "Synchronization is unsupported on this system; using fallback\n");
 return 0;
 }
 
 
-static uint32 destroy_event (const char *name, EVENT *event)
+static uint32_t destroy_event (const char *name, EVENT *event)
 {
 return 0;
 }
@@ -1947,7 +1947,7 @@ return FALSE;
 }
 
 
-static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
+static uint32_t wait_event (EVENT event, uint32_t wait_in_ms, t_bool *signaled)
 {
 sim_os_sleep (2);                                       /* wait for two seconds */
 
@@ -1956,7 +1956,7 @@ return 0;                                               /*   and return success 
 }
 
 
-static uint32 signal_event (EVENT event)
+static uint32_t signal_event (EVENT event)
 {
 return 0;
 }

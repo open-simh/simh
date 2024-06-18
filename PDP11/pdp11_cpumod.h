@@ -269,22 +269,22 @@
 
 struct cpu_table {
     const char          *name;                          /* model name */
-    uint32              std;                            /* standard flags */
-    uint32              opt;                            /* set/clear flags */
-    uint32              maxm;                           /* max memory */
-    uint32              psw;                            /* PSW mask */
-    uint32              mfpt;                           /* MFPT code */
-    uint32              par;                            /* PAR mask */
-    uint32              pdr;                            /* PDR mask */
-    uint32              mm0;                            /* MMR0 mask */
-    uint32              mm3;                            /* MMR3 mask */
+    uint32_t              std;                            /* standard flags */
+    uint32_t              opt;                            /* set/clear flags */
+    uint32_t              maxm;                           /* max memory */
+    uint32_t              psw;                            /* PSW mask */
+    uint32_t              mfpt;                           /* MFPT code */
+    uint32_t              par;                            /* PAR mask */
+    uint32_t              pdr;                            /* PDR mask */
+    uint32_t              mm0;                            /* MMR0 mask */
+    uint32_t              mm3;                            /* MMR3 mask */
     };
 
 typedef struct cpu_table CPUTAB;
 
 struct conf_table {
-    uint32              cpum;
-    uint32              optm;
+    uint32_t              cpum;
+    uint32_t              optm;
     DIB                 *dib;
     };
 

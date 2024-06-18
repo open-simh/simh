@@ -129,11 +129,11 @@ static void sagefd_interrupt(I8272* chip,int delay)
 }
 
 /* dummy routines for i8272 - sage does not use DMA */
-void PutByteDMA(uint32 addr, uint8 data)
+void PutByteDMA(uint32_t addr, uint8_t data)
 {
 }
 
-uint8 GetByteDMA(uint32 addr)
+uint8_t GetByteDMA(uint32_t addr)
 {
     return 0;
 }

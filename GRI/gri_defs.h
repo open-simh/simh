@@ -68,7 +68,7 @@
 #define MAXMEMSIZE      32768                           /* max memory size */
 #define AMASK           077777                          /* logical addr mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 
@@ -129,10 +129,10 @@
 #define U_TTY           077                             /* console */
 
 struct gdev {
-    uint32      (*Src)(uint32);                         /* source */
-    t_stat      (*Dst)(uint32, uint32);                 /* dest */
-    t_stat      (*FO)(uint32);                          /* func out */
-    uint32      (*SF)(uint32);                          /* skip func */
+    uint32_t      (*Src)(uint32_t);                         /* source */
+    t_stat      (*Dst)(uint32_t, uint32_t);                 /* dest */
+    t_stat      (*FO)(uint32_t);                          /* func out */
+    uint32_t      (*SF)(uint32_t);                          /* skip func */
 };
 
 /* Trap (jump) */

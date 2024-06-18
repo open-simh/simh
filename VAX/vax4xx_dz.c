@@ -192,19 +192,19 @@ BITFIELD dz_tdr_bits[] = {
 
 extern int32 tmxr_poll;                                 /* calibrated delay */
 
-uint16 dz_csr = 0;                                      /* csr */
-uint16 dz_rbuf = 0;                                     /* rcv buffer */
-uint16 dz_lpr = 0;                                      /* line param */
-uint16 dz_tcr = 0;                                      /* xmit control */
-uint16 dz_msr = 0;                                      /* modem status */
-uint16 dz_tdr = 0;                                      /* xmit data */
-uint16 dz_silo[DZ_SILO_ALM] = { 0 };                    /* silo */
-uint16 dz_scnt = 0;                                     /* silo used */
-uint8 dz_sae = 0;                                       /* silo alarm enabled */
+uint16_t dz_csr = 0;                                      /* csr */
+uint16_t dz_rbuf = 0;                                     /* rcv buffer */
+uint16_t dz_lpr = 0;                                      /* line param */
+uint16_t dz_tcr = 0;                                      /* xmit control */
+uint16_t dz_msr = 0;                                      /* modem status */
+uint16_t dz_tdr = 0;                                      /* xmit data */
+uint16_t dz_silo[DZ_SILO_ALM] = { 0 };                    /* silo */
+uint16_t dz_scnt = 0;                                     /* silo used */
+uint8_t dz_sae = 0;                                       /* silo alarm enabled */
 int32 dz_mctl = 0;                                      /* modem ctrl enabled */
 int32 dz_auto = 0;                                      /* autodiscon enabled */
-uint32 dz_func[DZ_LINES] = { DZ_TMXR };                 /* line function */
-uint32 dz_char[DZ_LINES] = { 0 };                       /* character buffer */
+uint32_t dz_func[DZ_LINES] = { DZ_TMXR };                 /* line function */
+uint32_t dz_char[DZ_LINES] = { 0 };                       /* character buffer */
 int32 dz_lnorder[DZ_LINES] = { 0 };                     /* line order */
 TMLN *dz_ldsc = NULL;                                   /* line descriptors */
 TMXR dz_desc = { DZ_LINES, 0, 0, NULL, dz_lnorder };    /* mux descriptor */
@@ -239,8 +239,8 @@ t_stat dz_reset (DEVICE *dptr);
 t_stat dz_attach (UNIT *uptr, CONST char *cptr);
 t_stat dz_detach (UNIT *uptr);
 t_stat dz_clear (t_bool flag);
-uint16 dz_getc (void);
-t_stat dz_putc (int32 line, uint16 data);
+uint16_t dz_getc (void);
+t_stat dz_putc (int32 line, uint16_t data);
 void dz_update_rcvi (void);
 void dz_update_xmti (void);
 t_stat dz_set_log (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -517,7 +517,7 @@ return SCPE_OK;
 
 /* Put a character to the specified line */
 
-t_stat dz_putc (int32 line, uint16 data)
+t_stat dz_putc (int32 line, uint16_t data)
 {
 t_stat r = SCPE_OK;
 int32 c;
@@ -538,11 +538,11 @@ switch (dz_func[line]) {
         break;
 
     case DZ_KEYBOARD:
-        lk_wr ((uint8)data);                            /* send to keyboard */
+        lk_wr ((uint8_t)data);                            /* send to keyboard */
         break;
 
     case DZ_MOUSE:
-        vs_wr ((uint8)data);                            /* send to mouse */
+        vs_wr ((uint8_t)data);                            /* send to mouse */
         break;
         }
 return r;
@@ -550,10 +550,10 @@ return r;
 
 /* Get first available character for mux, if any */
 
-uint16 dz_getc (void)
+uint16_t dz_getc (void)
 {
-uint16 ret;
-uint32 i;
+uint16_t ret;
+uint32_t i;
 
 if (!dz_scnt)
     return 0;
@@ -590,12 +590,12 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
         else {
             switch (dz_func[line]) {
                 case DZ_KEYBOARD:
-                    if (lk_rd ((uint8*)&c) == SCPE_OK)  /* test for input */
+                    if (lk_rd ((uint8_t*)&c) == SCPE_OK)  /* test for input */
                         c |= RBUF_VALID;
                     break;
 
                 case DZ_MOUSE:
-                    if (vs_rd ((uint8*)&c) == SCPE_OK)  /* test for input */
+                    if (vs_rd ((uint8_t*)&c) == SCPE_OK)  /* test for input */
                         c |= RBUF_VALID;
                     break;
 
@@ -621,7 +621,7 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
         if (c) {                                        /* save in silo */
             c = (c & (RBUF_CHAR | RBUF_FRME)) | RBUF_VALID;;
             RBUF_PUTRL (c, line);                       /* add line # */
-            dz_silo[dz_scnt] = (uint16)c;
+            dz_silo[dz_scnt] = (uint16_t)c;
             ++dz_scnt;
             }
         

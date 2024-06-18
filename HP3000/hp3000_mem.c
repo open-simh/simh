@@ -172,7 +172,7 @@
 
 typedef struct {
     HP_WORD     *bank_ptr;                      /* a pointer to the bank register */
-    uint32      debug_flag;                     /* the debug flag for tracing */
+    uint32_t      debug_flag;                     /* the debug flag for tracing */
     const char  *name;                          /* the classification name */
     } ACCESS_PROPERTIES;
 
@@ -275,7 +275,7 @@ else {                                                  /* otherwise */
    allocated earlier, or FALSE if the allocation failed.
 */
 
-t_bool mem_initialize (uint32 memory_size)
+t_bool mem_initialize (uint32_t memory_size)
 {
 if (M == NULL)                                          /* if memory has not been allocated */
     M = (MEMORY_WORD *) calloc (memory_size,            /*   then allocate the maximum amount of memory needed */
@@ -293,9 +293,9 @@ return (M != NULL);
    range was empty (i.e., contained only zero values) and FALSE otherwise.
 */
 
-t_bool mem_is_empty (uint32 starting_address)
+t_bool mem_is_empty (uint32_t starting_address)
 {
-uint32 address;
+uint32_t address;
 
 for (address = starting_address; address < MEMSIZE; address++)  /* loop through the specified address range */
     if (M [address] != NOP)                                     /* if this location is non-zero */
@@ -313,9 +313,9 @@ return TRUE;                                            /* return TRUE if all lo
    instructions.
 */
 
-void mem_fill (uint32 starting_address, HP_WORD fill_value)
+void mem_fill (uint32_t starting_address, HP_WORD fill_value)
 {
-uint32 address;
+uint32_t address;
 
 for (address = starting_address; address < MEMSIZE; address++)  /* loop through the specified address range */
     M [address] = (MEMORY_WORD) fill_value;                     /*   filling locations with the supplied value */
@@ -372,9 +372,9 @@ return;
        "_checked" versions of the desired access classifications.
 */
 
-t_bool mem_read (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD *value)
+t_bool mem_read (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD *value)
 {
-uint32 bank, address;
+uint32_t bank, address;
 
 if (mem_access [classification].bank_ptr == NULL) {     /* if this is an absolute or DMA access */
     address = offset;                                   /*   then the "offset" is already a physical address */
@@ -503,9 +503,9 @@ else {                                                  /* otherwise the access 
        through.
 */
 
-t_bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD value)
+t_bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD value)
 {
-uint32 bank, address;
+uint32_t bank, address;
 
 if (mem_access [classification].bank_ptr == NULL) {     /* if this is an absolute or DMA access */
     address = offset;                                   /*   then "offset" is already a physical address */
@@ -608,7 +608,7 @@ else {                                                  /* otherwise the access 
        memory location 0 is reserved for the code segment table pointer.
 */
 
-void mem_init_byte (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32 block_length)
+void mem_init_byte (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32_t block_length)
 {
 bap->class = INVERT_CHECK (class);                      /* invert the access check for succeeding calls */
 bap->write_needed = FALSE;                              /*   and clear the word buffer occupation flag */
@@ -658,7 +658,7 @@ return;
 
 void mem_set_byte (BYTE_ACCESS *bap)
 {
-uint32 bank;
+uint32_t bank;
 
 mem_update_byte (bap);                                  /* flush the last byte if written */
 
@@ -716,9 +716,9 @@ return;
        penalty.
 */
 
-uint8 mem_lookup_byte (BYTE_ACCESS *bap, uint8 index)
+uint8_t mem_lookup_byte (BYTE_ACCESS *bap, uint8_t index)
 {
-uint32 byte_offset, word_address;
+uint32_t byte_offset, word_address;
 
 byte_offset = *bap->byte_offset + (HP_WORD) index       /* get the offset to the indexed location */
                 & LA_MASK;
@@ -755,9 +755,9 @@ else                                                    /* otherwise */
        accessed.
 */
 
-uint8 mem_read_byte (BYTE_ACCESS *bap)
+uint8_t mem_read_byte (BYTE_ACCESS *bap)
 {
-uint8 byte;
+uint8_t byte;
 
 if (*bap->byte_offset & 1) {                            /* if the byte offset is odd */
     if (bap->count == 0)                                /*   then if this is the first access */
@@ -804,7 +804,7 @@ return byte;
        accessed.
 */
 
-void mem_write_byte (BYTE_ACCESS *bap, uint8 byte)
+void mem_write_byte (BYTE_ACCESS *bap, uint8_t byte)
 {
 if (*bap->byte_offset & 1) {                                /* if the byte offset is odd */
     if (bap->count == 0)                                    /*   then if this is the first access */
@@ -839,7 +839,7 @@ return;
    offset is not changed by this routine.
 */
 
-void mem_modify_byte (BYTE_ACCESS *bap, uint8 byte)
+void mem_modify_byte (BYTE_ACCESS *bap, uint8_t byte)
 {
 if (*bap->byte_offset & 1) {                                /* if the last byte offset was even */
     bap->data_word = REPLACE_UPPER (bap->data_word, byte);  /*   then replace the upper byte */
@@ -935,11 +935,11 @@ return;
     2. The byte count is assumed to be 256 or less for convenience.
 */
 
-char *fmt_byte_operand (uint32 byte_address, uint32 byte_count)
+char *fmt_byte_operand (uint32_t byte_address, uint32_t byte_count)
 {
 static char buffer [257];
 char        *cptr;
-uint32      address;
+uint32_t      address;
 
 if (byte_count > 256)                                   /* truncate the formatted operand */
     byte_count = 256;                                   /*   if it's too long */
@@ -979,10 +979,10 @@ return buffer;                                          /* return a pointer to t
     2. The routine will not return a string longer than 256 characters.
 */
 
-char *fmt_translated_byte_operand (uint32 byte_address, uint32 byte_count, uint32 table_address)
+char *fmt_translated_byte_operand (uint32_t byte_address, uint32_t byte_count, uint32_t table_address)
 {
 char   *bptr, *cptr;
-uint32 index;
+uint32_t index;
 
 bptr = fmt_byte_operand (byte_address, byte_count);     /* format the byte string */
 
@@ -1022,11 +1022,11 @@ return bptr;                                            /* return a pointer to t
 */
 
 
-char *fmt_bcd_operand (uint32 byte_address, uint32 digit_count)
+char *fmt_bcd_operand (uint32_t byte_address, uint32_t digit_count)
 {
 static char hex [] = "0123456789ABCDEF";
 static char buffer [33];
-uint32      byte_count;
+uint32_t      byte_count;
 char        *bptr, *cptr;
 
 if (digit_count > 32)                                   /* if the operand is too long */

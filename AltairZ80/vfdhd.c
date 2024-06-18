@@ -70,58 +70,58 @@ static void VFDHD_Command(void);
 
 typedef union {
     struct {
-        uint8 preamble[40]; /* Hard disk uses 30 bytes of preamble, floppy uses 40. */
-        uint8 sync;
-        uint8 header[2];
-        uint8 unused[10];
-        uint8 data[256];
-        uint8 checksum;
-        uint8 ecc[4];
-        uint8 ecc_valid;    /* 0xAA indicates ECC is being used. */
-        uint8 postamble[128];
+        uint8_t preamble[40]; /* Hard disk uses 30 bytes of preamble, floppy uses 40. */
+        uint8_t sync;
+        uint8_t header[2];
+        uint8_t unused[10];
+        uint8_t data[256];
+        uint8_t checksum;
+        uint8_t ecc[4];
+        uint8_t ecc_valid;    /* 0xAA indicates ECC is being used. */
+        uint8_t postamble[128];
     } u;
-    uint8 raw[VFDHD_RAW_LEN];
+    uint8_t raw[VFDHD_RAW_LEN];
 
 } SECTOR_FORMAT;
 
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint16 ntracks; /* number of tracks */
-    uint8 nheads;   /* number of heads */
-    uint8 nspt;     /* number of sectors per track */
-    uint8 npre_len; /* preamble length */
-    uint32 sectsize; /* sector size, not including pre/postamble */
-    uint16 track;
-    uint8 wp;       /* Disk write protected */
-    uint8 ready;    /* Drive is ready */
-    uint8 write_fault;
-    uint8 seek_complete;
-    uint8 sync_lost;
-    uint32 sector_wait_count;
+    uint16_t ntracks; /* number of tracks */
+    uint8_t nheads;   /* number of heads */
+    uint8_t nspt;     /* number of sectors per track */
+    uint8_t npre_len; /* preamble length */
+    uint32_t sectsize; /* sector size, not including pre/postamble */
+    uint16_t track;
+    uint8_t wp;       /* Disk write protected */
+    uint8_t ready;    /* Drive is ready */
+    uint8_t write_fault;
+    uint8_t seek_complete;
+    uint8_t sync_lost;
+    uint32_t sector_wait_count;
 } VFDHD_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8 xfr_flag;     /* Indicates controller is ready to send/receive data */
-    uint8 sel_drive;    /* Currently selected drive */
-    uint8 selected;     /* 1 if drive is selected */
-    uint8 track0;       /* Set it selected drive is on track 0 */
-    uint8 head;         /* Currently selected head */
-    uint8 wr_latch;     /* Write enable latch */
-    uint8 int_enable;   /* Interrupt Enable */
-    uint32 datacount;   /* Number of data bytes transferred from controller for current sector */
-    uint8 step;
-    uint8 direction;
-    uint8 rwc;
-    uint8 sector;
-    uint8 read;
-    uint8 ecc_enable;
-    uint8 precomp;
-    uint8 floppy_sel;
-    uint8 controller_busy;
-    uint8 motor_on;
-    uint8 hdsk_type;
+    uint8_t xfr_flag;     /* Indicates controller is ready to send/receive data */
+    uint8_t sel_drive;    /* Currently selected drive */
+    uint8_t selected;     /* 1 if drive is selected */
+    uint8_t track0;       /* Set it selected drive is on track 0 */
+    uint8_t head;         /* Currently selected head */
+    uint8_t wr_latch;     /* Write enable latch */
+    uint8_t int_enable;   /* Interrupt Enable */
+    uint32_t datacount;   /* Number of data bytes transferred from controller for current sector */
+    uint8_t step;
+    uint8_t direction;
+    uint8_t rwc;
+    uint8_t sector;
+    uint8_t read;
+    uint8_t ecc_enable;
+    uint8_t precomp;
+    uint8_t floppy_sel;
+    uint8_t controller_busy;
+    uint8_t motor_on;
+    uint8_t hdsk_type;
     VFDHD_DRIVE_INFO drive[VFDHD_MAX_DRIVES];
 } VFDHD_INFO;
 
@@ -130,11 +130,11 @@ static VFDHD_INFO *vfdhd_info = &vfdhd_info_data;
 static const char* vfdhd_description(DEVICE *dptr);
 
 static SECTOR_FORMAT sdata;
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 #define UNIT_V_VFDHD_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
 #define UNIT_VFDHD_VERBOSE      (1 << UNIT_V_VFDHD_VERBOSE)
@@ -146,8 +146,8 @@ static t_stat vfdhd_detach(UNIT *uptr);
 
 static int32 vfdhddev(const int32 port, const int32 io, const int32 data);
 
-static uint8 VFDHD_Read(const uint32 Addr);
-static uint8 VFDHD_Write(const uint32 Addr, uint8 cData);
+static uint8_t VFDHD_Read(const uint32_t Addr);
+static uint8_t VFDHD_Write(const uint32_t Addr, uint8_t cData);
 
 static int32 hdSize = 5;
 
@@ -340,10 +340,10 @@ static t_stat vfdhd_detach(UNIT *uptr)
 }
 
 
-static uint8 cy;
-static uint8 adc(uint8 sum, uint8 a1)
+static uint8_t cy;
+static uint8_t adc(uint8_t sum, uint8_t a1)
 {
-    uint32 total;
+    uint32_t total;
 
     total = sum + a1 + cy;
 
@@ -372,9 +372,9 @@ static int32 vfdhddev(const int32 port, const int32 io, const int32 data)
 #define FDHD_DATA           2   /* R/W=Data Port */
 #define FDHD_RESET_START    3   /* R=RESET, W=START */
 
-static uint8 VFDHD_Read(const uint32 Addr)
+static uint8_t VFDHD_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
     VFDHD_DRIVE_INFO    *pDrive;
 
     pDrive = &vfdhd_info->drive[vfdhd_info->sel_drive];
@@ -429,7 +429,7 @@ static uint8 VFDHD_Read(const uint32 Addr)
     return (cData);
 }
 
-static uint8 VFDHD_Write(const uint32 Addr, uint8 cData)
+static uint8_t VFDHD_Write(const uint32_t Addr, uint8_t cData)
 {
     VFDHD_DRIVE_INFO    *pDrive;
 
@@ -516,11 +516,11 @@ static void VFDHD_Command(void)
 {
     VFDHD_DRIVE_INFO *pDrive;
 
-    uint32 bytesPerTrack;
-    uint32 bytesPerHead;
+    uint32_t bytesPerTrack;
+    uint32_t bytesPerHead;
 
-    uint32 sec_offset;
-    uint32 flags;
+    uint32_t sec_offset;
+    uint32_t flags;
     int32 rtn;
 
     pDrive = &(vfdhd_info->drive[vfdhd_info->sel_drive]);
@@ -536,7 +536,7 @@ static void VFDHD_Command(void)
 
     if(vfdhd_info->read == 1) { /* Perform a Read operation */
         unsigned int i, checksum;
-        uint32 readlen;
+        uint32_t readlen;
 
         sim_debug(RD_DATA_MSG, &vfdhd_dev, "VFDHD: " ADDRESS_FORMAT " RD: Drive=%d, Track=%d, Head=%d, Sector=%d\n", PCX, vfdhd_info->sel_drive, pDrive->track, vfdhd_info->head, vfdhd_info->sector);
 
@@ -603,7 +603,7 @@ static void VFDHD_Command(void)
         }
 
     } else {    /* Perform a Write operation */
-        uint32 writelen;
+        uint32_t writelen;
 
         sim_debug(WR_DATA_MSG, &vfdhd_dev, "VFDHD: " ADDRESS_FORMAT " WR: Drive=%d, Track=%d, Head=%d, Sector=%d\n", PCX, vfdhd_info->sel_drive, pDrive->track, vfdhd_info->head, vfdhd_info->sector);
 

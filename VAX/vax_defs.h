@@ -773,7 +773,7 @@ enum opcodes {
 #define V_ADD_L(r,s1,s2) \
             if (((~(s1) ^ (s2)) & ((s1) ^ (r))) & LSIGN) { V_INTOV; }
 #define C_ADD(r,s1,s2) \
-            if (((uint32) r) < ((uint32) s2)) cc = cc | CC_C
+            if (((uint32_t) r) < ((uint32_t) s2)) cc = cc | CC_C
 
 #define CC_ADD_B(r,s1,s2) \
             CC_IIZZ_B (r); \
@@ -795,7 +795,7 @@ enum opcodes {
 #define V_SUB_L(r,s1,s2) \
             if ((((s1) ^ (s2)) & (~(s1) ^ (r))) & LSIGN) { V_INTOV; }
 #define C_SUB(r,s1,s2) \
-            if (((uint32) s2) < ((uint32) s1)) cc = cc | CC_C
+            if (((uint32_t) s2) < ((uint32_t) s1)) cc = cc | CC_C
 
 #define CC_SUB_B(r,s1,s2) \
             CC_IIZZ_B (r); \
@@ -814,17 +814,17 @@ enum opcodes {
             if (SXTB (s1) < SXTB (s2)) cc = CC_N; \
             else if ((s1) == (s2)) cc = CC_Z; \
             else cc = 0; \
-            if (((uint32) s1) < ((uint32) s2)) cc = cc | CC_C
+            if (((uint32_t) s1) < ((uint32_t) s2)) cc = cc | CC_C
 #define CC_CMP_W(s1,s2) \
             if (SXTW (s1) < SXTW (s2)) cc = CC_N; \
             else if ((s1) == (s2)) cc = CC_Z; \
             else cc = 0; \
-            if (((uint32) s1) < ((uint32) s2)) cc = cc | CC_C
+            if (((uint32_t) s1) < ((uint32_t) s2)) cc = cc | CC_C
 #define CC_CMP_L(s1,s2) \
             if ((s1) < (s2)) cc = CC_N; \
             else if ((s1) == (s2)) cc = CC_Z; \
             else cc = 0; \
-            if (((uint32) s1) < ((uint32) s2)) cc = cc | CC_C
+            if (((uint32_t) s1) < ((uint32_t) s2)) cc = cc | CC_C
 
 /* Operand Memory vs Register Indicator */
 #define OP_MEM          0xFFFFFFFF
@@ -838,11 +838,11 @@ enum opcodes {
 #define VAX_IDLE_SYSV       0x40
 #define VAX_IDLE_ELN        0x40    /* VAXELN */
 #define VAX_IDLE_INFOSERVER 0x80    /* InfoServer */
-extern uint32 cpu_idle_mask;        /* idle mask */
+extern uint32_t cpu_idle_mask;        /* idle mask */
 extern int32 extra_bytes;           /* bytes referenced by current string instruction */
 extern BITFIELD cpu_psl_bits[];
 extern char const * const opcode[];
-extern const uint16 drom[NUM_INST][MAX_SPEC + 1];
+extern const uint16_t drom[NUM_INST][MAX_SPEC + 1];
 extern int32 cpu_emulate_exception (int32 *opnd, int32 cc, int32 opc, int32 acc);
 void cpu_idle (void);
 
@@ -858,9 +858,9 @@ typedef struct {
     int32               iPC;
     int32               PSL;
     int32               opc;
-    uint8               inst[INST_SIZE];
-    uint32              opnd[OPND_SIZE];
-    uint32              res[6];
+    uint8_t               inst[INST_SIZE];
+    uint32_t              opnd[OPND_SIZE];
+    uint32_t              res[6];
     } InstHistory;
 
 
@@ -896,7 +896,7 @@ extern int32 op_bb_n (int32 *opnd, int32 acc);
 extern int32 op_bb_x (int32 *opnd, int32 newb, int32 acc);
 extern int32 op_extv (int32 *opnd, int32 vfldrp1, int32 acc);
 extern void op_insv (int32 *opnd, int32 vfldrp1, int32 acc);
-extern int32 op_ffs (uint32 fld, int32 size);
+extern int32 op_ffs (uint32_t fld, int32 size);
 extern int32 op_call (int32 *opnd, t_bool gs, int32 acc);
 extern int32 op_ret (int32 acc);
 extern int32 op_insque (int32 *opnd, int32 acc);
@@ -962,7 +962,7 @@ extern int32 op_cmode (int32 cc);
 extern t_bool BadCmPSL (int32 newpsl);
 
 /* vax_sys.c externals */
-extern const uint16 drom[NUM_INST][MAX_SPEC + 1];
+extern const uint16_t drom[NUM_INST][MAX_SPEC + 1];
 
 /* Model dependent definitions */
 extern int32 eval_int (void);
@@ -1037,10 +1037,10 @@ extern t_stat cpu_set_instruction_set (UNIT *uptr, int32 val, CONST char *cptr, 
 extern t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 extern t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 extern void vax_init();
-extern const uint32 byte_mask[33];
+extern const uint32_t byte_mask[33];
 extern int32 autcon_enb;                                /* autoconfig enable */
 extern int32 int_req[IPL_HLVL];                         /* intr, IPL 14-17 */
-extern uint32 *M;                                       /* Memory */
+extern uint32_t *M;                                       /* Memory */
 extern DEVICE cpu_dev;                                  /* CPU */
 extern UNIT cpu_unit;                                   /* CPU */
 

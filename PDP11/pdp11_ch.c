@@ -104,12 +104,12 @@ const char *ch_description (DEVICE *);
 #define CH11_NO_ADDRESS 0XFFFF
 
 static char peer[256];
-static uint16 status;
-static uint16 address = CH11_NO_ADDRESS;
-static uint16 rx_count;
-static uint16 tx_count;
-static uint8 rx_buffer[512+100];
-static uint8 tx_buffer[512+100];
+static uint16_t status;
+static uint16_t address = CH11_NO_ADDRESS;
+static uint16_t rx_count;
+static uint16_t tx_count;
+static uint8_t rx_buffer[512+100];
+static uint8_t tx_buffer[512+100];
 
 TMLN ch_lines[1] = { {0} };
 TMXR ch_tmxr = { 1, NULL, 0, ch_lines};
@@ -165,7 +165,7 @@ DEVICE ch_dev = {
     &ch_description
   };
 
-int ch_checksum (const uint8 *p, int length)
+int ch_checksum (const uint8_t *p, int length)
 {
   int i, sum = 0;
   for (i = 0; i < length; i += 2)
@@ -238,7 +238,7 @@ t_stat ch_transmit ()
 
   tmxr_poll_tx (&ch_tmxr);
   len = CHUDP_HEADER + 2 * (size_t)tx_count;
-  r = tmxr_put_packet_ln (&ch_lines[0], (const uint8 *)&tx_buffer, len);
+  r = tmxr_put_packet_ln (&ch_lines[0], (const uint8_t *)&tx_buffer, len);
   if (r == SCPE_OK) {
     sim_debug (DBG_PKT, &ch_dev, "Sent UDP packet, %d bytes.\n", (int)len);
     tmxr_poll_tx (&ch_tmxr);
@@ -250,7 +250,7 @@ t_stat ch_transmit ()
   return SCPE_OK;
 }
 
-void ch_validate (const uint8 *p, int count)
+void ch_validate (const uint8_t *p, int count)
 {
   int chksum;
   int size;
@@ -281,7 +281,7 @@ void ch_validate (const uint8 *p, int count)
 int ch_receive (void)
 {
   size_t count;
-  const uint8 *p;
+  const uint8_t *p;
 
   tmxr_poll_rx (&ch_tmxr);
   if (tmxr_get_packet_ln (&ch_lines[0], &p, &count) != SCPE_OK) {
@@ -296,7 +296,7 @@ int ch_receive (void)
     count -= CHUDP_HEADER;
     count = (count + 1) & 0776;
     memcpy (rx_buffer + (512 - count), p + CHUDP_HEADER, count);
-    rx_count = (uint16)(count >> 1);
+    rx_count = (uint16_t)(count >> 1);
     sim_debug (DBG_TRC, &ch_dev, "Rx count, %d\n", rx_count);
     ch_validate (p + CHUDP_HEADER, count);
     status |= RXD;

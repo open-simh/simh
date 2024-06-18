@@ -229,8 +229,8 @@ int32 tumr = 0;                                         /* maint register */
 int32 tutc = 0;                                         /* tape control */
 int32 tu_time = 10;                                     /* record latency */
 int32 tu_stopioe = 1;                                   /* stop on error */
-static uint8 *xbuf = NULL;                              /* xfer buffer */
-static uint16 *wbuf = NULL;
+static uint8_t *xbuf = NULL;                              /* xfer buffer */
+static uint16_t *wbuf = NULL;
 static int32 fmt_test[16] = {                           /* fmt valid */
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0
     };
@@ -708,17 +708,17 @@ switch (fnc) {                                          /* case on function */
             xbuf[i] = 0;
         if (fmt == TC_CDUMP) {                          /* core dump? */
             for (i = j = 0; i < tbc; i = i + 4) {
-                wbuf[j++] = ((uint16) xbuf[i] & 0xF) |
-                    (((uint16) (xbuf[i + 1] & 0xF)) << 4) |
-                    (((uint16) (xbuf[i + 2] & 0xF)) << 8) |
-                    (((uint16) (xbuf[i + 3] & 0xf)) << 12);
+                wbuf[j++] = ((uint16_t) xbuf[i] & 0xF) |
+                    (((uint16_t) (xbuf[i + 1] & 0xF)) << 4) |
+                    (((uint16_t) (xbuf[i + 2] & 0xF)) << 8) |
+                    (((uint16_t) (xbuf[i + 3] & 0xf)) << 12);
                 }
             xbc = (tbc + 1) >> 1;
             }
         else {                                          /* standard */
             for (i = j = 0; i < tbc; i = i + 2) {
-                wbuf[j++] = ((uint16) xbuf[i]) |
-                    (((uint16) xbuf[i + 1]) << 8);
+                wbuf[j++] = ((uint16_t) xbuf[i]) |
+                    (((uint16_t) xbuf[i + 1]) << 8);
                 }
             xbc = tbc;
             }
@@ -769,17 +769,17 @@ switch (fnc) {                                          /* case on function */
         for (i = 0; i < 4; i++) xbuf[i] = 0;            /* pad with 0's */
         if (fmt == TC_CDUMP) {                          /* core dump? */
             for (i = tbc + 3, j = 0; i > 3; i = i - 4) {
-                wbuf[j++] = ((uint16) xbuf[i] & 0xF) |
-                    (((uint16) (xbuf[i - 1] & 0xF)) << 4) |
-                    (((uint16) (xbuf[i - 2] & 0xF)) << 8) |
-                    (((uint16) (xbuf[i - 3] & 0xf)) << 12);
+                wbuf[j++] = ((uint16_t) xbuf[i] & 0xF) |
+                    (((uint16_t) (xbuf[i - 1] & 0xF)) << 4) |
+                    (((uint16_t) (xbuf[i - 2] & 0xF)) << 8) |
+                    (((uint16_t) (xbuf[i - 3] & 0xf)) << 12);
                 }
             xbc = (tbc + 1) >> 1;
             }
         else {                                          /* standard */
             for (i = tbc + 3, j = 0; i > 3; i = i - 2) {
-                wbuf[j++] = ((uint16) xbuf[i]) |
-                    (((uint16) xbuf[i - 1]) << 8);
+                wbuf[j++] = ((uint16_t) xbuf[i]) |
+                    (((uint16_t) xbuf[i - 1]) << 8);
                 }
             xbc = tbc;
             }
@@ -941,11 +941,11 @@ for (u = 0; u < TU_NUMDR; u++) {                        /* loop thru units */
     uptr->USTAT = 0;
     }
 if (xbuf == NULL)
-    xbuf = (uint8 *) calloc (MT_MAXFR + 4, sizeof (uint8));
+    xbuf = (uint8_t *) calloc (MT_MAXFR + 4, sizeof (uint8_t));
 if (xbuf == NULL)
     return SCPE_MEM;
 if (wbuf == NULL)
-    wbuf = (uint16 *) calloc ((MT_MAXFR + 4) >> 1, sizeof (uint16));
+    wbuf = (uint16_t *) calloc ((MT_MAXFR + 4) >> 1, sizeof (uint16_t));
 if (wbuf == NULL)
     return SCPE_MEM;
 return auto_config(0, 0);
@@ -1019,9 +1019,9 @@ return SCPE_OK;
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0046515,                        /* "MM" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit, r0 */

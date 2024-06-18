@@ -268,7 +268,7 @@
 #define MAX(a,b)        (((a) >= (b))? (a): (b))
 #define MAX_PLNT        8                               /* max pkt length */
 
-uint8 *tsxb = NULL;                                     /* xfer buffer */
+uint8_t *tsxb = NULL;                                     /* xfer buffer */
 int32 tssr = 0;                                         /* status register */
 int32 tsba = 0;                                         /* mem addr */
 int32 tsdbx = 0;                                        /* data buf ext */
@@ -280,7 +280,7 @@ int32 ts_ownm = 0;                                      /* tape owns msg */
 int32 ts_qatn = 0;                                      /* queued attn */
 int32 ts_bcmd = 0;                                      /* boot cmd */
 int32 ts_time = 2000;                                   /* record latency */
-static uint16 cpy_buf[MAX_PLNT];                        /* copy buffer */
+static uint16_t cpy_buf[MAX_PLNT];                        /* copy buffer */
 
 t_stat ts_rd (int32 *data, int32 PA, int32 access);
 t_stat ts_wr (int32 data, int32 PA, int32 access);
@@ -591,7 +591,7 @@ do {
 return 0;
 }
 
-int32 ts_readf (UNIT *uptr, uint32 fc)
+int32 ts_readf (UNIT *uptr, uint32_t fc)
 {
 t_stat st;
 t_mtrlnt i, t, tbc, wbc;
@@ -633,7 +633,7 @@ if (tbc > wbc)                                          /* rec too big? */
 return 0;
 }
 
-int32 ts_readr (UNIT *uptr, uint32 fc)
+int32 ts_readr (UNIT *uptr, uint32_t fc)
 {
 t_stat st;
 t_mtrlnt i, tbc, wbc;
@@ -667,7 +667,7 @@ return 0;
 int32 ts_write (UNIT *uptr, int32 fc)
 {
 int32 i, t;
-uint32 wa;
+uint32_t wa;
 t_stat st;
 
 msgrfc = fc;
@@ -1032,7 +1032,7 @@ if (msg && !(tssr & TSSR_NBA)) {                        /* send end pkt */
     msglnt = wchlnt - 4;                                /* exclude hdr, bc */
     tsba = (wchadh << 16) | wchadl;
     for (i = 0; (i < MSG_PLNT) && (i < (wchlnt / 2)); i++)
-        cpy_buf[i] = (uint16) tsmsgp[i];                /* copy buffer */
+        cpy_buf[i] = (uint16_t) tsmsgp[i];                /* copy buffer */
     t = Map_WriteW (tsba, i << 1, cpy_buf);             /* write to mem */
     tsba = tsba + ((i << 1) - t);                       /* incr tsba */
     if (t) {                                            /* nxm? */
@@ -1070,7 +1070,7 @@ for (i = 0; i < MSG_PLNT; i++)
 msgxs0 = ts_updxs0 (XS0_VCK);
 CLR_INT (TS);
 if (tsxb == NULL)
-    tsxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    tsxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (tsxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -1128,7 +1128,7 @@ return r;
 #define BOOT_CSR1       (BOOT_START + 012)
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0012706, 0001000,               /* mov #boot_start, sp */
     0012700, 0172520,               /* mov #tsba, r0 */
     0012701, 0172522,               /* mov #tssr, r1 */

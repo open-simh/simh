@@ -66,16 +66,16 @@ static SS1_INFO ss1_info_data = { { 0x0, 0, 0x50, 16 } };
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 PCX;
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
+extern uint32_t PCX;
 
 static t_stat ss1_reset(DEVICE *ss1_dev);
 static t_stat ss1_svc (UNIT *uptr);
-static uint8 SS1_Read(const uint32 Addr);
-static uint8 SS1_Write(const uint32 Addr, uint8 cData);
+static uint8_t SS1_Read(const uint32_t Addr);
+static uint8_t SS1_Write(const uint32_t Addr, uint8_t cData);
 static int32 ss1dev(const int32 port, const int32 io, const int32 data);
-void raise_ss1_interrupt(uint8 isr_index);
+void raise_ss1_interrupt(uint8_t isr_index);
 static const char* ss1_description(DEVICE *dptr);
 static void setClockSS1(void);
 
@@ -121,13 +121,13 @@ static void setClockSS1(void);
 #define RXRDY_IRQ_OFFSET    7
 
 typedef struct {
-    uint8 config_cnt;
-    uint8 ICW[5];
-    uint8 IMR;      /* OCW1 = IMR */
-    uint8 OCW2;
-    uint8 OCW3;
-    uint8 IRR;
-    uint8 ISR;
+    uint8_t config_cnt;
+    uint8_t ICW[5];
+    uint8_t IMR;      /* OCW1 = IMR */
+    uint8_t OCW2;
+    uint8_t OCW3;
+    uint8_t IRR;
+    uint8_t ISR;
 } I8259_REGS;
 
 I8259_REGS ss1_pic[2];
@@ -140,11 +140,11 @@ I8259_REGS ss1_pic[2];
  * T2 IRQ connected to Slave IRQ 3
  */
 typedef struct {
-    uint16 count[3];    /* Current counter value for each timer. */
-    uint8 mode[3];      /* Current mode of each timer. */
-    uint8 bcd[3];
-    uint8 rl[3];
-    uint8 CTL;
+    uint16_t count[3];    /* Current counter value for each timer. */
+    uint8_t mode[3];      /* Current mode of each timer. */
+    uint8_t bcd[3];
+    uint8_t rl[3];
+    uint8_t CTL;
 } I8253_REGS;
 
 I8253_REGS ss1_tc[1];
@@ -169,9 +169,9 @@ I8253_REGS ss1_tc[1];
 #define RTS_YEARS_10_DIGIT      12
 
 typedef struct {
-    uint8 digit_sel;
-    uint8 flags;
-    uint8 digits[RTS_YEARS_10_DIGIT + 1];
+    uint8_t digit_sel;
+    uint8_t flags;
+    uint8_t digits[RTS_YEARS_10_DIGIT + 1];
     int32 clockDelta; /* delta between real clock and SS1 clock */
 } RTC_REGS;
 
@@ -320,12 +320,12 @@ extern int32 sio0s(const int32 port, const int32 io, const int32 data);
 
 static struct tm currentTime;
 
-static uint8 SS1_Read(const uint32 Addr)
+static uint8_t SS1_Read(const uint32_t Addr)
 {
-    uint8 cData = 0x00;
+    uint8_t cData = 0x00;
 
-    uint8 sel_pic = MASTER_PIC;
-    uint8 sel_tc = 0;
+    uint8_t sel_pic = MASTER_PIC;
+    uint8_t sel_tc = 0;
     time_t now;
 
     switch(Addr & 0x0F) {
@@ -452,8 +452,8 @@ static uint8 SS1_Read(const uint32 Addr)
 
 }
 
-uint16 newcount = 0;
-uint8 bc;
+uint16_t newcount = 0;
+uint8_t bc;
 
 /* setClockSS1 sets the new ClockSS1Delta based on the provided digits */
 static void setClockSS1(void) {
@@ -474,12 +474,12 @@ static void setClockSS1(void) {
 
 static void generate_ss1_interrupt(void);
 
-static uint8 SS1_Write(const uint32 Addr, uint8 cData)
+static uint8_t SS1_Write(const uint32_t Addr, uint8_t cData)
 {
 
-    uint8 sel_pic = MASTER_PIC;
-    uint8 sel_tc = 0;
-    uint8 sel_timer = 0;
+    uint8_t sel_pic = MASTER_PIC;
+    uint8_t sel_tc = 0;
+    uint8_t sel_timer = 0;
 
     switch(Addr & 0x0F) {
         case SS1_S8259_L:
@@ -616,9 +616,9 @@ static uint8 SS1_Write(const uint32 Addr, uint8 cData)
     return(0);
 }
 
-void raise_ss1_interrupt(uint8 isr_index)
+void raise_ss1_interrupt(uint8_t isr_index)
 {
-    uint8 irq_bit;
+    uint8_t irq_bit;
     if(isr_index < 7) { /* VI0-6 on master PIC */
         irq_bit = (1 << isr_index);
         ss1_pic[MASTER_PIC].ISR |= irq_bit;
@@ -628,13 +628,13 @@ void raise_ss1_interrupt(uint8 isr_index)
         generate_ss1_interrupt();
     }
 }
-extern void cpu_raise_interrupt(uint32 irq);
+extern void cpu_raise_interrupt(uint32_t irq);
 
 static void generate_ss1_interrupt(void)
 {
-    uint8 irq, irq_pend, irq_index = 0, irq_bit = 0;
+    uint8_t irq, irq_pend, irq_index = 0, irq_bit = 0;
 
-    uint8 pic;
+    uint8_t pic;
 
     for(pic=MASTER_PIC;pic<=SLAVE_PIC;pic++) {
         irq_pend = (~ss1_pic[pic].IMR) & ss1_pic[pic].ISR;
@@ -668,8 +668,8 @@ static void generate_ss1_interrupt(void)
 /* Unit 0-2 = Timer0-2, Unit3=ISR queue */
 static t_stat ss1_svc (UNIT *uptr)
 {
-    uint8 cData;
-    uint8 irq_bit = 0;
+    uint8_t cData;
+    uint8_t irq_bit = 0;
 
     /* Handle SS1 UART Rx interrupts here. */
     cData = sio0s(0x5D, 0, 0);

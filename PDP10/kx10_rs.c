@@ -170,8 +170,8 @@ struct drvtyp rs_drv_tab[] = {
 
 
 uint64        rs_buf[NUM_DEVS_RS][RS_NUMWD];
-int           rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data);
-int           rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data);
+int           rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data);
+int           rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data);
 void          rs_rst(DEVICE *dptr);
 t_stat        rs_svc(UNIT *);
 t_stat        rs_boot(int32, DEVICE *);
@@ -273,7 +273,7 @@ rs_rst(DEVICE *dptr)
 }
 
 int
-rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
+rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
     int            i;
     int            unit = rhc->drive;
     UNIT          *uptr = &dptr->units[unit];
@@ -378,10 +378,10 @@ rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
 }
 
 int
-rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data) {
+rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data) {
     int            unit = rhc->drive;
     UNIT          *uptr = &dptr->units[unit];
-    uint32        temp = 0;
+    uint32_t        temp = 0;
     int           i;
 
     if ((uptr->flags & UNIT_DIS) != 0)
@@ -624,8 +624,8 @@ rs_boot(int32 unit_num, DEVICE * rptr)
     int           ctlr = GET_CNTRL_RH(uptr->flags);
     struct rh_if *rhc;
     DEVICE       *dptr;
-    uint32        addr;
-    uint32        ptr = 0;
+    uint32_t        addr;
+    uint32_t        ptr = 0;
     uint64        word;
     int           wc;
 

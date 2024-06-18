@@ -177,8 +177,8 @@ struct mouse_event {
     };
 
 struct key_event {
-    uint32 key;                                           /* key sym */
-    uint32 state;                                         /* key state change */
+    uint32_t key;                                           /* key sym */
+    uint32_t state;                                         /* key state change */
     DEVICE *dev;                                          /* which device */
     VID_DISPLAY *vptr;                                    /* which display */
     };
@@ -186,7 +186,7 @@ struct key_event {
 typedef struct mouse_event SIM_MOUSE_EVENT;
 typedef struct key_event SIM_KEY_EVENT;
 
-t_stat vid_open (DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
+t_stat vid_open (DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags);
 #define SIM_VID_INPUTCAPTURED       1                       /* Mouse and Keyboard input captured (calling */
                                                             /* code responsible for cursor display in video) */
 #define SIM_VID_IGNORE_VBAR         2                       /* ignore video buffer aspect ratio */
@@ -199,13 +199,13 @@ t_stat vid_register_gamepad_button_callback (VID_GAMEPAD_CALLBACK);
 t_stat vid_close (void);
 t_stat vid_poll_kb (SIM_KEY_EVENT *ev);
 t_stat vid_poll_mouse (SIM_MOUSE_EVENT *ev);
-uint32 vid_map_rgb (uint8 r, uint8 g, uint8 b);
-void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf);
+uint32_t vid_map_rgb (uint8_t r, uint8_t g, uint8_t b);
+void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32_t *buf);
 void vid_beep (void);
 void vid_refresh (void);
 const char *vid_version (void);
-const char *vid_key_name (uint32 key);
-t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
+const char *vid_key_name (uint32_t key);
+t_stat vid_set_cursor (t_bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y);
 t_stat vid_set_release_key (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
 t_stat vid_show_release_key (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
 t_stat vid_show_video (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
@@ -219,14 +219,14 @@ void vid_set_cursor_position (int32 x, int32 y);        /* cursor position (set 
 void vid_set_window_size (VID_DISPLAY *vptr, int32 x, int32 y);            /* window size (set by calling code) */
 void vid_render_set_logical_size (VID_DISPLAY *vptr, int32 w, int32 h);
 
-t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
+t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags);
 t_stat vid_close_window (VID_DISPLAY *vptr);
 t_stat vid_close_all (void);
-uint32 vid_map_rgb_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b);
-uint32 vid_map_rgba_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b, uint8 a);
-void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32 *buf);
+uint32_t vid_map_rgb_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b);
+uint32_t vid_map_rgba_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32_t *buf);
 void vid_refresh_window (VID_DISPLAY *vptr);
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y);
 t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr);
 t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag);
 void vid_set_cursor_position_window (VID_DISPLAY *vptr, int32 x, int32 y);        /* cursor position (set by calling code) */

@@ -89,19 +89,19 @@
 #include "h316_imp.h"           // ARPAnet IMP/TIP definitions
 
 // Externals from other parts of simh ...
-extern uint16 dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
+extern uint16_t dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
 extern int32 PC;                        // current PC (for debug messages)
 extern int32 stop_inst;                 // needed by IOBADFNC()
-extern uint16 M[];                      // main memory (for DMC access)
+extern uint16_t M[];                      // main memory (for DMC access)
 
 // Forward declarations ...
-int32  hi_io (uint16 line, int32 inst, int32 fnc, int32 dat, int32 dev);
+int32  hi_io (uint16_t line, int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 hi1_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 hi2_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 hi3_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 hi4_io (int32 inst, int32 fnc, int32 dat, int32 dev);
 t_stat hi_rx_service (UNIT *uptr);
-void hi_rx_local (uint16 line, uint16 txnext, uint16 txcount);
+void hi_rx_local (uint16_t line, uint16_t txnext, uint16_t txcount);
 t_stat hi_reset (DEVICE *dptr);
 t_stat hi_attach (UNIT *uptr, CONST char *cptr);
 t_stat hi_detach (UNIT *uptr);
@@ -220,7 +220,7 @@ HIDB   *const hi_hidbs  [HI_NUM] = {&hi1_db,   &hi2_db,   &hi3_db,   &hi4_db  };
 #define ISHDBG(l,f)    ((PDEVICE(l)->dctrl & (f)) != 0)
 
 // Reset receiver (clear flags AND initialize all data) ...
-void hi_reset_rx (uint16 host)
+void hi_reset_rx (uint16_t host)
 {
   PHIDB(host)->iloop = PHIDB(host)->error = FALSE;
   PHIDB(host)->ready = FALSE;
@@ -231,7 +231,7 @@ void hi_reset_rx (uint16 host)
 }
 
 // Reset transmitter (clear flags AND initialize all data) ...
-void hi_reset_tx (uint16 host)
+void hi_reset_tx (uint16_t host)
 {
   PHIDB(host)->iloop = PHIDB(host)->enabled = PHIDB(host)->full = FALSE;
   PHIDB(host)->txtotal = 0;
@@ -239,9 +239,9 @@ void hi_reset_tx (uint16 host)
 }
 
 // Get the DMC control words (starting address, end and length) for the channel.
-void hi_get_dmc (uint16 dmc, uint16 *pnext, uint16 *plast, uint16 *pcount)
+void hi_get_dmc (uint16_t dmc, uint16_t *pnext, uint16_t *plast, uint16_t *pcount)
 {
-  uint16 dmcad;
+  uint16_t dmcad;
   if ((dmc<DMC1) || (dmc>(DMC1+DMC_MAX-1))) {
     *pnext = *plast = *pcount = 0;
     return;
@@ -252,9 +252,9 @@ void hi_get_dmc (uint16 dmc, uint16 *pnext, uint16 *plast, uint16 *pcount)
 }
 
 // Update the DMC words to show "count" words transferred.
-void hi_update_dmc (uint32 dmc, uint32 count)
+void hi_update_dmc (uint32_t dmc, uint32_t count)
 {
-  uint16 dmcad, next;
+  uint16_t dmcad, next;
   if ((dmc<DMC1) || (dmc>(DMC1+DMC_MAX-1))) return;
   dmcad = DMC_BASE + (dmc-DMC1)*2;
   next = M[dmcad];
@@ -262,7 +262,7 @@ void hi_update_dmc (uint32 dmc, uint32 count)
 }
 
 // Link error recovery ...
-void hi_link_error (uint16 line)
+void hi_link_error (uint16_t line)
 {
   //   Any physical I/O error, either for the UDP link or a COM port, prints a
   // message and detaches the modem.  It's up to the user to decide what to do
@@ -280,9 +280,9 @@ void hi_link_error (uint16 line)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Log a modem input or output including DMC words ...
-void hi_debug_hio (uint16 line, uint32 dmc, const char *ptext)
+void hi_debug_hio (uint16_t line, uint32_t dmc, const char *ptext)
 {
-  uint16 next, last, count;
+  uint16_t next, last, count;
   if (!ISHDBG(line, IMP_DBG_IOT)) return;
   hi_get_dmc(dmc, &next, &last, &count);
   sim_debug(IMP_DBG_IOT, PDEVICE(line),
@@ -291,9 +291,9 @@ void hi_debug_hio (uint16 line, uint32 dmc, const char *ptext)
 }
 
 // Log the contents of a message sent or received ...
-void hi_debug_msg (uint16 line, uint16 next, uint16 count, const char *ptext)
+void hi_debug_msg (uint16_t line, uint16_t next, uint16_t count, const char *ptext)
 {
-  uint16 i;  char buf[CBUFSIZE];  int len = 0;
+  uint16_t i;  char buf[CBUFSIZE];  int len = 0;
   if (!ISHDBG(line, HI_DBG_MSG)) return;
   sim_debug(HI_DBG_MSG, PDEVICE(line), "message %s (length=%d)\n", ptext, count);
   for (i = 1, len = 0;  i <= count;  ++i) {
@@ -310,13 +310,13 @@ void hi_debug_msg (uint16 line, uint16 next, uint16 count, const char *ptext)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Start the transmitter ...
-void hi_start_tx (uint16 line, uint16 flags)
+void hi_start_tx (uint16_t line, uint16_t flags)
 {
   //   This handles all the work of the "start host output" OCP, including
   // extracting the packet from H316 memory, EXCEPT for actually setting the
   // transmit done interrupt.  That's handled by the RTC polling routine after
   // a delay that we calculate..
-  uint16 next, last, count;  uint32 nbits;  t_stat ret;
+  uint16_t next, last, count;  uint32_t nbits;  t_stat ret;
 
   //   Get the DMC words for this channel and update the next pointer as if the
   // transfer actually occurred.
@@ -334,11 +334,11 @@ void hi_start_tx (uint16 line, uint16 flags)
     // The host interface needs some out-of-band data bits. The format 
     // of the data going out over the wire is:
     // struct
-    //   uint16 flags;
-    //   uint16 data [MAXDATA - 1];
+    //   uint16_t flags;
+    //   uint16_t data [MAXDATA - 1];
     // Put the packet into a temp buffer for assembly.
-    uint16 *tmp = (uint16 *)malloc ((count + 1) * sizeof (*tmp));
-    uint16 i;
+    uint16_t *tmp = (uint16_t *)malloc ((count + 1) * sizeof (*tmp));
+    uint16_t i;
 
     tmp [0] = flags;
     if (PHIDB(line)->enabled)
@@ -352,7 +352,7 @@ void hi_start_tx (uint16 line, uint16 flags)
 
   // Do some fancy math to figure out how long, in RTC ticks, it would actually
   // take to transmit a message of this length with a real host interface.
-  nbits = ((uint32) count)*16UL;
+  nbits = ((uint32_t) count)*16UL;
   PHIDB(line)->txdelay = (nbits * 1000000UL) / (PHIDB(line)->bps * rtc_interval);
   sim_debug(IMP_DBG_IOT, PDEVICE(line), "HI%d - transmit packet, length=%d, bits=%u, interval=%u, delay=%u\n", line, count, nbits, rtc_interval, PHIDB(line)->txdelay);
   // That's it - we're done until it's time for the TX done interrupt ...
@@ -360,7 +360,7 @@ void hi_start_tx (uint16 line, uint16 flags)
 }
 
 // Poll for transmitter done interrupts ...
-void hi_poll_tx (uint16 line, uint32 quantum)
+void hi_poll_tx (uint16_t line, uint32_t quantum)
 {
   //   This routine is called, via the RTC service, to count down the interval
   // until the transmitter finishes.  When it hits zero, an interrupt occurs.
@@ -373,7 +373,7 @@ void hi_poll_tx (uint16 line, uint32 quantum)
 }
 
 // Start the receiver ...
-void hi_start_rx (uint16 line)
+void hi_start_rx (uint16_t line)
 {
   //   "Starting" the receiver simply sets the RX pending flag.  Nothing else
   // needs to be done (nothing else _can_ be done!) until we actually receive
@@ -389,15 +389,15 @@ void hi_start_rx (uint16 line)
 }
 
 // Poll for receiver data ...
-void hi_poll_rx (uint16 line)
+void hi_poll_rx (uint16_t line)
 {
   //   This routine is called by hi_rx_service to poll for any packets received.
   // This is done regardless of whether a receive is pending on the line.  If
   // a packet is waiting AND a receive is pending then we'll store it and finish
   // the receive operation.  If a packet is waiting but no receive is pending
   // then the packet is discarded...
-  uint16 next, last, maxbuf;  uint16 *pdata;  int16 count=0;
-  uint16 i;
+  uint16_t next, last, maxbuf;  uint16_t *pdata;  int16 count=0;
+  uint16_t i;
 
   // If the modem isn't attached, then the read never completes!
   if (PHIDB(line)->link == NOLINK) return;
@@ -413,8 +413,8 @@ void hi_poll_rx (uint16 line)
   // The host interface needs some out-of-band data bits. The format 
   // of the data coming over the wire is:
   // struct
-  //   uint16 flags;
-  //   uint16 data [MAXDATA - 1];
+  //   uint16_t flags;
+  //   uint16_t data [MAXDATA - 1];
   
   if (PHIDB(line)->rxnext < PHIDB(line)->rxsize) {
     // There is data left from a previously recieved UDP packet.
@@ -463,7 +463,7 @@ void hi_poll_rx (uint16 line)
 
 
 // Receive cross patched data ...
-void hi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
+void hi_rx_local (uint16_t line, uint16_t txnext, uint16_t txcount)
 {
   //   This routine is invoked by the hi_start_tx() function when this modem has
   // the "interface cross patch" bit set.  This flag causes the modem to talk to
@@ -472,7 +472,7 @@ void hi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
   // This is essentially a special case of the hi_poll_rx() routine and it's a
   // shame they don't share more code, but that's the way it is.
   // Get the DMC words for this channel, or zeros if no read is pending ...
-  uint16 rxnext, rxlast, maxbuf;
+  uint16_t rxnext, rxlast, maxbuf;
 
   // If no read is pending, then just throw away the data ...
   if (!PHIDB(line)->rxpending) return;
@@ -480,7 +480,7 @@ void hi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
   // Get the DMC words for the receiver and copy data from one buffer to the other.
   hi_get_dmc(PDIB(line)->rxdmc, &rxnext, &rxlast, &maxbuf);
   if (txcount > maxbuf) {txcount = maxbuf;  PHIDB(line)->rxerror = TRUE;}
-  memmove(&M[rxnext], &M[txnext], txcount * sizeof(uint16));
+  memmove(&M[rxnext], &M[txnext], txcount * sizeof(uint16_t));
 
   // Update the receiver DMC pointers, assert IRQ and we're done!
   hi_update_dmc(PDIB(line)->rxdmc, txcount);
@@ -502,9 +502,9 @@ int32 hi3_io(int32 inst, int32 fnc, int32 dat, int32 dev)  {return hi_io(3, inst
 int32 hi4_io(int32 inst, int32 fnc, int32 dat, int32 dev)  {return hi_io(4, inst, fnc, dat, dev);}
 
 // Common I/O simulation routine ...
-int32 hi_io (uint16 host, int32 inst, int32 fnc, int32 dat, int32 dev)
+int32 hi_io (uint16_t host, int32 inst, int32 fnc, int32 dat, int32 dev)
 {
-  uint16 tmp;
+  uint16_t tmp;
   //   This routine is invoked by the CPU module whenever the code executes any
   // I/O instruction (OCP, SKS, INA or OTA) with one of our modem's device
   // address.
@@ -594,20 +594,20 @@ t_stat hi_rx_service (UNIT *uptr)
   //   This is the standard simh "service" routine that's called when an event
   // queue entry expires.  It just polls the receiver and reschedules itself.
   // That's it!
-  uint16 line = uptr->hline;
+  uint16_t line = uptr->hline;
   if (PHIDB(line)->rxpending) hi_poll_rx(line);
   sim_activate(uptr, uptr->wait);
   return SCPE_OK;
 }
 
 // Transmitter service ...
-t_stat hi_tx_service (uint32 quantum)
+t_stat hi_tx_service (uint32_t quantum)
 {
   //   This is the special transmitter service routine that's called by the RTC
   // service every time the RTC is updated.  This routine polls ALL the modem
   // transmitters (or at least any which are active) and figures out whether it
   // is time for an interrupt.
-  uint32 i;
+  uint32_t i;
   for (i = 1;  i <= HI_NUM;  ++i) hi_poll_tx(i, quantum);
   return SCPE_OK;
 }
@@ -623,7 +623,7 @@ t_stat hi_reset (DEVICE *dptr)
 {
   // simh calls this routine for the RESET command ...
   UNIT *uptr = dptr->units;
-  uint16 host= uptr->hline;
+  uint16_t host= uptr->hline;
   hi_reset_rx(host);  hi_reset_tx(host);
   sim_cancel(uptr);
   if ((uptr->flags & UNIT_ATT) != 0) sim_activate(uptr, uptr->wait);
@@ -639,7 +639,7 @@ t_stat hi_attach (UNIT *uptr, CONST char *cptr)
   //    ATTACH -p HIn COHnn          - attach MIn to a physical COM port
   //    ATTACH HIn llll:w.x.y.z:rrrr - connect via UDP to a remote simh host
   //
-  t_stat ret;  char *pfn;  uint16 host = uptr->hline;
+  t_stat ret;  char *pfn;  uint16_t host = uptr->hline;
   t_bool fport = sim_switches & SWMASK('P');
 
   // If we're already attached, then detach ...
@@ -672,7 +672,7 @@ t_stat hi_detach (UNIT *uptr)
   // disconnects the modem from any UDP connection or COM port and effectively
   // makes the modem "off line".  A disconnected modem acts like a real modem
   // with its phone line unplugged.
-  t_stat ret;  uint16 line = uptr->hline;
+  t_stat ret;  uint16_t line = uptr->hline;
   if ((uptr->flags & UNIT_ATT) == 0) return SCPE_OK;
   ret = udp_release(PDEVICE(line), PHIDB(line)->link);
   if (ret != SCPE_OK) return ret;

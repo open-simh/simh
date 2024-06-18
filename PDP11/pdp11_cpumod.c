@@ -92,7 +92,7 @@ int32 UCSR = 0;                                         /* UBA control */
 int32 uba_last = 0;                                     /* UBA last mapped */
 int32 ub_map[UBM_LNT_LW] = { 0 };                       /* UBA map array */
 int32 toy_state = 0;
-uint8 toy_data[TOY_LNT] = { 0 };
+uint8_t toy_data[TOY_LNT] = { 0 };
 static int32 clk_tps_map[4] = { 0, 50, 60, 800 };       /* 0 = use BEVENT */
 
 extern int32 R[8];
@@ -130,7 +130,7 @@ t_stat UBAJ_wr (int32 data, int32 addr, int32 access);
 t_stat sys_reset (DEVICE *dptr);
 int32 toy_read (void);
 void toy_write (int32 bit);
-uint8 toy_set (int32 val);
+uint8_t toy_set (int32 val);
 t_stat sys_set_jclk_dflt (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat sys_show_jclk_dflt (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat sys_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
@@ -1134,13 +1134,13 @@ toy_state = 0;
 return;
 }
 
-uint8 toy_set (int32 val)
+uint8_t toy_set (int32 val)
 {
-uint32 d1, d2;
+uint32_t d1, d2;
 
 d1 = val / 10;
 d2 = val % 10;
-return (uint8) ((d1 << 4) | d2);
+return (uint8_t) ((d1 << 4) | d2);
 }
 
 /* Build I/O space entries for CPU */
@@ -1184,7 +1184,7 @@ return SCPE_OK;
 
 t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 i, all_opt;
+uint32_t i, all_opt;
 
 fprintf (st, "%s", cpu_tab[cpu_model].name);
 all_opt = cpu_tab[cpu_model].opt;
@@ -1203,7 +1203,7 @@ t_stat cpu_set_opt (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 if (cptr)
     return SCPE_ARG;
 if ((val & cpu_tab[cpu_model].opt) == 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; opt_name[2 * i] != NULL; i++) {
         if ((val >> i) & 1)
@@ -1222,7 +1222,7 @@ t_stat cpu_clr_opt (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 if (cptr)
     return SCPE_ARG;
 if ((val & cpu_tab[cpu_model].opt) == 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; opt_name[2 * i] != NULL; i++) {
         if ((val >> i) & 1)
@@ -1241,8 +1241,8 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i, clim;
-uint16 *nM;
+uint32_t i, clim;
+uint16_t *nM;
 
 if ((val <= 0) ||
     (val > ((int32) cpu_tab[cpu_model].maxm)) ||
@@ -1254,10 +1254,10 @@ for (i = val; i < MEMSIZE; i = i + 2)
     mc = mc | M[i >> 1];
 if ((mc != 0) && !get_yn ("Really truncate memory [N]?", FALSE))
     return SCPE_OK;
-nM = (uint16 *) calloc (val >> 1, sizeof (uint16));
+nM = (uint16_t *) calloc (val >> 1, sizeof (uint16_t));
 if (nM == NULL)
     return SCPE_MEM;
-clim = (((t_addr) val) < MEMSIZE)? (uint32)val: MEMSIZE;
+clim = (((t_addr) val) < MEMSIZE)? (uint32_t)val: MEMSIZE;
 for (i = 0; i < clim; i = i + 2)
     nM[i >> 1] = M[i >> 1];
 free (M);
@@ -1273,7 +1273,7 @@ return SCPE_OK;
 t_stat cpu_set_bus (int32 opt)
 {
 DEVICE *dptr;
-uint32 i, mask;
+uint32_t i, mask;
 
 if (opt & BUS_U)                                        /* Unibus variant? */
     mask = DEV_UBUS;
@@ -1327,7 +1327,7 @@ return SCPE_OK;
 
 t_stat sys_set_jclk_dflt (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 i;
+uint32_t i;
 
 if ((CPUT (CPUT_JB|CPUT_JE)) && cptr) {
     for (i = 0; i < 4; i++) {

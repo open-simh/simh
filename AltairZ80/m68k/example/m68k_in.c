@@ -4431,7 +4431,7 @@ M68KMAKE_OP(divs, 16, ., d)
 
 	if(src != 0)
 	{
-		if((uint32)*r_dst == 0x80000000 && src == -1)
+		if((uint32_t)*r_dst == 0x80000000 && src == -1)
 		{
 			FLAG_Z = 0;
 			FLAG_N = NFLAG_CLEAR;
@@ -4469,7 +4469,7 @@ M68KMAKE_OP(divs, 16, ., .)
 
 	if(src != 0)
 	{
-		if((uint32)*r_dst == 0x80000000 && src == -1)
+		if((uint32_t)*r_dst == 0x80000000 && src == -1)
 		{
 			FLAG_Z = 0;
 			FLAG_N = NFLAG_CLEAR;
@@ -7423,7 +7423,7 @@ M68KMAKE_OP(moveq, 32, ., .)
 
 M68KMAKE_OP(move16, 32, ., .)
 {
-	uint16 w2 = OPER_I_16();
+	uint16_t w2 = OPER_I_16();
 	int ax = REG_IR & 7;
 	int ay = (w2 >> 12) & 7;
 

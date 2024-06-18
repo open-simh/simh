@@ -228,16 +228,16 @@ DI_STATE di [card_count];                       /* per-card state */
 
 /* Disc interface local bus routines */
 
-static t_bool di_bus_accept  (CARD_ID card, uint8 data);
-static void   di_bus_respond (CARD_ID card, uint8 cntl);
+static t_bool di_bus_accept  (CARD_ID card, uint8_t data);
+static void   di_bus_respond (CARD_ID card, uint8_t cntl);
 static void   di_bus_poll    (CARD_ID card);
 
 /* Disc interface local utility routines */
 
 static void   master_reset (CARD_ID card);
 static void   update_state (CARD_ID card);
-static void   fifo_load    (CARD_ID card, uint16 data,  FIFO_ACCESS access);
-static uint16 fifo_unload  (CARD_ID card, FIFO_ACCESS access);
+static void   fifo_load    (CARD_ID card, uint16_t data,  FIFO_ACCESS access);
+static uint16_t fifo_unload  (CARD_ID card, FIFO_ACCESS access);
 
 
 
@@ -457,7 +457,7 @@ const char * const hold_or_clear = (inbound_signals & ioCLF ? ",C" : "");
 const CARD_ID card = (CARD_ID) (dibptr->card_index);
 DI_STATE * const di_card = &di [card];
 
-uint8          assert, deny;                            /* new bus control states */
+uint8_t          assert, deny;                            /* new bus control states */
 t_bool         update_required = TRUE;                  /* TRUE if CLF must update the card state */
 
 INBOUND_SIGNAL signal;
@@ -571,11 +571,11 @@ while (working_set) {                                   /* while signals remain 
 
                 if (di_card->cntl_register & CNTL_DIAG) {                   /* set for DIAG loopback? */
                     inbound_value = fifo_unload (card, diag_access);        /* unload data from the FIFO */
-                    fifo_load (card, (uint16) inbound_value, diag_access);  /*   and load it back in */
+                    fifo_load (card, (uint16_t) inbound_value, diag_access);  /*   and load it back in */
                     }
 
                 else {                                                      /* the card is set for normal operation */
-                    fifo_load (card, (uint16) inbound_value, cpu_access);   /* load the data word into the FIFO */
+                    fifo_load (card, (uint16_t) inbound_value, cpu_access);   /* load the data word into the FIFO */
 
                     if (FIFO_FULL && (di_card->bus_cntl & BUS_NRFD)) {  /* FIFO full and listener not ready? */
                         if (di_card->srq == SET)
@@ -656,7 +656,7 @@ while (working_set) {                                   /* while signals remain 
                 else                                        /*   else */
                     deny |= BUS_SRQ;                        /*     deny SRQ on the bus */
 
-                di_card->cntl_register = (uint16) inbound_value;    /* save the control word */
+                di_card->cntl_register = (uint16_t) inbound_value;    /* save the control word */
                 di_bus_control (card, CONTROLLER, assert, deny);    /* update the bus control state */
                 }
 
@@ -846,14 +846,14 @@ return SCPE_OK;
 t_stat di_set_address (UNIT *uptr, int32 value, CONST char *cptr, void *desc)
 {
 t_stat status;
-uint32 index, new_address;
-uint32 old_address = GET_BUSADR (uptr->flags);
+uint32_t index, new_address;
+uint32_t old_address = GET_BUSADR (uptr->flags);
 DEVICE *dptr = (DEVICE *) desc;
 
 if (cptr == NULL)                                           /* if the address is not given */
     return SCPE_ARG;                                        /*   report a missing argument */
 
-new_address = (uint32) get_uint (cptr, 10, 7, &status);     /* parse the address value */
+new_address = (uint32_t) get_uint (cptr, 10, 7, &status);     /* parse the address value */
 
 if (status == SCPE_OK) {                                    /* is the parse OK? */
     if (value)                                              /* are we setting the card address? */
@@ -1047,10 +1047,10 @@ return SCPE_OK;
        parallel poll does not source data onto the bus).
 */
 
-t_bool di_bus_source (CARD_ID card, uint8 data)
+t_bool di_bus_source (CARD_ID card, uint8_t data)
 {
 CARD_ID other;
-uint32 acceptors, unit;
+uint32_t acceptors, unit;
 t_bool accepted = FALSE;
 
 tpprintf (dptrs [card], DEB_XFER, "HP-IB DIO %03o signals %s available\n",
@@ -1130,12 +1130,12 @@ return accepted;
 #define ASSERT_SET      (BUS_IFC)
 #define DENY_SET        (BUS_ATN | BUS_NRFD)
 
-void di_bus_control (CARD_ID card, uint32 unit, uint8 assert, uint8 deny)
+void di_bus_control (CARD_ID card, uint32_t unit, uint8_t assert, uint8_t deny)
 {
 CARD_ID other;
-uint32 acceptors, responder;
+uint32_t acceptors, responder;
 t_bool responded;
-uint8 new_state, new_assertions, new_denials;
+uint8_t new_state, new_assertions, new_denials;
 
 new_state = di [card].bus_cntl & ~deny | assert;        /* set up the new control state */
 
@@ -1206,10 +1206,10 @@ return;
    the poll is conducted again to reflect the new response.
 */
 
-void di_poll_response (CARD_ID card, uint32 unit, FLIP_FLOP response)
+void di_poll_response (CARD_ID card, uint32_t unit, FLIP_FLOP response)
 {
-const uint32 address = GET_BUSADR (dptrs [card]->units [unit].flags);
-uint32 previous_response = di [card].poll_response;
+const uint32_t address = GET_BUSADR (dptrs [card]->units [unit].flags);
+uint32_t previous_response = di [card].poll_response;
 
 if (response == SET) {                                  /* enable the poll response? */
     di [card].poll_response |= PPR (address);           /* set the response bit */
@@ -1258,7 +1258,7 @@ return;
 static void di_bus_poll (CARD_ID card)
 {
 CARD_ID other;
-uint8   response;
+uint8_t   response;
 
 if ((di [card].cntl_register
   & (CNTL_PPE | CNTL_CIC)) == CNTL_PPE)                     /* is the card's poll response enabled? */
@@ -1281,7 +1281,7 @@ if (response) {                                             /* is a poll respons
               response);
 
     while (di [card].fifo_count != FIFO_SIZE)               /* fill the card FIFO with the responses */
-        fifo_load (card, (uint16) response, diag_access);   /*   (hardware feature) */
+        fifo_load (card, (uint16_t) response, diag_access);   /*   (hardware feature) */
 
     update_state (card);                                    /* update the card state */
     }
@@ -1299,7 +1299,7 @@ return;
    always accepts a byte, so the routine always returns TRUE.
 */
 
-static t_bool di_bus_accept (CARD_ID card, uint8 data)
+static t_bool di_bus_accept (CARD_ID card, uint8_t data)
 {
 tpprintf (dptrs [card], DEB_XFER, "HP-IB card %d accepted data %03o\n",
           card, data);
@@ -1317,7 +1317,7 @@ return TRUE;                                            /* indicate that the byt
    the change.
 */
 
-static void di_bus_respond (CARD_ID card, uint8 new_cntl)
+static void di_bus_respond (CARD_ID card, uint8_t new_cntl)
 {
 di [card].bus_cntl = new_cntl;                          /* update the bus control lines */
 update_state (card);                                    /* update the card state */
@@ -1432,9 +1432,9 @@ return;
 static void update_state (CARD_ID card)
 {
 DI_STATE * const di_card = &di [card];
-uint8 assert = 0;
-uint8 deny = 0;
-uint16 data;
+uint8_t assert = 0;
+uint8_t deny = 0;
+uint16_t data;
 FLIP_FLOP previous_state;
 
 if (di_card->cntl_register & CNTL_LSTN) {               /* is the card a listener? */
@@ -1452,7 +1452,7 @@ else if ((di_card->cntl_register                        /* is the card a talker?
       && !(di_card->bus_cntl & BUS_NRFD)                /*   and NRFD is denied? */
       && !(di_card->status_register & STAT_LBO)) {      /*   and the last byte has not been sent? */
         data = fifo_unload (card, bus_access);          /* unload a FIFO byte */
-        di_bus_source (card, (uint8) data);             /* source it to the bus */
+        di_bus_source (card, (uint8_t) data);             /* source it to the bus */
         }
 
 
@@ -1610,9 +1610,9 @@ return;
        optimization.
 */
 
-static void fifo_load (CARD_ID card, uint16 data, FIFO_ACCESS access)
+static void fifo_load (CARD_ID card, uint16_t data, FIFO_ACCESS access)
 {
-uint32 tag, index;
+uint32_t tag, index;
 t_bool add_word = TRUE;
 DI_STATE * const di_card = &di [card];
 
@@ -1793,9 +1793,9 @@ return;
        optimization.
 */
 
-static uint16 fifo_unload (CARD_ID card, FIFO_ACCESS access)
+static uint16_t fifo_unload (CARD_ID card, FIFO_ACCESS access)
 {
-uint32 data, tag;
+uint32_t data, tag;
 t_bool remove_word = TRUE;
 DI_STATE * const di_card = &di [card];
 
@@ -1869,12 +1869,12 @@ if (di_card->cntl_register & CNTL_TALK)                 /* is the card talking? 
         if (di_card->cntl_register & CNTL_CIC)          /* is the card the controller in charge? */
             di_card->bus_cntl =                         /* assert or deny the ATN bus line */
               di_card->bus_cntl & ~BUS_ATN              /*   from the ATN tag value */
-              | (uint8) ((tag & TAG_ATN) >> BUS_SHIFT);
+              | (uint8_t) ((tag & TAG_ATN) >> BUS_SHIFT);
 
         di_card->bus_cntl =                             /* assert or deny the EOI bus line */
           di_card->bus_cntl & ~BUS_EOI                  /*   from the EOI tag value */
-          | (uint8) ((tag & TAG_EOI) >> BUS_SHIFT);
+          | (uint8_t) ((tag & TAG_EOI) >> BUS_SHIFT);
         }
 
-return (uint16) data;                                   /* return the data value */
+return (uint16_t) data;                                   /* return the data value */
 }

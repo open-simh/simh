@@ -65,7 +65,7 @@
 
 #else                                                   /* PDP-11 version */
 #include "pdp11_defs.h"
-extern uint32 cpu_opt;
+extern uint32_t cpu_opt;
 #endif
 
 #include "sim_disk.h"
@@ -539,7 +539,7 @@ BITFIELD *hk_reg_bits[] = {
 #define HKDEB_INT      0020                             /* interrupts */
 #define HKDEB_DAT      0040                             /* transfer data */
 
-uint16 *hkxb = NULL;                                    /* xfer buffer */
+uint16_t *hkxb = NULL;                                    /* xfer buffer */
 int32 hkcs1 = 0;                                        /* control/status 1 */
 int32 hkwc = 0;                                         /* word count */
 int32 hkba = 0;                                         /* bus address */
@@ -563,7 +563,7 @@ int32 hk_min2wait = 300;                                /* min time to 2nd int *
 int16 hkdb[3] = { 0 };                                  /* data buffer silo */
 int16 hk_off[HK_NUMDR] = { 0 };                         /* saved offset */
 int16 hk_dif[HK_NUMDR] = { 0 };                         /* cylinder diff */
-static const uint8 reg_in_drive[16] = {
+static const uint8_t reg_in_drive[16] = {
  0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 t_stat hk_rd (int32 *data, int32 PA, int32 access);
@@ -927,19 +927,19 @@ int32 fnc, t;
 t_bool dte;
 UNIT *uptr;
 
-static uint8 fnc_dte[16] = {
+static uint8_t fnc_dte[16] = {
     0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
     };
-static uint8 fnc_nxf[16] = {
+static uint8_t fnc_nxf[16] = {
     0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0
     };
-static uint8 fnc_att[16] = {
+static uint8_t fnc_att[16] = {
     0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
     };
-static uint8 fnc_rdy[16] = {
+static uint8_t fnc_rdy[16] = {
     0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
     };
-static uint8 fnc_cyl[16] = {
+static uint8_t fnc_cyl[16] = {
     0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0
     };
 
@@ -1071,11 +1071,11 @@ int32 i, t, dc, fnc;
 t_seccnt sectsread;
 t_stat err = 0;
 int32 wc, awc, da;
-uint32 drv, ba;
-uint16 comp;
+uint32_t drv, ba;
+uint16_t comp;
 DEVICE *dptr = find_dev_from_unit (uptr);
 
-drv = (uint32) (uptr - hk_dev.units);                   /* get drv number */
+drv = (uint32_t) (uptr - hk_dev.units);                   /* get drv number */
 fnc = uptr->FNC & CS1_M_FNC;                            /* get function */
 sim_debug (HKDEB_TRC, &hk_dev, "hk_svc(HK%d, fnc=%s)\n", drv, hk_funcs[fnc]);
 switch (fnc) {                                          /* case on function */
@@ -1178,16 +1178,16 @@ switch (fnc) {                                          /* case on function */
             for (i = wc; i < awc; i++)                  /* fill buf */
                 hkxb[i] = 0;
             if (wc) {                           /* write buf */
-                sim_disk_data_trace (uptr, (uint8 *)hkxb, da/HK_NUMWD, awc, "sim_disk_wrsect", HKDEB_DAT & dptr->dctrl, HKDEB_OPS);
-                err = sim_disk_wrsect (uptr, da/HK_NUMWD, (uint8 *)hkxb, NULL, awc/HK_NUMWD);
+                sim_disk_data_trace (uptr, (uint8_t *)hkxb, da/HK_NUMWD, awc, "sim_disk_wrsect", HKDEB_DAT & dptr->dctrl, HKDEB_OPS);
+                err = sim_disk_wrsect (uptr, da/HK_NUMWD, (uint8_t *)hkxb, NULL, awc/HK_NUMWD);
                 }
             }                                           /* end if wr */
         else if (uptr->FNC == FNC_READ) {               /* read? */
-            err = sim_disk_rdsect (uptr, da/HK_NUMWD, (uint8 *)hkxb, &sectsread, ((wc + (HK_NUMWD - 1)) & ~(HK_NUMWD - 1))/HK_NUMWD);
+            err = sim_disk_rdsect (uptr, da/HK_NUMWD, (uint8_t *)hkxb, &sectsread, ((wc + (HK_NUMWD - 1)) & ~(HK_NUMWD - 1))/HK_NUMWD);
             if ((err == SCPE_OK) &&
                 (sectsread != (t_seccnt)((((wc + (HK_NUMWD - 1)) & ~(HK_NUMWD - 1))/HK_NUMWD))))
                 err = -1;
-            sim_disk_data_trace (uptr, (uint8 *)hkxb, da/HK_NUMWD, sectsread*HK_NUMWD*sizeof(*hkxb), "sim_disk_rdsect", HKDEB_DAT & dptr->dctrl, HKDEB_OPS);
+            sim_disk_data_trace (uptr, (uint8_t *)hkxb, da/HK_NUMWD, sectsread*HK_NUMWD*sizeof(*hkxb), "sim_disk_rdsect", HKDEB_DAT & dptr->dctrl, HKDEB_OPS);
             if (hkcs2 & CS2_UAI) {                      /* no addr inc? */
                 if ((t = Map_WriteW (ba, 2, &hkxb[wc - 1]))) {
                     wc = 0;                             /* NXM, no xfr */
@@ -1203,11 +1203,11 @@ switch (fnc) {                                          /* case on function */
                 }
             }                                           /* end if read */
         else {                                          /* wchk */                  
-            err = sim_disk_rdsect (uptr, da/HK_NUMWD, (uint8 *)hkxb, &sectsread, ((wc + (HK_NUMWD - 1)) & ~(HK_NUMWD - 1))/HK_NUMWD);
+            err = sim_disk_rdsect (uptr, da/HK_NUMWD, (uint8_t *)hkxb, &sectsread, ((wc + (HK_NUMWD - 1)) & ~(HK_NUMWD - 1))/HK_NUMWD);
             if ((err == SCPE_OK) &&
                 (sectsread != (t_seccnt)((((wc + (HK_NUMWD - 1)) & ~(HK_NUMWD - 1))/HK_NUMWD))))
                 err = -1;
-            sim_disk_data_trace (uptr, (uint8 *)hkxb, da/HK_NUMWD, sectsread*HK_NUMWD*sizeof(*hkxb), "sim_disk_rdsect", HKDEB_DAT & dptr->dctrl, HKDEB_OPS);
+            sim_disk_data_trace (uptr, (uint8_t *)hkxb, da/HK_NUMWD, sectsread*HK_NUMWD*sizeof(*hkxb), "sim_disk_rdsect", HKDEB_DAT & dptr->dctrl, HKDEB_OPS);
             awc = wc;
             for (wc = 0; wc < awc; wc++) {              /* loop thru buf */
                 if (Map_ReadW (ba, 2, &comp)) {         /* read word */
@@ -1490,7 +1490,7 @@ for (i = 0; i < HK_NUMDR; i++) {                        /* stop operations */
     hker[i] = 0;
     }                                                   /* clear errors */
 if (hkxb == NULL)
-    hkxb = (uint16 *) calloc (HK_MAXFR, sizeof (uint16));
+    hkxb = (uint16_t *) calloc (HK_MAXFR, sizeof (uint16_t));
 if (hkxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -1500,19 +1500,19 @@ return auto_config (0, 0);
 
 t_stat hk_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 drv;
+uint32_t drv;
 t_stat r;
 int32 old_hkds;
 static const char *drives[] = {"RK06", "RK07", NULL};
 
 uptr->capac = HK_SIZE (uptr);
-r = sim_disk_attach_ex (uptr, cptr, HK_NUMWD * sizeof (uint16), 
-                        sizeof (uint16), TRUE, 0, 
+r = sim_disk_attach_ex (uptr, cptr, HK_NUMWD * sizeof (uint16_t), 
+                        sizeof (uint16_t), TRUE, 0, 
                         (uptr->capac == RK06_SIZE) ? "RK06" : "RK07", HK_NUMSC, 0,
                         (uptr->flags & UNIT_NOAUTO) ? NULL : drives);
 if (r != SCPE_OK)                                       /* error? */
     return r;
-drv = (uint32) (uptr - hk_dev.units);                   /* get drv number */
+drv = (uint32_t) (uptr - hk_dev.units);                   /* get drv number */
 old_hkds = hkds[drv];                                   /* save hkds */
 hkds[drv] = DS_ATA | DS_RDY |
     ((uptr->flags & UNIT_WPRT)? DS_WRL: 0) |
@@ -1530,12 +1530,12 @@ return SCPE_OK;
 
 t_stat hk_detach (UNIT *uptr)
 {
-uint32 drv;
+uint32_t drv;
 int32 old_hkds;
 
 if (!(uptr->flags & UNIT_ATT))                          /* attached? */
     return SCPE_OK;
-drv = (uint32) (uptr - hk_dev.units);                   /* get drv number */
+drv = (uint32_t) (uptr - hk_dev.units);                   /* get drv number */
 old_hkds = hkds[drv];
 hkds[drv] = (hkds[drv] & ~(DS_RDY | DS_WRL | DS_VV | DS_OF | DS_PIP)) | DS_ATA;
 if (sim_is_active (uptr)) {                             /* unit active? */
@@ -1587,7 +1587,7 @@ return pdp11_bad_block (uptr, HK_NUMSC, HK_NUMWD);
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042115,                        /* "MD" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit, r0 */

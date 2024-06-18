@@ -224,7 +224,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
     t_uint64            wd;
     t_uint64            mask;
-    uint8               buffer[160];
+    uint8_t               buffer[160];
     int                 addr = 0;
     int                 dlen = 0;
     char               *p;
@@ -232,7 +232,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 
     if (match_ext(fnam, "crd")) {
         int                 firstcard = 1;
-        uint16              image[80];
+        uint16_t              image[80];
         t_uint64            lbuff[24];
 
         while (sim_fread(buffer, 1, 160, fileref) == 160) {
@@ -274,7 +274,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
         }
     } else if (match_ext(fnam, "cbn")) {
         int                 firstcard = 1;
-        uint16              image[80];
+        uint16_t              image[80];
         t_uint64            lbuff[24];
 
         while (sim_fread(buffer, 1, 160, fileref) == 160) {
@@ -356,9 +356,9 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t              opbase;
     const char         *name;
-    uint8               type;
+    uint8_t               type;
 }
 t_opcode;
 
@@ -724,7 +724,7 @@ const char *chname[11] = {
 void
 lookup_sopcode(FILE * of, t_value val, t_opcode * tab)
 {
-    uint16              op = (uint16)(val & 07777);
+    uint16_t              op = (uint16_t)(val & 07777);
 
     while (tab->name != NULL) {
         if (tab->opbase == op) {
@@ -763,7 +763,7 @@ lookup_sopcode(FILE * of, t_value val, t_opcode * tab)
 void
 lookup_opcode(FILE * of, t_value val, t_opcode * tab)
 {
-    uint16              op = (uint16)(val >> 24) & 07777;
+    uint16_t              op = (uint16_t)(val >> 24) & 07777;
 
     while (tab->name != NULL) {
         if (tab->opbase == op) {

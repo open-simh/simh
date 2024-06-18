@@ -82,11 +82,11 @@
 
 #define MCRROM_OF       0x400
 
-uint32 mcr_a[MCTL_NUM];
-uint32 mcr_b[MCTL_NUM];
-uint32 mcr_c[MCTL_NUM];
-uint32 mcr_d[MCTL_NUM];
-uint32 rom_lw[MCTL_NUM][ROMSIZE >> 2];
+uint32_t mcr_a[MCTL_NUM];
+uint32_t mcr_b[MCTL_NUM];
+uint32_t mcr_c[MCTL_NUM];
+uint32_t mcr_d[MCTL_NUM];
+uint32_t rom_lw[MCTL_NUM][ROMSIZE >> 2];
 
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);
@@ -252,8 +252,8 @@ return SCPE_OK;
 
 void rom_wr_B (int32 pa, int32 val)
 {
-uint32 mctl = NEXUS_GETNEX (pa) - TR_MCTL0;             /* get mctl num */
-uint32 ofs = NEXUS_GETOFS (pa) - MCRROM_OF;             /* get offset */
+uint32_t mctl = NEXUS_GETNEX (pa) - TR_MCTL0;             /* get mctl num */
+uint32_t ofs = NEXUS_GETOFS (pa) - MCRROM_OF;             /* get offset */
 int32 sc = (pa & 3) << 3;
 
 rom_lw[mctl][ofs] = ((val & 0xFF) << sc) | (rom_lw[mctl][ofs] & ~(0xFF << sc));
@@ -292,7 +292,7 @@ return buf;
 t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 4096, "MS780-JD M8374 array"},
@@ -300,10 +300,10 @@ struct {
         {  256, "MS780-C M8210 array"}, 
         {   64, "MS780-C M8211 array"}, 
         {    0, NULL}};
-uint32 i, slot, bd = 0;
+uint32_t i, slot, bd = 0;
 
 for (i = 0; i < MCTL_NUM; i++) {
-    uint32 baseaddr = ((mcr_b[i] & MCRB_SA) << 1);
+    uint32_t baseaddr = ((mcr_b[i] & MCRB_SA) << 1);
 
     fprintf (st, "Memory Controller %d - MS780-%s\n", i, ((mcr_a[i]&MCRA_M_TYPE) >> 5) ? "E" : "C");
     switch (mcr_a[i]&MCRA_M_TYPE) {

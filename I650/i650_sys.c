@@ -134,7 +134,7 @@ char    digits_ascii[31] = {
           '!', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',   /* 0-9 w/Negative Punch X(11) */
           0};
 
-uint16          ascii_to_hol[128] = {
+uint16_t          ascii_to_hol[128] = {
    /* Control                              */
     0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,    /*0-37*/
    /*Control*/
@@ -178,12 +178,12 @@ uint16          ascii_to_hol[128] = {
     0x604, 0x602, 0x601, 0x406, 0x806, 0x006, 0x005,0xf000
 };
 
-uint16   sim_ascii_to_hol(char c)
+uint16_t   sim_ascii_to_hol(char c)
 {
     return ascii_to_hol[c & 127];
 }
 
-char     sim_hol_to_ascii(uint16 hol)
+char     sim_hol_to_ascii(uint16_t hol)
 {
     int c;
     hol = hol & 0x0fff; // ignore extra high bits, if any
@@ -708,15 +708,15 @@ int Shift_Digits(t_int64 * d, int nDigits)
 /*
  * Allocate space for a card deck of nCards cards.
  */
-uint16 *deck_alloc(int nCards)
+uint16_t *deck_alloc(int nCards)
 {
-    return malloc(nCards * 80 * sizeof(uint16));
+    return malloc(nCards * 80 * sizeof(uint16_t));
 }
 
 /*
  * Free a deck previously obtained from deck_alloc().
  */
-void deck_free(uint16 *deck)
+void deck_free(uint16_t *deck)
 {
     free(deck);
 }
@@ -727,14 +727,14 @@ void deck_free(uint16 *deck)
 // MAX_CARDS_IN_DECK, but there is potential to make this flexible
 // and reduce the size to actually used size).
 // Uses cdr0 device/unit.
-t_stat deck_load(CONST char *fn, uint16 ** DeckImagePtr, int * nCards)
+t_stat deck_load(CONST char *fn, uint16_t ** DeckImagePtr, int * nCards)
 {
     UNIT *              uptr = &cdr_unit[0];
-    uint16 * DeckImage;
-    uint16 image[80];
+    uint16_t * DeckImage;
+    uint16_t image[80];
     t_stat              r, r2;
     int i;
-    uint16 c;
+    uint16_t c;
 
     // set flags for read only
     uptr->flags |= UNIT_RO;
@@ -786,10 +786,10 @@ t_stat deck_load(CONST char *fn, uint16 ** DeckImagePtr, int * nCards)
 
 // write nCards starting at card from DeckImage array to file fn
 // uses cdr0 device/unit
-t_stat deck_save(CONST char *fn, uint16 * DeckImage, int card, int nCards)
+t_stat deck_save(CONST char *fn, uint16_t * DeckImage, int card, int nCards)
 {
     UNIT *              uptr = &cdr_unit[0];
-    uint16 image[80];
+    uint16_t image[80];
     t_stat              r;
     int i,nc;
 
@@ -823,11 +823,11 @@ t_stat deck_save(CONST char *fn, uint16 * DeckImage, int card, int nCards)
 
 // echo/print nCards from DeckImage array 
 // uses cdp0 device/unit
-void deck_print_echo(uint16 * DeckImage, int nCards, int bPrint, int bEcho)
+void deck_print_echo(uint16_t * DeckImage, int nCards, int bPrint, int bEcho)
 {
     char line[81]; 
     int i,c,nc;
-    uint16 hol;
+    uint16_t hol;
 
     for (nc=0; nc<nCards; nc++) {
         // read card, check and, store in line
@@ -871,7 +871,7 @@ static t_stat deck_split_cmd(CONST char *cptr)
     int bSplit5CD = 0;
     int bSplitPAT = 0;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int nCards, nCards1, tail; 
 
     while (sim_isspace (*cptr)) cptr++;                     // trim leading spc 
@@ -938,10 +938,10 @@ static t_stat deck_split_cmd(CONST char *cptr)
     
     if (bSplit5CD ) {
         // separate 5cd deck 
-        uint16 *DeckImage1 = deck_alloc(nCards);
-        uint16 *DeckImage2 = deck_alloc(nCards);
+        uint16_t *DeckImage1 = deck_alloc(nCards);
+        uint16_t *DeckImage2 = deck_alloc(nCards);
         int i, nc, nc1, nc2, bFound;
-        uint16 hol;
+        uint16_t hol;
 
         nc1 = nc2 = 0;
         for (nc=0; nc<nCards; nc++) {
@@ -1001,10 +1001,10 @@ static t_stat deck_split_cmd(CONST char *cptr)
 
     if (bSplitPAT)  {
         // separate pat deck 
-        uint16 *DeckImage1 = deck_alloc(nCards);
-        uint16 *DeckImage2 = deck_alloc(nCards);
+        uint16_t *DeckImage1 = deck_alloc(nCards);
+        uint16_t *DeckImage2 = deck_alloc(nCards);
         int i, nc, nc1, nc2, bFound;
-        uint16 hol;
+        uint16_t hol;
 
         nc1 = nc2 = 0;
         for (nc=0; nc<nCards; nc++) {
@@ -1081,7 +1081,7 @@ static t_stat deck_join_cmd(CONST char *cptr)
     char gbuf[4*CBUFSIZE];
     t_stat r;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int i,nDeck, nCards, nCards1;
 
     cptr0 = cptr;
@@ -1136,7 +1136,7 @@ static t_stat deck_print_cmd(CONST char *cptr)
     char fn[4*CBUFSIZE];
     t_stat r;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int nCards;
 
     while (sim_isspace (*cptr)) cptr++;                     // trim leading spc 
@@ -1166,7 +1166,7 @@ static t_stat deck_echolast_cmd(CONST char *cptr)
     char gbuf[4*CBUFSIZE];
     t_stat r;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int i,nc,nCards, ic, nh, ncdr;
 
     while (sim_isspace (*cptr)) cptr++;                     // trim leading spc 

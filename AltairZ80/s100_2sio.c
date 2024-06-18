@@ -157,16 +157,16 @@ typedef struct {
     t_bool rie;          /* Rx Int Enable    */
     t_bool tie;          /* Tx Int Enable    */
     t_bool dcdl;         /* DCD latch        */
-    uint8 intenable;     /* Interrupt Enable */
-    uint8 intvector;     /* Interrupt Vector */
-    uint8 databus;       /* Data Bus Value   */
+    uint8_t intenable;     /* Interrupt Enable */
+    uint8_t intvector;     /* Interrupt Vector */
+    uint8_t databus;       /* Data Bus Value   */
 } M2SIO_CTX;
 
-extern uint32 getClockFrequency(void);
+extern uint32_t getClockFrequency(void);
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 
 static const char* m2sio_description(DEVICE *dptr);
@@ -187,8 +187,8 @@ static int32 m2sio_stat(DEVICE *dptr, int32 io, int32 data);
 static int32 m2sio_data(DEVICE *dptr, int32 io, int32 data);
 static void m2sio_int(UNIT *uptr);
 
-extern uint32 vectorInterrupt;          /* Vector Interrupt bits */
-extern uint8 dataBus[MAX_INT_VECTORS];  /* Data bus value        */
+extern uint32_t vectorInterrupt;          /* Vector Interrupt bits */
+extern uint8_t dataBus[MAX_INT_VECTORS];  /* Data bus value        */
 
 /* Debug Flags */
 static DEBTAB m2sio_dt[] = {

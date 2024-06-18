@@ -56,10 +56,10 @@
 
 
 t_value memory [MEMSIZE];
-uint32 PC, RK, Aex, M [NREGS], RAU, RUU;
+uint32_t PC, RK, Aex, M [NREGS], RAU, RUU;
 t_value ACC, RMR, GRP, MGRP;
-uint32 PRP, MPRP;
-uint32 READY, READY2;                   /* ready flags of various devices */
+uint32_t PRP, MPRP;
+uint32_t READY, READY2;                   /* ready flags of various devices */
 int32 tmr_poll = CLK_DELAY;             /* pgm timer poll */
 
 /* Wired (non-registered) bits of interrupt registers (GRP and PRP)
@@ -554,7 +554,7 @@ static void cmd_033 ()
 {
 #if 0
     besm6_debug ("*** увв %04o, СМ[24:1]=%08o",
-                 Aex & 04177, (uint32) ACC & BITS(24));
+                 Aex & 04177, (uint32_t) ACC & BITS(24));
 #endif
     switch (Aex & 04177) {
     case 0:
@@ -564,23 +564,23 @@ static void cmd_033 ()
         break;
     case 1: case 2:
         /* Управление обменом с магнитными барабанами */
-        drum (Aex - 1, (uint32) ACC);
+        drum (Aex - 1, (uint32_t) ACC);
         break;
     case 3: case 4:
         /* Передача управляющего слова для обмена
          * с магнитными дисками */
-        disk_io (Aex - 3, (uint32) ACC);
+        disk_io (Aex - 3, (uint32_t) ACC);
         break;
     case 5: case 6:
         /* управление обменом с магнитными лентами */
-        mg_io (Aex - 3, (uint32) ACC);
+        mg_io (Aex - 3, (uint32_t) ACC);
         break;
     case 7:
         longjmp (cpu_halt, STOP_UNIMPLEMENTED);
         break;
     case 010: case 011:
         /* управление устройствами ввода с перфоленты */
-        fs_control (Aex - 010, (uint32) (ACC & 07));
+        fs_control (Aex - 010, (uint32_t) (ACC & 07));
         break;
     case 012: case 013:
         /* TODO: управление устройствами ввода с перфоленты по запаянной программе */
@@ -588,11 +588,11 @@ static void cmd_033 ()
         break;
     case 014: case 015:
         /* Управление АЦПУ */
-        printer_control (Aex - 014, (uint32) (ACC & 017));
+        printer_control (Aex - 014, (uint32_t) (ACC & 017));
         break;
     case 023: case 024:
         /* Управление обменом с магнитными дисками */
-        disk_ctl (Aex - 023, (uint32) ACC);
+        disk_ctl (Aex - 023, (uint32_t) ACC);
         break;
     case 030:
         /* Гашение ПРП */
@@ -624,15 +624,15 @@ static void cmd_033 ()
     case 050: case 051: case 052: case 053:
     case 054: case 055: case 056: case 057:
         /* Управление молоточками АЦПУ */
-        printer_hammer (Aex >= 050, Aex & 7, (uint32) (ACC & BITS(16)));
+        printer_hammer (Aex >= 050, Aex & 7, (uint32_t) (ACC & BITS(16)));
         break;
     case 0140:
         /* Запись в регистр телеграфных каналов */
-        tty_send ((uint32) ACC & BITS(24));
+        tty_send ((uint32_t) ACC & BITS(24));
         break;
     case 0141:
         /* TODO: formatting magnetic tape */
-        mg_format ((uint32) ACC);
+        mg_format ((uint32_t) ACC);
         break;
     case 0142:
         /* TODO: имитация сигналов прерывания ПРП */
@@ -645,38 +645,38 @@ static void cmd_033 ()
         break;
     case 0150: case 0151:
         /* sending commands to the punched card readers */
-        vu_control (Aex - 0150, (uint32) (ACC & 017));
+        vu_control (Aex - 0150, (uint32_t) (ACC & 017));
         break;
     case 0153:
         /* гашение аппаратуры сопряжения с терминалами */
-/*              besm6_debug(">>> гашение АС: %08o", (uint32) ACC & BITS(24));*/
+/*              besm6_debug(">>> гашение АС: %08o", (uint32_t) ACC & BITS(24));*/
         break;
     case 0154: case 0155:
         /*
          * Punchcard output: the two selected bits control the motor
          * and the culling mechanism.
          */
-        pi_control (Aex & 1, (uint32) ACC & 011);
+        pi_control (Aex & 1, (uint32_t) ACC & 011);
         break;
     case 0160:  case 0161:  case 0162: case 0163:
     case 0164:  case 0165:  case 0166: case 0167:
         /* Punchcard output: activating the punching solenoids, 20 at a time. */
-        pi_write (Aex & 7, (uint32) ACC & BITS(20));
+        pi_write (Aex & 7, (uint32_t) ACC & BITS(20));
         break;
     case 0170: case 0171:
         /* пробивка строки на перфоленте */
-        pl_control (Aex & 1, (uint32) ACC & BITS(8));
+        pl_control (Aex & 1, (uint32_t) ACC & BITS(8));
         break;
     case 0172: case 0173:
-        besm6_debug(">>> Potential plotter output: %03o", (uint32) ACC & BITS(8));
+        besm6_debug(">>> Potential plotter output: %03o", (uint32_t) ACC & BITS(8));
         break;
     case 0174: case 0175:
         /* Выдача кода в пульт оператора */
-        consul_print (Aex & 1, (uint32) ACC & BITS(8));
+        consul_print (Aex & 1, (uint32_t) ACC & BITS(8));
         break;
     case 0177:
         /* управление табло ГПВЦ СО АН СССР */
-/*              besm6_debug(">>> ТАБЛО: %08o", (uint32) ACC & BITS(24));*/
+/*              besm6_debug(">>> ТАБЛО: %08o", (uint32_t) ACC & BITS(24));*/
         break;
     case 04001: case 04002:
         /* TODO: считывание слога в режиме имитации обмена */
@@ -777,7 +777,7 @@ static void cmd_033 ()
             /* Управление лентопротяжными механизмами
              * и гашение разрядов регистров признаков
              * окончания подвода зоны. */
-            mg_ctl(Aex - 0100, (uint32) ACC);
+            mg_ctl(Aex - 0100, (uint32_t) ACC);
         } else if (04140 <= val && val <= 04157) {
             /* TODO: считывание строки перфокарты */
             longjmp (cpu_halt, STOP_UNIMPLEMENTED);
@@ -870,14 +870,14 @@ void cpu_one_inst ()
      * The assignments of MEAN_TIME(x,y) to the delay variable
      * are kept as a reference.
      */
-    uint32 delay;
+    uint32_t delay;
 
     corr_stack = 0;
     word = mmu_fetch (PC);
     if (RUU & RUU_RIGHT_INSTR)
-        RK = (uint32)word;      /* get right instruction */
+        RK = (uint32_t)word;      /* get right instruction */
     else
-        RK = (uint32)(word >> 24);/* get left instruction */
+        RK = (uint32_t)(word >> 24);/* get left instruction */
 
     RK &= BITS(24);
 

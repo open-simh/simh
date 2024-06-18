@@ -90,7 +90,7 @@ DEBTAB              dev_debug[] = {
 };
 
 
-uint8                parity_table[64] = {
+uint8_t                parity_table[64] = {
     /* 0    1    2    3    4    5    6    7 */
     0000, 0100, 0100, 0000, 0100, 0000, 0000, 0100,
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000,
@@ -102,7 +102,7 @@ uint8                parity_table[64] = {
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000
 };
 
-uint8           mem_to_ascii[64] = {
+uint8_t           mem_to_ascii[64] = {
    /* x0   x1   x2   x3   x4   x5   x6   x7 */
      '0', '1', '2', '3', '4', '5', '6', '7',     /* 0x */
      '8', '9', '#', '@', '?', ':', '>', '}',     /* 1x */
@@ -341,9 +341,9 @@ t_opcode  char_ops[] = {
 
 /* Print out an instruction */
 void
-print_opcode(FILE * of, uint16 val, int chr_mode)
+print_opcode(FILE * of, uint16_t val, int chr_mode)
 {
-    uint16      op;
+    uint16_t      op;
     t_opcode   *tab = (chr_mode) ? char_ops: word_ops;
 
     op = val;
@@ -410,14 +410,14 @@ fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
     if (sw & SWMASK('W')) {     /* Word mode opcodes */
         fputs("   ", of);
         for (i = 36; i >= 0; i-=12) {
-                uint16     op = (uint16)(inst >> i) & 07777;
+                uint16_t     op = (uint16_t)(inst >> i) & 07777;
                 print_opcode(of, op, 0);
         }
     }
     if (sw & SWMASK('C')) {     /* Char mode opcodes */
         fputs("   ", of);
         for (i = 36; i >= 0; i-=12) {
-                uint16     op = (uint16)(inst >> i) & 07777;
+                uint16_t     op = (uint16_t)(inst >> i) & 07777;
                 print_opcode(of, op, 1);
         }
     }

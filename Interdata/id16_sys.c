@@ -45,7 +45,7 @@ extern DEVICE dp_dev, idc_dev;
 extern DEVICE fd_dev, mt_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint16 *M;
+extern uint16_t *M;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val);
 t_stat parse_sym_m (CONST char *cptr, t_addr addr, t_value *val);
@@ -143,13 +143,13 @@ static const int32 masks[] = {
  0xFF00, 0xFE00, 0xFEF0
  };
 
-static const uint32 r1_type[] = {
+static const uint32_t r1_type[] = {
  R_M, R_R, R_X, R_M,
  R_R, R_X, R_F, R_F,
  R_R, R_M, R_X
  };
 
-static const uint32 r2_type[] = {
+static const uint32_t r2_type[] = {
  R_X, R_R, R_R, R_X,
  R_X, R_X, R_F, R_X,
  R_M, R_X, R_X
@@ -210,7 +210,7 @@ static const char *opcode[] = {
 NULL
 };
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
 0x0330+I_R,  0x0230+I_R,  0x0330+I_R,  0x0230+I_R,
 0x0220+I_R,  0x0320+I_R,  0x0280+I_R,  0x0380+I_R,
 0x0210+I_R,  0x0310+I_R,  0x0240+I_R,  0x0340+I_R,
@@ -352,7 +352,7 @@ return -1;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val)
 {
-uint32 i, j, inst, r1, r2, ea;
+uint32_t i, j, inst, r1, r2, ea;
 
 inst = val[0];                                          /* first 16b */
 ea = val[1];                                            /* second 16b */
@@ -568,7 +568,7 @@ return -1;
 
 t_stat parse_sym_m (CONST char *cptr, t_addr addr, t_value *val)
 {
-uint32 i, j, t, df, db, inst;
+uint32_t i, j, t, df, db, inst;
 int32 r1, r2;
 t_stat r;
 char *tptr, gbuf[CBUFSIZE];

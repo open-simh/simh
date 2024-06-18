@@ -121,7 +121,7 @@ static const char *key_names[] =
      "KP_INSERT", "KP_DELETE", "KP_5", "KP_ENTER", "KP_MULTIPLY", "KP_DIVIDE"
      };
 
-const char *vid_key_name (uint32 key)
+const char *vid_key_name (uint32_t key)
 {
 static char tmp_key_name[40];
 
@@ -368,7 +368,7 @@ SDL_Texture *vid_texture;                               /* video buffer in GPU *
 SDL_Renderer *vid_renderer;
 SDL_Window *vid_window;                                 /* window handle */
 SDL_PixelFormat *vid_format;
-uint32 vid_windowID;
+uint32_t vid_windowID;
 SDL_mutex *vid_draw_mutex;                              /* window update mutex */
 SDL_Cursor *vid_cursor;                                 /* current cursor */
 t_bool vid_cursor_visible;                              /* cursor visibility state */
@@ -378,7 +378,7 @@ VID_DISPLAY *next;
 t_bool vid_blending;
 SDL_Rect *vid_dst_last;
 SDL_Rect vid_rect;
-uint32 *vid_data_last;
+uint32_t *vid_data_last;
 };
 
 SDL_Thread *vid_thread_handle = NULL;                   /* event thread handle */
@@ -710,7 +710,7 @@ if (0 == (--vid_gamepad_inited)) {
     }
 }
 
-static t_stat vid_init_window (VID_DISPLAY *vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags)
+static t_stat vid_init_window (VID_DISPLAY *vptr, DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags)
 {
 t_stat stat;
 
@@ -752,7 +752,7 @@ sim_debug (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE, vptr->vid_dev, "
 return SCPE_OK;
 }
 
-t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags)
+t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags)
 {
 t_stat r;
 *vptr = (VID_DISPLAY *)malloc (sizeof (VID_DISPLAY));
@@ -770,7 +770,7 @@ if (r != SCPE_OK) {
 return SCPE_OK;
 }
 
-t_stat vid_open (DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags)
+t_stat vid_open (DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags)
 {
 if (!vid_first.vid_active_window)
     return vid_init_window (&vid_first, dptr, title, width, height, flags);
@@ -877,26 +877,26 @@ if (SDL_SemTryWait (vid_mouse_events.sem) == 0) {
 return stat;
 }
 
-uint32 vid_map_rgb_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b)
+uint32_t vid_map_rgb_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b)
 {
 return SDL_MapRGB (vptr->vid_format, r, g, b);
 }
 
-uint32 vid_map_rgb (uint8 r, uint8 g, uint8 b)
+uint32_t vid_map_rgb (uint8_t r, uint8_t g, uint8_t b)
 {
 return vid_map_rgb_window (&vid_first, r, g, b);
 }
 
-uint32 vid_map_rgba_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b, uint8 a)
+uint32_t vid_map_rgba_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 return SDL_MapRGBA (vptr->vid_format, r, g, b, a);
 }
 
-void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32 *buf)
+void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32_t *buf)
 {
 SDL_Event user_event;
 SDL_Rect *vid_dst, *last;
-uint32 *vid_data;
+uint32_t *vid_data;
 
 sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "vid_draw(%d, %d, %d, %d)\n", x, y, w, h);
 
@@ -920,7 +920,7 @@ vid_dst->x = x;
 vid_dst->y = y;
 vid_dst->w = w;
 vid_dst->h = h;
-vid_data = (uint32 *)malloc (w*h*sizeof(*buf));
+vid_data = (uint32_t *)malloc (w*h*sizeof(*buf));
 if (!vid_data) {
     sim_printf ("%s: vid_draw() memory allocation error\n", vid_dname(vptr->vid_dev));
     free (vid_dst);
@@ -943,19 +943,19 @@ if (SDL_PushEvent (&user_event) < 0) {
     }
 }
 
-void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf)
+void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32_t *buf)
 {
 vid_draw_window (&vid_first, x, y, w, h, buf);
 }
 
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y)
 {
 SDL_Cursor *cursor = SDL_CreateCursor (data, mask, width, height, hot_x, hot_y);
 SDL_Event user_event;
 
 sim_debug (SIM_VID_DBG_CURSOR, vptr->vid_dev, "vid_set_cursor(%s, %d, %d) Setting New Cursor\n", visible ? "visible" : "invisible", width, height);
 if (sim_deb) {
-    uint32 i, j;
+    uint32_t i, j;
 
     for (i=0; i<height; i++) {
         sim_debug (SIM_VID_DBG_CURSOR, vptr->vid_dev, "Cursor:  ");
@@ -984,7 +984,7 @@ if (SDL_PushEvent (&user_event) < 0) {
 return SCPE_OK;
 }
 
-t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor (t_bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y)
 {
 return vid_set_cursor_window (&vid_first, visible, width, height, data, mask, hot_x, hot_y);
 }
@@ -1781,7 +1781,7 @@ SDL_PumpEvents ();
 void vid_draw_region (VID_DISPLAY *vptr, SDL_UserEvent *event)
 {
 SDL_Rect *vid_dst = (SDL_Rect *)event->data1;
-uint32 *buf = (uint32 *)event->data2;
+uint32_t *buf = (uint32_t *)event->data2;
 
 sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "Draw Region Event: (%d,%d,%d,%d)\n", vid_dst->x, vid_dst->x, vid_dst->w, vid_dst->h);
 
@@ -2376,8 +2376,8 @@ for (i = 0; i < SDL_GetNumRenderDrivers(); ++i) {
         fprintf (st, "Could not get render driver info for driver #%d: %s", i, SDL_GetError());
         }
     else {
-        uint32 j, k;
-        static struct {uint32 format; const char *name;} PixelFormats[] = {
+        uint32_t j, k;
+        static struct {uint32_t format; const char *name;} PixelFormats[] = {
             {SDL_PIXELFORMAT_INDEX1LSB,     "Index1LSB"},
             {SDL_PIXELFORMAT_INDEX1MSB,     "Index1MSB"},
             {SDL_PIXELFORMAT_INDEX4LSB,     "Index4LSB"},
@@ -2784,7 +2784,7 @@ SDL_Delay (vid_beep_duration + 100);/* Wait for sound to finnish */
 #else /* !(defined(USE_SIM_VIDEO) && defined(HAVE_LIBSDL)) */
 /* Non-implemented versions */
 
-t_stat vid_open (DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags)
+t_stat vid_open (DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags)
 {
 return SCPE_NOFNC;
 }
@@ -2809,17 +2809,17 @@ t_stat vid_poll_mouse (SIM_MOUSE_EVENT *ev)
 return SCPE_EOF;
 }
 
-uint32 vid_map_rgb (uint8 r, uint8 g, uint8 b)
+uint32_t vid_map_rgb (uint8_t r, uint8_t g, uint8_t b)
 {
 return 0;
 }
 
-void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf)
+void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32_t *buf)
 {
 return;
 }
 
-t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor (t_bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y)
 {
 return SCPE_NOFNC;
 }
@@ -2879,7 +2879,7 @@ sim_printf ("video support unavailable\n");
 return SCPE_OK;
 }
 
-t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags)
+t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags)
 {
 *vptr = NULL;
 return SCPE_NOFNC;
@@ -2890,12 +2890,12 @@ t_stat vid_close_window (VID_DISPLAY *vptr)
 return SCPE_OK;
 }
 
-uint32 vid_map_rgb_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b)
+uint32_t vid_map_rgb_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b)
 {
 return 0;
 }
 
-void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32 *buf)
+void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32_t *buf)
 {
 return;
 }
@@ -2905,7 +2905,7 @@ void vid_refresh_window (VID_DISPLAY *vptr)
 return;
 }
 
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y)
 {
 return SCPE_NOFNC;
 }
@@ -2932,7 +2932,7 @@ void vid_set_window_size (VID_DISPLAY *vptr, int32 w, int32 h)
 return;
 }
 
-const char *vid_key_name (uint32 key)
+const char *vid_key_name (uint32_t key)
 {
 return "";
 }

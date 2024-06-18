@@ -76,7 +76,7 @@
 
 #include "vax_defs.h"
 
-static const uint8 rcnt[128] = {
+static const uint8_t rcnt[128] = {
  0, 4, 4, 8, 4, 8, 8,12, 4, 8, 8,12, 8,12,12,16,        /* 00 - 0F */
  4, 8, 8,12, 8,12,12,16, 8,12,12,16,12,16,16,20,        /* 10 - 1F */
  4, 8, 8,12, 8,12,12,16, 8,12,12,16,12,16,16,20,        /* 20 - 2F */
@@ -108,7 +108,7 @@ int32 ea;
 int32 by;
 
 if (rn != OP_MEM) {                                     /* register? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                            /* pos > 31? fault */
         RSVD_OPND_FAULT(op_bb_n);
     return (R[rn] >> pos) & 1;                          /* get bit */
     }
@@ -126,7 +126,7 @@ int32 ea;
 int32 by, bit;
 
 if (rn != OP_MEM) {                                     /* register? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                            /* pos > 31? fault */
         RSVD_OPND_FAULT(op_bb_x);
     bit = (R[rn] >> pos) & 1;                           /* get bit */
     R[rn] = newb? (R[rn] | (1u << pos)): (R[rn] & ~(1u << pos));
@@ -156,7 +156,7 @@ int32 op_extv (int32 *opnd, int32 vfldrp1, int32 acc)
 int32 pos = opnd[0];
 int32 size = opnd[1];
 int32 rn = opnd[2];
-uint32 wd = opnd[3];
+uint32_t wd = opnd[3];
 int32 ba, wd1 = 0;
 
 if (size == 0)                                          /* size 0? field = 0 */
@@ -164,12 +164,12 @@ if (size == 0)                                          /* size 0? field = 0 */
 if (size > 32)                                          /* size > 32? fault */
     RSVD_OPND_FAULT(op_extv);
 if (rn != OP_MEM) {                                     /* register? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                            /* pos > 31? fault */
         RSVD_OPND_FAULT(op_extv);
     if (((pos + size) > 32) && (rn >= nSP))             /* span 2 reg, PC? */
         RSVD_ADDR_FAULT;                                /* fault */
     if (pos)
-        wd = (wd >> pos) | (((uint32) vfldrp1) << (32 - pos));
+        wd = (wd >> pos) | (((uint32_t) vfldrp1) << (32 - pos));
     }
 else {
     ba = wd + (pos >> 3);                               /* base byte addr */
@@ -179,7 +179,7 @@ else {
     if ((size + pos) > 32)
         wd1 = Read (ba + 4, L_LONG, RA);
     if (pos)
-        wd = (wd >> pos) | (((uint32) wd1) << (32 - pos));
+        wd = (wd >> pos) | (((uint32_t) wd1) << (32 - pos));
     }
 return wd & byte_mask[size];
 }
@@ -197,7 +197,7 @@ return wd & byte_mask[size];
 
 void op_insv (int32 *opnd, int32 vfldrp1, int32 acc)
 {
-uint32 ins = opnd[0];
+uint32_t ins = opnd[0];
 int32 pos = opnd[1];
 int32 size = opnd[2];
 int32 rn = opnd[3];
@@ -208,7 +208,7 @@ if (size == 0)                                          /* size = 0? done */
 if (size > 32)                                          /* size > 32? fault */
     RSVD_OPND_FAULT(op_insv);
 if (rn != OP_MEM) {                                     /* in registers? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                            /* pos > 31? fault */
         RSVD_OPND_FAULT(op_insv);
     if ((pos + size) > 32) {                            /* span two reg? */
         if (rn >= nSP)                                  /* if PC, fault */
@@ -241,7 +241,7 @@ return;
 
 /* Find first */
 
-int32 op_ffs (uint32 wd, int32 size)
+int32 op_ffs (uint32_t wd, int32 size)
 {
 int32 i;
 
@@ -834,7 +834,7 @@ else {
         }
     R[0] = STR_PACK (fill, R[2]);                       /* initial mvlen */
     if (R[2]) {                                         /* any move? */
-        if (((uint32) R[1]) < ((uint32) R[3])) {
+        if (((uint32_t) R[1]) < ((uint32_t) R[3])) {
             R[1] = R[1] + R[2];                         /* backward, adjust */
             R[3] = R[3] + R[2];                         /* addr to end */
             R[5] = MVC_BACK;                            /* set state */
@@ -909,7 +909,7 @@ switch (R[5] & MVC_M_STATE) {                           /* case on state */
             lnt = looplnt[i];                           /* length for loop */
             fill = fill & BMASK;                        /* fill for loop */
             if (lnt == L_LONG)
-                fill = (((uint32) fill) << 24) | (fill << 16) | (fill << 8) | fill;
+                fill = (((uint32_t) fill) << 24) | (fill << 16) | (fill << 8) | fill;
             for (j = 0; j < mlnt[i]; j = j + lnt, extra_bytes++) {
                 Write (R[3], fill, lnt, WA);            /* write fill */
                 R[3] = R[3] + lnt;                      /* inc dst addr */
@@ -1264,7 +1264,7 @@ return newpsl & CC_MASK;                                /* set new cc */
 
 void op_ldpctx (int32 acc)
 {
-uint32 newpc, newpsl, pcbpa, t;
+uint32_t newpc, newpsl, pcbpa, t;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */
     RSVD_INST_FAULT(LDPCTX);
@@ -1426,8 +1426,8 @@ return 0;
 
 int32 op_mtpr (int32 *opnd)
 {
-uint32 val = (uint32)opnd[0];
-uint32 prn = (uint32)opnd[1];
+uint32_t val = (uint32_t)opnd[0];
+uint32_t prn = (uint32_t)opnd[1];
 int32 cc;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */
@@ -1558,7 +1558,7 @@ return cc;
 
 int32 op_mfpr (int32 *opnd)
 {
-uint32 prn = (uint32)opnd[0];
+uint32_t prn = (uint32_t)opnd[0];
 int32 val;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */

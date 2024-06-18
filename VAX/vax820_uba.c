@@ -115,20 +115,20 @@
 
 int32 int_req[IPL_HLVL] = { 0 };                        /* intr, IPL 14-17 */
 BIIC uba_biic;                                          /* BIIC standard registers */
-uint32 uba_csr = 0;                                     /* control/status reg */
-uint32 uba_vo = 0;                                      /* vector offset */
-uint32 uba_int = 0;                                     /* UBA interrupt */
-uint32 uba_fubar = 0;                                   /* failing Unibus addr */
-uint32 uba_bifa = 0;                                    /* BI failing addr */
-uint32 uba_dpr[UBA_NDPATH] = { 0 };                     /* number data paths */
-uint32 uba_map[UBA_NMAPR] = { 0 };                      /* map registers */
-uint32 uba_aiip = 0;                                    /* adapter init in prog */
-uint32 uba_uiip = 0;                                    /* Unibus init in prog */
-uint32 uba_aitime = 250;                                /* adapter init time */
-uint32 uba_uitime = 12250;                              /* Unibus init time */
+uint32_t uba_csr = 0;                                     /* control/status reg */
+uint32_t uba_vo = 0;                                      /* vector offset */
+uint32_t uba_int = 0;                                     /* UBA interrupt */
+uint32_t uba_fubar = 0;                                   /* failing Unibus addr */
+uint32_t uba_bifa = 0;                                    /* BI failing addr */
+uint32_t uba_dpr[UBA_NDPATH] = { 0 };                     /* number data paths */
+uint32_t uba_map[UBA_NMAPR] = { 0 };                      /* map registers */
+uint32_t uba_aiip = 0;                                    /* adapter init in prog */
+uint32_t uba_uiip = 0;                                    /* Unibus init in prog */
+uint32_t uba_aitime = 250;                                /* adapter init time */
+uint32_t uba_uitime = 12250;                              /* Unibus init time */
 int32 autcon_enb = 1;                                   /* autoconfig enable */
 
-extern uint32 nexus_req[NEXUS_HLVL];
+extern uint32_t nexus_req[NEXUS_HLVL];
 
 t_stat uba_svc (UNIT *uptr);
 t_stat uba_reset (DEVICE *dptr);
@@ -146,7 +146,7 @@ void uba_eval_int (void);
 void uba_adap_set_int ();
 void uba_adap_clr_int ();
 void uba_ubpdn (int32 time);
-t_bool uba_map_addr (uint32 ua, uint32 *ma);
+t_bool uba_map_addr (uint32_t ua, uint32_t *ma);
 t_stat uba_show_virt (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat uba_show_map (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
@@ -454,7 +454,7 @@ return SCPE_OK;
 
 /* Read and write Unibus I/O space */
 
-int32 ReadUb (uint32 pa)
+int32 ReadUb (uint32_t pa)
 {
 int32 idx, val;
 
@@ -470,7 +470,7 @@ uba_ub_nxm (pa);                                        /* UB nxm */
 return 0;
 }
 
-void WriteUb (uint32 pa, int32 val, int32 mode)
+void WriteUb (uint32_t pa, int32 val, int32 mode)
 {
 int32 idx;
 
@@ -494,9 +494,9 @@ return;
         longword of data
 */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32 ReadIO (uint32_t pa, int32 lnt)
 {
-uint32 iod;
+uint32_t iod;
 
 if ((lnt == L_BYTE) ||                                  /* byte? */
     ((lnt == L_WORD) && ((pa & 1) == 0))) {             /* aligned word? */
@@ -523,7 +523,7 @@ return iod;
         none
 */
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32 val, int32 lnt)
 {
 if (lnt == L_BYTE)                                      /* byte? DATOB */
     WriteUb (pa, val, WRITEB);
@@ -598,10 +598,10 @@ return vec;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i, j, pbc;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 ba = ba & UBADDRMASK;                                   /* mask UB addr */
 for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
@@ -629,10 +629,10 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i, j, pbc;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 ba = ba & UBADDRMASK;                                   /* mask UB addr */
 bc = bc & ~01;
@@ -668,10 +668,10 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf)
 {
 int32 i, j, pbc;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 ba = ba & UBADDRMASK;                                   /* mask UB addr */
 for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
@@ -689,10 +689,10 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
         }
     else {                                              /* yes, do by LW */
         for (j = 0; j < pbc; ma = ma + 4, j = j + 4) {
-            dat = (uint32) *buf++;                      /* get low 8b */
-            dat = dat | (((uint32) *buf++) << 8);       /* merge next 8b */
-            dat = dat | (((uint32) *buf++) << 16);      /* merge next 8b */
-            dat = dat | (((uint32) *buf++) << 24);      /* merge hi 8b */
+            dat = (uint32_t) *buf++;                      /* get low 8b */
+            dat = dat | (((uint32_t) *buf++) << 8);       /* merge next 8b */
+            dat = dat | (((uint32_t) *buf++) << 16);      /* merge next 8b */
+            dat = dat | (((uint32_t) *buf++) << 24);      /* merge hi 8b */
             WriteL (ma, dat);                           /* store lw */
             }
         }
@@ -700,10 +700,10 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf)
 {
 int32 i, j, pbc;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 ba = ba & UBADDRMASK;                                   /* mask UB addr */
 bc = bc & ~01;
@@ -731,8 +731,8 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
         }
     else {                                              /* yes, do by LW */
         for (j = 0; j < pbc; ma = ma + 4, j = j + 4) {
-            dat = (uint32) *buf++;                      /* get low 16b */
-            dat = dat | (((uint32) *buf++) << 16);      /* merge hi 16b */
+            dat = (uint32_t) *buf++;                      /* get low 16b */
+            dat = dat | (((uint32_t) *buf++) << 16);      /* merge hi 16b */
             WriteL (ma, dat);                           /* store LW */
             }
         }
@@ -742,9 +742,9 @@ return 0;
 
 /* Map an address via the translation map */
 
-t_bool uba_map_addr (uint32 ua, uint32 *ma)
+t_bool uba_map_addr (uint32_t ua, uint32_t *ma)
 {
-uint32 ublk, umap, dpr;
+uint32_t ublk, umap, dpr;
 
 ublk = ua >> VA_V_VPN;                                  /* Unibus blk */
 //if ((ublk < UBACR_GETDSB (uba_cr)) ||                   /* map disabled? */
@@ -776,9 +776,9 @@ return FALSE;
 
 /* Map an address via the translation map - console version (no status changes) */
 
-t_bool uba_map_addr_c (uint32 ua, uint32 *ma)
+t_bool uba_map_addr_c (uint32_t ua, uint32_t *ma)
 {
-uint32 ublk, umap;
+uint32_t ublk, umap;
 
 ublk = ua >> VA_V_VPN;                                  /* Unibus blk */
 //if ((ublk < UBACR_GETDSB (uba_cr)) ||                   /* map disabled? */
@@ -944,12 +944,12 @@ return "Unibus adapter";
 
 t_stat uba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 ua = (uint32) exta, pa;
+uint32_t ua = (uint32_t) exta, pa;
 
 if ((vptr == NULL) || (ua >= UBADDRSIZE))
     return SCPE_ARG;
 if (uba_map_addr_c (ua, &pa) && ADDR_IS_MEM (pa)) {
-    *vptr = (uint32) ReadW (pa);
+    *vptr = (uint32_t) ReadW (pa);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -959,7 +959,7 @@ return SCPE_NXM;
 
 t_stat uba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 ua = (uint32) exta, pa;
+uint32_t ua = (uint32_t) exta, pa;
 
 if (ua >= UBADDRSIZE)
     return SCPE_ARG;
@@ -976,10 +976,10 @@ t_stat uba_show_virt (FILE *of, UNIT *uptr, int32 val, CONST void *desc)
 {
 t_stat r;
 char *cptr = (char *) desc;
-uint32 ua, pa;
+uint32_t ua, pa;
 
 if (cptr) {
-    ua = (uint32) get_uint (cptr, 16, UBADDRSIZE - 1, &r);
+    ua = (uint32_t) get_uint (cptr, 16, UBADDRSIZE - 1, &r);
     if (r == SCPE_OK) {
         if (uba_map_addr_c (ua, &pa))
             fprintf (of, "Unibus %-X = physical %-X\n", ua, pa);

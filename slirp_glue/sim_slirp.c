@@ -69,7 +69,7 @@ static int
 _parse_redirect_port (struct redir_tcp_udp **head, const char *buff, int is_udp)
 {
 char gbuf[4*CBUFSIZE];
-uint32 inaddr = 0;
+uint32_t inaddr = 0;
 int port = 0;
 int lport = 0;
 char *ipaddrstr = NULL;
@@ -160,19 +160,19 @@ struct sim_slirp {
     void *opaque;               /* opaque value passed during packet delivery */
     packet_callback callback;   /* slirp arriving packet delivery callback */
     DEVICE *dptr;
-    uint32 dbit;
+    uint32_t dbit;
     };
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 DEVICE *slirp_dptr;
-uint32 slirp_dbit;
+uint32_t slirp_dbit;
 #if defined(__cplusplus)
 }
 #endif
 
-SLIRP *sim_slirp_open (const char *args, void *opaque, packet_callback callback, DEVICE *dptr, uint32 dbit, char *errbuf, size_t errbuf_size)
+SLIRP *sim_slirp_open (const char *args, void *opaque, packet_callback callback, DEVICE *dptr, uint32_t dbit, char *errbuf, size_t errbuf_size)
 {
 SLIRP *slirp = (SLIRP *)g_malloc0(sizeof(*slirp));
 char *targs = g_strdup (args);
@@ -593,7 +593,7 @@ for (i = 0; i < pollfds->len; i++) {
 int sim_slirp_select (SLIRP *slirp, int ms_timeout)
 {
 int select_ret = 0;
-uint32 slirp_timeout = ms_timeout;
+uint32_t slirp_timeout = ms_timeout;
 struct timeval timeout;
 fd_set rfds, wfds, xfds;
 fd_set save_rfds, save_wfds, save_xfds;

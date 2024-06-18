@@ -164,40 +164,40 @@
 #define HIST_ILNT       3                               /* max inst length */
 
 typedef struct {
-    uint16              pc;
-    uint16              sp;
-    uint8               psw;
-    uint8               a;
-    uint8               b;
-    uint8               c;
-    uint8               d;
-    uint8               e;
-    uint8               h;
-    uint8               l;
+    uint16_t              pc;
+    uint16_t              sp;
+    uint8_t               psw;
+    uint8_t               a;
+    uint8_t               b;
+    uint8_t               c;
+    uint8_t               d;
+    uint8_t               e;
+    uint8_t               h;
+    uint8_t               l;
     t_value             inst[HIST_ILNT];
     } InstHistory;
 
 /* storage for the rest of the registers */
-uint32 PSW = 0;                         /* program status word */
-uint32 A = 0;                           /* accumulator */
-uint32 BC = 0;                          /* BC register pair */
-uint32 DE = 0;                          /* DE register pair */
-uint32 HL = 0;                          /* HL register pair */
-uint32 SP = 0;                          /* Stack pointer */
-uint32 saved_PC = 0;                    /* program counter */
-uint32 IM = 0;                          /* Interrupt Mask Register */
-uint8  xack = 0;                        /* XACK signal */
-uint32 int_req = 0;                     /* Interrupt request */
-uint8 INTA = 0;                         // interrupt acknowledge
-uint16 PCX;                             /* External view of PC */
-uint16 PCY;                             /* Internal view of PC */
-uint16 PC;
+uint32_t PSW = 0;                         /* program status word */
+uint32_t A = 0;                           /* accumulator */
+uint32_t BC = 0;                          /* BC register pair */
+uint32_t DE = 0;                          /* DE register pair */
+uint32_t HL = 0;                          /* HL register pair */
+uint32_t SP = 0;                          /* Stack pointer */
+uint32_t saved_PC = 0;                    /* program counter */
+uint32_t IM = 0;                          /* Interrupt Mask Register */
+uint8_t  xack = 0;                        /* XACK signal */
+uint32_t int_req = 0;                     /* Interrupt request */
+uint8_t INTA = 0;                         // interrupt acknowledge
+uint16_t PCX;                             /* External view of PC */
+uint16_t PCY;                             /* Internal view of PC */
+uint16_t PC;
 UNIT *uptr;
-uint16 port;                            //port used in any IN/OUT
-uint16 addr;                            //addr used for operand fetch
-uint32 IR;
-uint16 devnum = 0;
-uint8 cpu_onetime = 0;
+uint16_t port;                            //port used in any IN/OUT
+uint16_t addr;                            //addr used for operand fetch
+uint32_t IR;
+uint16_t devnum = 0;
+uint8_t cpu_onetime = 0;
 
 int32 hst_p = 0;                        /* history pointer */
 int32 hst_lnt = 0;                      /* history length */
@@ -213,8 +213,8 @@ void    set_cpuint(int32 int_num);
 void    dumpregs(void);
 int32   fetch_byte(int32 flag);
 int32   fetch_word(void);
-uint16  pop_word(void);
-void    push_word(uint16 val);
+uint16_t  pop_word(void);
+void    push_word(uint16_t val);
 void    setarith(int32 reg);
 void    setlogical(int32 reg);
 void    setinc(int32 reg);
@@ -235,18 +235,18 @@ t_stat  i8080_reset (DEVICE *dptr);
 /* external function prototypes */
 
 extern t_stat i8080_reset (DEVICE *dptr);
-extern uint8 get_mbyte(uint16 addr);
-extern uint16 get_mword(uint16 addr);
-extern void put_mbyte(uint16 addr, uint8 val);
-extern void put_mword(uint16 addr, uint16 val);
+extern uint8_t get_mbyte(uint16_t addr);
+extern uint16_t get_mword(uint16_t addr);
+extern void put_mbyte(uint16_t addr, uint8_t val);
+extern void put_mword(uint16_t addr, uint16_t val);
 extern int32 sim_int_char;
-extern uint32 sim_brk_types, sim_brk_dflt, sim_brk_summ; /* breakpoint info */
+extern uint32_t sim_brk_types, sim_brk_dflt, sim_brk_summ; /* breakpoint info */
 
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum); 
-    uint16 port;
-    uint16 devnum;
-    uint8 dummy;
+    uint8_t (*routine)(t_bool io, uint8_t data, uint8_t devnum); 
+    uint16_t port;
+    uint16_t devnum;
+    uint8_t dummy;
 };
 
 /* This is the I/O configuration table.  There are 256 possible
@@ -429,7 +429,7 @@ void set_cpuint(int32 int_num)
 int32 sim_instr(void)
 {
     extern int32 sim_interval;
-    uint32 OP, DAR, reason, adr;
+    uint32_t OP, DAR, reason, adr;
     int i;
     InstHistory *hst_ent = NULL;
 
@@ -992,7 +992,7 @@ void dumpregs(void)
 /* fetch an instruction or byte */
 int32 fetch_byte(int32 flag)
 {
-    uint32 val;
+    uint32_t val;
 
     val = get_mbyte(PC) & 0xFF;         /* fetch byte */
     PC = (PC + 1) & ADDRMASK;           /* increment PC */
@@ -1003,7 +1003,7 @@ int32 fetch_byte(int32 flag)
 /* fetch a word */
 int32 fetch_word(void)
 {
-    uint16 val;
+    uint16_t val;
 
     val = get_mbyte(PC) & BYTE_R;       /* fetch low byte */
     val |= get_mbyte(PC + 1) << 8;      /* fetch high byte */
@@ -1016,7 +1016,7 @@ int32 fetch_word(void)
 }
 
 /* push a word to the stack */
-void push_word(uint16 val)
+void push_word(uint16_t val)
 {
     SP--;
     put_mbyte(SP, (val >> 8));
@@ -1025,9 +1025,9 @@ void push_word(uint16 val)
 }
 
 /* pop a word from the stack */
-uint16 pop_word(void)
+uint16_t pop_word(void)
 {
-    register uint16 res;
+    register uint16_t res;
 
     res = get_mbyte(SP);
     SP++;
@@ -1467,12 +1467,12 @@ t_stat parse_sym(CONST char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
     while (isspace (*cptr)) cptr++;                         /* absorb spaces */
     if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
         if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-        val[0] = (uint32) cptr[0];
+        val[0] = (uint32_t) cptr[0];
         return SCPE_OK;
     }
     if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII string? */
         if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-        val[0] = ((uint32) cptr[0] << 8) + (uint32) cptr[1];
+        val[0] = ((uint32_t) cptr[0] << 8) + (uint32_t) cptr[1];
         return SCPE_OK;
     }
 

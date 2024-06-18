@@ -61,17 +61,17 @@ const char          *chan_description (DEVICE *dptr);
    chan_mod     Channel modifiers list
 */
 
-uint32              location[NUM_CHAN];         /* Location of RDW instruction*/
-uint32              caddr[NUM_CHAN];            /* Channel memory address */
-uint8               bcnt[NUM_CHAN];             /* Channel character count */
-uint8               cmd[NUM_CHAN];              /* Current command */
-uint8               op[NUM_CHAN];               /* Operators for 7907 channel */
-uint32              limit[NUM_CHAN];            /* Word count */
+uint32_t              location[NUM_CHAN];         /* Location of RDW instruction*/
+uint32_t              caddr[NUM_CHAN];            /* Channel memory address */
+uint8_t               bcnt[NUM_CHAN];             /* Channel character count */
+uint8_t               cmd[NUM_CHAN];              /* Current command */
+uint8_t               op[NUM_CHAN];               /* Operators for 7907 channel */
+uint32_t              limit[NUM_CHAN];            /* Word count */
 t_uint64            assembly[NUM_CHAN];         /* Assembly register */
-uint32              chan_flags[NUM_CHAN];       /* Unit status */
-uint32              chan_info[NUM_CHAN];        /* Private channel info */
-uint8               chan_irq[NUM_CHAN];         /* Channel has a irq pending */
-extern uint16       pri_latchs[10];
+uint32_t              chan_flags[NUM_CHAN];       /* Unit status */
+uint32_t              chan_info[NUM_CHAN];        /* Private channel info */
+uint8_t               chan_irq[NUM_CHAN];         /* Channel has a irq pending */
+extern uint16_t       pri_latchs[10];
 
 #define CHAN_OUTDEV     0x010000        /* Type out device */
 #define CHAN_PRIO       0x008000        /* Channel has priority pending */
@@ -155,7 +155,7 @@ DEVICE              chan_dev = {
 #define RM_CHAR                 0x80
 
 /* Translation tables */
-uint8   bcd_mem[64] = {
+uint8_t   bcd_mem[64] = {
         /*  ?     1     2     3     4     5     6     7 */
 /* 00 */ 0x00, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
         /*  8     9     0   =/#   !/@     ?     ?    tm */
@@ -174,7 +174,7 @@ uint8   bcd_mem[64] = {
 /* 70 */ 0x68, 0x69, 0x60, 0x15, 0x16, 0x17, 0x18, 0x19
 };
 
-uint8   mem_bcd[256] = {
+uint8_t   mem_bcd[256] = {
         /* sp                                      */
 /* 00 */  020, 000, 000, 000, 000, 000, 000, 000,
         /*                                         */
@@ -245,10 +245,10 @@ chan_boot(int32 unit_num, DEVICE * dptr)
 }
 
 t_stat
-chan_issue_cmd(uint16 chan, uint16 dcmd, uint16 dev) {
+chan_issue_cmd(uint16_t chan, uint16_t dcmd, uint16_t dev) {
     DEVICE            **dptr;
     DIB                *dibp;
-    uint32              j;
+    uint32_t              j;
     UNIT               *uptr;
 
     for (dptr = sim_devices; *dptr != NULL; dptr++) {
@@ -1165,7 +1165,7 @@ chan_trap:
 void
 chan_fetch(int chan)
 {
-    uint32              loc = location[chan];
+    uint32_t              loc = location[chan];
     t_uint64            temp;
 
     sim_interval--;
@@ -1212,9 +1212,9 @@ void chan_clear_attn_inq(int chan) {
 
 /* Issue a command to a channel */
 int
-chan_cmd(uint16 dev, uint16 dcmd, uint16 addr)
+chan_cmd(uint16_t dev, uint16_t dcmd, uint16_t addr)
 {
-    uint32              chan;
+    uint32_t              chan;
     int                 prio;
     t_stat              r;
 
@@ -1262,7 +1262,7 @@ chan_cmd(uint16 dev, uint16 dcmd, uint16 addr)
         /* No device, kill active */
         chan_flags[chan] &= ~(STA_ACTIVE);
     } else {
-        extern uint32   IC;
+        extern uint32_t   IC;
         /* If transfering data, activate channel */
         if (chan_flags[chan] & DEV_SEL)
                 chan_flags[chan] |= STA_ACTIVE;
@@ -1296,9 +1296,9 @@ chan_read(int chan, t_uint64 * data, int flags)
  * Write a char to the assembly register.
  */
 int
-chan_write_char(int chan, uint8 * data, int flags)
+chan_write_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch = *data;
+    uint8_t       ch = *data;
     /* Check if last data still not taken */
     if (chan_flags[chan] & DEV_FULL) {
         /* Nope, see if we are waiting for end of record. */
@@ -1438,9 +1438,9 @@ chan_write_char(int chan, uint8 * data, int flags)
  * Read next char from assembly register.
  */
 int
-chan_read_char(int chan, uint8 * data, int flags)
+chan_read_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch;
+    uint8_t       ch;
     /* Return END_RECORD if requested */
     if (flags & DEV_WEOR) {
         chan_flags[chan] &= ~(DEV_WEOR /*| STA_WAIT*/);
@@ -1567,7 +1567,7 @@ chan_set_load_mode(int chan)
 }
 
 void
-chan9_set_error(int chan, uint32 mask)
+chan9_set_error(int chan, uint32_t mask)
 {
     if (chan_flags[chan] & mask)
         return;

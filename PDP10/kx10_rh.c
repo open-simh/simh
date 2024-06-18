@@ -197,12 +197,12 @@ int      rh_boot_unit = 0;
 
 
 int
-uba_rh_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access) {
+uba_rh_write(DEVICE *dptr, t_addr addr, uint16_t data, int32 access) {
     int             r = 0;
     struct pdp_dib  *dibp = (DIB *) dptr->ctxt;
     struct rh_if    *rhc;
     int             reg;
-    uint32          temp;
+    uint32_t          temp;
 
     if (dibp == NULL)
         return 1;
@@ -339,12 +339,12 @@ uba_rh_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access) {
 }
 
 int
-uba_rh_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access) {
+uba_rh_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32 access) {
     int             r = 1;
     struct pdp_dib  *dibp = (DIB *) dptr->ctxt;
     struct rh_if    *rhc;
     int             reg;
-    uint32          temp = 0;
+    uint32_t          temp = 0;
 
     if (dibp == NULL)
         return 1;
@@ -362,7 +362,7 @@ uba_rh_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access) {
 
     switch(addr & 076) {
     case  000:  /* RPC   - 176700 - control */
-        temp |= (uint16)(rhc->cs1 & (CS1_IE));
+        temp |= (uint16_t)(rhc->cs1 & (CS1_IE));
         temp |= (rhc->cda & 0600000) >> 8;
         if ((rhc->status & BUSY) == 0)
            temp |= CS1_RDY;
@@ -377,7 +377,7 @@ uba_rh_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access) {
         r = 0;
         break;
     case  004:  /* RPBA  - 176704 - base address */
-        temp = (uint16)(rhc->cda & 0177776);
+        temp = (uint16_t)(rhc->cda & 0177776);
         r = 0;
         break;
     case  010:  /* RPCS2 - 176710 - control/status 2 */
@@ -431,7 +431,7 @@ uba_rh_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access) {
        1xycount-address.  x=halt last xfer, y=reverse
 */
 
-extern uint32  eb_ptr;
+extern uint32_t  eb_ptr;
 
 t_stat
 rh_set_type(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
@@ -464,11 +464,11 @@ t_stat rh_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 }
 
 
-t_stat rh_devio(uint32 dev, uint64 *data) {
+t_stat rh_devio(uint32_t dev, uint64 *data) {
      DEVICE        *dptr = NULL;
      struct rh_if  *rhc = NULL;
      int            drive;
-     uint32         drdat = 0;
+     uint32_t         drdat = 0;
 
      for (drive = 0; rh[drive].dev_num != 0; drive++) {
         if (rh[drive].dev_num == (dev & 0774)) {
@@ -489,7 +489,7 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
               if (rhc->rae != 0)
                  *data |= RH20_RAE;
               sim_debug(DEBUG_CONI, dptr, "%s %03o CONI %06o PC=%o %o\n",
-                     dptr->name, dev, (uint32)*data, PC, rhc->attn);
+                     dptr->name, dev, (uint32_t)*data, PC, rhc->attn);
               return SCPE_OK;
 
          case CONO:
@@ -517,7 +517,7 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
                     || (rhc->status & PI_ENABLE))
                  set_interrupt(rhc->devnum, rhc->status);
               sim_debug(DEBUG_CONO, dptr, "%s %03o CONO %06o PC=%06o %06o\n",
-                    dptr->name, dev, (uint32)*data, PC, rhc->status);
+                    dptr->name, dev, (uint32_t)*data, PC, rhc->status);
               return SCPE_OK;
 
          case DATAI:
@@ -626,7 +626,7 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
         *data |= B22_FLAG;
 #endif
         sim_debug(DEBUG_CONI, dptr, "%s %03o CONI %06o PC=%o %o\n",
-               dptr->name, dev, (uint32)*data, PC, rhc->attn);
+               dptr->name, dev, (uint32_t)*data, PC, rhc->attn);
         return SCPE_OK;
 
      case CONO:
@@ -659,7 +659,7 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
          if ((rhc->status & IADR_ATTN) != 0 && rhc->attn != 0)
             set_interrupt(dev, rhc->status);
          sim_debug(DEBUG_CONO, dptr, "%s %03o CONO %06o PC=%06o %06o\n",
-               dptr->name, dev, (uint32)*data, PC, rhc->status);
+               dptr->name, dev, (uint32_t)*data, PC, rhc->status);
          return SCPE_OK;
 
      case DATAI:
@@ -730,10 +730,10 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
                 if (rhc->rae & (1 << rhc->drive))
                     return SCPE_OK;
                 /* Start command */
-                if (rhc->dev_write(dptr, rhc, 0, (uint32)(*data & 077))) {
+                if (rhc->dev_write(dptr, rhc, 0, (uint32_t)(*data & 077))) {
                     rhc->status |= CR_DRE;
                 } else {
-                   rh_setup(rhc, (uint32)(*data >> 6));
+                   rh_setup(rhc, (uint32_t)(*data >> 6));
                    rhc->xfer_drive = rhc->drive;
                 }
                 sim_debug(DEBUG_DATAIO, dptr,
@@ -756,7 +756,7 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
                 if (rhc->rae & (1 << rhc->drive)) {
                     return SCPE_OK;
                 }
-                if (rhc->dev_write(dptr, rhc, rhc->reg & 037, (uint32)(*data & 0777777)))
+                if (rhc->dev_write(dptr, rhc, rhc->reg & 037, (uint32_t)(*data & 0777777)))
                     rhc->status |= CR_DRE;
              }
          }
@@ -771,7 +771,7 @@ t_stat rh_devio(uint32 dev, uint64 *data) {
 
 /* Handle KI and KL style interrupt vectors */
 t_addr
-rh_devirq(uint32 dev, t_addr addr) {
+rh_devirq(uint32_t dev, t_addr addr) {
     struct rh_if  *rhc = NULL;
     int            drive;
 
@@ -866,7 +866,7 @@ void rh_writecw(struct rh_if *rhc, int nxm) {
      uint64       wrd1;
 #if KL
      if (rhc->imode == 2) {
-         uint32   chan = (rhc->devnum - 0540);
+         uint32_t   chan = (rhc->devnum - 0540);
          int      wc = ((rhc->wcr ^ RH20_WMASK) + 1) & RH20_WMASK;
          rhc->status |= RH20_CHAN_RDY;
          rhc->status &= ~(RH20_PCR_FULL);
@@ -937,7 +937,7 @@ void rh_finish_op(struct rh_if *rhc, int nxm) {
 void rh20_setup(struct rh_if *rhc)
 {
      DEVICE        *dptr = NULL;
-     uint32        data;
+     uint32_t        data;
      int           reg;
      int           drv;
 
@@ -989,7 +989,7 @@ void rh20_setup(struct rh_if *rhc)
 #endif
 
 /* Setup for a DF10 transfer */
-void rh_setup(struct rh_if *rhc, uint32 addr)
+void rh_setup(struct rh_if *rhc, uint32_t addr)
 {
 #if !KS
      rhc->cia = addr & ICWA;
@@ -1026,7 +1026,7 @@ int rh_fetch(struct rh_if *rhc) {
 #if KL
      if (rhc->imode == 2) {
          while((data & RH20_XFER) == 0) {
-             rhc->ccw = (uint32)(data & AMASK);
+             rhc->ccw = (uint32_t)(data & AMASK);
              if ((data & (BIT1|BIT2)) == 0) {
                  return 0;
              }
@@ -1040,25 +1040,25 @@ int rh_fetch(struct rh_if *rhc) {
          rhc->wcr = (((data >> CSHIFT) & RH20_WMASK) ^ WMASK) + 1;
          rhc->cda = (data & AMASK);
          rhc->cop = (data >> 33) & 07;
-         rhc->ccw = (uint32)((rhc->ccw + 1) & AMASK);
+         rhc->ccw = (uint32_t)((rhc->ccw + 1) & AMASK);
          return 1;
      }
 #endif
      while((data & (WMASK << CSHIFT)) == 0) {
-         if ((data & AMASK) == 0 || (uint32)(data & AMASK) == rhc->ccw) {
+         if ((data & AMASK) == 0 || (uint32_t)(data & AMASK) == rhc->ccw) {
              rh_finish_op(rhc, 0);
              return 0;
          }
-         rhc->ccw = (uint32)(data & AMASK);
+         rhc->ccw = (uint32_t)(data & AMASK);
          if (Mem_read_word(rhc->ccw, &data, 0)) {
              rh_finish_op(rhc, 1);
              return 0;
          }
          sim_debug(DEBUG_EXP, dptr, "%s fetch2 %06o %012llo\n\r", dptr->name, rhc->ccw, data);
      }
-     rhc->wcr = (uint32)((data >> CSHIFT) & WMASK);
-     rhc->cda = (uint32)(data & AMASK);
-     rhc->ccw = (uint32)((rhc->ccw + 1) & AMASK);
+     rhc->wcr = (uint32_t)((data >> CSHIFT) & WMASK);
+     rhc->cda = (uint32_t)(data & AMASK);
+     rhc->ccw = (uint32_t)((rhc->ccw + 1) & AMASK);
 #endif
      return 1;
 }
@@ -1087,7 +1087,7 @@ int rh_read(struct rh_if *rhc) {
          if (!rh_fetch(rhc))
              return 0;
      }
-     rhc->wcr = (uint32)((rhc->wcr + 1) & WMASK);
+     rhc->wcr = (uint32_t)((rhc->wcr + 1) & WMASK);
      if (rhc->cda != 0) {
         if (rhc->cda > MEMSIZE) {
             rh_finish_op(rhc, 1);
@@ -1100,18 +1100,18 @@ int rh_read(struct rh_if *rhc) {
                 return 0;
             }
             if (rhc->cop & 01)
-                rhc->cda = (uint32)((rhc->cda - 1) & AMASK);
+                rhc->cda = (uint32_t)((rhc->cda - 1) & AMASK);
             else
-                rhc->cda = (uint32)((rhc->cda + 1) & AMASK);
+                rhc->cda = (uint32_t)((rhc->cda + 1) & AMASK);
         } else {
-            rhc->cda = (uint32)((rhc->cda + 1) & AMASK);
+            rhc->cda = (uint32_t)((rhc->cda + 1) & AMASK);
             if (Mem_read_word(rhc->cda, &data, 0)) {
                 rh_finish_op(rhc, 1);
                 return 0;
             }
         }
 #else
-        rhc->cda = (uint32)((rhc->cda + 1) & AMASK);
+        rhc->cda = (uint32_t)((rhc->cda + 1) & AMASK);
         if (Mem_read_word(rhc->cda, &data, 0)) {
             rh_finish_op(rhc, 1);
             return 0;
@@ -1150,7 +1150,7 @@ int rh_write(struct rh_if *rhc) {
          if (!rh_fetch(rhc))
              return 0;
      }
-     rhc->wcr = (uint32)((rhc->wcr + 1) & WMASK);
+     rhc->wcr = (uint32_t)((rhc->wcr + 1) & WMASK);
      if (rhc->cda != 0) {
         if (rhc->cda > MEMSIZE) {
            rh_finish_op(rhc, 1);
@@ -1163,18 +1163,18 @@ int rh_write(struct rh_if *rhc) {
                 return 0;
             }
             if (rhc->cop & 01)
-                rhc->cda = (uint32)((rhc->cda - 1) & AMASK);
+                rhc->cda = (uint32_t)((rhc->cda - 1) & AMASK);
             else
-                rhc->cda = (uint32)((rhc->cda + 1) & AMASK);
+                rhc->cda = (uint32_t)((rhc->cda + 1) & AMASK);
         } else {
-            rhc->cda = (uint32)((rhc->cda + 1) & AMASK);
+            rhc->cda = (uint32_t)((rhc->cda + 1) & AMASK);
             if (Mem_write_word(rhc->cda, &rhc->buf, 0)) {
                 rh_finish_op(rhc, 1);
                 return 0;
             }
         }
 #else
-        rhc->cda = (uint32)((rhc->cda + 1) & AMASK);
+        rhc->cda = (uint32_t)((rhc->cda + 1) & AMASK);
         if (Mem_write_word(rhc->cda, &rhc->buf, 0)) {
             rh_finish_op(rhc, 1);
             return 0;

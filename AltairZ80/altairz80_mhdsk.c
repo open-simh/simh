@@ -64,7 +64,7 @@
 #define READ_MSG                (1 << 0)
 #define WRITE_MSG               (1 << 1)
 #define VERBOSE_MSG             (1 << 2)
-extern uint32 PCX;
+extern uint32_t PCX;
 
 /* boot related */
 #define BOOTROM_SIZE_MHDSK      256
@@ -130,26 +130,26 @@ static const char* commandMessage[CMD_MAX] = {
 
 
 /**  Module Globals - Private  ********************************/
-static uint32 selectedDisk = 0;         // current active disk
-static uint32 selectedSector = 0;       // current sector
-static uint32 selectedTrack = 0;        // current track
-static uint32 selectedHead = 0;         // current head
-static uint32 selectedBuffer = 0;       // current buffer # in use
-static uint32 bufferIdx = 0;            // current index into selected buffer
-static uint32 maxBufferIdx = 256;       // maximum buffer index allowed
-static uint32 cmdLowByte = 0;           // low byte of command
+static uint32_t selectedDisk = 0;         // current active disk
+static uint32_t selectedSector = 0;       // current sector
+static uint32_t selectedTrack = 0;        // current track
+static uint32_t selectedHead = 0;         // current head
+static uint32_t selectedBuffer = 0;       // current buffer # in use
+static uint32_t bufferIdx = 0;            // current index into selected buffer
+static uint32_t maxBufferIdx = 256;       // maximum buffer index allowed
+static uint32_t cmdLowByte = 0;           // low byte of command
 
 //  Controller status bytes
 
-static uint8 cstat = 0;         // command status from controller
+static uint8_t cstat = 0;         // command status from controller
 
 // The hard disk controller supports four 256 byte disk buffers */
 
-static uint8 diskBuf1[HDSK_SECTOR_SIZE];
-static uint8 diskBuf2[HDSK_SECTOR_SIZE];
-static uint8 diskBuf3[HDSK_SECTOR_SIZE];
-static uint8 diskBuf4[HDSK_SECTOR_SIZE];
-static uint8 *diskBuf[] = { diskBuf1, diskBuf2, diskBuf3, diskBuf4 };
+static uint8_t diskBuf1[HDSK_SECTOR_SIZE];
+static uint8_t diskBuf2[HDSK_SECTOR_SIZE];
+static uint8_t diskBuf3[HDSK_SECTOR_SIZE];
+static uint8_t diskBuf4[HDSK_SECTOR_SIZE];
+static uint8_t *diskBuf[] = { diskBuf1, diskBuf2, diskBuf3, diskBuf4 };
 
 /**  Forward and external Prototypes  **************************************/
 
@@ -158,12 +158,12 @@ static int32 hdCstat(const int32 port, const int32 io, const int32 data);
 static int32 hdAcmd(const int32 port, const int32 io, const int32 data);
 static int32 hdCdata(const int32 port, const int32 io, const int32 data);
 static int32 hdAdata(const int32 port, const int32 io, const int32 data);
-static void doRead(const int32 port, const int32 data, const uint32 command);
-static void doWrite(const int32 port, const int32 data, const uint32 command);
+static void doRead(const int32 port, const int32 data, const uint32_t command);
+static void doWrite(const int32 port, const int32 data, const uint32_t command);
 static t_stat dsk_reset(DEVICE *dptr);
 static const char* cmdTranslate(const int32 cmd);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 static const char* mhdsk_description(DEVICE *dptr);
 
 /* 88DSK Standard I/O Data Structures */
@@ -346,9 +346,9 @@ static int32 hdCstat(const int32 port, const int32 io, const int32 data)
 -------------------------------------------------------------*/
 static int32 hdAcmd(const int32 port, const int32 io, const int32 data)
 {
-    uint32 command;             // command field from command msb
-    uint32 unit;                // unit number from command msb
-    uint32 buffer;              // buffer number from command msb
+    uint32_t command;             // command field from command msb
+    uint32_t unit;                // unit number from command msb
+    uint32_t buffer;              // buffer number from command msb
 
 // if not an OUT command, exit
 
@@ -502,10 +502,10 @@ static int32 hdAdata(const int32 port, const int32 io, const int32 data)
     Returns:    nothing (updates cstat directly)
     Comments:
 -------------------------------------------------------------*/
-static void doRead(const int32 port, const int32 data, const uint32 command)
+static void doRead(const int32 port, const int32 data, const uint32_t command)
 {
     UNIT *uptr;
-    uint32 fileOffset;
+    uint32_t fileOffset;
 
     uptr = mhdsk_dev.units + selectedDisk;
     fileOffset = HDSK_CYLINDER_SIZE * selectedTrack +
@@ -533,10 +533,10 @@ static void doRead(const int32 port, const int32 data, const uint32 command)
     Returns:    nothing (updates cstat directly)
     Comments:
 -------------------------------------------------------------*/
-static void doWrite(const int32 port, const int32 data, const uint32 command)
+static void doWrite(const int32 port, const int32 data, const uint32_t command)
 {
     UNIT *uptr;
-    uint32 fileOffset;
+    uint32_t fileOffset;
 
     uptr = mhdsk_dev.units + selectedDisk;
     if (((uptr->flags) & UNIT_DSK_WLK) == 0) {          /* write enabled */

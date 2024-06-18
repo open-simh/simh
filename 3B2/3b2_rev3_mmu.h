@@ -166,7 +166,7 @@
 #define PD_ADDR(pd)       (pd & (pd_addr_masks[MMU_CONF_PS]))
 #define SD_ADDR(va)       (mmu_state.sec[SID(va)].addr + (SSL(va) * 8))
 
-#define SDC_IDX(va)       ((uint8)((va) >> 17) & 7)
+#define SDC_IDX(va)       ((uint8_t)((va) >> 17) & 7)
 
 /* Convert from sd to sd cache entry */
 #define SD_TO_SDCH(hi,lo)     (((hi) & SD_ADDR_MASK)         | \
@@ -219,16 +219,16 @@
 /* Fault codes */
 #define MMU_FAULT(f) {                                      \
         if (fc) {                                           \
-            mmu_state.fcode = ((((uint32)r_acc)<<7) |       \
-                               (((uint32)(CPU_CM))<<5) |    \
+            mmu_state.fcode = ((((uint32_t)r_acc)<<7) |       \
+                               (((uint32_t)(CPU_CM))<<5) |    \
                                (f & 0x1f));                 \
             mmu_state.faddr = va;                           \
         }                                                   \
     }
 
 typedef struct {
-    uint32 addr;
-    uint32 len;
+    uint32_t addr;
+    uint32_t len;
 } mmu_sec;
 
 
@@ -313,41 +313,41 @@ typedef struct _mmu_state {
     t_bool enabled;         /* Global enabled/disabled flag */
 
     t_bool flush_u;         /* If true, flush all but last cached entry */
-    uint32 last_cached;     /* The index of the last cached PDC entry */
+    uint32_t last_cached;     /* The index of the last cached PDC entry */
 
-    uint32 sdcl[MMU_SDCS];  /* SDC low bits (0-31) */
-    uint32 sdch[MMU_SDCS];  /* SDC high bits (32-63) */
+    uint32_t sdcl[MMU_SDCS];  /* SDC low bits (0-31) */
+    uint32_t sdch[MMU_SDCS];  /* SDC high bits (32-63) */
 
-    uint32 pdcl[MMU_PDCS];  /* PDC low bits (0-31) */
-    uint32 pdch[MMU_PDCS];  /* PDC high bits (32-63) */
+    uint32_t pdcl[MMU_PDCS];  /* PDC low bits (0-31) */
+    uint32_t pdch[MMU_PDCS];  /* PDC high bits (32-63) */
 
-    uint32 sra[4];          /* Section RAM A */
-    uint32 srb[4];          /* Section RAM B */
+    uint32_t sra[4];          /* Section RAM A */
+    uint32_t srb[4];          /* Section RAM B */
 
-    uint32 cidnr[4];        /* Current ID Number Registers */
-    uint32 idnc[16];        /* ID Number Cache */
+    uint32_t cidnr[4];        /* Current ID Number Registers */
+    uint32_t idnc[16];        /* ID Number Cache */
 
     mmu_sec sec[4];         /* Section descriptors decoded from
                                Section RAM A and B */
 
-    uint32 fcode;           /* Fault Code Register */
-    uint32 faddr;           /* Fault Address Register */
-    uint32 conf;            /* Configuration Register */
-    uint32 var;             /* Virtual Address Register */
+    uint32_t fcode;           /* Fault Code Register */
+    uint32_t faddr;           /* Fault Address Register */
+    uint32_t conf;            /* Configuration Register */
+    uint32_t var;             /* Virtual Address Register */
 
 } MMU_STATE;
 
 t_stat mmu_init(DEVICE *dptr);
-uint32 mmu_read(uint32 pa, size_t size);
-void   mmu_write(uint32 pa, uint32 val, size_t size);
+uint32_t mmu_read(uint32_t pa, size_t size);
+void   mmu_write(uint32_t pa, uint32_t val, size_t size);
 CONST char *mmu_description(DEVICE *dptr);
 
 /* Virtual memory translation */
-uint32 mmu_xlate_addr(uint32 va, uint8 r_acc);
-t_stat mmu_decode_vaddr(uint32 vaddr, uint8 r_acc,
-                        t_bool fc, uint32 *pa);
+uint32_t mmu_xlate_addr(uint32_t va, uint8_t r_acc);
+t_stat mmu_decode_vaddr(uint32_t vaddr, uint8_t r_acc,
+                        t_bool fc, uint32_t *pa);
 
-t_stat mmu_decode_va(uint32 va, uint8 r_acc, t_bool fc, uint32 *pa);
+t_stat mmu_decode_va(uint32_t va, uint8_t r_acc, t_bool fc, uint32_t *pa);
 void   mmu_enable();
 void   mmu_disable();
 

@@ -165,12 +165,12 @@ t_stat id_set_type(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat id_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat id_attach(UNIT *uptr, CONST char *cptr);
 t_stat id_detach(UNIT *uptr);
-uint32 id_read(uint32 pa, size_t size);
-void id_write(uint32 pa, uint32 val, size_t size);
+uint32_t id_read(uint32_t pa, size_t size);
+void id_write(uint32_t pa, uint32_t val, size_t size);
 CONST char *id_description(DEVICE *dptr);
 t_stat id_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void id_handle_data(uint8 val);
-void id_handle_command(uint8 val);
+void id_handle_data(uint8_t val);
+void id_handle_command(uint8_t val);
 void id_after_dma();
 
 extern t_bool id_drq;

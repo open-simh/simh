@@ -62,8 +62,8 @@
 
 static t_stat gtyi_svc(UNIT *uptr);
 static t_stat gtyo_svc(UNIT *uptr);
-static t_stat gtyi_devio(uint32 dev, uint64 *data);
-static t_stat gtyo_devio(uint32 dev, uint64 *data);
+static t_stat gtyi_devio(uint32_t dev, uint64 *data);
+static t_stat gtyo_devio(uint32_t dev, uint64 *data);
 static t_stat ge_reset(DEVICE *dptr);
 static t_stat ge_attach(UNIT *uptr, CONST char *ptr);
 static t_stat ge_detach(UNIT *uptr);
@@ -352,7 +352,7 @@ static void gtyo_lp(char data) {
   gtyo_done();
 }
 
-t_stat gtyi_devio(uint32 dev, uint64 *data)
+t_stat gtyi_devio(uint32_t dev, uint64 *data)
 {
   UNIT *uptr = gtyi_unit;
 
@@ -380,7 +380,7 @@ t_stat gtyi_devio(uint32 dev, uint64 *data)
   return SCPE_OK;
 }
 
-t_stat gtyo_devio(uint32 dev, uint64 *data)
+t_stat gtyo_devio(uint32_t dev, uint64 *data)
 {
   UNIT *uptr = gtyo_unit;
   int ch;

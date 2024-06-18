@@ -562,21 +562,21 @@ static struct drvtyp drv_tab[] = {
     { 0 }
     };
 
-uint16 *rpxb[RP_NUMDR] = { 0 };                          /* xfer buffer */
-uint16 rpcs1[RP_NUMDR] = { 0 };                         /* control/status 1 */
-uint16 rpda[RP_NUMDR] = { 0 };                          /* track/sector */
-uint16 rpds[RP_NUMDR] = { 0 };                          /* drive status */
-uint16 rper1[RP_NUMDR] = { 0 };                         /* error status 1 */
-uint16 rmhr[RP_NUMDR] = { 0 };                          /* holding reg */
-uint16 rpmr[RP_NUMDR] = { 0 };                          /* maint reg */
-uint16 rmmr2[RP_NUMDR] = { 0 };                         /* maint reg 2 */
-uint16 rpof[RP_NUMDR] = { 0 };                          /* offset */
-uint16 rpdc[RP_NUMDR] = { 0 };                          /* cylinder */
-uint16 rper2[RP_NUMDR] = { 0 };                         /* error status 2 */
-uint16 rper3[RP_NUMDR] = { 0 };                         /* error status 3 */
-uint16 rpec1[RP_NUMDR] = { 0 };                         /* ECC correction 1 */
-uint16 rpec2[RP_NUMDR] = { 0 };                         /* ECC correction 2 */
-uint16 rpxbc[RP_NUMDR] = { 0 };                         /* Byte Count Copy */
+uint16_t *rpxb[RP_NUMDR] = { 0 };                          /* xfer buffer */
+uint16_t rpcs1[RP_NUMDR] = { 0 };                         /* control/status 1 */
+uint16_t rpda[RP_NUMDR] = { 0 };                          /* track/sector */
+uint16_t rpds[RP_NUMDR] = { 0 };                          /* drive status */
+uint16_t rper1[RP_NUMDR] = { 0 };                         /* error status 1 */
+uint16_t rmhr[RP_NUMDR] = { 0 };                          /* holding reg */
+uint16_t rpmr[RP_NUMDR] = { 0 };                          /* maint reg */
+uint16_t rmmr2[RP_NUMDR] = { 0 };                         /* maint reg 2 */
+uint16_t rpof[RP_NUMDR] = { 0 };                          /* offset */
+uint16_t rpdc[RP_NUMDR] = { 0 };                          /* cylinder */
+uint16_t rper2[RP_NUMDR] = { 0 };                         /* error status 2 */
+uint16_t rper3[RP_NUMDR] = { 0 };                         /* error status 3 */
+uint16_t rpec1[RP_NUMDR] = { 0 };                         /* ECC correction 1 */
+uint16_t rpec2[RP_NUMDR] = { 0 };                         /* ECC correction 2 */
+uint16_t rpxbc[RP_NUMDR] = { 0 };                         /* Byte Count Copy */
 int32 rp_stopioe = 1;                                   /* stop on error */
 int32 rp_swait = 26;                                    /* seek time */
 int32 rp_rwait = 10;                                    /* rotate time */
@@ -590,7 +590,7 @@ t_stat rp_detach (UNIT *uptr);
 t_stat rp_boot (int32 unitno, DEVICE *dptr);
 void rp_set_er (int16 flg, int32 drv);
 void rp_clr_as (int32 mask);
-void rp_update_ds (uint16 flg, int32 drv);
+void rp_update_ds (uint16_t flg, int32 drv);
 t_stat rp_go (int32 drv);
 t_stat rp_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat rp_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
@@ -786,7 +786,7 @@ const char *rp_regnam[] =
 
 t_stat rp_mbrd (int32 *data, int32 ofs, int32 drv)
 {
-uint32 val, dtype, i;
+uint32_t val, dtype, i;
 UNIT *uptr;
 
 rp_update_ds (0, drv);                                  /* update ds */
@@ -894,7 +894,7 @@ return SCPE_OK;
 
 t_stat rp_mbwr (int32 data, int32 ofs, int32 drv)
 {
-uint32 old_reg;
+uint32_t old_reg;
 UNIT *uptr = rp_dev.units + drv;                        /* get unit */
 int32 dtype = GET_DTYPE (uptr->flags);                  /* get drive type */
 
@@ -907,7 +907,7 @@ if ((ofs != RP_AS_OF) && sim_is_active (uptr)) {        /* unit busy? */
     rp_update_ds (0, drv);
     return SCPE_OK;
     }
-rmhr[drv] = (uint16)data;                               /* save write */
+rmhr[drv] = (uint16_t)data;                               /* save write */
 ofs = ofs & MBA_RMASK;                                  /* mask offset */
 if (drv_tab[dtype].ctrl == RM_CTRL)                     /* RM? convert */
     ofs = ofs + RM_OF;
@@ -924,7 +924,7 @@ switch (ofs) {                                          /* decode PA<5:1> */
 
     case RP_DA_OF: case RM_DA_OF:                       /* RPDA */
         old_reg = rpds[drv];
-        rpda[drv] = (uint16)(data & ~DA_MBZ);
+        rpda[drv] = (uint16_t)(data & ~DA_MBZ);
         sim_debug_bits(DBG_REG, &rp_dev, rp_reg_bits[ofs], old_reg, rpds[drv], 1);
         break;
 
@@ -935,25 +935,25 @@ switch (ofs) {                                          /* decode PA<5:1> */
 
     case RP_MR_OF: case RM_MR_OF:                       /* RPMR */
         old_reg = rpmr[drv];
-        rpmr[drv] = (uint16)data;
+        rpmr[drv] = (uint16_t)data;
         sim_debug_bits(DBG_REG, &rp_dev, rp_reg_bits[ofs], old_reg, rpmr[drv], 1);
         break;
 
     case RP_OF_OF: case RM_OF_OF:                       /* RPOF */
         old_reg = rpof[drv];
-        rpof[drv] = (uint16)(data & ~OF_MBZ);
+        rpof[drv] = (uint16_t)(data & ~OF_MBZ);
         sim_debug_bits(DBG_REG, &rp_dev, rp_reg_bits[ofs], old_reg, rpof[drv], 1);
         break;
 
     case RP_DC_OF: case RM_DC_OF:                       /* RPDC */
         old_reg = rpdc[drv];
-        rpdc[drv] = (uint16)(data & ~DC_MBZ);
+        rpdc[drv] = (uint16_t)(data & ~DC_MBZ);
         sim_debug_bits(DBG_REG, &rp_dev, rp_reg_bits[ofs], old_reg, rpdc[drv], 1);
         break;
 
     case RM_MR2_OF:                                     /* RMMR2 */
         old_reg = rmmr2[drv];
-        rmmr2[drv] = (uint16)data;
+        rmmr2[drv] = (uint16_t)data;
         sim_debug_bits(DBG_REG, &rp_dev, rp_reg_bits[ofs], old_reg, rmmr2[drv], 1);
         break;
 
@@ -1170,7 +1170,7 @@ if (!uptr->io_complete) { /* Top End (I/O Initiation) Processing */
         case FNC_WCHK:                                  /* write check */
         case FNC_READ:                                  /* read */
         case FNC_READH:                                 /* read headers */
-            mbc = rpxbc[drv] = (uint16)mba_get_bc (dibp->ba);/* get byte count */
+            mbc = rpxbc[drv] = (uint16_t)mba_get_bc (dibp->ba);/* get byte count */
             wc = (mbc + 1) >> 1;                        /* convert to words */
             if ((da + wc) > drv_tab[dtype].size) {      /* disk overrun? */
                 rp_set_er (ER1_AOE, drv);               /* set err */
@@ -1188,13 +1188,13 @@ if (!uptr->io_complete) { /* Top End (I/O Initiation) Processing */
                 awc = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1);
                 for (i = wc; i < awc; i++)              /* fill buf */
                     rpxb[drv][i] = 0;
-                sim_disk_data_trace (uptr, (uint8 *)rpxb[drv], da/RP_NUMWD, awc, "sim_disk_wrsect-WR", DBG_DAT & dptr->dctrl, DBG_REQ);
-                sim_disk_wrsect_a (uptr, da/RP_NUMWD, (uint8 *)rpxb[drv], NULL, awc/RP_NUMWD, rp_io_complete);
+                sim_disk_data_trace (uptr, (uint8_t *)rpxb[drv], da/RP_NUMWD, awc, "sim_disk_wrsect-WR", DBG_DAT & dptr->dctrl, DBG_REQ);
+                sim_disk_wrsect_a (uptr, da/RP_NUMWD, (uint8_t *)rpxb[drv], NULL, awc/RP_NUMWD, rp_io_complete);
                 return SCPE_OK;
                 }                                       /* end if wr */
             else {                                      /* read or wchk */
                 awc = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1);
-                sim_disk_rdsect_a (uptr, da/RP_NUMWD, (uint8 *)rpxb[drv], (t_seccnt*)&uptr->sectsread, awc/RP_NUMWD, rp_io_complete);
+                sim_disk_rdsect_a (uptr, da/RP_NUMWD, (uint8_t *)rpxb[drv], (t_seccnt*)&uptr->sectsread, awc/RP_NUMWD, rp_io_complete);
                 return SCPE_OK;
                 }                                       /* end if read */
 
@@ -1230,7 +1230,7 @@ else { /* Bottom End (After I/O processing) */
                 }                                       /* end if wr */
             else {                                      /* read or wchk */
                 awc = uptr->sectsread * RP_NUMWD;
-                sim_disk_data_trace (uptr, (uint8*)rpxb[drv], da/RP_NUMWD, awc << 1, "sim_disk_rdsect", DBG_DAT & dptr->dctrl, DBG_REQ);
+                sim_disk_data_trace (uptr, (uint8_t*)rpxb[drv], da/RP_NUMWD, awc << 1, "sim_disk_rdsect", DBG_DAT & dptr->dctrl, DBG_REQ);
                 for (i = awc; i < wc; i++)              /* fill buf */
                     rpxb[drv][i] = 0;
                 if (fnc == FNC_WCHK)                    /* write check? */
@@ -1241,10 +1241,10 @@ else { /* Bottom End (After I/O processing) */
             if (da >= drv_tab[dtype].size)
                 rpds[drv] = rpds[drv] | DS_LST;
             da = da / RP_NUMWD;
-            rpda[drv] = (uint16)(da % drv_tab[dtype].sect);
+            rpda[drv] = (uint16_t)(da % drv_tab[dtype].sect);
             da = da / drv_tab[dtype].sect;
-            rpda[drv] = (uint16)(rpda[drv] | ((da % drv_tab[dtype].surf) << DA_V_SF));
-            rpdc[drv] = (uint16)(da / drv_tab[dtype].surf);
+            rpda[drv] = (uint16_t)(rpda[drv] | ((da % drv_tab[dtype].surf) << DA_V_SF));
+            rpdc[drv] = (uint16_t)(da / drv_tab[dtype].surf);
             uptr->CYL = rpdc[drv];
 
             if (err != 0) {                             /* error? */
@@ -1282,7 +1282,7 @@ return;
 
 void rp_clr_as (int32 mask)
 {
-uint32 i, as;
+uint32_t i, as;
 
 for (i = as = 0; i < RP_NUMDR; i++) {
     if (mask & (AS_U0 << i))
@@ -1299,9 +1299,9 @@ return;
 
 /* Drive status update */
 
-void rp_update_ds (uint16 flag, int32 drv)
+void rp_update_ds (uint16_t flag, int32 drv)
 {
-uint16 o_ds = rpds[drv];
+uint16_t o_ds = rpds[drv];
 
 if (rp_unit[drv].flags & UNIT_DIS)
     rpds[drv] = rper1[drv] = 0;
@@ -1357,7 +1357,7 @@ for (i = 0; i < RP_NUMDR; i++) {
     rmmr2[i] = 0;
     rmhr[i] = 0;
     if (rpxb[i] == NULL)
-        rpxb[i] = (uint16 *) calloc (RP_MAXFR, sizeof (uint16));
+        rpxb[i] = (uint16_t *) calloc (RP_MAXFR, sizeof (uint16_t));
     if (rpxb[i] == NULL)
         return SCPE_MEM;
     }
@@ -1374,8 +1374,8 @@ DEVICE *dptr = find_dev_from_unit (uptr);
 static const char *drives[] = {"RM03", "RP04", "RP05", "RM80", "RP06", "RM05", "RP07", NULL};
 
 uptr->capac = drv_tab[GET_DTYPE (uptr->flags)].size;
-r = sim_disk_attach_ex (uptr, cptr, RP_NUMWD * sizeof (uint16), 
-                        sizeof (uint16), TRUE, DBG_DSK, 
+r = sim_disk_attach_ex (uptr, cptr, RP_NUMWD * sizeof (uint16_t), 
+                        sizeof (uint16_t), TRUE, DBG_DSK, 
                         drv_tab[GET_DTYPE (uptr->flags)].name, 
                         drv_tab[GET_DTYPE (uptr->flags)].dec144 ? drv_tab[GET_DTYPE (uptr->flags)].sect : 0, 
                         0, (uptr->flags & UNIT_AUTO) ? drives : NULL);
@@ -1444,9 +1444,9 @@ return sim_messagef (SCPE_ARG, "%s: %s disk drives did not have a DEC Standard 1
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042102,                        /* "BD" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit, r0 */

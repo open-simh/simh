@@ -55,7 +55,7 @@ const char *cty_description (DEVICE *dptr);
 #define DATA              u4
 #define PIA               u5
 
-t_stat cty_devio(uint32 dev, uint64 *data);
+t_stat cty_devio(uint32_t dev, uint64 *data);
 
 DIB cty_dib = { CTY_DEVNUM, 1, cty_devio, NULL};
 
@@ -87,7 +87,7 @@ DEVICE cty_dev = {
     NULL, NULL, &cty_help, NULL, NULL, &cty_description
     };
 
-t_stat cty_devio(uint32 dev, uint64 *data) {
+t_stat cty_devio(uint32_t dev, uint64 *data) {
      uint64     res;
      switch(dev & 3) {
      case CONI:
@@ -95,7 +95,7 @@ t_stat cty_devio(uint32 dev, uint64 *data) {
         res |= cty_unit[1].STATUS & (KEY_RDY | KEY_BSY);
         res |= cty_unit[0].STATUS & KEY_TST;
         *data = res;
-        sim_debug(DEBUG_CONI, &cty_dev, "CTY %03o CONI %06o\n", dev, (uint32)*data);
+        sim_debug(DEBUG_CONI, &cty_dev, "CTY %03o CONI %06o\n", dev, (uint32_t)*data);
         break;
      case CONO:
          res = *data;
@@ -110,7 +110,7 @@ t_stat cty_devio(uint32 dev, uint64 *data) {
              set_interrupt(dev, cty_unit[0].PIA);
          else
              clr_interrupt(dev);
-         sim_debug(DEBUG_CONO, &cty_dev, "CTY %03o CONO %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_CONO, &cty_dev, "CTY %03o CONO %06o\n", dev, (uint32_t)*data);
          break;
      case DATAI:
          res = cty_unit[1].DATA & 0xff;
@@ -118,7 +118,7 @@ t_stat cty_devio(uint32 dev, uint64 *data) {
          if ((cty_unit[0].STATUS & TEL_RDY) == 0)
              clr_interrupt(dev);
          *data = res;
-         sim_debug(DEBUG_DATAIO, &cty_dev, "CTY %03o DATAI %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_DATAIO, &cty_dev, "CTY %03o DATAI %06o\n", dev, (uint32_t)*data);
          break;
     case DATAO:
          cty_unit[0].DATA = *data & 0x7f;
@@ -127,7 +127,7 @@ t_stat cty_devio(uint32 dev, uint64 *data) {
          if ((cty_unit[1].STATUS & KEY_RDY) == 0)
              clr_interrupt(dev);
          sim_activate(&cty_unit[0], cty_unit[0].wait);
-         sim_debug(DEBUG_DATAIO, &cty_dev, "CTY %03o DATAO %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_DATAIO, &cty_dev, "CTY %03o DATAO %06o\n", dev, (uint32_t)*data);
          break;
     }
     return SCPE_OK;

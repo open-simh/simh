@@ -99,7 +99,7 @@
 
 struct ufp {                                            /* unpacked fp */
     int32       exp;                                    /* exp */
-    uint32      fr;                                     /* frac */
+    uint32_t      fr;                                     /* frac */
     };
 
 #define FP_V_SIGN       31                              /* sign */
@@ -123,28 +123,28 @@ struct ufp {                                            /* unpacked fp */
 #define FP_RNDP         (1 << (FP_V_FR - 1))            /* round for plus */
 #define FP_RNDM         (FP_RNDP - 1)                   /* round for minus */
 
-#define FPAB            ((((uint32) AR) << 16) | ((uint32) BR))
+#define FPAB            ((((uint32_t) AR) << 16) | ((uint32_t) BR))
 
 /* Fraction shift; 0 < shift < 32 */
 
 #define FR_ARS(v,s)     (((v) >> (s)) | (((v) & FP_SIGN)? \
-                        (((uint32) D32_MASK) << (32 - (s))): 0)) & D32_MASK
+                        (((uint32_t) D32_MASK) << (32 - (s))): 0)) & D32_MASK
 
 #define FR_NEG(v)       ((~(v) + 1) & D32_MASK)
 
 /* Utility routines */
 
-static uint32 UnpackFP (struct ufp *fop, uint32 opnd);
+static uint32_t UnpackFP (struct ufp *fop, uint32_t opnd);
 static void NormFP (struct ufp *fop);
-static uint32 PackFP (struct ufp *fop);
-static uint32 StoreFP (struct ufp *fop);
+static uint32_t PackFP (struct ufp *fop);
+static uint32_t StoreFP (struct ufp *fop);
 
 /* Floating to integer conversion */
 
-uint32 f_fix (void)
+uint32_t f_fix (void)
 {
 struct ufp fop;
-uint32 res = 0;
+uint32_t res = 0;
 
 UnpackFP (&fop, FPAB);                                  /* unpack op */
 if (fop.exp < 0) {                                      /* exp < 0? */
@@ -168,18 +168,18 @@ return 0;
 
 /* Integer to floating conversion */
 
-uint32 f_flt (void)
+uint32_t f_flt (void)
 {
 struct ufp res = { 15, 0 };                             /* +, 2**15 */
 
-res.fr = ((uint32) AR) << 16;                           /* left justify */
+res.fr = ((uint32_t) AR) << 16;                           /* left justify */
 StoreFP (&res);                                         /* store result */
 return 0;                                               /* clr overflow */
 }
 
 /* Floating point add/subtract */
 
-uint32 f_as (uint32 opnd, t_bool sub)
+uint32_t f_as (uint32_t opnd, t_bool sub)
 {
 struct ufp fop1, fop2, t;
 int32 ediff;
@@ -188,7 +188,7 @@ UnpackFP (&fop1, FPAB);                                 /* unpack A-B */
 UnpackFP (&fop2, opnd);                                 /* get op */
 if (sub) {                                              /* subtract? */
     fop2.fr = FR_NEG (fop2.fr);                         /* negate frac */
-    if (fop2.fr == ((uint32) FP_SIGN)) {                /* -1/2? */
+    if (fop2.fr == ((uint32_t) FP_SIGN)) {                /* -1/2? */
         fop2.fr = fop2.fr >> 1;                         /* special case */
         fop2.exp = fop2.exp + 1;
         }
@@ -225,7 +225,7 @@ return StoreFP (&fop1);                                 /* store result */
 
 /* Floating point multiply - passes diagnostic */
 
-uint32 f_mul (uint32 opnd)
+uint32_t f_mul (uint32_t opnd)
 {
 struct ufp fop1, fop2;
 struct ufp res = { 0, 0 };
@@ -249,10 +249,10 @@ return StoreFP (&res);                                  /* store */
 
 /* Floating point divide - reverse engineered from diagnostic */
 
-static uint32 divx (uint32 ba, uint32 dvr, uint32 *rem)
+static uint32_t divx (uint32_t ba, uint32_t dvr, uint32_t *rem)
 {
 int32 sdvd = 0, sdvr = 0;
-uint32 q, r;
+uint32_t q, r;
 
 if (ba & FP_SIGN) sdvd = 1;                             /* 32b/16b signed dvd */
 if (dvr & D16_SIGN) sdvr = 1;                           /* use old-fashioned */
@@ -266,11 +266,11 @@ if (rem) *rem = r;
 return q;
 }
 
-uint32 f_div (uint32 opnd)
+uint32_t f_div (uint32_t opnd)
 {
 struct ufp fop1, fop2;
 struct ufp quo = { 0, 0 };
-uint32 ba, q0, q1, q2, dvrh;
+uint32_t ba, q0, q1, q2, dvrh;
 
 UnpackFP (&fop1, FPAB);                                 /* unpack A-B */
 UnpackFP (&fop2, opnd);                                 /* unpack op */
@@ -304,7 +304,7 @@ return StoreFP (&quo);                                  /* store result */
 
 /* Unpack operand */
 
-static uint32 UnpackFP (struct ufp *fop, uint32 opnd)
+static uint32_t UnpackFP (struct ufp *fop, uint32_t opnd)
 {
 fop->fr = opnd & FP_FR;                                 /* get frac */
 fop->exp = FP_GETEXP (opnd);                            /* get exp */
@@ -317,7 +317,7 @@ return FP_GETSIGN (opnd);                               /* return sign */
 static void NormFP (struct ufp *fop)
 {
 if (fop->fr) {                                          /* any fraction? */
-    uint32 test = (fop->fr >> 1) & FP_NORM;
+    uint32_t test = (fop->fr >> 1) & FP_NORM;
     while ((fop->fr & FP_NORM) == test) {               /* until norm */
         fop->exp = fop->exp - 1;
         fop->fr = (fop->fr << 1);
@@ -329,7 +329,7 @@ return;
 
 /* Pack fp number */
 
-static uint32 PackFP (struct ufp *fop)
+static uint32_t PackFP (struct ufp *fop)
 {
 return (fop->fr & FP_FR) |                              /* merge frac */
        ((fop->exp & FP_M_EXP) << FP_V_EXP) |            /* and exp */
@@ -338,9 +338,9 @@ return (fop->fr & FP_FR) |                              /* merge frac */
 
 /* Round fp number, store, generate overflow */
 
-static uint32 StoreFP (struct ufp *fop)
+static uint32_t StoreFP (struct ufp *fop)
 {
-uint32 sign, svfr, hi, ov = 0;
+uint32_t sign, svfr, hi, ov = 0;
 
 NormFP (fop);                                           /* normalize */
 svfr = fop->fr;                                         /* save fraction */
@@ -371,12 +371,12 @@ return ov;
 
 /* Pack mantissa and exponent and return fp value */
 
-uint32 fp_pack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
+uint32_t fp_pack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
 {
 struct ufp fop;
-uint32 val;
+uint32_t val;
 
-fop.fr = ((uint32) mantissa.fpk[0] << 16) | mantissa.fpk[1];
+fop.fr = ((uint32_t) mantissa.fpk[0] << 16) | mantissa.fpk[1];
 fop.exp = exponent;
 val = PackFP (&fop);
 result->fpk[0] = UPPER_WORD (val);
@@ -386,12 +386,12 @@ return 0;
 
 /* Normalize, round, and pack mantissa and exponent and return fp value */
 
-uint32 fp_nrpack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
+uint32_t fp_nrpack (OP *result, OP mantissa, int32 exponent, OPSIZE precision)
 {
 struct ufp fop;
-uint32 ovf;
+uint32_t ovf;
 
-fop.fr = ((uint32) mantissa.fpk[0] << 16) | mantissa.fpk[1];
+fop.fr = ((uint32_t) mantissa.fpk[0] << 16) | mantissa.fpk[1];
 fop.exp = exponent;
 ovf = StoreFP (&fop);
 result->fpk[0] = AR;
@@ -401,12 +401,12 @@ return ovf;
 
 /* Unpack fp number in into mantissa and exponent */
 
-uint32 fp_unpack (OP *mantissa, int32 *exponent, OP packed, OPSIZE precision)
+uint32_t fp_unpack (OP *mantissa, int32 *exponent, OP packed, OPSIZE precision)
 {
 struct ufp fop;
-uint32 operand;
+uint32_t operand;
 
-operand = ((uint32) packed.fpk[0] << 16) | packed.fpk[1];
+operand = ((uint32_t) packed.fpk[0] << 16) | packed.fpk[1];
 UnpackFP (&fop, operand);
 mantissa->fpk[0] = UPPER_WORD (fop.fr);
 mantissa->fpk[1] = LOWER_WORD (fop.fr);

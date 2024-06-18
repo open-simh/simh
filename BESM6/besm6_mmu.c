@@ -41,11 +41,11 @@ UNIT mmu_unit = {
 };
 
 t_value BRZ[8];
-uint32 BAZ[8], TABST, RZ, OLDEST, FLUSH;
+uint32_t BAZ[8], TABST, RZ, OLDEST, FLUSH;
 
 t_value BRS[4];
-uint32 BAS[4];
-uint32 BRSLRU;
+uint32_t BAS[4];
+uint32_t BRSLRU;
 
 /*
  * 64-битные регистры RP0-RP7 - для отображения регистров приписки,
@@ -54,9 +54,9 @@ uint32 BRSLRU;
  * Обращение к памяти должно вестись через TLBi.
  */
 t_value RP[8];
-uint32 TLB[32];
+uint32_t TLB[32];
 
-uint32 iintr_data;    /* protected page number or parity check location */
+uint32_t iintr_data;    /* protected page number or parity check location */
 
 /* There were several hardwired configurations of registers
  * corresponding to up to 7 first words of the memory space, selected by
@@ -690,8 +690,8 @@ t_value mmu_fetch (int addr)
 
 void mmu_setrp (int idx, t_value val)
 {
-    uint32 p0, p1, p2, p3;
-    const uint32 mask = (MEMSIZE >> 10) - 1;
+    uint32_t p0, p1, p2, p3;
+    const uint32_t mask = (MEMSIZE >> 10) - 1;
 
     /* Младшие 5 разрядов 4-х регистров приписки упакованы
      * по 5 в 1-20 рр, 6-е разряды - в 29-32 рр, 7-е разряды - в 33-36 рр и т.п.
@@ -719,7 +719,7 @@ void mmu_setrp (int idx, t_value val)
 
 void mmu_setup ()
 {
-    const uint32 mask = (MEMSIZE >> 10) - 1;
+    const uint32_t mask = (MEMSIZE >> 10) - 1;
     int i;
 
     /* Перепись РПi в TLBj. */
@@ -736,7 +736,7 @@ void mmu_setprotection (int idx, t_value val)
     /* Разряды сумматора, записываемые в регистр защиты - 21-28 */
     int mask = 0xff << (idx * 8);
     val = ((val >> 20) & 0xff) << (idx * 8);
-    RZ = (uint32)((RZ & ~mask) | val);
+    RZ = (uint32_t)((RZ & ~mask) | val);
 }
 
 void mmu_setcache (int idx, t_value val)

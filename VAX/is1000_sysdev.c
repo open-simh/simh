@@ -100,9 +100,9 @@ CTAB is1000_cmd[] = {
 extern int32 tmr_int;
 extern UNIT clk_unit;
 extern int32 tmr_poll;
-extern uint32 *rom;
+extern uint32_t *rom;
 
-uint32 *invfl = NULL;                                   /* invalidate filter */
+uint32_t *invfl = NULL;                                   /* invalidate filter */
 int32 conisp, conpc, conpsl;                            /* console reg */
 int32 ka_hltcod = 0;                                    /* IS1000 halt code */
 int32 ka_mapbase = 0;                                   /* IS1000 map base */
@@ -120,10 +120,10 @@ int32 int_mask = 0;                                     /* interrupt mask */
 int32 vc_sel, vc_org;
 int32 dz_csr = 0;                                       /* control/status */
 int32 dz_lpr = 0;                                       /* line param */
-uint32 dz_buftime;                                      /* time input character arrived */
-uint32 dma_csr = 0;
-uint32 dma_txc = 0;
-uint32 dma_addr = 0;
+uint32_t dz_buftime;                                      /* time input character arrived */
+uint32_t dma_csr = 0;
+uint32_t dma_txc = 0;
+uint32_t dma_addr = 0;
 
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
@@ -289,7 +289,7 @@ return 0;
 
 /* Map an address via the translation map */
 
-t_bool dma_map_addr (uint32 da, uint32 *ma, t_bool map)
+t_bool dma_map_addr (uint32_t da, uint32_t *ma, t_bool map)
 {
 if (map) {                                              /* using map? */
     int32 dblk = (da >> VA_V_VPN);                      /* DMA blk */
@@ -322,10 +322,10 @@ return TRUE;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, t_bool map)
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf, t_bool map)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if (map)                                                /* using map? */
     ba = ba + ka_boff;
@@ -356,10 +356,10 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, t_bool map)
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf, t_bool map)
 {
 int32 i;
-uint32 ma,dat;
+uint32_t ma,dat;
 
 if (map)                                                /* using map? */
     ba = ba + ka_boff;
@@ -390,10 +390,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, t_bool map)
+int32 Map_WriteB (uint32_t ba, int32 bc, uint8_t *buf, t_bool map)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if (map)                                                /* using map? */
     ba = ba + ka_boff;
@@ -413,10 +413,10 @@ else {
             if (!dma_map_addr (ba + i, &ma, map))       /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                          /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);           /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);          /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);            /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -424,10 +424,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, t_bool map)
+int32 Map_WriteW (uint32_t ba, int32 bc, uint16_t *buf, t_bool map)
 {
 int32 i;
-uint32 ma, dat;
+uint32_t ma, dat;
 
 if (map)                                                /* using map? */
     ba = ba + ka_boff;
@@ -449,8 +449,8 @@ else {
             if (!dma_map_addr (ba + i, &ma, map))       /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                          /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);            /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -640,8 +640,8 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
+    uint32_t      low;                                    /* low addr */
+    uint32_t      high;                                   /* high addr */
     int32       (*read)(int32 pa);                      /* read routine */
     void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
     };
@@ -666,7 +666,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32 ReadReg (uint32_t pa, int32 lnt)
 {
 struct reglink *p;
 for (p = &regtable[0]; p->low != 0; p++) {
@@ -685,7 +685,7 @@ return 0xFFFFFFFF;
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32 ReadRegU (uint32_t pa, int32 lnt)
 {
 return ReadReg (pa & ~03, L_LONG);
 }
@@ -700,7 +700,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
@@ -723,7 +723,7 @@ return;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32 val, int32 lnt)
 {
 int32 sc = (pa & 03) << 3;
 int32 dat = ReadReg (pa & ~03, L_LONG);

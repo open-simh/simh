@@ -39,8 +39,8 @@
 #define CLK_DELAY       5000                            /* 100 Hz */
 #define TMXR_MULT       1                               /* 100 Hz */
 
-uint32 *rom = NULL;                                     /* boot ROM */
-uint8 *nvr = NULL;                                      /* non-volatile mem */
+uint32_t *rom = NULL;                                     /* boot ROM */
+uint8_t *nvr = NULL;                                      /* non-volatile mem */
 int32 clk_csr = 0;                                      /* control/status */
 int32 clk_tps = 100;                                    /* ticks/second */
 int32 tmr_int = 0;                                      /* interrupt */
@@ -191,7 +191,7 @@ return;
 
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -205,13 +205,13 @@ return SCPE_OK;
 
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= ROMSIZE)
     return SCPE_NXM;
-rom[addr >> 2] = (uint32) val;
+rom[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -220,7 +220,7 @@ return SCPE_OK;
 t_stat rom_reset (DEVICE *dptr)
 {
 if (rom == NULL)
-    rom = (uint32 *) calloc (ROMSIZE >> 2, sizeof (uint32));
+    rom = (uint32_t *) calloc (ROMSIZE >> 2, sizeof (uint32_t));
 if (rom == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -273,7 +273,7 @@ nvr[rg] = (val & BMASK);
 
 t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -287,13 +287,13 @@ return SCPE_OK;
 
 t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
 {
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NVRSIZE)
     return SCPE_NXM;
-nvr[addr >> 2] = (uint32) val;
+nvr[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -302,7 +302,7 @@ return SCPE_OK;
 t_stat nvr_reset (DEVICE *dptr)
 {
 if (nvr == NULL) {
-    nvr = (uint8 *) calloc (NVRSIZE >> 2, sizeof (uint32));
+    nvr = (uint8_t *) calloc (NVRSIZE >> 2, sizeof (uint32_t));
     nvr_unit.filebuf = nvr;
     }
 if (nvr == NULL)
@@ -332,7 +332,7 @@ r = attach_unit (uptr, cptr);
 if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     wtc_set_valid ();
     }
 return r;
@@ -420,22 +420,22 @@ return "100hz clock tick";
 
 /* Dummy I/O space functions */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32 ReadIO (uint32_t pa, int32 lnt)
 {
 return 0;
 }
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32 val, int32 lnt)
 {
 return;
 }
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32 ReadIOU (uint32_t pa, int32 lnt)
 {
 return 0;
 }
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32 val, int32 lnt)
 {
 return;
 }

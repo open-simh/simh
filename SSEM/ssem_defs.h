@@ -77,7 +77,7 @@ enum opcodes {
 
 /* Prototypes */
 
-uint32 Read (uint32 ea);
-void Write (uint32 ea, uint32 dat);
+uint32_t Read (uint32_t ea);
+void Write (uint32_t ea, uint32_t dat);
 
 #endif

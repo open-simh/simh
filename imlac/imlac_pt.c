@@ -31,14 +31,14 @@
 
 /* Function declaration. */
 static t_stat ptr_svc (UNIT *uptr);
-static uint16 ptr_iot (uint16, uint16);
-static uint16 ptp_iot (uint16, uint16);
+static uint16_t ptr_iot (uint16_t, uint16_t);
+static uint16_t ptp_iot (uint16_t, uint16_t);
 static t_stat ptr_boot (int32 u, DEVICE *dptr);
 static t_stat ptr_detach (UNIT *uptr);
 
-static uint16 PTRB;
+static uint16_t PTRB;
 
-static uint16 ptr_rom[] = {
+static uint16_t ptr_rom[] = {
   0060077, 0020010, 0104076, 0020020, 0001061, 0100011, 0002400, 0010046,
   0001051, 0074075, 0010045, 0002400, 0010053, 0001051, 0003003, 0003003,
   0003002, 0102400, 0010061, 0002400, 0010063, 0001051, 0120010, 0102400,
@@ -113,8 +113,8 @@ ptr_svc (UNIT *uptr)
   return SCPE_OK;
 }
 
-static uint16
-ptr_iot (uint16 insn, uint16 AC)
+static uint16_t
+ptr_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0051) { /* HRB */
     sim_debug (DBG, &ptr_dev, "Read character %03o\n", PTRB);
@@ -138,8 +138,8 @@ ptr_iot (uint16 insn, uint16 AC)
   return AC;
 }
 
-static uint16
-ptp_iot (uint16 insn, uint16 AC)
+static uint16_t
+ptp_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0271) { /* PUN */
     ;
@@ -159,7 +159,7 @@ rom_ptr (void)
 static t_stat
 ptr_boot (int32 u, DEVICE *dptr)
 {
-  uint16 *PC = (uint16 *)sim_PC->loc;
+  uint16_t *PC = (uint16_t *)sim_PC->loc;
   set_cmd (0, "ROM TYPE=PTR");
   *PC = 040;
   return SCPE_OK;

@@ -191,7 +191,7 @@ static BITFIELD tmr_iccs_bits [] = {
 #define CALC_DA(t,s) (((t) * FL_NUMSC) + ((s) - 1)) * FL_NUMBY
 
 int32 tti_csr = 0;                                      /* control/status */
-uint32 tti_buftime;                                     /* time input character arrived */
+uint32_t tti_buftime;                                     /* time input character arrived */
 int32 tti_buf = 0;                                      /* buffer */
 int32 tti_int = 0;                                      /* interrupt */
 int32 tto_csr = 0;                                      /* control/status */
@@ -199,17 +199,17 @@ int32 tto_buf = 0;                                      /* buffer */
 int32 tto_int = 0;                                      /* interrupt */
 
 int32 tmr_iccs = 0;                                     /* interval timer csr */
-uint32 tmr_icr = 0;                                     /* curr interval */
-uint32 tmr_nicr = 0;                                    /* next interval */
-uint32 tmr_inc = 0;                                     /* timer increment */
+uint32_t tmr_icr = 0;                                     /* curr interval */
+uint32_t tmr_nicr = 0;                                    /* next interval */
+uint32_t tmr_inc = 0;                                     /* timer increment */
 int32 tmr_int = 0;                                      /* interrupt */
 int32 clk_tps = 100;                                    /* ticks/second */
 int32 tmxr_poll = CLK_DELAY * TMXR_MULT;                /* term mux poll */
 int32 tmr_poll = CLK_DELAY;                             /* pgm timer poll */
 struct todr_battery_info {
-    uint32 toy_gmtbase;                                 /* GMT base of set value */
-    uint32 toy_gmtbasemsec;                             /* The milliseconds of the set value */
-    uint32 toy_endian_plus2;                            /* 2 -> Big Endian, 3 -> Little Endian, invalid otherwise */
+    uint32_t toy_gmtbase;                                 /* GMT base of set value */
+    uint32_t toy_gmtbasemsec;                             /* The milliseconds of the set value */
+    uint32_t toy_endian_plus2;                            /* 2 -> Big Endian, 3 -> Little Endian, invalid otherwise */
     };
 typedef struct todr_battery_info TOY;
 
@@ -223,10 +223,10 @@ int32 fl_stopioe = 1;                                   /* stop on error */
 int32 fl_swait = 100;                                   /* seek, per track */
 int32 fl_cwait = 50;                                    /* command time */
 int32 fl_xwait = 20;                                    /* tr set time */
-uint8 fl_buf[FL_NUMBY] = { 0 };                         /* sector buffer */
+uint8_t fl_buf[FL_NUMBY] = { 0 };                         /* sector buffer */
 int32 fl_bptr = 0;                                      /* buffer pointer */
 
-uint8 comm_region[COMM_LNT] = { 0 };                    /* comm region */
+uint8_t comm_region[COMM_LNT] = { 0 };                    /* comm region */
 
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
@@ -249,7 +249,7 @@ t_stat tmr_reset (DEVICE *dptr);
 t_stat fl_svc (UNIT *uptr);
 t_stat fl_reset (DEVICE *dptr);
 int32 icr_rd (void);
-void tmr_sched (uint32 incr);
+void tmr_sched (uint32_t incr);
 t_stat todr_resync (void);
 t_stat fl_wr_txdb (int32 data);
 t_bool fl_test_xfr (UNIT *uptr, t_bool wr);
@@ -677,7 +677,7 @@ int32 icr_rd (void)
 int32 result;
 
 if (tmr_iccs & TMR_CSR_RUN) {                           /* running? */
-    uint32 usecs_remaining = (uint32)sim_activate_time_usecs (&tmr_unit);
+    uint32_t usecs_remaining = (uint32_t)sim_activate_time_usecs (&tmr_unit);
 
     result = (int32)(~usecs_remaining + 1);
     }
@@ -723,7 +723,7 @@ return SCPE_OK;
 
 /* Timer scheduling */
 
-void tmr_sched (uint32 nicr)
+void tmr_sched (uint32_t nicr)
 {
 double usecs = (nicr) ? (double)(~nicr + 1) : (double)0x100000000LL;
 
@@ -801,10 +801,10 @@ const char *clk_description (DEVICE *dptr)
 return "time of year clock";
 }
 
-static uint32 sim_byteswap32 (uint32 data)
+static uint32_t sim_byteswap32 (uint32_t data)
 {
-uint8 *bdata = (uint8 *)&data;
-uint8 tmp;
+uint8_t *bdata = (uint8_t *)&data;
+uint8_t tmp;
 
 tmp = bdata[0];
 bdata[0] = bdata[3];
@@ -829,7 +829,7 @@ if (r != SCPE_OK)
 else {
     TOY *toy = (TOY *)uptr->filebuf;
 
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     if ((toy->toy_endian_plus2 < 2) || (toy->toy_endian_plus2 > 3))
         memset (uptr->filebuf, 0, (size_t)uptr->capac);
     else {
@@ -878,7 +878,7 @@ return "interval timer";
 static const char *todr_fmt_vms_todr (int32 val)
 {
 static char buf[32];
-uint32 uval = (uint32)val;
+uint32_t uval = (uint32_t)val;
 
 if (val < 0x10000000)
     sprintf (buf, "Not VMS Time: 0x%08X", uval);
@@ -923,10 +923,10 @@ time_t tbase;
    future read operations in "battery backed-up" state */
 
 sim_rtcn_get_time(&now, TMR_CLK);                       /* get curr time */
-val.tv_sec = (time_t)((uint32)data) / 100;
-val.tv_nsec = (((uint32)data) % 100) * 10000000;
+val.tv_sec = (time_t)((uint32_t)data) / 100;
+val.tv_nsec = (((uint32_t)data) % 100) * 10000000;
 sim_timespec_diff (&base, &now, &val);                  /* base = now - data */
-toy->toy_gmtbase = (uint32)base.tv_sec;
+toy->toy_gmtbase = (uint32_t)base.tv_sec;
 tbase = (time_t)base.tv_sec;
 toy->toy_gmtbasemsec = (base.tv_nsec + 500000)/1000000;
 if (clk_unit.flags & UNIT_ATT) {                        /* OS Agnostic mode? */
@@ -946,7 +946,7 @@ if (clk_unit.flags & UNIT_ATT) {                        /* Attached means behave
         todr_wr (0);                                    /* Start ticking from 0 */
     }
 else {                                                  /* Not-Attached means */
-    uint32 base;                                        /* behave like simh VMS default */
+    uint32_t base;                                        /* behave like simh VMS default */
     time_t curr;
     struct tm *ctm;
     struct timespec now;
@@ -1093,7 +1093,7 @@ return SCPE_OK;
 t_stat fl_svc (UNIT *uptr)
 {
 int32 i, t;
-uint32 da;
+uint32_t da;
 int8 *fbuf = (int8 *)uptr->filebuf;
 
 switch (fl_state) {                                     /* case on state */
@@ -1227,7 +1227,7 @@ fl_state = FL_IDLE;                                     /* floppy idle */
 
 t_stat fl_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 extern int32 sys_model;
 
 fl_esr = FL_STAINC;

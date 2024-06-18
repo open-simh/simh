@@ -235,7 +235,7 @@ if (pulse & 04) {
         }
     else if (sb == 060) {                               /* DLAH */
         rf_da = (rf_da & DMASK) | ((dat & 07) << 18);
-        if ((uint32) rf_da >= rf_unit.capac)            /* for sizing */
+        if ((uint32_t) rf_da >= rf_unit.capac)            /* for sizing */
             rf_updsta (RFS_NED);
         }
     }
@@ -281,7 +281,7 @@ if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
 
 f = GET_FNC (rf_sta);                                   /* get function */
 do {
-    if ((uint32) rf_da >= uptr->capac) {                /* disk overflow? */
+    if ((uint32_t) rf_da >= uptr->capac) {                /* disk overflow? */
         rf_updsta (RFS_NED);                            /* nx disk error */
         break;
         }
@@ -302,7 +302,7 @@ do {
             }
         else {                                          /* not locked */
             fbuf[rf_da] = M[pa];                        /* write word */
-            if (((uint32) rf_da) >= uptr->hwmark)
+            if (((uint32_t) rf_da) >= uptr->hwmark)
                 uptr->hwmark = rf_da + 1;
             }
         }
@@ -349,8 +349,8 @@ return ((rf_sta & (RFS_ERR | RFS_DON))? IOS_RF: 0);
 
 t_stat rf_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 p, sz;
-uint32 ds_bytes = RF_DKSIZE * sizeof (int32);
+uint32_t p, sz;
+uint32_t ds_bytes = RF_DKSIZE * sizeof (int32);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;

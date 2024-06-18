@@ -117,38 +117,38 @@
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint16 sectsize;    /* sector size, not including pre/postamble */
-    uint16 nsectors;    /* number of sectors/track */
-    uint16 nheads;      /* number of heads */
-    uint16 ntracks;     /* number of tracks */
-    uint16 res_tracks;  /* Number of reserved tracks on drive. */
-    uint16 track;       /* Current Track */
+    uint16_t sectsize;    /* sector size, not including pre/postamble */
+    uint16_t nsectors;    /* number of sectors/track */
+    uint16_t nheads;      /* number of heads */
+    uint16_t ntracks;     /* number of tracks */
+    uint16_t res_tracks;  /* Number of reserved tracks on drive. */
+    uint16_t track;       /* Current Track */
 
-    uint16 cur_sect;    /* current starting sector of transfer */
-    uint16 cur_cyl;     /* Current Track */
-    uint16 cur_head;    /* Number of sectors to transfer */
-    uint16 cur_sectsize;/* Current sector size */
-    uint8 ready;        /* Is drive ready? */
+    uint16_t cur_sect;    /* current starting sector of transfer */
+    uint16_t cur_cyl;     /* Current Track */
+    uint16_t cur_head;    /* Number of sectors to transfer */
+    uint16_t cur_sectsize;/* Current sector size */
+    uint8_t ready;        /* Is drive ready? */
 } DJHDC_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8   sel_drive;  /* Currently selected drive */
-    uint8   mode;       /* mode (0xFF=absolute, 0x00=logical) */
-    uint8   ndrives;    /* Number of drives attached to the controller */
+    uint8_t   sel_drive;  /* Currently selected drive */
+    uint8_t   mode;       /* mode (0xFF=absolute, 0x00=logical) */
+    uint8_t   ndrives;    /* Number of drives attached to the controller */
 
-    uint32  link_addr;  /* Link Address for next IOPB */
-    uint32  dma_addr;   /* DMA Address for the current IOPB */
+    uint32_t  link_addr;  /* Link Address for next IOPB */
+    uint32_t  dma_addr;   /* DMA Address for the current IOPB */
 
-    uint16  steps;      /* Step count */
-    uint8   step_dir;   /* Step direction, 1 = out. */
-    uint8   irq_enable;
-    uint8   step_delay;
-    uint8   head_settle_time;
-    uint8   sector_size_code;
+    uint16_t  steps;      /* Step count */
+    uint8_t   step_dir;   /* Step direction, 1 = out. */
+    uint8_t   irq_enable;
+    uint8_t   step_delay;
+    uint8_t   head_settle_time;
+    uint8_t   sector_size_code;
 
     DJHDC_DRIVE_INFO drive[DJHDC_MAX_DRIVES];
-    uint8   iopb[16];
+    uint8_t   iopb[16];
 } DJHDC_INFO;
 
 static DJHDC_INFO djhdc_info_data = { { 0x0, 0, 0x54, 2 } };
@@ -184,17 +184,17 @@ static int32 nheads       = SCRIBE_NHEADS;
 static int32 nsectors     = SCRIBE_NSECTORS;
 static int32 sectsize     = SCRIBE_SECTSIZE;
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index(UNIT *uptr);
-extern void raise_scp300f_interrupt(uint8 intnum);
+extern void raise_scp300f_interrupt(uint8_t intnum);
 
 /* These are needed for DMA. */
-extern void PutByteDMA(const uint32 Addr, const uint32 Value);
-extern uint8 GetByteDMA(const uint32 Addr);
+extern void PutByteDMA(const uint32_t Addr, const uint32_t Value);
+extern uint8_t GetByteDMA(const uint32_t Addr);
 
 #define UNIT_V_DJHDC_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
 #define UNIT_DJHDC_VERBOSE      (1 << UNIT_V_DJHDC_VERBOSE)
@@ -215,8 +215,8 @@ static const char* djhdc_description(DEVICE *dptr);
 
 static int32 djhdcdev(const int32 port, const int32 io, const int32 data);
 
-/* static uint8 DJHDC_Read(const uint32 Addr); */
-static uint8 DJHDC_Write(const uint32 Addr, uint8 cData);
+/* static uint8_t DJHDC_Read(const uint32_t Addr); */
+static uint8_t DJHDC_Write(const uint32_t Addr, uint8_t cData);
 
 static UNIT djhdc_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, DJHDC_CAPACITY) },
@@ -417,7 +417,7 @@ static t_stat djhdc_unit_set_geometry(UNIT* uptr, int32 value, CONST char* cptr,
     DJHDC_DRIVE_INFO* pDrive;
     int32 i;
     int32 result;
-    uint16 newCyls, newHeads, newSPT, newSecLen;
+    uint16_t newCyls, newHeads, newSPT, newSecLen;
 
     i = find_unit_index(uptr);
 
@@ -489,19 +489,19 @@ static int32 djhdcdev(const int32 port, const int32 io, const int32 data)
     sim_debug(VERBOSE_MSG, &djhdc_dev, DEV_NAME ": " ADDRESS_FORMAT
               " IO %s, Port %02x\n", PCX, io ? "WR" : "RD", port);
     if(io) {
-        DJHDC_Write(port, (uint8)data);
+        DJHDC_Write(port, (uint8_t)data);
         return 0;
     } else {
         return(0xFF);
     }
 }
 
-static uint8 DJHDC_Write(const uint32 Addr, uint8 cData)
+static uint8_t DJHDC_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint32 next_link;
-    uint8 result = DJHDC_STATUS_COMPLETE;
-    uint8 i;
-    uint8 opcode;
+    uint32_t next_link;
+    uint8_t result = DJHDC_STATUS_COMPLETE;
+    uint8_t i;
+    uint8_t opcode;
 
     DJHDC_DRIVE_INFO *pDrive;
 
@@ -587,11 +587,11 @@ static uint8 DJHDC_Write(const uint32 Addr, uint8 cData)
             case DJHDC_OPCODE_READ_DATA:
             case DJHDC_OPCODE_WRITE_DATA:
             {
-                uint32 track_len;
-                uint32 xfr_len;
-                uint32 file_offset;
-                uint32 xfr_count = 0;
-                uint8* dataBuffer;
+                uint32_t track_len;
+                uint32_t xfr_len;
+                uint32_t file_offset;
+                uint32_t xfr_count = 0;
+                uint8_t* dataBuffer;
                 size_t rtn;
 
                 pDrive->cur_cyl = djhdc_info->iopb[DJHDC_IOPB_ARG0] | (djhdc_info->iopb[DJHDC_IOPB_ARG1] << 8);
@@ -611,7 +611,7 @@ static uint8 DJHDC_Write(const uint32 Addr, uint8 cData)
 
                 xfr_len = pDrive->sectsize;
 
-                dataBuffer = (uint8*)malloc(xfr_len);
+                dataBuffer = (uint8_t*)malloc(xfr_len);
                 if (dataBuffer == NULL) {
                     sim_printf("%s: error allocating memory\n", __FUNCTION__);
                     return (0);
@@ -673,14 +673,14 @@ static uint8 DJHDC_Write(const uint32 Addr, uint8 cData)
                 break;
             case DJHDC_OPCODE_FORMAT_TRACK:
             {
-                uint32  track_len;
-                uint32  file_offset;
-                uint8*  fmtBuffer;
-                uint8   head;
-                uint8   gap;
-                uint8   sector_count;
-                uint8   sector_size_code;
-                uint8   fill_byte;
+                uint32_t  track_len;
+                uint32_t  file_offset;
+                uint8_t*  fmtBuffer;
+                uint8_t   head;
+                uint8_t   gap;
+                uint8_t   sector_count;
+                uint8_t   sector_size_code;
+                uint8_t   fill_byte;
 
                 head = ~(djhdc_info->iopb[DJHDC_IOPB_SEL_HD] >> 2) & 7;
                 gap = djhdc_info->iopb[DJHDC_IOPB_ARG0];
@@ -734,7 +734,7 @@ static uint8 DJHDC_Write(const uint32 Addr, uint8 cData)
                     pDrive->sectsize,
                     file_offset);
 
-                fmtBuffer = (uint8*)malloc(track_len);
+                fmtBuffer = (uint8_t*)malloc(track_len);
 
                 if (fmtBuffer == NULL) {
                     sim_printf("%s: error allocating memory\n", __FUNCTION__);

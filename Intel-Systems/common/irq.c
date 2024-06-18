@@ -56,9 +56,9 @@ static const char* irq_desc(DEVICE *dptr) {
 
 /* external globals */
 
-extern uint8 xack;                      /* XACK signal */
+extern uint8_t xack;                      /* XACK signal */
 extern int32 irq_req;                   /* i8080 INT signal */
-extern uint16 PCX;
+extern uint16_t PCX;
 extern DEVICE isbc064_dev;
 extern DEVICE isbc464_dev;
 

@@ -52,14 +52,14 @@
 #define PIA     u3
 #define STATUS  u4
 
-static t_stat slave_devio(uint32 dev, uint64 *data);
+static t_stat slave_devio(uint32_t dev, uint64 *data);
 static t_stat slave_svc (UNIT *uptr);
 static t_stat slave_reset (DEVICE *dptr);
 static t_stat slave_attach (UNIT *uptr, CONST char *ptr);
 static t_stat slave_detach (UNIT *uptr);
 static t_stat slave_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 static const char *slave_description (DEVICE *dptr);
-static uint8  slave_valid[040000];
+static uint8_t  slave_valid[040000];
 
 UNIT slave_unit[1] = {
   { UDATA (&slave_svc, UNIT_IDLE|UNIT_ATTABLE, 0), 1000 },
@@ -164,15 +164,15 @@ static int error (const char *message)
   return -1;
 }
 
-static void build (uint8 *request, uint8 octet)
+static void build (uint8_t *request, uint8_t octet)
 {
   request[0]++;
   request[request[0]] = octet & 0377;
 }
 
-static t_stat process_request (UNIT *uptr, const uint8 *request, size_t size)
+static t_stat process_request (UNIT *uptr, const uint8_t *request, size_t size)
 {
-  uint8 response[12];
+  uint8_t response[12];
   t_addr address;
   uint64 data;
   t_stat stat;
@@ -192,11 +192,11 @@ static t_stat process_request (UNIT *uptr, const uint8 *request, size_t size)
     if (address < MEMSIZE) {
       data = M[address];
       build (response, ACK);
-      build (response, (uint8)(data & 0xff));
-      build (response, (uint8)((data >> 8)) & 0xff);
-      build (response, (uint8)((data >> 16) & 0xff));
-      build (response, (uint8)((data >> 24) & 0xff));
-      build (response, (uint8)((data >> 32) & 0xff));
+      build (response, (uint8_t)(data & 0xff));
+      build (response, (uint8_t)((data >> 8)) & 0xff);
+      build (response, (uint8_t)((data >> 16) & 0xff));
+      build (response, (uint8_t)((data >> 24) & 0xff));
+      build (response, (uint8_t)((data >> 32) & 0xff));
       sim_debug(DEBUG_DATAIO, &slave_dev, "DATI %06o -> %012llo\n",
                 address, data);
     } else {
@@ -241,7 +241,7 @@ static t_stat process_request (UNIT *uptr, const uint8 *request, size_t size)
 
 static t_stat slave_svc (UNIT *uptr)
 {
-  const uint8 *slave_request;
+  const uint8_t *slave_request;
   size_t size;
 
   if (tmxr_poll_conn(&slave_desc) >= 0) {
@@ -289,7 +289,7 @@ static const char *slave_description (DEVICE *dptr)
   return "Auxiliary processor";
 }
 
-t_stat slave_devio(uint32 dev, uint64 *data)
+t_stat slave_devio(uint32_t dev, uint64 *data)
 {
     UNIT   *uptr = &slave_unit[0];
 

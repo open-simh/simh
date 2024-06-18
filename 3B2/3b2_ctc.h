@@ -97,57 +97,57 @@
 #define CTC_CAPACITY    (PD_CYLS * PD_TRACKS * PD_SECTORS) /* In blocks */
 
 struct partition {
-    uint16 id;       /* Partition ID     */
-    uint16 flag;     /* Permission Flags */
-    uint32 sstart;   /* Starting Sector  */
-    uint32 ssize;    /* Size in Sectors  */
+    uint16_t id;       /* Partition ID     */
+    uint16_t flag;     /* Permission Flags */
+    uint32_t sstart;   /* Starting Sector  */
+    uint32_t ssize;    /* Size in Sectors  */
 };
 
 struct vtoc {
-    uint32 bootinfo[3];                /* n/a */
-    uint32 sanity;                     /* magic number */
-    uint32 version;                    /* layout version */
-    uint8  volume[8];                  /* volume name */
-    uint16 sectorsz;                   /* sector size in bytes */
-    uint16 nparts;                     /* number of partitions */
-    uint32 reserved[10];               /* free space */
+    uint32_t bootinfo[3];                /* n/a */
+    uint32_t sanity;                     /* magic number */
+    uint32_t version;                    /* layout version */
+    uint8_t  volume[8];                  /* volume name */
+    uint16_t sectorsz;                   /* sector size in bytes */
+    uint16_t nparts;                     /* number of partitions */
+    uint32_t reserved[10];               /* free space */
     struct partition part[VTOC_PART];  /* partition headers */
-    uint32 timestamp[VTOC_PART];       /* partition timestamp */
+    uint32_t timestamp[VTOC_PART];       /* partition timestamp */
 };
 
 struct pdinfo {
-    uint32 driveid;     /* identifies the device type */
-    uint32 sanity;      /* verifies device sanity */
-    uint32 version;     /* version number */
-    uint8  serial[12];  /* serial number of the device */
-    uint32 cyls;        /* number of cylinders per drive */
-    uint32 tracks;      /* number tracks per cylinder */
-    uint32 sectors;     /* number sectors per track */
-    uint32 bytes;       /* number of bytes per sector */
-    uint32 logicalst;   /* sector address of logical sector 0 */
-    uint32 errlogst;    /* sector address of error log area */
-    uint32 errlogsz;    /* size in bytes of error log area */
-    uint32 mfgst;       /* sector address of mfg. defect info */
-    uint32 mfgsz;       /* size in bytes of mfg. defect info */
-    uint32 defectst;    /* sector address of the defect map */
-    uint32 defectsz;    /* size in bytes of defect map */
-    uint32 relno;       /* number of relocation areas */
-    uint32 relst;       /* sector address of relocation area */
-    uint32 relsz;       /* size in sectors of relocation area */
-    uint32 relnext;     /* address of next avail reloc sector */
+    uint32_t driveid;     /* identifies the device type */
+    uint32_t sanity;      /* verifies device sanity */
+    uint32_t version;     /* version number */
+    uint8_t  serial[12];  /* serial number of the device */
+    uint32_t cyls;        /* number of cylinders per drive */
+    uint32_t tracks;      /* number tracks per cylinder */
+    uint32_t sectors;     /* number sectors per track */
+    uint32_t bytes;       /* number of bytes per sector */
+    uint32_t logicalst;   /* sector address of logical sector 0 */
+    uint32_t errlogst;    /* sector address of error log area */
+    uint32_t errlogsz;    /* size in bytes of error log area */
+    uint32_t mfgst;       /* sector address of mfg. defect info */
+    uint32_t mfgsz;       /* size in bytes of mfg. defect info */
+    uint32_t defectst;    /* sector address of the defect map */
+    uint32_t defectsz;    /* size in bytes of defect map */
+    uint32_t relno;       /* number of relocation areas */
+    uint32_t relst;       /* sector address of relocation area */
+    uint32_t relsz;       /* size in sectors of relocation area */
+    uint32_t relnext;     /* address of next avail reloc sector */
 };
 
 typedef struct {
-    uint32 time;        /* Time used during a tape session (in 25ms chunks) */
-    uint32 bytnum;      /* Byte number, for streaming mode */
+    uint32_t time;        /* Time used during a tape session (in 25ms chunks) */
+    uint32_t bytnum;      /* Byte number, for streaming mode */
 } CTC_STATE;
 
 t_stat ctc_reset(DEVICE *dptr);
 t_stat ctc_svc(UNIT *uptr);
 t_stat ctc_attach(UNIT *uptr, CONST char *cptr);
 t_stat ctc_detach(UNIT *uptr);
-void ctc_sysgen(uint8 slot);
-void ctc_express(uint8 slot);
-void ctc_full(uint8 slot);
+void ctc_sysgen(uint8_t slot);
+void ctc_express(uint8_t slot);
+void ctc_full(uint8_t slot);
 
 #endif /* _3B2_CTC_H_ */

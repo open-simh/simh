@@ -25,7 +25,7 @@
 #include "i7000_defs.h"
 
 #define PAMASK          (MAXMEMSIZE - 1)                /* physical addr mask */
-#define MEM_ADDR_OK(x)  (((uint16) (x&077777)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint16_t) (x&077777)) < MEMSIZE)
 #define ReadP(x)        (M[x])
 #define WriteP(x,y)     if (MEM_ADDR_OK (x)) M[x] = y
 extern t_uint64         M[MAXMEMSIZE];
@@ -62,19 +62,19 @@ extern t_uint64         assembly[NUM_CHAN];
 void chan_rst(int chan, int type);
 
 /* Issue a command to a channel */
-int chan_cmd(uint16 dev, uint16 cmd);
+int chan_cmd(uint16_t dev, uint16_t cmd);
 
 /* Give channel a command, any executing command is aborted */
-int chan_start(int chan, uint16 addr);
+int chan_start(int chan, uint16_t addr);
 
 /* Give channel a new address to start working at */
-int chan_load(int chan, uint16 addr);
+int chan_load(int chan, uint16_t addr);
 
 /* return the channels current command address */
-void chan_store(int chan, uint16 addr);
+void chan_store(int chan, uint16_t addr);
 
 /* Nop for the momement */
-void chan_store_diag(int chan, uint16 addr);
+void chan_store_diag(int chan, uint16_t addr);
 
 /* Channel data handling */
 int chan_write(int chan, t_uint64 *data, int flags);
@@ -82,7 +82,7 @@ int chan_read(int chan, t_uint64 *data, int flags);
 
 void chan_proc();
 
-extern uint16    dev_pulse[NUM_CHAN];                   /* Device pulse */
+extern uint16_t    dev_pulse[NUM_CHAN];                   /* Device pulse */
 #define PUNCH_1  000001
 #define PUNCH_2  000002
 #define PUNCH_M  000003

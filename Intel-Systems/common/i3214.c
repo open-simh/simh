@@ -47,36 +47,36 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
-uint8 i3214_mask = 0;
-uint8 i3214_cnt = 0;
-uint8 i3214_ram[16];
-uint8 EPROM_enable = 1;
-uint8 BUS_OVERRIDE = 0;
-uint8 monitor_boot = 0x00;
+uint8_t i3214_mask = 0;
+uint8_t i3214_cnt = 0;
+uint8_t i3214_ram[16];
+uint8_t EPROM_enable = 1;
+uint8_t BUS_OVERRIDE = 0;
+uint8_t monitor_boot = 0x00;
 static const char* i3214_desc(DEVICE *dptr) {
     return i3214_NAME;
 }
 int   i3214_baseport = -1;              //base port
-uint8 i3214_intnum = 0;                 //interrupt number
-uint8 i3214_verb = 0;                   //verbose flag
+uint8_t i3214_intnum = 0;                 //interrupt number
+uint8_t i3214_verb = 0;                   //verbose flag
 
 /* function prototypes */
 
-t_stat i3214_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat i3214_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat i3214_clr(void);
 t_stat i3214_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat i3214_reset (DEVICE *dptr);
-t_stat i3214_reset_dev (uint8 devnum);
+t_stat i3214_reset_dev (uint8_t devnum);
 t_stat i3214_svc (UNIT *uptr);
-uint8 i3214_do_mask(t_bool io, uint8 data, uint8 devnum);
-uint8 i3214_do_status(t_bool io, uint8 data, uint8 devnum);
-uint8 i3214_cpu_bus_override(t_bool io, uint8 data, uint8 devnum);
-uint8 i3214_monitor_do_boot(t_bool io, uint8 data, uint8 devnum);
+uint8_t i3214_do_mask(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i3214_do_status(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i3214_cpu_bus_override(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t i3214_monitor_do_boot(t_bool io, uint8_t data, uint8_t devnum);
 
 /* i3214 Standard I/O Data Structures */
 /* 1 i3214 device */
@@ -142,7 +142,7 @@ DEVICE i3214_dev = {
 
 // i3214 configuration
 
-t_stat i3214_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat i3214_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     i3214_baseport = base & BYTEMASK;
     sim_printf("    i3214: at base port 0%02XH\n",
@@ -191,7 +191,7 @@ t_stat i3214_svc (UNIT *uptr)
 
 t_stat i3214_reset (DEVICE *dptr)
 {
-    uint8 devnum;
+    uint8_t devnum;
     
     for (devnum=0; devnum<1; devnum++) {
         i3214_reset_dev(devnum);
@@ -200,7 +200,7 @@ t_stat i3214_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-t_stat i3214_reset_dev (uint8 devnum)
+t_stat i3214_reset_dev (uint8_t devnum)
 {
     return SCPE_OK;
 }
@@ -211,7 +211,7 @@ t_stat i3214_reset_dev (uint8 devnum)
 
 // 3214 device routines
 
-uint8 i3214_do_mask(t_bool io, uint8 data, uint8 devnum)
+uint8_t i3214_do_mask(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0)                        //read port
         return i3214_mask;
@@ -220,7 +220,7 @@ uint8 i3214_do_mask(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i3214_do_status(t_bool io, uint8 data, uint8 devnum)
+uint8_t i3214_do_status(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0)                        //read port
         return 0;
@@ -230,7 +230,7 @@ uint8 i3214_do_status(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i3214_cpu_bus_override(t_bool io, uint8 data, uint8 devnum)
+uint8_t i3214_cpu_bus_override(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0)                        //read port
         return 0;
@@ -239,10 +239,10 @@ uint8 i3214_cpu_bus_override(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i3214_monitor_do_boot(t_bool io, uint8 data, uint8 devnum)
+uint8_t i3214_monitor_do_boot(t_bool io, uint8_t data, uint8_t devnum)
 {
     UNIT *uptr;
-    static uint8 onetime = 1;
+    static uint8_t onetime = 1;
 
     uptr = i3214_unit;
     if (io == 0)                        //read port

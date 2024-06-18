@@ -298,7 +298,7 @@ static CONST char *get_alnum (CONST char *iptr, char *optr)
  * Parse single instruction (half word).
  * Allow mnemonics or octal code.
  */
-CONST char *parse_instruction (CONST char *cptr, uint32 *val)
+CONST char *parse_instruction (CONST char *cptr, uint32_t *val)
 {
     int opcode, reg, addr, negate;
     char gbuf[CBUFSIZE];
@@ -393,7 +393,7 @@ CONST char *parse_instruction (CONST char *cptr, uint32 *val)
  */
 t_stat parse_instruction_word (CONST char *cptr, t_value *val)
 {
-    uint32 left, right;
+    uint32_t left, right;
 
     *val = 0;
     cptr = parse_instruction (cptr, &left);
@@ -418,7 +418,7 @@ t_stat parse_instruction_word (CONST char *cptr, t_value *val)
 /*
  * Печать машинной инструкции с мнемоникой.
  */
-void besm6_fprint_cmd (FILE *of, uint32 cmd)
+void besm6_fprint_cmd (FILE *of, uint32_t cmd)
 {
     int reg, opcode, addr;
 
@@ -450,7 +450,7 @@ void besm6_fprint_cmd (FILE *of, uint32 cmd)
 /*
  * Печать машинной инструкции в восьмеричном виде.
  */
-void besm6_fprint_insn (FILE *of, uint32 insn)
+void besm6_fprint_insn (FILE *of, uint32_t insn)
 {
     if (insn & BBIT(20))
         fprintf (of, "%02o %02o %05o ",
@@ -486,7 +486,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     if (sw & SWMASK ('M')) {                        /* symbolic decode? */
         if (sw & SIM_SW_STOP && addr == PC && !(RUU & RUU_RIGHT_INSTR))
             fprintf (of, "-> ");
-        besm6_fprint_cmd (of, (uint32)(cmd >> 24));
+        besm6_fprint_cmd (of, (uint32_t)(cmd >> 24));
         if (sw & SIM_SW_STOP)                   /* stop point */
             fprintf (of, ", ");
         else
@@ -670,7 +670,7 @@ t_stat besm6_load (FILE *input)
             ++addr;
             break;
         case '@':               /* start address */
-            PC = (uint32)word;
+            PC = (uint32_t)word;
             break;
         }
         if (addr > MEMSIZE)
@@ -701,7 +701,7 @@ t_stat besm6_dump (FILE *of, const char *fnam)
         last_addr = addr;
         if (IS_INSN (word)) {
             fprintf (of, "к ");
-            besm6_fprint_cmd (of, (uint32)(word >> 24));
+            besm6_fprint_cmd (of, (uint32_t)(word >> 24));
             fprintf (of, ", ");
             besm6_fprint_cmd (of, word & BITS(24));
             fprintf (of, "\t\t; %05o - ", addr);

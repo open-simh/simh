@@ -66,10 +66,10 @@ static TDD_INFO tdd_info_data = { { 0x0000, 0, TDD_IO_BASE, TDD_IO_SIZE } };
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
-extern uint32 PCX;      /* external view of PC  */
+extern uint32_t PCX;      /* external view of PC  */
 
 #define TDD_CAPACITY        (77*1*26*128)   /* Default SSSD 8" (IBM 3740) Disk Capacity */
 

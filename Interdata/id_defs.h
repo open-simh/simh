@@ -70,7 +70,7 @@
 #define PAMASK32        (MAXMEMSIZE32 - 1)
 
 #define MEMSIZE         (cpu_unit.capac)                /* act memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Single precision floating point registers */
 
@@ -87,8 +87,8 @@
 /* Double precision floating point registers */
 
 typedef struct {
-    uint32              h;                              /* high 32b */
-    uint32              l;                              /* low 32b */
+    uint32_t              h;                              /* high 32b */
+    uint32_t              l;                              /* low 32b */
     } dpr_t;
 
 /* Architectural constants */
@@ -184,9 +184,9 @@ typedef struct {
 /* Block I/O state */
 
 struct BlockIO {
-    uint32              dfl;                            /* devno, flags */
-    uint32              cur;                            /* current addr */
-    uint32              end;                            /* end addr */
+    uint32_t              dfl;                            /* devno, flags */
+    uint32_t              cur;                            /* current addr */
+    uint32_t              end;                            /* end addr */
     };
 
 #define BL_RD           0x8000                          /* block read */
@@ -220,11 +220,11 @@ struct BlockIO {
 /* Device information block */
 
 typedef struct {
-    uint32              dno;                            /* device number */
+    uint32_t              dno;                            /* device number */
     int32               sch;                            /* sch */
-    uint32              irq;                            /* interrupt */
-    uint8               *tplte;                         /* template */
-    uint32              (*iot)(uint32 d, uint32 o, uint32 dat);
+    uint32_t              irq;                            /* interrupt */
+    uint8_t               *tplte;                         /* template */
+    uint32_t              (*iot)(uint32_t d, uint32_t o, uint32_t dat);
     void                (*ini)(t_bool f);
     } DIB;
 
@@ -468,21 +468,21 @@ typedef struct {
 
 /* Function prototypes */
 
-int32 int_chg (uint32 irq, int32 dat, int32 armdis);
+int32 int_chg (uint32_t irq, int32 dat, int32 armdis);
 int32 io_2b (int32 val, int32 pos, int32 old);
-uint32 IOReadB (uint32 loc);
-void IOWriteB (uint32 loc, uint32 val);
-uint32 IOReadH (uint32 loc);
-void IOWriteH (uint32 loc, uint32 val);
-uint32 ReadF (uint32 loc, uint32 rel);
-void WriteF (uint32 loc, uint32 val, uint32 rel);
-uint32 IOReadBlk (uint32 loc, uint32 cnt, uint8 *buf);
-uint32 IOWriteBlk (uint32 loc, uint32 cnt, uint8 *buf);
-void sch_adr (uint32 ch, uint32 dev);
-t_bool sch_actv (uint32 sch, uint32 devno);
-void sch_stop (uint32 sch);
-uint32 sch_wrmem (uint32 sch, uint8 *buf, uint32 cnt);
-uint32 sch_rdmem (uint32 sch, uint8 *buf, uint32 cnt);
+uint32_t IOReadB (uint32_t loc);
+void IOWriteB (uint32_t loc, uint32_t val);
+uint32_t IOReadH (uint32_t loc);
+void IOWriteH (uint32_t loc, uint32_t val);
+uint32_t ReadF (uint32_t loc, uint32_t rel);
+void WriteF (uint32_t loc, uint32_t val, uint32_t rel);
+uint32_t IOReadBlk (uint32_t loc, uint32_t cnt, uint8_t *buf);
+uint32_t IOWriteBlk (uint32_t loc, uint32_t cnt, uint8_t *buf);
+void sch_adr (uint32_t ch, uint32_t dev);
+t_bool sch_actv (uint32_t sch, uint32_t devno);
+void sch_stop (uint32_t sch);
+uint32_t sch_wrmem (uint32_t sch, uint8_t *buf, uint32_t cnt);
+uint32_t sch_rdmem (uint32_t sch, uint8_t *buf, uint32_t cnt);
 t_stat set_sch (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat set_dev (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat show_sch (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
@@ -490,7 +490,7 @@ t_stat show_dev (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
 int32 lfc_cosched (int32 wait);
 
-extern uint32 PC, dec_flgs;
-extern const uint16 decrom[256];
+extern uint32_t PC, dec_flgs;
+extern const uint16_t decrom[256];
 
 #endif

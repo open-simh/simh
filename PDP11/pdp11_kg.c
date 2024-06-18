@@ -210,8 +210,8 @@ static const char *kg_regs[] =
     {"CSR", "BCC", "DR", "UNKNOWN"};
 
 static const struct {
-    uint16              poly;
-    uint16              pulses;
+    uint16_t              poly;
+    uint16_t              pulses;
     const char * const  name;
 } config[] = {
                                                         /* DDB=0 */
@@ -354,7 +354,7 @@ static t_stat kg_rd (int32 *data, int32 PA, int32 access)
             break;
     }
     sim_debug (DBG_REG, &kg_dev, "kg_rd(PA=%o [%s], access=%d, data=0x%X) ", PA, kg_regs[(PA >> 1) & 03], access, *data);
-    sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), TRUE);
+    sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32_t)(*data), (uint32_t)(*data), TRUE);
     return (SCPE_OK);
 }
 
@@ -378,7 +378,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                 data = (PA & 1) ?
                     (kg_unit[unit].SR & 0377) | (data << 8) :
                     (kg_unit[unit].SR & ~0377) | data;
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, TRUE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32_t)saved_SR, (uint32_t)data, TRUE);
             if (data & KGSR_M_CLR) {
                 kg_unit[unit].PULSCNT = 0;              /* not sure about this */
                 kg_unit[unit].BCC = 0;
@@ -392,10 +392,10 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                 kg_unit[unit].PULSCNT = 0;
             }
             if ((saved_SR & KG_SR_POLYMASK) != (data & KG_SR_POLYMASK))
-                sim_debug_bits(DBG_POLY, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, FALSE);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, FALSE);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[01], (uint32)saved_BCC, (uint32)data, FALSE);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, TRUE);
+                sim_debug_bits(DBG_POLY, &kg_dev, kg_bitdefs[00], (uint32_t)saved_SR, (uint32_t)data, FALSE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32_t)saved_SR, (uint32_t)data, FALSE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[01], (uint32_t)saved_BCC, (uint32_t)data, FALSE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32_t)saved_DR, (uint32_t)data, TRUE);
             if (data & KGSR_M_SEN)
                 break;
             if (data & KGSR_M_STEP) {
@@ -405,7 +405,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
             break;
 
         case 01:                                        /* BCC */
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)saved_BCC, (uint32)data, TRUE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32_t)saved_BCC, (uint32_t)data, TRUE);
             break;                                      /* ignored */
 
         case 02:                                        /* DR */
@@ -414,7 +414,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                     (kg_unit[unit].DR & 0377) | (data << 8) :
                     (kg_unit[unit].DR & ~0377) | data;
             kg_unit[unit].DR = data & DMASK;
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, TRUE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32_t)saved_DR, (uint32_t)data, TRUE);
             kg_unit[unit].SR &= ~KGSR_M_DONE;
             kg_unit[unit].PULSCNT = 0;
 
@@ -507,7 +507,7 @@ static void do_poly (int unit, t_bool step)
 
 static t_stat set_units (UNIT *u, int32 val, CONST char *s, void *desc)
 {
-    uint32      i, units;
+    uint32_t      i, units;
     t_stat      stat;
 
     if (s == NULL)

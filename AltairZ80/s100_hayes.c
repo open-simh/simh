@@ -111,14 +111,14 @@ typedef struct {
     int32 oreg2;         /* Out Register 2   */
     int32 oreg3;         /* Out Register 3   */
     int32 intmsk;        /* Interrupt Mask   */
-    uint32 timer;        /* 50ms Timer       */
-    uint32 flags;        /* Original Flags   */
+    uint32_t timer;        /* 50ms Timer       */
+    uint32_t flags;        /* Original Flags   */
 } HAYES_CTX;
 
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 
 static const char* hayes_description(DEVICE *dptr);
@@ -273,7 +273,7 @@ static t_stat hayes_svc(UNIT *uptr)
 {
     int32 c,s,ireg1;
     t_stat r;
-    uint32 ms;
+    uint32_t ms;
 
     /* Check for new incoming connection */
     if (uptr->flags & UNIT_ATT) {

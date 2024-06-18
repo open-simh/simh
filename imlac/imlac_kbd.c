@@ -39,8 +39,8 @@
 #define META  00000
 #define TOP   00000
 
-static uint16 KBUF;
-static uint16 modifiers;
+static uint16_t KBUF;
+static uint16_t modifiers;
 static int kbd_type = KBD_DISPLAY;
 
 /* Function declaration. */
@@ -48,7 +48,7 @@ static t_stat kbd_svc (UNIT *uptr);
 static t_stat kbd_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat kbd_show_type (FILE *st, UNIT *up, int32 v, CONST void *dp);
 static t_stat kbd_reset (DEVICE *dptr);
-static uint16 kbd_iot (uint16, uint16);
+static uint16_t kbd_iot (uint16_t, uint16_t);
 
 static UNIT kbd_unit = {
   UDATA (&kbd_svc, UNIT_IDLE, 0)
@@ -128,7 +128,7 @@ static t_stat kbd_svc (UNIT *uptr)
 static int
 kbd_modifiers (SIM_KEY_EVENT *ev)
 {
-  uint16 code = 0;
+  uint16_t code = 0;
 
   switch (ev->key) {
   case SIM_KEY_SHIFT_L:
@@ -159,9 +159,9 @@ kbd_modifiers (SIM_KEY_EVENT *ev)
 }
 
 static int
-kbd_both (uint32 key)
+kbd_both (uint32_t key)
 {
-  uint16 code;
+  uint16_t code;
   switch (key) {
   case SIM_KEY_END:
     code = 0002; // XMIT
@@ -236,9 +236,9 @@ kbd_both (uint32 key)
 }
 
 static int
-kbd_shift (uint32 key)
+kbd_shift (uint32_t key)
 {
-  uint16 code;
+  uint16_t code;
 
   code = kbd_both (key);
   if (code != 0)
@@ -388,9 +388,9 @@ kbd_shift (uint32 key)
 }
 
 static int
-kbd_noshift (uint32 key)
+kbd_noshift (uint32_t key)
 {
-  uint16 code;
+  uint16_t code;
 
   code = kbd_both (key);
   if (code != 0)
@@ -556,7 +556,7 @@ kbd_event (SIM_KEY_EVENT *ev)
     return 0;
     
   if (ev->state == SIM_KEYPRESS_DOWN) {
-    uint16 code;
+    uint16_t code;
     if (modifiers & SHFT)
       code = kbd_shift (ev->key);
     else
@@ -595,8 +595,8 @@ kbd_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-static uint16
-kbd_iot (uint16 insn, uint16 AC)
+static uint16_t
+kbd_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0021) { /* KRC */
     sim_debug (DBG, &kbd_dev, "Read character %03o\n", KBUF);

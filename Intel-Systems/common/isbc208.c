@@ -475,48 +475,48 @@
 
 /* internal function prototypes */
  
-t_stat isbc208_cfg(uint16 baseport, uint16 size, uint8 devnum);
+t_stat isbc208_cfg(uint16_t baseport, uint16_t size, uint8_t devnum);
 t_stat isbc208_clr(void);
 t_stat isbc208_reset (DEVICE *dptr);
 void isbc208_reset1 (void);
 t_stat isbc208_attach (UNIT *uptr, const char *cptr);
 t_stat isbc208_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat isbc208_svc (UNIT *uptr);
-uint8 isbc208_r0(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r1(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r2(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r3(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r4(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r5(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r6(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r7(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r8(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r9(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rA(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rB(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rC(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rD(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rE(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rF(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r10(t_bool io, uint8 dat, uint8 devnum);
-uint8 isbc208_r11(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r12(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r13(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r14(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r15(t_bool io, uint8 data, uint8 devnum);
+uint8_t isbc208_r0(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r1(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r2(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r3(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r4(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r5(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r6(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r7(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r8(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r9(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_rA(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_rB(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_rC(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_rD(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_rE(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_rF(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r10(t_bool io, uint8_t dat, uint8_t devnum);
+uint8_t isbc208_r11(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r12(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r13(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r14(t_bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc208_r15(t_bool io, uint8_t data, uint8_t devnum);
  
 /* external function prototypes */
  
 extern void set_irq(int32 int_num);
 extern void clr_irq(int32 int_num);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
-extern void multibus_put_mbyte(uint16 addr, uint8 val);
-extern uint8 multibus_get_mbyte(uint16 addr);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
+extern void multibus_put_mbyte(uint16_t addr, uint8_t val);
+extern uint8_t multibus_get_mbyte(uint16_t addr);
  
 /* external globals */
 
-extern uint16   PCX;
+extern uint16_t   PCX;
 
 /* globals */
 
@@ -526,44 +526,44 @@ static const char* isbc208_desc(DEVICE *dptr) {
 }
 
 /* 8237 physical register definitions */
-uint16 i8237_r0;                        // 8237 ch 0 address register
-uint16 i8237_r1;                        // 8237 ch 0 count register
-uint16 i8237_r2;                        // 8237 ch 1 address register
-uint16 i8237_r3;                        // 8237 ch 1 count register
-uint16 i8237_r4;                        // 8237 ch 2 address register
-uint16 i8237_r5;                        // 8237 ch 2 count register
-uint16 i8237_r6;                        // 8237 ch 3 address register
-uint16 i8237_r7;                        // 8237 ch 3 count register
-uint8 i8237_r8;                         // 8237 status register
-uint8 i8237_r9;                         // 8237 command register
-uint8 i8237_rA;                         // 8237 mode register
-uint8 i8237_rB;                         // 8237 mask register
-uint8 i8237_rC;                         // 8237 request register
-uint8 i8237_rD;                         // 8237 first/last ff
+uint16_t i8237_r0;                        // 8237 ch 0 address register
+uint16_t i8237_r1;                        // 8237 ch 0 count register
+uint16_t i8237_r2;                        // 8237 ch 1 address register
+uint16_t i8237_r3;                        // 8237 ch 1 count register
+uint16_t i8237_r4;                        // 8237 ch 2 address register
+uint16_t i8237_r5;                        // 8237 ch 2 count register
+uint16_t i8237_r6;                        // 8237 ch 3 address register
+uint16_t i8237_r7;                        // 8237 ch 3 count register
+uint8_t i8237_r8;                         // 8237 status register
+uint8_t i8237_r9;                         // 8237 command register
+uint8_t i8237_rA;                         // 8237 mode register
+uint8_t i8237_rB;                         // 8237 mask register
+uint8_t i8237_rC;                         // 8237 request register
+uint8_t i8237_rD;                         // 8237 first/last ff
  
 /* 8272 physical register definitions */ 
 /* 8272 command register stack*/
-uint8 i8272_w0;                         // MT+MFM+SK+command 
-uint8 i8272_w1;                         // HDS [HDS=H << 2] + DS1 + DS0
-uint8 i8272_w2;                         // cylinder # (0-XX)
-uint8 i8272_w3;                         // head # (0 or 1)
-uint8 i8272_w4;                         // sector # (1-XX)                         
-uint8 i8272_w5;                         // number of bytes (128 << N)
-uint8 i8272_w6;                         // End of track (last sector # on cylinder)
-uint8 i8272_w7;                         // Gap length
-uint8 i8272_w8;                         // Data length (when N=0, size to read or write)
+uint8_t i8272_w0;                         // MT+MFM+SK+command 
+uint8_t i8272_w1;                         // HDS [HDS=H << 2] + DS1 + DS0
+uint8_t i8272_w2;                         // cylinder # (0-XX)
+uint8_t i8272_w3;                         // head # (0 or 1)
+uint8_t i8272_w4;                         // sector # (1-XX)                         
+uint8_t i8272_w5;                         // number of bytes (128 << N)
+uint8_t i8272_w6;                         // End of track (last sector # on cylinder)
+uint8_t i8272_w7;                         // Gap length
+uint8_t i8272_w8;                         // Data length (when N=0, size to read or write)
  
 /* 8272 status register stack */
-uint8 i8272_msr;                        // main status                         
-uint8 i8272_r0;                         // ST 0                       
-uint8 i8272_r1;                         // ST 1
-uint8 i8272_r2;                         // ST 2
-uint8 i8272_r3;                         // ST 3
+uint8_t i8272_msr;                        // main status                         
+uint8_t i8272_r0;                         // ST 0                       
+uint8_t i8272_r1;                         // ST 1
+uint8_t i8272_r2;                         // ST 2
+uint8_t i8272_r3;                         // ST 3
  
 /* iSBC-208 physical register definitions */
-uint16 isbc208_sr;                      // isbc-208 segment register
-uint8 isbc208_i;                        // iSBC-208 interrupt register
-uint8 isbc208_a;                        // iSBC-208 auxillary port register
+uint16_t isbc208_sr;                      // isbc-208 segment register
+uint8_t isbc208_i;                        // iSBC-208 interrupt register
+uint8_t isbc208_a;                        // iSBC-208 auxillary port register
  
 /* data obtained from analyzing command registers/attached file length */
 int32 wsp = 0, rsp = 0;                 // indexes to write and read stacks (8272 data)
@@ -572,7 +572,7 @@ int32 hed;                              // current head [ h << 2]
 int32 h;                                // current head
 int32 sec;                              // current sector
 int32 drv;                              // current drive
-uint8 cmd, pcmd;                        // current command
+uint8_t cmd, pcmd;                        // current command
 int32 secn;                             // N 0-128, 1-256, etc
 int32 spt;                              // sectors per track
 int32 ssize;                            // sector size (128 << N)
@@ -686,7 +686,7 @@ DEVICE isbc208_dev = {
  
 // configuration routine
 
-t_stat isbc208_cfg(uint16 baseport, uint16 devnum, uint8 intnum)
+t_stat isbc208_cfg(uint16_t baseport, uint16_t devnum, uint8_t intnum)
 {
     int32 i;
     UNIT *uptr;
@@ -786,7 +786,7 @@ t_stat isbc208_attach (UNIT *uptr, const char *cptr)
     t_stat r;
     int32 c = 0;
     long len;
-    uint8 fddnum;
+    uint8_t fddnum;
 
     if ((r = attach_unit (uptr, cptr)) != SCPE_OK) { 
         sim_printf("   isbc208_attach: Attach error %d\n", r);
@@ -846,10 +846,10 @@ t_stat isbc208_svc (UNIT *uptr)
 {
     int32 i, imgadr, data;
     int32 bpt, bpc;
-    uint8 *fbuf;
+    uint8_t *fbuf;
  
     if ((i8272_msr & CB) && cmd && (uptr->u6 == drv)) { /* execution phase */
-        fbuf = (uint8 *) uptr->filebuf;
+        fbuf = (uint8_t *) uptr->filebuf;
         switch (cmd) {
         case READ:                  /* 0x06 */
             h = i8272_w3;           // h = 0 or 1 
@@ -1070,7 +1070,7 @@ t_stat isbc208_svc (UNIT *uptr)
 }
  
 // read/write FDC data register stack
-uint8 isbc208_r11(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r11(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read FDC data register */
 //        sim_printf("208 R11: Read data=%02X pcmd=%02X rsp=%d PCX=%04X\nA", data, pcmd, rsp, PCX);
@@ -1184,7 +1184,7 @@ uint8 isbc208_r11(t_bool io, uint8 data, uint8 devnum)
     to the device.
 */
  
-uint8 isbc208_r0(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r0(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 0 */
         if (i8237_rD) {                 /* high byte */
@@ -1206,7 +1206,7 @@ uint8 isbc208_r0(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r1(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r1(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 0 */
         if (i8237_rD) {                 /* high byte */
@@ -1228,7 +1228,7 @@ uint8 isbc208_r1(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r2(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r2(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 1 */
         if (i8237_rD) {                 /* high byte */
@@ -1250,7 +1250,7 @@ uint8 isbc208_r2(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r3(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r3(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 1 */
         if (i8237_rD) {                 /* high byte */
@@ -1272,7 +1272,7 @@ uint8 isbc208_r3(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r4(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r4(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 2 */
         if (i8237_rD) {                 /* high byte */
@@ -1294,7 +1294,7 @@ uint8 isbc208_r4(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r5(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r5(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 2 */
         if (i8237_rD) {                 /* high byte */
@@ -1316,7 +1316,7 @@ uint8 isbc208_r5(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r6(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r6(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current address CH 3 */
         if (i8237_rD) {                 /* high byte */
@@ -1338,7 +1338,7 @@ uint8 isbc208_r6(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r7(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r7(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read current word count CH 3 */
         if (i8237_rD) {                 /* high byte */
@@ -1360,7 +1360,7 @@ uint8 isbc208_r7(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r8(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r8(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read status register */
         return (i8237_r8);
@@ -1370,7 +1370,7 @@ uint8 isbc208_r8(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r9(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r9(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1380,7 +1380,7 @@ uint8 isbc208_r9(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_rA(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_rA(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1415,7 +1415,7 @@ uint8 isbc208_rA(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_rB(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_rB(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1425,7 +1425,7 @@ uint8 isbc208_rB(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_rC(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_rC(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1435,7 +1435,7 @@ uint8 isbc208_rC(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_rD(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_rD(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read temporary register */
         return 0;
@@ -1445,7 +1445,7 @@ uint8 isbc208_rD(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_rE(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_rE(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1455,7 +1455,7 @@ uint8 isbc208_rE(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_rF(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_rF(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1465,7 +1465,7 @@ uint8 isbc208_rF(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r10(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r10(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read FDC status register */
 //        sim_printf("FDC Status=%02X PCX=%04X\n", i8272_msr, PCX);
@@ -1475,7 +1475,7 @@ uint8 isbc208_r10(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r12(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r12(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read interrupt status */
         return (isbc208_i);
@@ -1485,7 +1485,7 @@ uint8 isbc208_r12(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r13(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r13(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1495,7 +1495,7 @@ uint8 isbc208_r13(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r14(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r14(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;
@@ -1505,7 +1505,7 @@ uint8 isbc208_r14(t_bool io, uint8 data, uint8 devnum)
     }
 }
  
-uint8 isbc208_r15(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc208_r15(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {
         return 0;

@@ -43,7 +43,7 @@
    cdr_mod      Card Reader modifiers list
 */
 
-uint32              cdr_cmd(UNIT *, uint16, uint16);
+uint32_t              cdr_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              cdr_srv(UNIT *);
 t_stat              cdr_reset(DEVICE *);
 t_stat              cdr_attach(UNIT *, CONST char *);
@@ -76,12 +76,12 @@ DEVICE              cdr_dev = {
 
 // buffer to hold read cards in take hopper of each unit
 // to be printed by carddeck command
-uint16 ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
+uint16_t ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
 int    ReadStakerLast[3];
 
 // get 10 digits word with sign from card buf (the data struct). 
 // return the first column where HiPunch set (first column is 1; 0 is no HiPunch set)
-int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch) 
+int decode_8word_wiring(uint16_t image[80], int bCheckForHiPunch) 
 {
     // decode up to 8 numerical words per card 
     // input card
@@ -90,7 +90,7 @@ int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
     //       If N is non numeric, a 0 is assumed
     // put the decoded data in IO Sync buffer (if bCheckForHiPunch = 1 -> do not store in IO Sync Buffer)
     // return first colum with Y(12) hi-punch set (1 to 80)
-    uint16 c1,c2;
+    uint16_t c1,c2;
     int wn,iCol,iDigit;
     int HiPunch, NegPunch, NegZero; 
     t_int64 d;
@@ -142,12 +142,12 @@ int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
 
 // load soap symbolic info, This is a facility to help debugging of soap programs into SimH 
 // does not exist in real hw
-void decode_soap_symb_info(uint16 image[80]) 
+void decode_soap_symb_info(uint16_t image[80]) 
 {
     t_int64 d;
     int op,da,ia,i,i2;
     char buf[81];
-    uint16 c1,c2;
+    uint16_t c1,c2;
     char *Symbolic_Buffer;
 
     // check soap 1-word load card initial word
@@ -222,7 +222,7 @@ t_int64 decode_alpha_word(char * buf, int n)
 }
 
 
-void decode_soap_wiring(uint16 image[80], int bMultiPass) 
+void decode_soap_wiring(uint16_t image[80], int bMultiPass) 
 {
     // decode soap card simulating soap control panel wiring for 533 
     // from SOAP II manual at http://www.bitsavers.org/pdf/ibm/650/24-4000-0_SOAPII.pdf
@@ -261,7 +261,7 @@ void decode_soap_wiring(uint16 image[80], int bMultiPass)
     int ty,neg,col80;
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -302,7 +302,7 @@ void decode_soap_wiring(uint16 image[80], int bMultiPass)
     }
 }
 
-void decode_supersoap_wiring(uint16 image[80]) 
+void decode_supersoap_wiring(uint16_t image[80]) 
 {
     // decode supersoap card simulating soap control panel wiring for 533 
     // educated guess based on supersoap program listing at http://archive.computerhistory.org/resources/access/text/2018/07/102784987-05-01-acc.pdf
@@ -342,7 +342,7 @@ void decode_supersoap_wiring(uint16 image[80])
     int ty,neg,col80;
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -398,7 +398,7 @@ int sformat(char * buf, const char * match)
     return 1; // end of match string -> return 1 -> buf matches
 }
 
-void decode_is_wiring(uint16 image[80]) 
+void decode_is_wiring(uint16_t image[80]) 
 {
     // decode Floationg Decimal Interpretive System (IS) card simulating control panel wiring for 533 as described 
     // in manual at http://www.bitsavers.org/pdf/ibm/650/28-4024_FltDecIntrpSys.pdf
@@ -450,7 +450,7 @@ void decode_is_wiring(uint16 image[80])
     int NegZero; 
     t_int64 d;
     char buf[81];
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 0..9,+,-,<space>, replace anything else by <space>
@@ -532,7 +532,7 @@ void decode_is_wiring(uint16 image[80])
     }
 }
 
-void decode_it_wiring(uint16 image[80]) 
+void decode_it_wiring(uint16_t image[80]) 
 {
     // decode IT compiler card simulating control panel wiring for 533 
     // from IT manual at http://www.bitsavers.org/pdf/ibm/650/CarnegieInternalTranslator.pdf
@@ -576,7 +576,7 @@ void decode_it_wiring(uint16 image[80])
 
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -630,7 +630,7 @@ t_int64 decode_regional_addr(char * buf, char * nbuf)
    return w * 10000 + decode_num_word(nbuf, 4, 1);
 }
 
-int decode_ra_wiring(uint16 image[80], int HiPunch) 
+int decode_ra_wiring(uint16_t image[80], int HiPunch) 
 {
     // decode REGIONAL ASSEMBLY card simulating control panel wiring for 533
     // return 1 if it is a load card that makes RD inst continue to DA addr instead of IA addr
@@ -721,7 +721,7 @@ int decode_ra_wiring(uint16 image[80], int HiPunch)
 
     int wsgn[5]; // store sgn of words
     int i, IsLoadCard, IsNeg, NegPunch;
-    uint16 c1,c2;
+    uint16_t c1,c2;
     t_int64 A,I;
 
     IsLoadCard = NegPunch = 0;
@@ -810,7 +810,7 @@ int decode_ra_wiring(uint16 image[80], int HiPunch)
     return IsLoadCard;
 }
 
-int decode_fds_wiring(uint16 image[80], int HiPunch) 
+int decode_fds_wiring(uint16_t image[80], int HiPunch) 
 {
     // decode Interpretive Floating Decimal System card
     // return 1 if it is a load card that makes RD inst continue to DA addr instead of IA addr
@@ -878,7 +878,7 @@ int decode_fds_wiring(uint16 image[80], int HiPunch)
     char buf[81];
 
     int i, IsLoadCard, IsNeg, NegPunch, IsGo, IsSgn;
-    uint16 c1,c2;
+    uint16_t c1,c2;
     t_int64 A,I;
 
     IsLoadCard = NegPunch = IsGo = IsSgn = 0;
@@ -977,7 +977,7 @@ int decode_fds_wiring(uint16 image[80], int HiPunch)
     return IsLoadCard;
 }
 
-void decode_fortransit_wiring(uint16 image[80]) 
+void decode_fortransit_wiring(uint16_t image[80]) 
 {
     // decode FORTRANSIT translator card simulating control panel wiring for 533 
     // from FORTRANSIT manual at http://bitsavers.org/pdf/ibm/650/28-4028_FOR_TRANSIT.pdf
@@ -1057,7 +1057,7 @@ void decode_fortransit_wiring(uint16 image[80])
     //                              
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -1105,10 +1105,10 @@ void decode_fortransit_wiring(uint16 image[80])
 /*
  * Device entry points for card reader.
  */
-uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
+uint32_t cdr_cmd(UNIT * uptr, uint16_t cmd, uint16_t addr)
 {
-    uint32              wiring;
-    uint16 image[80];
+    uint32_t              wiring;
+    uint16_t image[80];
     int i, HiPunch;
     char cbuf[81]; 
     int ncdr, ic;
@@ -1173,7 +1173,7 @@ uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
         }
     }
 
-    // uint16 data->image[] array that holds the actual punched rows on card
+    // uint16_t data->image[] array that holds the actual punched rows on card
     // using this codification:
     //
     //  Row Name    value in image[]    comments

@@ -139,24 +139,24 @@
 int32 ry_csr = 0;                                       /* control/status */
 int32 ry_dbr = 0;                                       /* data buffer */
 int32 ry_esr = 0;                                       /* error status */
-uint8 ry_ecode = 0;                                     /* error code */
-uint8 ry_track = 0;                                     /* desired track */
-uint8 ry_sector = 0;                                    /* desired sector */
+uint8_t ry_ecode = 0;                                     /* error code */
+uint8_t ry_track = 0;                                     /* desired track */
+uint8_t ry_sector = 0;                                    /* desired sector */
 int32 ry_ba = 0;                                        /* bus addr */
-uint8 ry_wc = 0;                                        /* word count */
+uint8_t ry_wc = 0;                                        /* word count */
 int32 ry_state = IDLE;                                  /* controller state */
 int32 ry_stopioe = 1;                                   /* stop on error */
 int32 ry_cwait = 100;                                   /* command time */
 int32 ry_swait = 10;                                    /* seek, per track */
 int32 ry_xwait = 1;                                     /* tr set time */
-uint8 rx2xb[RY_NUMBY] = { 0 };                          /* sector buffer */
+uint8_t rx2xb[RY_NUMBY] = { 0 };                          /* sector buffer */
 
 t_stat ry_rd (int32 *data, int32 PA, int32 access);
 t_stat ry_wr (int32 data, int32 PA, int32 access);
 t_stat ry_svc (UNIT *uptr);
 t_stat ry_reset (DEVICE *dptr);
 t_stat ry_boot (int32 unitno, DEVICE *dptr);
-void ry_done (int32 esr_flags, uint8 new_ecode);
+void ry_done (int32 esr_flags, uint8_t new_ecode);
 t_stat ry_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat ry_attach (UNIT *uptr, CONST char *cptr);
 t_stat ry_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
@@ -379,8 +379,8 @@ return SCPE_OK;
 t_stat ry_svc (UNIT *uptr)
 {
 int32 i, t, func, bps;
-static uint8 estat[8];
-uint32 ba, da;
+static uint8_t estat[8];
+uint32_t ba, da;
 int8 *fbuf = (int8 *) uptr->filebuf;
 
 func = RYCS_GETFNC (ry_csr);                            /* get function */
@@ -414,7 +414,7 @@ switch (ry_state) {                                     /* case on state */
             t = Map_ReadB (ba, ry_wc << 1, rx2xb);
             }
         else t = Map_WriteB (ba, ry_wc << 1, rx2xb);
-        ry_wc = (uint8)(t >> 1);                        /* adjust wc */
+        ry_wc = (uint8_t)(t >> 1);                        /* adjust wc */
         ry_done (t? RYES_NXM: 0, 0);                    /* done */
         break;
 
@@ -483,7 +483,7 @@ switch (ry_state) {                                     /* case on state */
     case SDXFR:                                         /* erase disk */
         for (i = 0; i < (int32) uptr->capac; i++)
             fbuf[i] = 0;
-        uptr->hwmark = (uint32) uptr->capac;
+        uptr->hwmark = (uint32_t) uptr->capac;
         if (ry_csr & RYCS_DEN)
             uptr->flags = uptr->flags | UNIT_DEN;
         else uptr->flags = uptr->flags & ~UNIT_DEN;
@@ -500,8 +500,8 @@ switch (ry_state) {                                     /* case on state */
     case ESXFR:
         estat[0] = ry_ecode;                            /* fill 8B status */
         estat[1] = ry_wc;
-        estat[2] = (uint8)ry_unit[0].TRACK;
-        estat[3] = (uint8)ry_unit[1].TRACK;
+        estat[2] = (uint8_t)ry_unit[0].TRACK;
+        estat[3] = (uint8_t)ry_unit[1].TRACK;
         estat[4] = ry_track;
         estat[5] = ry_sector;
         estat[6] = ((ry_csr & RYCS_DRV)? 0200: 0) |
@@ -509,7 +509,7 @@ switch (ry_state) {                                     /* case on state */
                    ((uptr->flags & UNIT_ATT)? 0040: 0) |
                    ((ry_unit[0].flags & UNIT_DEN)? 0020: 0) |
                    ((ry_csr & RYCS_DEN)? 0001: 0);
-        estat[7] = (uint8)uptr->TRACK;
+        estat[7] = (uint8_t)uptr->TRACK;
         t = Map_WriteB (ba, 8, estat);                  /* DMA to memory */
         ry_done (t? RYES_NXM: 0, 0);                    /* done */
         break;
@@ -541,7 +541,7 @@ return SCPE_OK;
    request interrupt if needed, return to IDLE state.
 */
 
-void ry_done (int32 esr_flags, uint8 new_ecode)
+void ry_done (int32 esr_flags, uint8_t new_ecode)
 {
 int32 drv = (ry_csr & RYCS_DRV)? 1: 0;
 
@@ -591,7 +591,7 @@ return auto_config (dptr->name, 1);                     /* run autoconfig */
 
 t_stat ry_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 sz;
+uint32_t sz;
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     if (sz > RX_SIZE)
@@ -622,7 +622,7 @@ return SCPE_OK;
 #define BOOT_CSR        (BOOT_START + 026)              /* CSR */
 #define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     042131,                         /* "YD" */
     0012706, BOOT_START,            /*  MOV #boot_start, SP */
     0012700, 0000000,               /*  MOV #unit, R0       ; unit number */

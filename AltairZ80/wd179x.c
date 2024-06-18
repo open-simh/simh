@@ -87,74 +87,74 @@
 #define WD179X_SECTOR_LEN_BYTES (unsigned)(128 << wd179x_info->fdc_sec_len)
 
 typedef union {
-    uint8 raw[WD179X_SECTOR_LEN];
+    uint8_t raw[WD179X_SECTOR_LEN];
 } SECTOR_FORMAT;
 
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint8 ntracks;   /* number of tracks */
-    uint8 nheads;    /* number of heads */
-    uint32 sectsize; /* sector size, not including pre/postamble */
-    uint8 track;     /* Current Track */
-    uint8 ready;     /* Is drive ready? */
+    uint8_t ntracks;   /* number of tracks */
+    uint8_t nheads;    /* number of heads */
+    uint32_t sectsize; /* sector size, not including pre/postamble */
+    uint8_t track;     /* Current Track */
+    uint8_t ready;     /* Is drive ready? */
 } WD179X_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO pnp;       /* Plug-n-Play Information */
-    uint16 fdctype;     /* Default is 1793 */
-    uint8 intenable;    /* Interrupt Enable */
-    uint8 intvector;    /* Interrupt Vector */
-    uint8 intrq;        /* WD179X Interrupt Request Output (EOJ) */
-    uint8 hld;          /* WD179X Head Load Output */
-    uint8 drq;          /* WD179X DMA Request Output */
-    uint8 ddens;        /* WD179X Double-Density Input */
-    uint8 fdc_head;     /* H Head Number */
-    uint8 sel_drive;    /* Currently selected drive */
-    uint8 drivetype;    /* 8 or 5 depending on disk type. */
+    uint16_t fdctype;     /* Default is 1793 */
+    uint8_t intenable;    /* Interrupt Enable */
+    uint8_t intvector;    /* Interrupt Vector */
+    uint8_t intrq;        /* WD179X Interrupt Request Output (EOJ) */
+    uint8_t hld;          /* WD179X Head Load Output */
+    uint8_t drq;          /* WD179X DMA Request Output */
+    uint8_t ddens;        /* WD179X Double-Density Input */
+    uint8_t fdc_head;     /* H Head Number */
+    uint8_t sel_drive;    /* Currently selected drive */
+    uint8_t drivetype;    /* 8 or 5 depending on disk type. */
     /* Note: the fields above must be kept in sync with WD179X_INFO_PUB */
-    uint8 fdc_status;   /* WD179X Status Register */
-    uint8 verify;       /* WD179X Type 1 command Verify flag */
-    uint8 fdc_data;     /* WD179X Data Register */
-    uint8 fdc_read;     /* TRUE when reading */
-    uint8 fdc_write;    /* TRUE when writing */
-    uint8 fdc_write_track;  /* TRUE when writing an entire track */
-    uint8 fdc_fmt_state;    /* Format track statemachine state */
-    uint8 fdc_gap[4];       /* Gap I - Gap IV lengths */
-    uint8 fdc_fmt_sector_count; /* sector count for format track */
-    uint8 fdc_sectormap[WD179X_MAX_SECTOR]; /* Physical to logical sector map */
-    uint8 fdc_header_index; /* Index into header */
-    uint8 fdc_read_addr;    /* TRUE when READ ADDRESS command is in progress */
-    uint8 fdc_multiple;     /* TRUE for multi-sector read/write */
-    uint16 fdc_datacount;   /* Read or Write data remaining transfer length */
-    uint16 fdc_dataindex;   /* index of current byte in sector data */
-    uint8 index_pulse_wait; /* TRUE if waiting for interrupt on next index pulse. */
-    uint8 fdc_sector;       /* R Record (Sector) */
-    uint8 fdc_sec_len;      /* N Sector Length */
+    uint8_t fdc_status;   /* WD179X Status Register */
+    uint8_t verify;       /* WD179X Type 1 command Verify flag */
+    uint8_t fdc_data;     /* WD179X Data Register */
+    uint8_t fdc_read;     /* TRUE when reading */
+    uint8_t fdc_write;    /* TRUE when writing */
+    uint8_t fdc_write_track;  /* TRUE when writing an entire track */
+    uint8_t fdc_fmt_state;    /* Format track statemachine state */
+    uint8_t fdc_gap[4];       /* Gap I - Gap IV lengths */
+    uint8_t fdc_fmt_sector_count; /* sector count for format track */
+    uint8_t fdc_sectormap[WD179X_MAX_SECTOR]; /* Physical to logical sector map */
+    uint8_t fdc_header_index; /* Index into header */
+    uint8_t fdc_read_addr;    /* TRUE when READ ADDRESS command is in progress */
+    uint8_t fdc_multiple;     /* TRUE for multi-sector read/write */
+    uint16_t fdc_datacount;   /* Read or Write data remaining transfer length */
+    uint16_t fdc_dataindex;   /* index of current byte in sector data */
+    uint8_t index_pulse_wait; /* TRUE if waiting for interrupt on next index pulse. */
+    uint8_t fdc_sector;       /* R Record (Sector) */
+    uint8_t fdc_sec_len;      /* N Sector Length */
     int8 step_dir;
-    uint8 cmdtype;          /* Type of current/former command */
-    uint16 external_fifo_len;
-    uint8 *external_fifo;
-    uint16 fdc_fifo_index;
+    uint8_t cmdtype;          /* Type of current/former command */
+    uint16_t external_fifo_len;
+    uint8_t *external_fifo;
+    uint16_t fdc_fifo_index;
     WD179X_DRIVE_INFO drive[WD179X_MAX_DRIVES];
 } WD179X_INFO;
 
-extern uint32 vectorInterrupt;           /* FDC interrupt pending          */
-extern uint8 dataBus[MAX_INT_VECTORS];   /* FDC interrupt data bus values  */
+extern uint32_t vectorInterrupt;           /* FDC interrupt pending          */
+extern uint8_t dataBus[MAX_INT_VECTORS];   /* FDC interrupt data bus values  */
 
 static SECTOR_FORMAT sdata;
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index (UNIT *uptr);
 
 t_stat wd179x_svc (UNIT *uptr);
 
 /* These are needed for DMA.  PIO Mode has not been implemented yet. */
-extern void PutBYTEWrapper(const uint32 Addr, const uint32 Value);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
+extern void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
 
 #define UNIT_V_WD179X_WLK        (UNIT_V_UF + 0) /* write locked                             */
 #define UNIT_WD179X_WLK          (1 << UNIT_V_WD179X_WLK)
@@ -191,16 +191,16 @@ extern uint8 GetBYTEWrapper(const uint32 Addr);
 static int32 wd179xdev(const int32 port, const int32 io, const int32 data);
 static t_stat wd179x_reset(DEVICE *dptr);
 static const char* wd179x_description(DEVICE *dptr);
-uint8 floorlog2(unsigned int n);
-static uint8 computeSectorSize(const WD179X_DRIVE_INFO *pDrive);
-static uint8 testMode(const WD179X_DRIVE_INFO *pDrive);
-static t_stat wd179x_sectRead(WD179X_DRIVE_INFO* pDrive, uint8 Cyl, uint8 Head,
-    uint8 Sector, uint8* buf, uint32 buflen, uint32* flags, uint32* readlen);
-static t_stat wd179x_sectWrite(WD179X_DRIVE_INFO* pDrive, uint8 Cyl, uint8 Head,
-    uint8 Sector, uint8* buf, uint32 buflen, uint32* flags, uint32* readlen);
-static uint8 Do1793Command(uint8 cCommand);
-static t_stat wd179x_trackWrite(WD179X_DRIVE_INFO* pDrive, uint8 Cyl,
-    uint8 Head, uint8 fillbyte, uint32* flags);
+uint8_t floorlog2(unsigned int n);
+static uint8_t computeSectorSize(const WD179X_DRIVE_INFO *pDrive);
+static uint8_t testMode(const WD179X_DRIVE_INFO *pDrive);
+static t_stat wd179x_sectRead(WD179X_DRIVE_INFO* pDrive, uint8_t Cyl, uint8_t Head,
+    uint8_t Sector, uint8_t* buf, uint32_t buflen, uint32_t* flags, uint32_t* readlen);
+static t_stat wd179x_sectWrite(WD179X_DRIVE_INFO* pDrive, uint8_t Cyl, uint8_t Head,
+    uint8_t Sector, uint8_t* buf, uint32_t buflen, uint32_t* flags, uint32_t* readlen);
+static uint8_t Do1793Command(uint8_t cCommand);
+static t_stat wd179x_trackWrite(WD179X_DRIVE_INFO* pDrive, uint8_t Cyl,
+    uint8_t Head, uint8_t fillbyte, uint32_t* flags);
 
 WD179X_INFO wd179x_info_data = { { 0x0, 0, 0x30, 4 }, 1793, 0, 0 };
 WD179X_INFO *wd179x_info = &wd179x_info_data;
@@ -296,7 +296,7 @@ DEVICE wd179x_dev = {
 };
 
 /* Maximum number of sectors per track for format */
-static const uint8 max_sectors_per_track[2][7] = {
+static const uint8_t max_sectors_per_track[2][7] = {
     /* 128, 256, 512, 1024, 2048, 4096, 8192 */
     {   26,  15,  8,   4,    2,    1,    0  }, /* Single-density table */
     {   26,  26, 15,   8,    4,    2,    1  }  /* Double-density table */
@@ -338,7 +338,7 @@ static t_stat wd179x_reset(DEVICE *dptr)
     return SCPE_OK;
 }
 
-void wd179x_connect_external_fifo(uint16 fifo_len, uint8* storage)
+void wd179x_connect_external_fifo(uint16_t fifo_len, uint8_t* storage)
 {
     wd179x_info->external_fifo_len = fifo_len;
     wd179x_info->external_fifo = storage;
@@ -375,7 +375,7 @@ void wd179x_external_restore(void)
 
 }
 
-uint8 wd179x_get_nheads(void)
+uint8_t wd179x_get_nheads(void)
 {
     WD179X_DRIVE_INFO* pDrive;
 
@@ -526,7 +526,7 @@ static int32 wd179xdev(const int32 port, const int32 io, const int32 data)
     if (io) {
         sim_debug(VERBOSE_MSG, &wd179x_dev, "WD179X: " ADDRESS_FORMAT " %s, Port 0x%02x Data 0x%02x\n",
             PCX, io ? "OUT" : " IN", port, data);
-        WD179X_Write(port, (uint8)data);
+        WD179X_Write(port, (uint8_t)data);
     } else {
         result = WD179X_Read(port);
         sim_debug(VERBOSE_MSG, &wd179x_dev, "WD179X: " ADDRESS_FORMAT " %s, Port 0x%02x Data 0x%02x\n",
@@ -536,10 +536,10 @@ static int32 wd179xdev(const int32 port, const int32 io, const int32 data)
     return (result);
 }
 
-uint8 floorlog2(unsigned int n)
+uint8_t floorlog2(unsigned int n)
 {
     /* Compute log2(n) */
-    uint8 r = 0;
+    uint8_t r = 0;
     if (n >= 1<<16) {
         n >>=16;
         r += 16;
@@ -562,7 +562,7 @@ uint8 floorlog2(unsigned int n)
     return ((n == 0) ? (0xFF) : r); /* 0xFF is error return value */
 }
 
-static uint8 computeSectorSize(const WD179X_DRIVE_INFO *pDrive) {
+static uint8_t computeSectorSize(const WD179X_DRIVE_INFO *pDrive) {
     if (pDrive->uptr->u3 == IMAGE_TYPE_IMD) {
         return pDrive->track < MAX_CYL ? floorlog2(pDrive->imd->track[pDrive->track][wd179x_info->fdc_head].sectsize) - 7 : 0xF8;
     }
@@ -570,7 +570,7 @@ static uint8 computeSectorSize(const WD179X_DRIVE_INFO *pDrive) {
     return(0);  /* Hard coded to 128-byte sectors */
 }
 
-static uint8 testMode(const WD179X_DRIVE_INFO *pDrive) {
+static uint8_t testMode(const WD179X_DRIVE_INFO *pDrive) {
     if (pDrive->uptr->u3 == IMAGE_TYPE_IMD) {
         return pDrive->track < MAX_CYL ? IMD_MODE_MFM(pDrive->imd->track[pDrive->track][wd179x_info->fdc_head].mode) != (wd179x_info->ddens) : 0;
     }
@@ -578,12 +578,12 @@ static uint8 testMode(const WD179X_DRIVE_INFO *pDrive) {
     return 0;
 }
 
-uint8 WD179X_Read(const uint32 Addr)
+uint8_t WD179X_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
     WD179X_DRIVE_INFO    *pDrive;
-    uint32 flags = 0;
-    uint32 readlen;
+    uint32_t flags = 0;
+    uint32_t readlen;
 
     if (wd179x_info->sel_drive >= WD179X_MAX_DRIVES) {
         return 0xFF;
@@ -684,11 +684,11 @@ uint8 WD179X_Read(const uint32 Addr)
     return (cData);
 }
 
-uint8 WD179X_Write(const uint32 Addr, uint8 cData)
+uint8_t WD179X_Write(const uint32_t Addr, uint8_t cData)
 {
     WD179X_DRIVE_INFO* pDrive;
-    uint32 flags = 0;
-    uint32 writelen;
+    uint32_t flags = 0;
+    uint32_t writelen;
 
     if (wd179x_info->sel_drive >= WD179X_MAX_DRIVES) {
         return 0xFF;
@@ -886,13 +886,13 @@ uint8 WD179X_Write(const uint32 Addr, uint8 cData)
  * See the WD179x-02 Datasheet available on www.hartetechnologies.com/manuals/
  *
  */
-static uint8 Do1793Command(uint8 cCommand)
+static uint8_t Do1793Command(uint8_t cCommand)
 {
-    uint8 result = 0;
+    uint8_t result = 0;
     WD179X_DRIVE_INFO    *pDrive;
-    uint32 flags = 0;
-    uint32 readlen;
-    uint32 writelen;
+    uint32_t flags = 0;
+    uint32_t readlen;
+    uint32_t writelen;
 
     if (wd179x_info->sel_drive >= WD179X_MAX_DRIVES) {
         return 0xFF;
@@ -1300,13 +1300,13 @@ static uint8 Do1793Command(uint8 cCommand)
 }
 
 static t_stat wd179x_sectRead(WD179X_DRIVE_INFO* pDrive,
-    uint8 Cyl,
-    uint8 Head,
-    uint8 Sector,
-    uint8* buf,
-    uint32 buflen,
-    uint32* flags,
-    uint32* readlen)
+    uint8_t Cyl,
+    uint8_t Head,
+    uint8_t Sector,
+    uint8_t* buf,
+    uint32_t buflen,
+    uint32_t* flags,
+    uint32_t* readlen)
 {
     int status = SCPE_OK;
 
@@ -1335,8 +1335,8 @@ static t_stat wd179x_sectRead(WD179X_DRIVE_INFO* pDrive,
         break;
     case IMAGE_TYPE_DSK:
     {
-        uint32 sec_offset;
-        uint32 rtn;
+        uint32_t sec_offset;
+        uint32_t rtn;
 
         /* For DSK images, density information is not encoded in the file format,
             * so enforce that 128-byte sectors are single-density. */
@@ -1395,13 +1395,13 @@ done:
 }
 
 static t_stat wd179x_sectWrite(WD179X_DRIVE_INFO* pDrive,
-    uint8 Cyl,
-    uint8 Head,
-    uint8 Sector,
-    uint8* buf,
-    uint32 buflen,
-    uint32* flags,
-    uint32* readlen)
+    uint8_t Cyl,
+    uint8_t Head,
+    uint8_t Sector,
+    uint8_t* buf,
+    uint32_t buflen,
+    uint32_t* flags,
+    uint32_t* readlen)
 {
     int status = SCPE_OK;
 
@@ -1424,12 +1424,12 @@ static t_stat wd179x_sectWrite(WD179X_DRIVE_INFO* pDrive,
                 buf,
                 WD179X_SECTOR_LEN_BYTES,
                 flags,
-                (uint32 *)readlen);
+                (uint32_t *)readlen);
             break;
         case IMAGE_TYPE_DSK:
         {
-            uint32 sec_offset;
-            uint32 rtn;
+            uint32_t sec_offset;
+            uint32_t rtn;
 
             /* For DSK images, density information is not encoded in the file format,
                 * so enforce that 128-byte sectors are single-density. */
@@ -1463,10 +1463,10 @@ static t_stat wd179x_sectWrite(WD179X_DRIVE_INFO* pDrive,
 }
 
 static t_stat wd179x_trackWrite(WD179X_DRIVE_INFO* pDrive,
-    uint8 Cyl,
-    uint8 Head,
-    uint8 fillbyte,
-    uint32* flags)
+    uint8_t Cyl,
+    uint8_t Head,
+    uint8_t fillbyte,
+    uint32_t* flags)
 {
     int status = SCPE_OK;
 
@@ -1489,11 +1489,11 @@ static t_stat wd179x_trackWrite(WD179X_DRIVE_INFO* pDrive,
             break;
         case IMAGE_TYPE_DSK:
         {
-            uint32 sec_offset;
-            uint32 rtn;
-            uint8 Sector;
-            uint16 i;
-            uint8 Fillbuf[128] = { 0 };
+            uint32_t sec_offset;
+            uint32_t rtn;
+            uint8_t Sector;
+            uint16_t i;
+            uint8_t Fillbuf[128] = { 0 };
 
             /* For DSK images, density information is not encoded in the file format,
              * so enforce that 128-byte sectors are single-density. */

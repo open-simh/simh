@@ -26,7 +26,7 @@
 
 #include "tt2500_defs.h"
 
-uint16 tt2500_rom[] =
+uint16_t tt2500_rom[] =
 {
 /* BEGIN   0 */ 0010000, /* (NOP) */
 /*         1 */ 0010000, /* (NOP) */

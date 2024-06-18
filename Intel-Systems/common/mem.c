@@ -30,40 +30,40 @@
 
 /* function prototypes */
 
-uint8 get_mbyte(uint16 addr);
-uint16 get_mword(uint16 addr);
-void put_mbyte(uint16 addr, uint8 val);
-void put_mword(uint16 addr, uint16 val);
+uint8_t get_mbyte(uint16_t addr);
+uint16_t get_mword(uint16_t addr);
+void put_mbyte(uint16_t addr, uint8_t val);
+void put_mword(uint16_t addr, uint16_t val);
 
 /* external function prototypes */
 
-extern uint8 multibus_get_mbyte(uint16 addr);
-extern void  multibus_put_mbyte(uint16 addr, uint8 val);
-extern uint8 EPROM_get_mbyte(uint16 addr, uint8 devnum);
+extern uint8_t multibus_get_mbyte(uint16_t addr);
+extern void  multibus_put_mbyte(uint16_t addr, uint8_t val);
+extern uint8_t EPROM_get_mbyte(uint16_t addr, uint8_t devnum);
 extern UNIT EPROM_unit[];
-extern uint8 RAM_get_mbyte(uint16 addr);
-extern void RAM_put_mbyte(uint16 addr, uint8 val);
+extern uint8_t RAM_get_mbyte(uint16_t addr);
+extern void RAM_put_mbyte(uint16_t addr, uint8_t val);
 extern UNIT RAM_unit[];
 extern int mem_map;
-extern uint8 monitor_boot;
+extern uint8_t monitor_boot;
 
 /* globals */
 
 /* extern globals */
 
-extern uint16 PCX;                      /* program counter */
-extern uint8 xack;                      /* XACK signal */
+extern uint16_t PCX;                      /* program counter */
+extern uint8_t xack;                      /* XACK signal */
 extern UNIT i8255_unit;                 //for isbc memory control
 extern UNIT ipc_cont_unit;
 extern UNIT ioc_cont_unit;
-extern uint8 i8255_C[4];                //port C byte I/O
+extern uint8_t i8255_C[4];                //port C byte I/O
 
 
 /*  get a byte from memory - handle MODEL, RAM, ROM and Multibus memory */
 
-uint8 get_mbyte(uint16 addr)
+uint8_t get_mbyte(uint16_t addr)
 {
-    uint8 val;
+    uint8_t val;
     
     SET_XACK(0);                        /* clear xack */
     if ((mem_map <= 1) && (addr >= 0xF800)) { //monitor ROM - always there IPB/IPC/800
@@ -99,10 +99,10 @@ uint8 get_mbyte(uint16 addr)
         }
     } 
     if (mem_map == 3) {                 //isdk80
-        if ((addr >= EPROM_unit->u3) && ((uint16)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
+        if ((addr >= EPROM_unit->u3) && ((uint16_t)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
             return EPROM_get_mbyte(addr, 0);
         } /* if local RAM handle it */
-        else if ((addr >= RAM_unit->u3) && ((uint16)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
+        else if ((addr >= RAM_unit->u3) && ((uint16_t)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
             return RAM_get_mbyte(addr);
         } 
         else return 0xff;
@@ -110,13 +110,13 @@ uint8 get_mbyte(uint16 addr)
     if (mem_map == 4) {                 //isys80/XX
         /* if local EPROM handle it */
         if (i8255_C[0] & 0x80) { /* EPROM enabled */
-            if ((addr >= EPROM_unit->u3) && ((uint16)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
+            if ((addr >= EPROM_unit->u3) && ((uint16_t)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
                 val = EPROM_get_mbyte(addr, 0);
                 return val;
             }
         } /* if local RAM handle it */
         if (i8255_C[0] & 0x20) { /* RAM enabled */
-            if ((addr >= RAM_unit->u3) && ((uint16)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
+            if ((addr >= RAM_unit->u3) && ((uint16_t)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
                 val = RAM_get_mbyte(addr);
                 return val;
             }
@@ -127,9 +127,9 @@ uint8 get_mbyte(uint16 addr)
 
 /*  get a word from memory */
 
-uint16 get_mword(uint16 addr)
+uint16_t get_mword(uint16_t addr)
 {
-    uint16 val;
+    uint16_t val;
 
     val = get_mbyte(addr);
     val |= (get_mbyte(addr+1) << 8);
@@ -138,7 +138,7 @@ uint16 get_mword(uint16 addr)
 
 /*  put a byte to memory - handle RAM, ROM and Multibus memory */
 
-void put_mbyte(uint16 addr, uint8 val)
+void put_mbyte(uint16_t addr, uint8_t val)
 {
 /*  put a byte to memory - handle RAM, ROM, I/O, and pcbus memory */
     SET_XACK(0);                        /* clear xack */
@@ -166,11 +166,11 @@ void put_mbyte(uint16 addr, uint8 val)
     }
     if (mem_map == 3) {                 //isdk80
         /* if local EPROM handle it */
-        if ((addr >= EPROM_unit->u3) && ((uint16)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
+        if ((addr >= EPROM_unit->u3) && ((uint16_t)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
             sim_printf("Write to R/O memory address %04X from PC=%04X - ignored\n", addr, PCX);
             return;
         } /* if local RAM handle it */
-        if ((addr >= RAM_unit->u3) && ((uint16)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
+        if ((addr >= RAM_unit->u3) && ((uint16_t)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
             RAM_put_mbyte(addr, val);
             return;
         }
@@ -178,13 +178,13 @@ void put_mbyte(uint16 addr, uint8 val)
     if (mem_map == 4) {                 //isys80/xx
         /* if local EPROM handle it */
         if (i8255_C[0] & 0x80) { /* EPROM enabled */
-            if ((addr >= EPROM_unit->u3) && ((uint16)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
+            if ((addr >= EPROM_unit->u3) && ((uint16_t)addr <= (EPROM_unit->u3 + EPROM_unit->capac))) {
                 sim_printf("Write to R/O memory address %04X from PC=%04X - ignored\n", addr, PCX);
                 return;
             }
         } /* if local RAM handle it */
         if (i8255_C[0] & 0x20) { /* RAM enabled */
-            if ((addr >= RAM_unit->u3) && ((uint16)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
+            if ((addr >= RAM_unit->u3) && ((uint16_t)addr <= (RAM_unit->u3 + RAM_unit->capac))) {
                 RAM_put_mbyte(addr, val);
                 return;
             }
@@ -195,7 +195,7 @@ void put_mbyte(uint16 addr, uint8 val)
 
 /*  put a word to memory */
 
-void put_mword(uint16 addr, uint16 val)
+void put_mword(uint16_t addr, uint16_t val)
 {
     put_mbyte(addr, val & BYTEMASK);
     put_mbyte(addr+1, val >> 8);

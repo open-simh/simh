@@ -101,7 +101,7 @@ int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
         - write: machine check (?)
 */
 
-int32 ReadQb (uint32 pa)
+int32 ReadQb (uint32_t pa)
 {
 int32 idx, val;
 
@@ -117,7 +117,7 @@ MACH_CHECK (MCHK_READ);
 return 0;
 }
 
-void WriteQb (uint32 pa, int32 val, int32 mode)
+void WriteQb (uint32_t pa, int32 val, int32 mode)
 {
 int32 idx;
 
@@ -144,7 +144,7 @@ return;
         longword of data
 */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32 ReadIO (uint32_t pa, int32 lnt)
 {
 int32 iod;
 
@@ -187,7 +187,7 @@ bo = 2, byte or word - read one word
 bo = 3, byte - read one word
 */
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32 ReadIOU (uint32_t pa, int32 lnt)
 {
 int32 iod;
 
@@ -210,7 +210,7 @@ return iod;
         none
 */
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32 val, int32 lnt)
 {
 if (lnt == L_BYTE)
     WriteQb (pa, val, WRITEB);
@@ -242,7 +242,7 @@ bo = 0, lnt = tribyte - write word, byte
 bo = 1, lnt = tribyte - write byte, word
 */
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32 val, int32 lnt)
 {
 switch (lnt) {
 case L_BYTE:                                            /* byte */
@@ -370,11 +370,11 @@ return "Qbus adapter";
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32_t ba, int32 bc, uint8_t *buf)
 {
 int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -395,11 +395,11 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32_t ba, int32 bc, uint16_t *buf)
 {
 int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -420,11 +420,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32 Map_WriteB (uint32_t ba, int32 bc, const uint8_t *buf)
 {
 int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -434,10 +434,10 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                          /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);           /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);          /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);            /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -445,11 +445,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32 Map_WriteW (uint32_t ba, int32 bc, const uint16_t *buf)
 {
 int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -461,8 +461,8 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                          /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);            /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }

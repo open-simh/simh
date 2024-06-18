@@ -57,23 +57,23 @@
 #define BUS_PER    0          /* Read or Write is from peripheral */
 #define BUS_CPU    1          /* Read or Write is from CPU */
 
-uint32 pread_w(uint32 pa, uint8 src);
-void   pwrite_w(uint32 pa, uint32 val, uint8 src);
-uint8  pread_b(uint32 pa, uint8 src);
-void   pwrite_b(uint32 pa, uint8 val, uint8 src);
-void   pwrite_b_rom(uint32 pa, uint8 val);
-uint16 pread_h(uint32 pa, uint8 src);
-void   pwrite_h(uint32 pa, uint16 val, uint8 src);
+uint32_t pread_w(uint32_t pa, uint8_t src);
+void   pwrite_w(uint32_t pa, uint32_t val, uint8_t src);
+uint8_t  pread_b(uint32_t pa, uint8_t src);
+void   pwrite_b(uint32_t pa, uint8_t val, uint8_t src);
+void   pwrite_b_rom(uint32_t pa, uint8_t val);
+uint16_t pread_h(uint32_t pa, uint8_t src);
+void   pwrite_h(uint32_t pa, uint16_t val, uint8_t src);
 
-uint8  read_b(uint32 va, uint8 r_acc, uint8 src);
-uint16 read_h(uint32 va, uint8 r_acc, uint8 src);
-uint32 read_w(uint32 va, uint8 r_acc, uint8 src);
-void   write_b(uint32 va, uint8 val, uint8 src);
-void   write_h(uint32 va, uint16 val, uint8 src);
-void   write_w(uint32 va, uint32 val, uint8 src);
+uint8_t  read_b(uint32_t va, uint8_t r_acc, uint8_t src);
+uint16_t read_h(uint32_t va, uint8_t r_acc, uint8_t src);
+uint32_t read_w(uint32_t va, uint8_t r_acc, uint8_t src);
+void   write_b(uint32_t va, uint8_t val, uint8_t src);
+void   write_h(uint32_t va, uint16_t val, uint8_t src);
+void   write_w(uint32_t va, uint32_t val, uint8_t src);
 
-t_stat read_operand(uint32 va, uint8 *val);
-t_stat examine(uint32 va, uint8 *val);
-t_stat deposit(uint32 va, uint8 val);
+t_stat read_operand(uint32_t va, uint8_t *val);
+t_stat examine(uint32_t va, uint8_t *val);
+t_stat deposit(uint32_t va, uint8_t val);
 
 #endif /* _3B2_MEM_H_ */

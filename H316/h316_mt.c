@@ -86,32 +86,32 @@
 #define STA_EOT         0000001                         /* end of tape */
 
 extern int32 dev_int, dev_enb;
-extern uint32 chan_req;
+extern uint32_t chan_req;
 extern int32 stop_inst;
 
-uint32 mt_buf = 0;                                      /* data buffer */
-uint32 mt_usel = 0;                                     /* unit select */
-uint32 mt_busy = 0;                                     /* ctlr busy */
-uint32 mt_mdirq = 0;                                    /* motion done int req */
-uint32 mt_rdy = 0;                                      /* transfer ready (int) */
-uint32 mt_err = 0;                                      /* error */
-uint32 mt_eof = 0;                                      /* end of file */
-uint32 mt_eor = 0;                                      /* transfer done */
-uint32 mt_dma = 0;                                      /* DMA/DMC */
-uint32 mt_xtime = 16;                                   /* transfer time */
-uint32 mt_ctime = 3000;                                 /* start/stop time */
-uint32 mt_stopioe = 1;                                  /* stop on I/O error */
-uint8 mtxb[DBSIZE] = { 0 };                             /* data buffer */
+uint32_t mt_buf = 0;                                      /* data buffer */
+uint32_t mt_usel = 0;                                     /* unit select */
+uint32_t mt_busy = 0;                                     /* ctlr busy */
+uint32_t mt_mdirq = 0;                                    /* motion done int req */
+uint32_t mt_rdy = 0;                                      /* transfer ready (int) */
+uint32_t mt_err = 0;                                      /* error */
+uint32_t mt_eof = 0;                                      /* end of file */
+uint32_t mt_eor = 0;                                      /* transfer done */
+uint32_t mt_dma = 0;                                      /* DMA/DMC */
+uint32_t mt_xtime = 16;                                   /* transfer time */
+uint32_t mt_ctime = 3000;                                 /* start/stop time */
+uint32_t mt_stopioe = 1;                                  /* stop on I/O error */
+uint8_t mtxb[DBSIZE] = { 0 };                             /* data buffer */
 t_mtrlnt mt_ptr = 0, mt_max = 0;                        /* buffer ptrs */
 
 int32 mtio (int32 inst, int32 fnc, int32 dat, int32 dev);
-void mt_updint (uint32 rdy, uint32 mdone);
+void mt_updint (uint32_t rdy, uint32_t mdone);
 t_stat mt_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
 t_stat mt_attach (UNIT *uptr, CONST char *cptr);
 t_stat mt_detach (UNIT *uptr);
 t_stat mt_map_err (UNIT *uptr, t_stat st);
-void mt_wrwd (UNIT *uptr, uint32 dat);
+void mt_wrwd (UNIT *uptr, uint32_t dat);
 
 /* MT data structures
 
@@ -187,9 +187,9 @@ DEVICE mt_dev = {
 
 int32 mtio (int32 inst, int32 fnc, int32 dat, int32 dev)
 {
-uint32 i, u = dev & 03;
+uint32_t i, u = dev & 03;
 UNIT *uptr = mt_dev.units + u;
-static uint8 wrt_fnc[16] = {                            /* >0 = wr, 1 = chan op */
+static uint8_t wrt_fnc[16] = {                            /* >0 = wr, 1 = chan op */
     0, 0, 0, 0, 1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0
     };
 
@@ -342,7 +342,7 @@ return dat;
 t_stat mt_svc (UNIT *uptr)
 {
 int32 ch = mt_dib.chan - 1;                             /* DMA/DMC ch */
-uint32 i, c1, c2, c3;
+uint32_t i, c1, c2, c3;
 t_mtrlnt tbc;
 t_bool passed_eot;
 t_stat st, r = SCPE_OK;
@@ -492,9 +492,9 @@ return SCPE_OK;
 
 /* Write word to buffer */
 
-void mt_wrwd (UNIT *uptr, uint32 dat)
+void mt_wrwd (UNIT *uptr, uint32_t dat)
 {
-uint32 c1, c2;
+uint32_t c1, c2;
 
 c1 = (dat >> 10) & 077;                                 /* get 2 chars */
 c2 = (dat >> 4) & 077;
@@ -560,7 +560,7 @@ return SCPE_OK;
 
 /* Update interrupts */
 
-void mt_updint (uint32 rdy, uint32 mdirq)
+void mt_updint (uint32_t rdy, uint32_t mdirq)
 {
 mt_rdy = rdy;                                           /* store new ready */
 mt_mdirq = mdirq;                                       /* store new motion irq */

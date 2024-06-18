@@ -121,24 +121,24 @@ uint64  AD;                                   /* Address Data */
 uint64  MB;                                   /* Memory Bufer Register */
 t_addr  AB;                                   /* Memory address buffer */
 t_addr  PC;                                   /* Program counter */
-uint32  IR;                                   /* Instruction register */
+uint32_t  IR;                                   /* Instruction register */
 uint64  MI;                                   /* Monitor lights */
-uint8   MI_flag;                              /* Monitor flags */
-uint8   MI_disable;                           /* Monitor flag disable */
-uint32  FLAGS;                                /* Flags */
-uint32  AC;                                   /* Operand accumulator */
+uint8_t   MI_flag;                              /* Monitor flags */
+uint8_t   MI_disable;                           /* Monitor flag disable */
+uint32_t  FLAGS;                                /* Flags */
+uint32_t  AC;                                   /* Operand accumulator */
 uint64  SW;                                   /* Switch register */
-uint8   RUN;                                  /* Run flag */
-uint8   prog_stop;                            /* Programmed stop */
+uint8_t   RUN;                                  /* Run flag */
+uint8_t   prog_stop;                            /* Programmed stop */
 #if PIDP10
-uint8   sing_inst_sw;                         /* Execute single inst */
-uint8   examine_sw;                           /* Examine memory */
-uint8   deposit_sw;                           /* Deposit memory */
-uint8   xct_sw;                               /* Execute SW */
-uint8   stop_sw;                              /* Stop simulation */
-uint32  rdrin_dev;                            /* Read in device */
-uint8   IX;                                   /* Index register */
-uint8   IND;                                  /* Indirect flag */
+uint8_t   sing_inst_sw;                         /* Execute single inst */
+uint8_t   examine_sw;                           /* Examine memory */
+uint8_t   deposit_sw;                           /* Deposit memory */
+uint8_t   xct_sw;                               /* Execute SW */
+uint8_t   stop_sw;                              /* Stop simulation */
+uint32_t  rdrin_dev;                            /* Read in device */
+uint8_t   IX;                                   /* Index register */
+uint8_t   IND;                                  /* Indirect flag */
 #endif
 t_addr  AS;                                   /* Address switches */
 int     BYF5;                                 /* Flag for second half of LDB/DPB instruction */
@@ -167,10 +167,10 @@ int     ill_op;                               /* Illegal opcode */
 int     user_io;                              /* User IO flag */
 int     ex_uuo_sync;                          /* Execute a UUO op */
 #endif
-uint16  IOB_PI;                               /* Input bus PI signals */
-uint8   PIR;                                  /* Current priority level */
-uint8   PIH;                                  /* Highest priority */
-uint8   PIE;                                  /* Priority enable mask */
+uint16_t  IOB_PI;                               /* Input bus PI signals */
+uint8_t   PIR;                                  /* Current priority level */
+uint8_t   PIH;                                  /* Highest priority */
+uint8_t   PIE;                                  /* Priority enable mask */
 int     pi_cycle;                             /* Executing an interrupt */
 int     pi_enable;                            /* Interrupts enabled */
 int     parity_irq;                           /* Parity interupt */
@@ -190,14 +190,14 @@ uint64  BRX;                                  /* Extension to BR */
 uint64  ADX;                                  /* Extension to AD */
 t_addr  ub_ptr;                               /* User base pointer */
 t_addr  eb_ptr;                               /* Executive base pointer */
-uint8   fm_sel;                               /* User fast memory block */
+uint8_t   fm_sel;                               /* User fast memory block */
 int32   apr_serial = -1;                      /* CPU Serial number */
 int     inout_fail;                           /* In out fail flag */
 #if KS
 int     ext_ac;                               /* Extended instruction AC */
-uint8   prev_ctx;                             /* Previous AC context */
-uint16  irq_enable;                           /* Apr IRQ enable bits */
-uint16  irq_flags;                            /* Apr IRQ bits */
+uint8_t   prev_ctx;                             /* Previous AC context */
+uint16_t  irq_enable;                           /* Apr IRQ enable bits */
+uint16_t  irq_flags;                            /* Apr IRQ bits */
 uint64  tim_low;                              /* Low order timer word */
 uint64  tim_high;                             /* High order timer word */
 uint64  int_val;                              /* Interval timer */
@@ -208,20 +208,20 @@ int     extend = 0;                           /* Process extended instruction */
 int     fe_xct = 0;                           /* Execute instruction at address */
 #if KS_ITS
 uint64  qua_time;                             /* Quantum clock value */
-uint8   pi_act;                               /* Current active PI level */
+uint8_t   pi_act;                               /* Current active PI level */
 #endif
 #elif KL
 int     ext_ac;                               /* Extended instruction AC */
-uint8   prev_ctx;                             /* Previous AC context */
-uint16  irq_enable;                           /* Apr IRQ enable bits */
-uint16  irq_flags;                            /* Apr IRQ bits */
+uint8_t   prev_ctx;                             /* Previous AC context */
+uint16_t  irq_enable;                           /* Apr IRQ enable bits */
+uint16_t  irq_flags;                            /* Apr IRQ bits */
 int     mtr_irq;                              /* Timer IRQ */
 int     mtr_enable;                           /* Enable Timer */
 int     mtr_flags;                            /* Flags for accounting */
 int     tim_per;                              /* Timer period */
 int     tim_val;                              /* Current timer value */
 int     rtc_tim;                              /* Time till next 60hz clock */
-uint32  brk_addr;                             /* Address break */
+uint32_t  brk_addr;                             /* Address break */
 int     brk_flags;                            /* Break flags */
 int     t20_page;                             /* Tops 20 paging selected */
 int     ptr_flg;                              /* Access to pointer value */
@@ -237,12 +237,12 @@ int     small_user;                           /* Small user flag */
 int     user_addr_cmp;                        /* User address compare flag */
 #endif
 #if KI | KL | ITS | BBN | KS
-uint32  e_tlb[512];                           /* Executive TLB */
-uint32  u_tlb[546];                           /* User TLB */
+uint32_t  e_tlb[512];                           /* Executive TLB */
+uint32_t  u_tlb[546];                           /* User TLB */
 int     page_enable;                          /* Enable paging */
 int     page_fault;                           /* Page fail */
-uint32  ac_stack;                             /* Register stack pointer */
-uint32  pag_reload;                           /* Page reload pointer */
+uint32_t  ac_stack;                             /* Register stack pointer */
+uint32_t  pag_reload;                           /* Page reload pointer */
 uint64  fault_data;                           /* Fault data from last fault */
 int     trap_flag;                            /* In trap cycle */
 int     last_page;                            /* Last page mapped */
@@ -259,15 +259,15 @@ uint64  pur;                                  /* Process use register */
 int     mpx_enable;                           /* Enable MPX device */
 #endif
 #if ITS
-uint32  dbr1;                                 /* User Low Page Table Address */
-uint32  dbr2;                                 /* User High Page Table Address */
-uint32  dbr3;                                 /* Exec High Page Table Address */
-uint32  jpc;                                  /* Jump program counter */
-uint8   age;                                  /* Age word */
-uint32  fault_addr;                           /* Fault address */
+uint32_t  dbr1;                                 /* User Low Page Table Address */
+uint32_t  dbr2;                                 /* User High Page Table Address */
+uint32_t  dbr3;                                 /* Exec High Page Table Address */
+uint32_t  jpc;                                  /* Jump program counter */
+uint8_t   age;                                  /* Age word */
+uint32_t  fault_addr;                           /* Fault address */
 uint64  opc;                                  /* Saved PC and Flags */
 uint64  mar;                                  /* Memory address compare */
-uint32  qua_time;                             /* Quantum clock value */
+uint32_t  qua_time;                             /* Quantum clock value */
 #if MAGIC_SWITCH
 int     MAGIC = 1;                            /* Magic switch. */
 #endif /* MAGIC_SWITCH */
@@ -307,9 +307,9 @@ uint64 pcst;
 int     watch_stop;                           /* Stop at memory watch point */
 int     maoff = 0;                            /* Offset for traps */
 
-uint16  dev_irq[128];                         /* Pending irq by device */
-t_stat  (*dev_tab[128])(uint32 dev, uint64 *data);
-t_addr  (*dev_irqv[128])(uint32 dev, t_addr addr);
+uint16_t  dev_irq[128];                         /* Pending irq by device */
+t_stat  (*dev_tab[128])(uint32_t dev, uint64 *data);
+t_addr  (*dev_irqv[128])(uint32_t dev, t_addr addr);
 t_stat  cpu_detach(UNIT *uptr);
 t_stat  rtc_srv(UNIT * uptr);
 #if KS
@@ -366,14 +366,14 @@ struct rh_dev rh[8];
 #endif
 
 typedef struct {
-    uint32      pc;
-    uint32      ea;
+    uint32_t      pc;
+    uint32_t      ea;
     uint64      ir;
     uint64      ac;
-    uint32      flags;
+    uint32_t      flags;
     uint64      mb;
     uint64      fmb;
-    uint16      prev_sect;
+    uint16_t      prev_sect;
     } InstHistory;
 
 int32 hst_p = 0;                         /* history pointer */
@@ -383,7 +383,7 @@ InstHistory *hst = NULL;                 /* instruction history */
 /* Forward and external declarations */
 
 #if KL | KS
-int    do_extend(uint32 IA);
+int    do_extend(uint32_t IA);
 #endif
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
@@ -843,10 +843,10 @@ load_quantum()
     if (sim_is_active(&cpu_unit[1])) {
        double us;
        us = sim_activate_time_usecs (&cpu_unit[1]);
-       if ((uint32)us > BIT17)
+       if ((uint32_t)us > BIT17)
           qua_time = BIT17;
        else
-          qua_time = (BIT17 - (uint32)us) & RMASK;
+          qua_time = (BIT17 - (uint32_t)us) & RMASK;
        sim_cancel(&cpu_unit[1]);
     }
 }
@@ -854,14 +854,14 @@ load_quantum()
 /*
  * Get the current quantum time.
  */
-uint32
+uint32_t
 get_quantum()
 {
-    uint32  t = qua_time;
+    uint32_t  t = qua_time;
     if (sim_is_active(&cpu_unit[1])) {
        double us;
        us = sim_activate_time_usecs (&cpu_unit[1]);
-       t = (BIT17 - (uint32)us) & RMASK;
+       t = (BIT17 - (uint32_t)us) & RMASK;
     }
     return t;
 }
@@ -906,7 +906,7 @@ void set_interrupt_mpx(int dev, int lvl, int mpx) {
  * Clear the interrupt flag for a device
  */
 void clr_interrupt(int dev) {
-    uint16   lvl;
+    uint16_t   lvl;
     int      i;
     dev_irq[dev>>2] = 0;
     /* Update bus PI flags */
@@ -1025,7 +1025,7 @@ void set_pi_hold() {
 /*
  * PI device for KA and KI and KL
  */
-t_stat dev_pi(uint32 dev, uint64 *data) {
+t_stat dev_pi(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 3) {
     case CONO:
@@ -1137,7 +1137,7 @@ t_stat dev_pi(uint32 dev, uint64 *data) {
 /*
  * Non existent device
 */
-t_stat null_dev(uint32 dev, uint64 *data) {
+t_stat null_dev(uint32_t dev, uint64 *data) {
     switch(dev & 3) {
     case CONI:
     case DATAI:
@@ -1174,7 +1174,7 @@ update_times(int tim)
 /*
  * Page device for KL10.
  */
-t_stat dev_pag(uint32 dev, uint64 *data) {
+t_stat dev_pag(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     int    i;
     switch(dev & 03) {
@@ -1222,7 +1222,7 @@ t_stat dev_pag(uint32 dev, uint64 *data) {
         } else {
             res = *data;
             if (res & SMASK) {
-                fm_sel = (uint8)(res >> 23) & 0160;
+                fm_sel = (uint8_t)(res >> 23) & 0160;
                 prev_ctx = (res >> 20) & 0160;
             }
             if (QKLB && (res & BIT1) != 0) {
@@ -1273,7 +1273,7 @@ t_stat dev_pag(uint32 dev, uint64 *data) {
  * Cache control.
  * All operations set sweep done.
  */
-t_stat dev_cca(uint32 dev, uint64 *data) {
+t_stat dev_cca(uint32_t dev, uint64 *data) {
     irq_flags |= SWP_DONE;
     *data = 0;
     check_apr_irq();
@@ -1298,7 +1298,7 @@ void check_apr_irq() {
 /*
  * APR device for KL10.
  */
-t_stat dev_apr(uint32 dev, uint64 *data) {
+t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
 
     switch(dev & 03) {
@@ -1353,7 +1353,7 @@ t_stat dev_apr(uint32 dev, uint64 *data) {
 /*
  * MTR device for KL10.
  */
-t_stat dev_mtr(uint32 dev, uint64 *data) {
+t_stat dev_mtr(uint32_t dev, uint64 *data) {
 
     switch(dev & 03) {
     case CONI:
@@ -1398,7 +1398,7 @@ t_stat dev_mtr(uint32 dev, uint64 *data) {
 /*
  * TIM device for KL10.
  */
-t_stat dev_tim(uint32 dev, uint64 *data) {
+t_stat dev_tim(uint32_t dev, uint64 *data) {
     uint64 res;
     double us;
     UNIT   *uptr = &cpu_unit[1 + ITS];
@@ -1461,7 +1461,7 @@ t_stat dev_tim(uint32 dev, uint64 *data) {
 }
 
 t_addr
-tim_irq(uint32 dev, t_addr addr)
+tim_irq(uint32_t dev, t_addr addr)
 {
     return 0514;
 }
@@ -1474,7 +1474,7 @@ static int      timer_irq, timer_flg;
 /*
  * Page device for KI10.
  */
-t_stat dev_pag(uint32 dev, uint64 *data) {
+t_stat dev_pag(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     int    i;
     switch(dev & 03) {
@@ -1511,7 +1511,7 @@ t_stat dev_pag(uint32 dev, uint64 *data) {
                u_tlb[i] = 0;
             user_addr_cmp = (res & BIT4) != 0;
             small_user =    (res & BIT3) != 0;
-            fm_sel = (uint8)(res >> 29) & 060;
+            fm_sel = (uint8_t)(res >> 29) & 060;
        }
        pag_reload = 0;
        sim_debug(DEBUG_DATAIO, &cpu_dev,
@@ -1558,7 +1558,7 @@ void check_apr_irq() {
 /*
  * APR device for KI10.
  */
-t_stat dev_apr(uint32 dev, uint64 *data) {
+t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 03) {
     case CONI:
@@ -1622,7 +1622,7 @@ t_stat dev_apr(uint32 dev, uint64 *data) {
 #if KA
 
 #if BBN
-t_stat dev_pag(uint32 dev, uint64 *data) {
+t_stat dev_pag(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     int    i;
     int    page_limit[] = {
@@ -1709,7 +1709,7 @@ void check_apr_irq() {
 /*
  * APR Device for KA10.
  */
-t_stat dev_apr(uint32 dev, uint64 *data) {
+t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 03) {
     case CONI:
@@ -2081,16 +2081,16 @@ pg_loop:
        sim_interval--;
        if (uf) {
            data = M[ub_ptr + (page >> 1)];
-           u_tlb[page & 01776] = (uint32)(RMASK & (data >> 18));
-           u_tlb[page | 1] = (uint32)(RMASK & data);
+           u_tlb[page & 01776] = (uint32_t)(RMASK & (data >> 18));
+           u_tlb[page | 1] = (uint32_t)(RMASK & data);
            data = u_tlb[page];
        } else {
            if (page & 0400)
                data = M[eb_ptr + (page >> 1)];
            else
                data = M[eb_ptr + (page >> 1) + 0600];
-           e_tlb[page & 01776] = (uint32)(RMASK & (data >> 18));
-           e_tlb[page | 1] = (uint32)(RMASK & data);
+           e_tlb[page & 01776] = (uint32_t)(RMASK & (data >> 18));
+           e_tlb[page | 1] = (uint32_t)(RMASK & data);
            data = e_tlb[page];
        }
     }
@@ -2580,16 +2580,16 @@ pg_loop:
        sim_interval--;
        if (uf) {
            data = M[ub_ptr + (page >> 1)];
-           u_tlb[page & 01776] = (uint32)(RMASK & (data >> 18));
-           u_tlb[page | 1] = (uint32)(RMASK & data);
+           u_tlb[page & 01776] = (uint32_t)(RMASK & (data >> 18));
+           u_tlb[page | 1] = (uint32_t)(RMASK & data);
            data = u_tlb[page];
        } else {
            if (page & 0400)
                data = M[eb_ptr + (page >> 1)];
            else
                data = M[eb_ptr + (page >> 1) + 0600];
-           e_tlb[page & 01776] = (uint32)(RMASK & (data >> 18));
-           e_tlb[page | 1] = (uint32)(RMASK & data);
+           e_tlb[page & 01776] = (uint32_t)(RMASK & (data >> 18));
+           e_tlb[page | 1] = (uint32_t)(RMASK & data);
            data = e_tlb[page];
        }
     }
@@ -2961,7 +2961,7 @@ int Mem_deposit_word(int n, int wrd, uint64 *data) {
 /*
  * Read in 16 bits of data from a byte pointer.
  */
-int Mem_read_byte(int n, uint16 *data, int byte) {
+int Mem_read_byte(int n, uint16_t *data, int byte) {
     t_addr   addr;
     uint64   val;
     uint64   msk;
@@ -3003,13 +3003,13 @@ int Mem_read_byte(int n, uint16 *data, int byte) {
     return s;
 }
 
-int Mem_write_byte(int n, uint16 *data) {
+int Mem_write_byte(int n, uint16_t *data) {
     t_addr   addr;
     uint64   val;
     uint64   msk;
     int      p, s, np;
     int      need = 16;
-    uint16   dat = *data;
+    uint16_t   dat = *data;
 
     dat = ((dat >> 8) & 0377) | ((dat & 0377) << 8);
     while (need > 0) {
@@ -3332,7 +3332,7 @@ write:
 /*
  * Load TBL entry for ITS.
  */
-int its_load_tlb(uint32 reg, int page, uint32 *tlb) {
+int its_load_tlb(uint32_t reg, int page, uint32_t *tlb) {
     uint64 data;
     int len = (reg >> 19) & 0177;
     unsigned int entry = (reg & 01777777) + ((page & 0377) >> 1);
@@ -3359,7 +3359,7 @@ int its_load_tlb(uint32 reg, int page, uint32 *tlb) {
     if ((page & 1) == 0)
         data >>= 18;
     data &= RMASK;
-    *tlb = (uint32)data;
+    *tlb = (uint32_t)data;
     pag_reload = ((pag_reload + 1) & 017);
     return 0;
 }
@@ -3645,7 +3645,7 @@ int page_lookup_bbn(t_addr addr, int flag, t_addr *loc, int wr, int cur_context,
                   bit 8 = address limit register violation or p.t. bits
                           0,1 = 3 (illegal format */
     uint64   data;
-    uint32   tlb_data;
+    uint32_t   tlb_data;
     uint64   traps;
     int      base = 0;
     int      lvl = 0;
@@ -3762,7 +3762,7 @@ access:
              /* Bit 3 = Write */
              /* Bit 2 = Read */
              traps &= data & (BBN_MERGE|BBN_TRPPG);
-             tlb_data = (uint32)(((data & (BBN_EXEC|BBN_WRITE|BBN_READ)) >> 16) |
+             tlb_data = (uint32_t)(((data & (BBN_EXEC|BBN_WRITE|BBN_READ)) >> 16) |
                          (data & 03777));
              match = 1;
              break;
@@ -4152,7 +4152,7 @@ void check_apr_irq() {
 /*
  * APR Device for PDP6.
  */
-t_stat dev_apr(uint32 dev, uint64 *data) {
+t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 03) {
     case CONI:
@@ -6254,7 +6254,7 @@ dpnorm:
                       dbr3 = ((0377 << 18) | RMASK) & MB;
                       AB = (AB + 1) & RMASK;
                       MB = M[AB];                /* WD 7 */
-                      ac_stack = (uint32)MB;
+                      ac_stack = (uint32_t)MB;
                       page_enable = 1;
                       check_apr_irq();
                   }
@@ -6326,14 +6326,14 @@ dpnorm:
                       FLAGS &= ~USER;
                    }
                    if (Mem_read(0, 0, 0, 0)) {
-                       FLAGS = (uint32)(BR >> 23); /* On error restore flags */
+                       FLAGS = (uint32_t)(BR >> 23); /* On error restore flags */
                        goto last;
                    }
                    AR = MB;
                    AB = (AR >> 18) & RMASK;
                    MB = BR;
                    if (Mem_write(0, 0)) {
-                       FLAGS = (uint32)(BR >> 23); /* On error restore flags */
+                       FLAGS = (uint32_t)(BR >> 23); /* On error restore flags */
                        goto last;
                    }
                    PC = AR & RMASK;
@@ -11116,8 +11116,8 @@ skip_op:
                                  if (Mem_read(0, 0, 0, 0))
                                     goto last;
                                  if (MB & SMASK) {
-                                     fm_sel = (uint8)(MB >> 23) & 0160;
-                                     prev_ctx = (uint8)(MB >> 20) & 0160;
+                                     fm_sel = (uint8_t)(MB >> 23) & 0160;
+                                     prev_ctx = (uint8_t)(MB >> 20) & 0160;
                                  }
                                  if (MB & BIT2) {
 #if KS_ITS
@@ -12726,7 +12726,7 @@ bak_byte(int n, int cnt)
 
 /* Preform a table lookup operation */
 int
-do_xlate(uint32 tbl, uint64 val, int mask)
+do_xlate(uint32_t tbl, uint64 val, int mask)
 {
     uint64 reg;
     int f;
@@ -12811,7 +12811,7 @@ uint64 pow10_tab[22][2] = {
  *          IR = opcode.
  */
 int
-do_extend(uint32 ia)
+do_extend(uint32_t ia)
 {
     uint64     fill1, fill2;
     uint64     val1, val2;
@@ -13180,7 +13180,7 @@ do_extend(uint32 ia)
 #if KL
                       sect = xlat_sect;
 #endif
-                      f = do_xlate((uint32)(val2 & RMASK), val1, 017);
+                      f = do_xlate((uint32_t)(val2 & RMASK), val1, 017);
                       if (f < 0)
                           break;
                       if (f)
@@ -13369,7 +13369,7 @@ do_extend(uint32 ia)
 #if KL
                       sect = xlat_sect;
 #endif
-                      f = do_xlate((uint32)(val2), val1, 07777);
+                      f = do_xlate((uint32_t)(val2), val1, 07777);
                       if (f < 0)
                           return 0;
                       if (f)
@@ -13681,7 +13681,7 @@ else {
     if (sw & SWMASK ('V')) {
         int uf = ((sw & SWMASK('U')) != 0);
         int page = ea >> 9;
-        uint32  tlb;
+        uint32_t  tlb;
 #if KL | KS
         if (!uf && !t20_page && (page & 0740) == 0340) {
 #else
@@ -13719,7 +13719,7 @@ else {
     if (sw & SWMASK ('V')) {
         int uf = ((sw & SWMASK('U')) != 0);
         int page = ea >> 9;
-        uint32  tlb;
+        uint32_t  tlb;
 #if KL | KS
         if (!uf && !t20_page && (page & 0740) == 0340) {
 #else
@@ -13773,7 +13773,7 @@ if (val < (int32)MEMSIZE) {
 }
 for (i = (int32)MEMSIZE; i < val; i++)
     M[i] = 0;
-cpu_unit[0].capac = (uint32)val;
+cpu_unit[0].capac = (uint32_t)val;
 return SCPE_OK;
 }
 
@@ -13783,9 +13783,9 @@ t_bool build_dev_tab (void)
 {
     DEVICE *dptr;
     DIB    *dibp;
-    uint32 i, j, d;
+    uint32_t i, j, d;
 #if KL
-    uint32  rh20;
+    uint32_t  rh20;
 #endif
 #if !PDP6
     int     rh_idx;

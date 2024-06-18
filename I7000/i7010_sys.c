@@ -225,9 +225,9 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t              opbase;
     const char         *name;
-    uint8               type;
+    uint8_t               type;
 }
 t_opcode;
 
@@ -531,7 +531,7 @@ const char *chname[] = {
 
 
 /* Print out a address plus index */
-t_stat fprint_addr (FILE *of, uint32 addr) {
+t_stat fprint_addr (FILE *of, uint32_t addr) {
     int i;
     int reg;
 
@@ -545,7 +545,7 @@ t_stat fprint_addr (FILE *of, uint32 addr) {
 }
 
 /* Print out a 1401 address plus index */
-t_stat fprint_addr_1401 (FILE *of, uint32 addr) {
+t_stat fprint_addr_1401 (FILE *of, uint32_t addr) {
     int reg;
     int v = 0;
 
@@ -580,8 +580,8 @@ t_stat fprint_addr_1401 (FILE *of, uint32 addr) {
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 {
 int32   i, t;
-uint32  a, b;
-uint8   op, mod, flags;
+uint32_t  a, b;
+uint8_t   op, mod, flags;
 
 if (sw & SWMASK ('C')) {                                /* character? */
     t = val[0];
@@ -605,7 +605,7 @@ if (sw & SWMASK ('S')) {                                /* string? */
     return -(i - 1);
     }
 if (sw & SWMASK ('N')) {                                /* 1401 machine code? */
-    uint16      temp;
+    uint16_t      temp;
     t_opcode    *tab;
 
     mod = 0;
@@ -781,7 +781,7 @@ if (sw & SWMASK ('N')) {                                /* 1401 machine code? */
     return -(i - 1);
 }
 if (sw & SWMASK ('M')) {                                /* machine code? */
-    uint16      temp;
+    uint16_t      temp;
     t_opcode    *tab;
 
     mod = 0;

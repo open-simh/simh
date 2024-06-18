@@ -49,8 +49,8 @@ extern DEVICE mt_dev;
 extern DEVICE mux_dev, muxl_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint32 cpu_mode;
-extern uint32 M[MAXMEMSIZE];
+extern uint32_t cpu_mode;
+extern uint32_t M[MAXMEMSIZE];
 
 /* SCP data structures and interface routines
 
@@ -200,7 +200,7 @@ t_stat sim_load_cct (FILE *fileref)
 int32 col, rpt, ptr, mask, cctbuf[CCT_LNT];
 t_stat r;
 extern int32 lpt_ccl, lpt_ccp;
-extern uint8 lpt_cct[CCT_LNT];
+extern uint8_t lpt_cct[CCT_LNT];
 CONST char *cptr;
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
@@ -261,7 +261,7 @@ t_stat sim_load (FILE *fileref, CONST char *cptr, CONST char *fnam, int flag)
 {
 int32 i, wd, buf[8];
 int32 ldr = 1;
-extern uint32 P;
+extern uint32_t P;
 
 if ((*cptr != 0) || (flag != 0))
     return SCPE_ARG;

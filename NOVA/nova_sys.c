@@ -67,7 +67,7 @@ extern DEVICE mta_dev;
 extern DEVICE qty_dev;
 extern DEVICE alm_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 saved_PC;
 extern int32 AMASK;
 

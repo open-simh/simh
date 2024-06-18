@@ -73,13 +73,13 @@ typedef enum {                                  /* derived from IR bits 11-6 */
 
 /* DMA global state */
 
-extern uint32 dma_request_set;
+extern uint32_t dma_request_set;
 
 
 /* DMA global utility routine declarations */
 
 extern void dma_configure  (void);
-extern void dma_assert_SRQ (uint32 select_code);
+extern void dma_assert_SRQ (uint32_t select_code);
 extern void dma_service    (void);
 
 
@@ -120,8 +120,8 @@ typedef enum {
 
 /* Memory global data */
 
-extern uint32 mem_size;                         /* size of memory in words */
-extern uint32 mem_end;                          /* address of the first word beyond memory */
+extern uint32_t mem_size;                         /* size of memory in words */
+extern uint32_t mem_end;                          /* address of the first word beyond memory */
 
 
 /* Memory Expansion Unit definitions */
@@ -140,7 +140,7 @@ typedef enum {                                  /* MEM operational state */
 /* Memory Expansion Unit global state */
 
 extern char   meu_indicator;                    /* last map access indicator (S | U | A | B | -) */
-extern uint32 meu_page;                         /* last physical page number accessed */
+extern uint32_t meu_page;                         /* last physical page number accessed */
 
 
 /* Memory Protect global state */
@@ -150,56 +150,56 @@ extern HP_WORD mp_fence;                        /* memory protect fence register
 
 /* I/O subsystem global utility routine declarations */
 
-extern t_bool    io_control  (uint32 select_code, IO_GROUP_OP micro_op);
-extern SKPF_DATA io_dispatch (uint32 select_code, INBOUND_SET inbound_signals, HP_WORD inbound_value);
+extern t_bool    io_control  (uint32_t select_code, IO_GROUP_OP micro_op);
+extern SKPF_DATA io_dispatch (uint32_t select_code, INBOUND_SET inbound_signals, HP_WORD inbound_value);
 
 
 /* Main memory global utility routine declarations */
 
-extern t_stat mem_initialize (uint32 memory_size);
+extern t_stat mem_initialize (uint32_t memory_size);
 
 extern HP_WORD mem_read       (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD address);
 extern void    mem_write      (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD address, HP_WORD value);
-extern uint8   mem_read_byte  (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address);
-extern void    mem_write_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address, uint8 value);
+extern uint8_t   mem_read_byte  (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address);
+extern void    mem_write_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address, uint8_t value);
 
 extern HP_WORD mem_fast_read (HP_WORD address, MEU_MAP_SELECTOR map);
 
-extern void   mem_zero            (uint32 starting_address, uint32 fill_count);
-extern t_bool mem_is_empty        (uint32 starting_address);
-extern void   mem_copy_loader     (MEMORY_WORD *buffer, uint32 starting_address, COPY_DIRECTION mode);
+extern void   mem_zero            (uint32_t starting_address, uint32_t fill_count);
+extern t_bool mem_is_empty        (uint32_t starting_address);
+extern void   mem_copy_loader     (MEMORY_WORD *buffer, uint32_t starting_address, COPY_DIRECTION mode);
 extern t_bool mem_is_idle_loop    (void);
 extern void   mem_trace_registers (FLIP_FLOP interrupt_system);
 
 /* Main memory global utility routines declared in io.h
 
-extern HP_WORD mem_examine  (uint32 address);
-extern void    mem_deposit  (uint32 address, HP_WORD value);
+extern HP_WORD mem_examine  (uint32_t address);
+extern void    mem_deposit  (uint32_t address, HP_WORD value);
 */
 
 
 /* Memory Expansion Unit global utility routine declarations */
 
 extern void    meu_configure        (MEU_STATE configuration);
-extern HP_WORD meu_read_map         (MEU_MAP_SELECTOR map, uint32 index);
-extern void    meu_write_map        (MEU_MAP_SELECTOR map, uint32 index, uint32 value);
+extern HP_WORD meu_read_map         (MEU_MAP_SELECTOR map, uint32_t index);
+extern void    meu_write_map        (MEU_MAP_SELECTOR map, uint32_t index, uint32_t value);
 extern void    meu_set_fence        (HP_WORD new_fence);
 extern void    meu_set_state        (MEU_STATE operation, MEU_MAP_SELECTOR map);
 extern HP_WORD meu_update_status    (void);
 extern HP_WORD meu_update_violation (void);
 extern void    meu_assert_IAK       (void);
 extern void    meu_privileged       (MEU_CONDITION condition);
-extern uint32  meu_breakpoint_type  (t_bool is_iak);
-extern uint32  meu_map_address      (HP_WORD logical, int32 switches);
+extern uint32_t  meu_breakpoint_type  (t_bool is_iak);
+extern uint32_t  meu_map_address      (HP_WORD logical, int32 switches);
 
 
 /* Memory Protect global utility routine declarations */
 
 extern t_bool mp_initialize          (void);
 extern void   mp_configure           (t_bool is_enabled, t_bool is_optional);
-extern void   mp_check_jmp           (HP_WORD address, uint32 lower_bound);
+extern void   mp_check_jmp           (HP_WORD address, uint32_t lower_bound);
 extern void   mp_check_jsb           (HP_WORD address);
-extern void   mp_check_io            (uint32 select_code, IO_GROUP_OP micro_op);
+extern void   mp_check_io            (uint32_t select_code, IO_GROUP_OP micro_op);
 extern void   mp_violation           (void);
 extern void   mp_disable             (void);
 extern t_bool mp_is_on               (void);

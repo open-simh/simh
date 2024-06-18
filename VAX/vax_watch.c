@@ -105,7 +105,7 @@ int32 wtc_csrb = 0;
 int32 wtc_csrc = 0;
 int32 wtc_csrd = 0;
 int32 wtc_mode = WTC_MODE_VMS;
-uint8 wtc_ram[64];
+uint8_t wtc_ram[64];
 
 t_stat wtc_set (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat wtc_show (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
@@ -246,7 +246,7 @@ if (rg < 14) {
             break;
             }
     sim_debug(DBG_REG, &wtc_dev, "wtc_rd(rg=%d [%s], data=0x%X) ", rg, wtc_regs[rg], val);
-    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)val, (uint32)val, TRUE);
+    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32_t)val, (uint32_t)val, TRUE);
     }
 else
     sim_debug(DBG_REG, &wtc_dev, "wtc_rd(rg=%d [RAM], data=0x%X)\n", rg, val);
@@ -289,7 +289,7 @@ switch(rg) {                                            /* register behaviors */
 
 if (rg < 14) {
     sim_debug(DBG_REG, &wtc_dev, "wtc_wr(rg=%d [%s], data=0x%X) ", rg, wtc_regs[rg], val);
-    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)new_val, (uint32)new_val, TRUE);
+    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32_t)new_val, (uint32_t)new_val, TRUE);
     }
 else
     sim_debug(DBG_REG, &wtc_dev, "wtc_wr(rg=%d [RAM], data=0x%X)\n", rg, val);

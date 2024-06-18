@@ -94,7 +94,7 @@
 #define LPT_WIDTH       132                             /* line print width */
 #define CCT_LNT         132                             /* car ctrl length */
 #define INQ_WIDTH       80                              /* inq term width */
-#define ADDR_ERR(x)     (((uint32) (x)) >= MEMSIZE)
+#define ADDR_ERR(x)     (((uint32_t) (x)) >= MEMSIZE)
 
 /* Binary address format
 
@@ -311,7 +311,7 @@ extern const char bcd_to_ascii_a[64];
 extern const char bcd_to_ascii_h[64];
 extern const char bcd_to_pca[64];
 extern const char bcd_to_pch[64];
-extern const uint32 bcd_to_colbin[64];
+extern const uint32_t bcd_to_colbin[64];
 extern const int32 bcd_to_bin[16];
 extern const int32 bin_to_bcd[16];
 extern const int32 one_table[64];

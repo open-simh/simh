@@ -178,18 +178,18 @@
 
 /* external globals */
 
-extern uint16    PCX;
+extern uint16_t    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16 port);
-extern uint8 get_mbyte(uint16 addr);
-extern void put_mbyte(uint16 addr, uint8 val);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t port);
+extern uint8_t get_mbyte(uint16_t addr);
+extern void put_mbyte(uint16_t addr, uint8_t val);
 
 /* function prototypes */
 
-t_stat isbc206_cfg(uint16 base, uint16 size, uint8 devnum);
+t_stat isbc206_cfg(uint16_t base, uint16_t size, uint8_t devnum);
 t_stat isbc206_clr(void);
 t_stat isbc206_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat isbc206_set_int(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -199,11 +199,11 @@ t_stat isbc206_reset(DEVICE *dptr);
 void isbc206_reset_dev(void);
 t_stat isbc206_attach (UNIT *uptr, CONST char *cptr);
 t_stat isbc206_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 0 */
-uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 1 */
-uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 2 */
-uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 3 */
-uint8 isbc206r7(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 7 */
+uint8_t isbc206r0(t_bool io, uint8_t data, uint8_t devnum);  /* isbc206 port 0 */
+uint8_t isbc206r1(t_bool io, uint8_t data, uint8_t devnum);  /* isbc206 port 1 */
+uint8_t isbc206r2(t_bool io, uint8_t data, uint8_t devnum);  /* isbc206 port 2 */
+uint8_t isbc206r3(t_bool io, uint8_t data, uint8_t devnum);  /* isbc206 port 3 */
+uint8_t isbc206r7(t_bool io, uint8_t data, uint8_t devnum);  /* isbc206 port 7 */
 void isbc206_diskio(void);       //do actual disk i/o
 
 /* globals */
@@ -216,21 +216,21 @@ static const char* isbc206_desc(DEVICE *dptr) {
 typedef    struct    {                  //HDD definition
     int     t0;
     int     rdy;
-    uint8   sec;
-    uint8   cyl;
+    uint8_t   sec;
+    uint8_t   cyl;
     }    HDDDEF;
 
 typedef    struct    {                  //HDC definition
-    uint8   baseport;                   //HDC base port
-    uint8   intnum;                     //interrupt number
-    uint8   verb;                       //verbose flag
-    uint16  iopb;                       //HDC IOPB
-    uint8   stat;                       //HDC status
-    uint8   rdychg;                     //HDC ready change
-    uint8   rtype;                      //HDC result type
-    uint8   rbyte0;                     //HDC result byte for type 00
-    uint8   rbyte1;                     //HDC result byte for type 10
-    uint8   intff;                      //HDC interrupt FF
+    uint8_t   baseport;                   //HDC base port
+    uint8_t   intnum;                     //interrupt number
+    uint8_t   verb;                       //verbose flag
+    uint16_t  iopb;                       //HDC IOPB
+    uint8_t   stat;                       //HDC status
+    uint8_t   rdychg;                     //HDC ready change
+    uint8_t   rtype;                      //HDC result type
+    uint8_t   rbyte0;                     //HDC result byte for type 00
+    uint8_t   rbyte1;                     //HDC result byte for type 10
+    uint8_t   intff;                      //HDC interrupt FF
     HDDDEF  hd[HDD_NUM];                //indexed by the HDD number
     }    HDCDEF;
 
@@ -308,7 +308,7 @@ DEVICE isbc206_dev = {
 
 // iSBC 201 configuration
 
-t_stat isbc206_cfg(uint16 baseport, uint16 devnum, uint8 intnum)
+t_stat isbc206_cfg(uint16_t baseport, uint16_t devnum, uint8_t intnum)
 {
     int i;
     UNIT *uptr;
@@ -373,7 +373,7 @@ t_stat isbc206_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat isbc206_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result;
+    uint32_t size, result;
     
     if (uptr == NULL)
         return SCPE_ARG;
@@ -393,7 +393,7 @@ t_stat isbc206_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat isbc206_set_int(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result;
+    uint32_t size, result;
     
     if (uptr == NULL)
         return SCPE_ARG;
@@ -480,7 +480,7 @@ void isbc206_reset_dev(void)
 t_stat isbc206_attach (UNIT *uptr, CONST char *cptr)
 {
     t_stat r;
-    uint8 hddnum;
+    uint8_t hddnum;
 
     if ((r = attach_unit (uptr, cptr)) != SCPE_OK) { 
         sim_printf("   isbc206_attach: Attach error %d\n", r);
@@ -504,7 +504,7 @@ t_stat isbc206_attach (UNIT *uptr, CONST char *cptr)
 
 /* iSBC206 control port functions */
 
-uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc206r0(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read status*/
         return hdc206.stat;
@@ -512,7 +512,7 @@ uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc206r1(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read data port */
         hdc206.intff = 0;           //clear interrupt FF
@@ -525,7 +525,7 @@ uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc206r2(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read data port */
         ;
@@ -538,7 +538,7 @@ uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc206r3(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read data port */
         if (hdc206.rtype == ROK) {
@@ -557,7 +557,7 @@ uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum)
 }
 
 
-uint8 isbc206r7(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc206r7(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read data port */
         ;
@@ -571,13 +571,13 @@ uint8 isbc206r7(t_bool io, uint8 data, uint8 devnum)
 
 void isbc206_diskio(void)
 {
-    uint8 cw, di, nr, ta, sa, data, nrptr;
-    uint16 ba;
-    uint32 dskoff;
-    uint8 hddnum, fmtb;
-    uint32 i;
+    uint8_t cw, di, nr, ta, sa, data, nrptr;
+    uint16_t ba;
+    uint32_t dskoff;
+    uint8_t hddnum, fmtb;
+    uint32_t i;
     UNIT *uptr;
-    uint8 *fbuf;
+    uint8_t *fbuf;
 
     //parse the IOPB 
     cw = get_mbyte(hdc206.iopb);
@@ -588,7 +588,7 @@ void isbc206_diskio(void)
     ba = get_mbyte(hdc206.iopb + 5);
     hddnum = (di & 0x30) >> 4;
     uptr = isbc206_dev.units + hddnum;
-    fbuf = (uint8 *) (isbc206_dev.units + hddnum)->filebuf;
+    fbuf = (uint8_t *) (isbc206_dev.units + hddnum)->filebuf;
     //check for not ready
     switch(hddnum) {
         case 0:
@@ -662,7 +662,7 @@ void isbc206_diskio(void)
             fmtb = get_mbyte(ba); //get the format byte
             //calculate offset into disk image
             dskoff = ((ta * MAXSECHD) + (sa - 1)) * 128;
-            for(i=0; i<=((uint32)(MAXSECHD) * 128); i++) {
+            for(i=0; i<=((uint32_t)(MAXSECHD) * 128); i++) {
                 *(fbuf + (dskoff + i)) = fmtb;
             }
             hdc206.rtype = ROK;

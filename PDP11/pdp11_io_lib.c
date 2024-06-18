@@ -101,7 +101,7 @@ t_stat set_addr (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newba;
+uint32_t newba;
 t_stat r;
 
 if (cptr == NULL)
@@ -114,11 +114,11 @@ if (dptr == NULL)
 dibp = (DIB *) dptr->ctxt;
 if (dibp == NULL)
     return SCPE_IERR;
-newba = (uint32) get_uint (cptr, DEV_RDX, IOPAGEBASE+IOPAGEMASK, &r); /* get new */
+newba = (uint32_t) get_uint (cptr, DEV_RDX, IOPAGEBASE+IOPAGEMASK, &r); /* get new */
 if (r != SCPE_OK)
     return r;
 if ((newba <= IOPAGEBASE) ||                            /* > IO page base? */
-    (newba % ((uint32) val)))                           /* check modulus */
+    (newba % ((uint32_t) val)))                           /* check modulus */
     return SCPE_ARG;
 dibp->ba = newba;                                       /* store */
 set_autocon (NULL, 0, NULL, NULL);                      /* autoconfig off */
@@ -131,7 +131,7 @@ t_stat show_addr (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 radix = DEV_RDX;
+uint32_t radix = DEV_RDX;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -196,7 +196,7 @@ t_stat set_vec (UNIT *uptr, int32 arg, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newvec;
+uint32_t newvec;
 t_stat r;
 
 if (cptr == NULL)
@@ -209,7 +209,7 @@ if (dptr == NULL)
 dibp = (DIB *) dptr->ctxt;
 if (dibp == NULL)
     return SCPE_IERR;
-newvec = (uint32) get_uint (cptr, DEV_RDX, 01000, &r);
+newvec = (uint32_t) get_uint (cptr, DEV_RDX, 01000, &r);
 if ((r != SCPE_OK) ||
     ((newvec + (dibp->vnum * 4)) >= 01000) ||           /* total too big? */
     (newvec & ((dibp->vnum > 1)? 07: 03)))              /* properly aligned value? */
@@ -225,7 +225,7 @@ t_stat show_vec (FILE *st, UNIT *uptr, int32 arg, CONST void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 vec, numvec, br_lvl, radix = DEV_RDX;
+uint32_t vec, numvec, br_lvl, radix = DEV_RDX;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -445,13 +445,13 @@ return SCPE_OK;
 
 t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 i, j;
+uint32_t i, j;
 DEVICE *dptr;
 DIB *dibp;
-uint32 maxaddr, maxname, maxdev;
+uint32_t maxaddr, maxname, maxdev;
 int32 maxvec, vecwid;
 int32 brbase = 0;
-uint32 rdx = DEV_RDX;
+uint32_t rdx = DEV_RDX;
 char valbuf[40];
 const char *vec_fmt = NULL;
 char vec_fmt_buf[16];
@@ -498,7 +498,7 @@ vecwid = maxvec = (int32) strlen (valbuf);
 if (vecwid < 3)
     vecwid = 3;
 sprintf (valbuf, "%u", maxdev);
-maxdev = (uint32)strlen (valbuf);
+maxdev = (uint32_t)strlen (valbuf);
 
 j = strlen ("Address");
 i = (maxaddr*2)+3+1;
@@ -522,7 +522,7 @@ fprintf (st, " BR %*.*s# Device\n", (maxdev -1), (maxdev-1), " ");
 for (i = 0; i < maxaddr; i++)
     fputc ('-', st);
 fprintf (st, " ");
-for (i = 0; i < (uint32)maxvec; i++)
+for (i = 0; i < (uint32_t)maxvec; i++)
     fputc ('-', st);
 
 fprintf (st, " -- ");
@@ -575,7 +575,7 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
 return SCPE_OK;
 }
 
-static t_bool _map_description (char *buf, size_t buf_size, uint32 val, uint32 index, uint32 valid_mask)
+static t_bool _map_description (char *buf, size_t buf_size, uint32_t val, uint32_t index, uint32_t valid_mask)
 {
 t_bool ind_eq = (index == (val & ~valid_mask));
 const char *desc = ind_eq ? "Value == Index" : "";
@@ -589,20 +589,20 @@ return ind_eq;
 
 /* Display bus map registers */
 
-t_stat show_bus_map (FILE *st, const char *cptr, uint32 *busmap, uint32 nmapregs, const char *busname, uint32 mapvalid)
+t_stat show_bus_map (FILE *st, const char *cptr, uint32_t *busmap, uint32_t nmapregs, const char *busname, uint32_t mapvalid)
 {
 t_stat r;
-uint32 mr;
-uint32 mstart = 0;
-uint32 mend = nmapregs - 1;
-uint32 same_val;
-uint32 same_start;
+uint32_t mr;
+uint32_t mstart = 0;
+uint32_t mend = nmapregs - 1;
+uint32_t same_val;
+uint32_t same_start;
 t_bool ind_eq;
 char same_desc[32];
 char desc[32];
 
 if (cptr) {
-    mstart = mend = (uint32) get_uint (cptr, 16, nmapregs - 1, &r);
+    mstart = mend = (uint32_t) get_uint (cptr, 16, nmapregs - 1, &r);
     if (r != SCPE_OK)
         return sim_messagef (SCPE_ARG, "Invalid %s Map Register: %s\n", busname, cptr);
     }
@@ -656,10 +656,10 @@ typedef struct {
     const char  *dnam[AUTO_MAXC];
     int32       valid;
     int32       numv;
-    uint32      amod;
-    uint32      vmod;
-    uint32      fixa[AUTO_MAXC];
-    uint32      fixv[AUTO_MAXC];
+    uint32_t      amod;
+    uint32_t      vmod;
+    uint32_t      fixa[AUTO_MAXC];
+    uint32_t      fixv[AUTO_MAXC];
     } AUTO_CON;
 
 AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
@@ -889,7 +889,7 @@ static void build_vector_tab (void)
 static t_bool done = FALSE;
 AUTO_CON *autp;
 DEVICE *dptr;
-uint32 j, k;
+uint32_t j, k;
 
 if (done)
     return;
@@ -924,13 +924,13 @@ done = TRUE;
 
 t_stat auto_config (const char *name, int32 nctrl)
 {
-uint32 csr = IOPAGEBASE + AUTO_CSRBASE;
-uint32 vec = AUTO_VECBASE;
+uint32_t csr = IOPAGEBASE + AUTO_CSRBASE;
+uint32_t vec = AUTO_VECBASE;
 int32 numc;
 AUTO_CON *autp;
 DEVICE *dptr;
 DIB *dibp;
-uint32 j, k, jena, vmask, amask;
+uint32_t j, k, jena, vmask, amask;
 
 if (autcon_enb == 0)                                    /* enabled? */
     return SCPE_OK;
@@ -990,7 +990,7 @@ for (autp = auto_tab; autp->valid >= 0; autp++) {       /* loop thru table */
                     dibp->vec = autp->fixv[jena];       /* use it */
                 }
             else {                                      /* no fixed left */
-                uint32 numv = abs (autp->numv);         /* get num vec */
+                uint32_t numv = abs (autp->numv);         /* get num vec */
                 vmask = autp->vmod - 1;
                 vec = (vec + vmask) & ~vmask;           /* align vector */
                 if (autp->numv > 0)

@@ -223,12 +223,12 @@
 
 typedef struct {
     const char          *name;
-    uint32              accpm;                          /* acc/module: 1 or 2 */
-    uint32              wdspt;                          /* wds/track: 500 or 1000 */
-    uint32              trkpc;                          /* trks/cyl: 1 or 40 */
-    uint32              trkpa;                          /* trks/acc: 400 or 10000 */
-    uint32              fchpt;                          /* format ch/track */
-    uint32              size;
+    uint32_t              accpm;                          /* acc/module: 1 or 2 */
+    uint32_t              wdspt;                          /* wds/track: 500 or 1000 */
+    uint32_t              trkpc;                          /* trks/cyl: 1 or 40 */
+    uint32_t              trkpa;                          /* trks/acc: 400 or 10000 */
+    uint32_t              fchpt;                          /* format ch/track */
+    uint32_t              size;
     } DISK_TYPE;
 
 const DISK_TYPE dsk_tab[4] = {
@@ -244,13 +244,13 @@ const DISK_TYPE dsk_tab[4] = {
 
 /* 7320/1301 format track characters */
 
-uint8 fmt_thdr_7320[] = {
+uint8_t fmt_thdr_7320[] = {
     4, 4, 4,                                            /* gap 1 */
     3, 3, 3, 3, 3, 3, 3, 3, 3,                          /* ha1 */
     4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4,                 /* gap 2 */
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0                     /* ha2 */
     };
-uint8 fmt_rhdr_7320[] = {
+uint8_t fmt_rhdr_7320[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,                 /* x gap */
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,                       /* record addr */
     2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,                 /* y gap */
@@ -259,13 +259,13 @@ uint8 fmt_rhdr_7320[] = {
 
 /* 1302/2302 format track characters */
 
-uint8 fmt_thdr_1302[] = {
+uint8_t fmt_thdr_1302[] = {
     4, 4, 4, 4, 4, 4,                                   /* gap 1 */
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,                 /* ha1 */
     4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4,        /* gap 2 */
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0            /* ha2 */
     };
-uint8 fmt_rhdr_1302[] = {
+uint8_t fmt_rhdr_1302[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,        /* x gap */
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,              /* record addr */
     2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,        /* y gap */
@@ -274,58 +274,58 @@ uint8 fmt_rhdr_1302[] = {
 
 /* CTSS 7320/1301 track format table */
 
-uint32 ctss_fmt_7320[] = {
+uint32_t ctss_fmt_7320[] = {
     CTSS_RLNT, CTSS_D3LNT, CTSS_DLLNT, 0
     };
 
 /* CTSS 1302/2302 track format table */
 
-uint32 ctss_fmt_1302[] = {
+uint32_t ctss_fmt_1302[] = {
     CTSS_RLNT, CTSS_D1LNT, CTSS_D2LNT,
     CTSS_RLNT, CTSS_D3LNT, CTSS_DLLNT, 0
     };
 
-uint32 dsk_ch = CH_C;                                   /* disk channel */
-uint32 dsk_acc = 0;                                     /* access */
-uint32 dsk_mod = 0;                                     /* module */
-uint32 dsk_sta = 0;                                     /* disk state */
-uint32 dsk_mode = 0;                                    /* I/O mode */
-uint32 dsk_wchk = 0;                                    /* write check flag */
-uint32 dsk_ctime = 10;                                  /* command time */
-uint32 dsk_stime = 1000;                                /* seek time */
-uint32 dsk_rtime = 100;                                 /* rotational latency */
-uint32 dsk_wtime = 2;                                   /* word time */
-uint32 dsk_gtime = 5;                                   /* gap time */
-uint32 dsk_rbase = 0;                                   /* record tracking */
-uint32 dsk_rptr = 0;
-uint32 dsk_rlim = 0;
-uint32 dsk_stop = 0;
-uint32 dsk_fmt_cntr = 0;                                /* format counter */
+uint32_t dsk_ch = CH_C;                                   /* disk channel */
+uint32_t dsk_acc = 0;                                     /* access */
+uint32_t dsk_mod = 0;                                     /* module */
+uint32_t dsk_sta = 0;                                     /* disk state */
+uint32_t dsk_mode = 0;                                    /* I/O mode */
+uint32_t dsk_wchk = 0;                                    /* write check flag */
+uint32_t dsk_ctime = 10;                                  /* command time */
+uint32_t dsk_stime = 1000;                                /* seek time */
+uint32_t dsk_rtime = 100;                                 /* rotational latency */
+uint32_t dsk_wtime = 2;                                   /* word time */
+uint32_t dsk_gtime = 5;                                   /* gap time */
+uint32_t dsk_rbase = 0;                                   /* record tracking */
+uint32_t dsk_rptr = 0;
+uint32_t dsk_rlim = 0;
+uint32_t dsk_stop = 0;
+uint32_t dsk_fmt_cntr = 0;                                /* format counter */
 t_uint64 dsk_rec = 0;                                   /* rec/home addr (36b) */
 t_uint64 dsk_sns = 0;                                   /* sense data (60b) */
 t_uint64 dsk_cmd = 0;                                   /* BCD command (60b) */
 t_uint64 dsk_chob = 0;                                  /* chan output buffer */
-uint32 dsk_chob_v = 0;                                  /* valid */
+uint32_t dsk_chob_v = 0;                                  /* valid */
 t_uint64 dsk_buf[DSK_BUFSIZ];                           /* transfer buffer */
 
-extern uint32 ch_req;
+extern uint32_t ch_req;
 
 t_stat dsk_svc (UNIT *uptr);
 t_stat dsk_svc_sns (UNIT *uptr);
 t_stat dsk_reset (DEVICE *dptr);
 t_stat dsk_attach (UNIT *uptr, CONST char *cptr);
 t_stat dsk_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-t_stat dsk_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat dsk_chwr (uint32 ch, t_uint64 val, uint32 flags);
-t_stat dsk_new_cmd (uint32 ch, t_uint64 cmd);
-t_stat dsk_uend (uint32 ch, t_uint64 stat);
-t_stat dsk_recad (uint32 trk, uint32 rec, uint32 acc, uint32 mod, t_uint64 *res);
-t_uint64 dsk_acc_atn (uint32 u);
-t_stat dsk_init_trk (UNIT *udptr, uint32 trk);
-t_stat dsk_xfer_done (UNIT *uaptr, uint32 dtyp);
-t_stat dsk_wr_trk (UNIT *uptr, uint32 trk);
-t_bool dsk_get_fmtc (uint32 dtyp, uint8 *fc);
-t_bool dsk_qdone (uint32 ch);
+t_stat dsk_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat dsk_chwr (uint32_t ch, t_uint64 val, uint32_t flags);
+t_stat dsk_new_cmd (uint32_t ch, t_uint64 cmd);
+t_stat dsk_uend (uint32_t ch, t_uint64 stat);
+t_stat dsk_recad (uint32_t trk, uint32_t rec, uint32_t acc, uint32_t mod, t_uint64 *res);
+t_uint64 dsk_acc_atn (uint32_t u);
+t_stat dsk_init_trk (UNIT *udptr, uint32_t trk);
+t_stat dsk_xfer_done (UNIT *uaptr, uint32_t dtyp);
+t_stat dsk_wr_trk (UNIT *uptr, uint32_t trk);
+t_bool dsk_get_fmtc (uint32_t dtyp, uint8_t *fc);
+t_bool dsk_qdone (uint32_t ch);
 t_stat dsk_show_format (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
 /* DSK data structures
@@ -429,9 +429,9 @@ DEVICE dsk_dev = {
 
 /* Disk channel select, from 7909 channel program */
 
-t_stat dsk_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat dsk_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
-uint32 u;
+uint32_t u;
 
 dsk_ch = ch;
 if (dsk_sta != DSK_IDLE)                                /* not idle? seq check */
@@ -474,7 +474,7 @@ return SCPE_OK;
 
 /* Disk channel write, from 7909 channel program */
 
-t_stat dsk_chwr (uint32 ch, t_uint64 val, uint32 stopf)
+t_stat dsk_chwr (uint32_t ch, t_uint64 val, uint32_t stopf)
 {
 if (stopf)                                              /* stop? */
     dsk_stop = 1;
@@ -507,16 +507,16 @@ return SCPE_OK;
 
 /* New command - end of CTL sequence */
 
-t_stat dsk_new_cmd (uint32 ch, t_uint64 cmd)
+t_stat dsk_new_cmd (uint32_t ch, t_uint64 cmd)
 {
-uint32 i, d, a, m, u, trk, dtyp, bcd[8];
+uint32_t i, d, a, m, u, trk, dtyp, bcd[8];
 
 ch_req |= REQ_CH (ch);                                  /* req ch for end */
 ch9_set_end (ch, 0);                                    /* set end flag */
 dsk_sta = DSK_IDLE;                                     /* ctrl is idle */
 
 for (i = 0; i < 8; i++) {                               /* get chars from cmd */
-    d = (uint32) (cmd >> (6 * (9 - i))) & BCD_MASK;
+    d = (uint32_t) (cmd >> (6 * (9 - i))) & BCD_MASK;
     if (d == BCD_ZERO)
         d = 0;
     else if (d == 0)                                    /* BCD zero cvt */
@@ -603,7 +603,7 @@ else if (bcd[OP1] == 8) {                               /* cmd = 8x? */
     case DSKC_CYL:                                      /* cyl no addr */
     case DSKC_TWIA:                                     /* track with addr */
     case DSKC_THA:                                      /* track home addr */
-        if (trk != (uint32) dsk_unit[u].TRK)            /* on track? */
+        if (trk != (uint32_t) dsk_unit[u].TRK)            /* on track? */
             return dsk_uend (ch, DSKS_NRCF);
         break;    
 
@@ -665,14 +665,14 @@ return SCPE_OK;
 
 t_stat dsk_svc (UNIT *uaptr)
 {
-uint32 i, dtyp, trk;
-uint8 fc, *format;
+uint32_t i, dtyp, trk;
+uint8_t fc, *format;
 t_uint64 rdat;
 UNIT *udptr;
 t_stat r;
 
 if (uaptr->SKF) {                                       /* seeking? */
-    uint32 u = uaptr - dsk_dev.units;                   /* get unit */
+    uint32_t u = uaptr - dsk_dev.units;                   /* get unit */
     uaptr->SKF = 0;                                     /* seek done */
     dsk_sns |= dsk_acc_atn (u);                         /* set atn bit */
     ch9_set_atn (dsk_ch);                               /* set atn flag */
@@ -821,7 +821,7 @@ switch (dsk_sta) {                                      /* case on state */
         if (fc == BCD_ONE)                              /* more record? */
             dsk_rlim++;
         else {
-            uint32 rsiz = dsk_rlim / 6;                 /* rec size words */
+            uint32_t rsiz = dsk_rlim / 6;                 /* rec size words */
             if ((fc != BCD_TWO) ||                      /* improper end? */
                 (rsiz == 0) ||                          /* smaller than min? */
                 ((dsk_rlim % 6) != 0) ||                /* not multiple of 6? */
@@ -879,9 +879,9 @@ return SCPE_OK;
         STOP_INVFMT =   invalid format (fatal, uend)
 */
 
-t_stat dsk_init_trk (UNIT *udptr, uint32 trk)
+t_stat dsk_init_trk (UNIT *udptr, uint32_t trk)
 {
-uint32 k, da, dtyp, rlnt;
+uint32_t k, da, dtyp, rlnt;
 
 dtyp = GET_DTYPE (udptr->flags);                        /* get drive type */
 da = DSK_DA (dsk_acc, trk, dtyp);                       /* get disk address */
@@ -896,7 +896,7 @@ if (ferror (udptr->fileref)) {                          /* error? */
 for ( ; k < dsk_tab[dtyp].wdspt; k++)                   /* zero fill */
     dsk_buf[k] = 0;
 dsk_rbase = T1STREC;                                    /* record base */
-rlnt = (uint32) dsk_buf[dsk_rbase + RLNT];              /* length */
+rlnt = (uint32_t) dsk_buf[dsk_rbase + RLNT];              /* length */
 dsk_rlim = dsk_rbase + rlnt + RDATA;                    /* end */
 if ((rlnt == 0) || (dsk_rlim >= dsk_tab[dtyp].wdspt)) { /* invalid record? */
     dsk_uend (dsk_ch, DSKS_FMTC);
@@ -921,7 +921,7 @@ while (rlnt != 0) {                                     /* until end track */
     if (((dsk_rec ^ dsk_buf[dsk_rbase + RADDR]) & REC_MASK) == 0)
         return SCPE_OK;                                 /* rec found? done */
     dsk_rbase = dsk_rlim;                               /* next record */
-    rlnt = (uint32) dsk_buf[dsk_rbase + RLNT];          /* length */
+    rlnt = (uint32_t) dsk_buf[dsk_rbase + RLNT];          /* length */
     dsk_rlim = dsk_rbase + rlnt + RDATA;                /* limit */
     if (dsk_rlim >= dsk_tab[dtyp].wdspt) {              /* invalid format? */
         dsk_uend (dsk_ch, DSKS_FMTC);
@@ -943,9 +943,9 @@ return ERR_NRCF;
         STOP_INVFMT =   invalid format (fatal, uend sent)
 */
 
-t_stat dsk_xfer_done (UNIT *uaptr, uint32 dtyp)
+t_stat dsk_xfer_done (UNIT *uaptr, uint32_t dtyp)
 {
-uint32 rlnt;
+uint32_t rlnt;
 
 if (dsk_rptr < dsk_rlim)                                /* record done? */
     return SCPE_OK;
@@ -956,7 +956,7 @@ if (dsk_stop || !ch9_qconn (dsk_ch) ||                  /* stop or err disc or *
     return ERR_ENDRC;
     }
 dsk_rbase = dsk_rlim;                                   /* next record */
-rlnt = (uint32) dsk_buf[dsk_rbase + RLNT];              /* length */
+rlnt = (uint32_t) dsk_buf[dsk_rbase + RLNT];              /* length */
 dsk_rlim = dsk_rbase + rlnt + RDATA;                    /* end */
 if ((dsk_rbase >= dsk_tab[dtyp].wdspt) ||               /* invalid format? */
     (dsk_rlim >= dsk_tab[dtyp].wdspt)) {
@@ -981,10 +981,10 @@ return ERR_ENDRC;
 
 /* Write track back to file */
 
-t_stat dsk_wr_trk (UNIT *udptr, uint32 trk)
+t_stat dsk_wr_trk (UNIT *udptr, uint32_t trk)
 {
-uint32 dtyp = GET_DTYPE (udptr->flags);
-uint32 da = DSK_DA (dsk_acc, trk, dtyp);
+uint32_t dtyp = GET_DTYPE (udptr->flags);
+uint32_t da = DSK_DA (dsk_acc, trk, dtyp);
 
 sim_fseek (udptr->fileref, da, SEEK_SET);
 sim_fwrite (dsk_buf, sizeof (t_uint64), dsk_tab[dtyp].wdspt, udptr->fileref);
@@ -999,9 +999,9 @@ return SCPE_OK;
 
 /* Synthesize right attention bit from (access * 10 + module) */
 
-t_uint64 dsk_acc_atn (uint32 u)
+t_uint64 dsk_acc_atn (uint32_t u)
 {
-uint32 g, b;
+uint32_t g, b;
 
 g = u / 4;                                              /* bit group */
 b = u % 4;                                              /* bit within group */
@@ -1010,9 +1010,9 @@ return (DSKS_ATN0 >> ((g * 6) + (b? b + 1: 0)));
 
 /* Get next format character */
 
-t_bool dsk_get_fmtc (uint32 dtyp, uint8 *fc)
+t_bool dsk_get_fmtc (uint32_t dtyp, uint8_t *fc)
 {
-uint32 cc = dsk_fmt_cntr % 6;
+uint32_t cc = dsk_fmt_cntr % 6;
 
 if (cc == 0) {                                          /* start of word? */
     if (dsk_chob_v)                                     /* valid? clear */
@@ -1020,7 +1020,7 @@ if (cc == 0) {                                          /* start of word? */
     else if (!dsk_stop)                                 /* no, no stop? io chk */
         ch9_set_ioc (dsk_ch);
     }
-*fc = ((uint8) (dsk_chob >> ((5 - cc) * 6))) & 077;     /* get character */
+*fc = ((uint8_t) (dsk_chob >> ((5 - cc) * 6))) & 077;     /* get character */
 if ((cc == 5) && !dsk_stop)                             /* end of word? */
     ch_req |= REQ_CH (dsk_ch);
 if (dsk_fmt_cntr++ >= dsk_tab[dtyp].fchpt) {            /* track overflow? */
@@ -1032,7 +1032,7 @@ return TRUE;
 
 /* Unusual end (set status and stop) */
 
-t_stat dsk_uend (uint32 ch, t_uint64 stat)
+t_stat dsk_uend (uint32_t ch, t_uint64 stat)
 {
 dsk_sns |= stat;
 dsk_sns &= ~(DSKS_PCHK|DSKS_DCHK|DSKS_EXCC);
@@ -1050,7 +1050,7 @@ return SCPE_OK;
 
 /* Test for done */
 
-t_bool dsk_qdone (uint32 ch)
+t_bool dsk_qdone (uint32_t ch)
 {
 if (dsk_stop || !ch9_qconn (ch)) {                      /* stop or err disc? */
     dsk_sta = DSK_IDLE;                                 /* disk is idle */
@@ -1063,7 +1063,7 @@ return FALSE;
 
 t_stat dsk_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 UNIT *uptr;
 
 dsk_acc = 0;
@@ -1096,7 +1096,7 @@ return SCPE_OK;
 
 t_stat dsk_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 dtyp = GET_DTYPE (uptr->flags);
+uint32_t dtyp = GET_DTYPE (uptr->flags);
 t_stat r;
 
 uptr->capac = dsk_tab[dtyp].size;
@@ -1113,8 +1113,8 @@ return dsk_show_format (stdout, uptr, 0, NULL);
 
 t_stat dsk_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 dtyp = GET_DTYPE (val);
-uint32 u = uptr - dsk_dev.units;
+uint32_t dtyp = GET_DTYPE (val);
+uint32_t u = uptr - dsk_dev.units;
 UNIT *u1;
 
 if (u & 1)
@@ -1136,12 +1136,12 @@ return SCPE_OK;
 
 t_stat dsk_show_format (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 a, t, k, u, tlim, dtyp, da;
-uint32 rptr, rlnt, rlim, rec, ctptr, *format;
-uint32 minrsz = DSK_BUFSIZ;
-uint32 maxrsz = 0;
-uint32 minrno = DSK_BUFSIZ;
-uint32 maxrno = 0;
+uint32_t a, t, k, u, tlim, dtyp, da;
+uint32_t rptr, rlnt, rlim, rec, ctptr, *format;
+uint32_t minrsz = DSK_BUFSIZ;
+uint32_t maxrsz = 0;
+uint32_t minrno = DSK_BUFSIZ;
+uint32_t maxrno = 0;
 t_bool ctss;
 t_uint64 dbuf[DSK_BUFSIZ];
 DEVICE *dptr;
@@ -1172,7 +1172,7 @@ for (a = 0, ctss = TRUE; a < dsk_tab[dtyp].accpm; a++) {
         for ( ; k < dsk_tab[dtyp].wdspt; k++)
             dbuf[k] = 0;
         rptr = T1STREC;
-        rlnt = (uint32) dbuf[rptr + RLNT];
+        rlnt = (uint32_t) dbuf[rptr + RLNT];
         if (dbuf[THA2] != CTSS_HA2)
             ctss = FALSE;
         if (rlnt == 0) {
@@ -1195,7 +1195,7 @@ for (a = 0, ctss = TRUE; a < dsk_tab[dtyp].accpm; a++) {
             if (rlnt < minrsz)
                 minrsz = rlnt;
             rptr = rlim;
-            rlnt = (uint32) dbuf[rptr + RLNT];
+            rlnt = (uint32_t) dbuf[rptr + RLNT];
             }
         if (format[ctptr] != 0)
             ctss = FALSE;

@@ -40,7 +40,7 @@ DEBTAB i8251_dt[] = {
     { NULL, 0 }
 };
 
-t_stat i8251_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
+t_stat i8251_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask)
 {
     int port = ioh->offset;
     I8251* chip = (I8251*)ioh->ctxt;
@@ -51,7 +51,7 @@ t_stat i8251_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
     }
 }
 
-t_stat i8251_write(I8251* chip,int port,uint32 value)
+t_stat i8251_write(I8251* chip,int port,uint32_t value)
 {
     int bits;
 
@@ -123,7 +123,7 @@ t_stat i8251_write(I8251* chip,int port,uint32 value)
     }
 }
 
-t_stat i8251_read(I8251* chip,int port,uint32* value)
+t_stat i8251_read(I8251* chip,int port,uint32_t* value)
 {
     if (port==0) { /* data read */
         *value = chip->ibuf;

@@ -105,7 +105,7 @@ DEVICE tti_dev = {
     &tti_description
     };
 
-uint32 tti_buftime;                                     /* time input character arrived */
+uint32_t tti_buftime;                                     /* time input character arrived */
 
 /* TTO data structures
 

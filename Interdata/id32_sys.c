@@ -49,7 +49,7 @@ extern DEVICE dp_dev, idc_dev;
 extern DEVICE fd_dev, mt_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint32 *M;
+extern uint32_t *M;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val);
 t_stat parse_sym_m (CONST char *cptr, t_addr addr, t_value *val);
@@ -152,14 +152,14 @@ static const int32 masks[] = {
  0xFF00
  };
 
-static const uint32 r1_type[] = {
+static const uint32_t r1_type[] = {
  R_M, R_R, R_X, R_M,
  R_R, R_X, R_F, R_F,
  R_R, R_M, R_X, R_R,
  R_R
  };
 
-static const uint32 r2_type[] = {
+static const uint32_t r2_type[] = {
  R_X, R_R, R_R, R_X,
  R_X, R_X, R_F, R_X,
  R_M, R_X, R_X, R_X,
@@ -232,7 +232,7 @@ static const char *opcode[] = {
 NULL
 };
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
 0x0330+I_R,  0x0230+I_R,  0x0330+I_R,  0x0230+I_R,
 0x0220+I_R,  0x0320+I_R,  0x0280+I_R,  0x0380+I_R,
 0x0210+I_R,  0x0310+I_R,  0x0240+I_R,  0x0340+I_R,
@@ -300,10 +300,10 @@ static const uint32 opc_val[] = {
 
 /* Print an RX specifier */
 
-t_stat fprint_addr (FILE *of, t_addr addr, uint32 rx, uint32 ea1,
-    uint32 ea2)
+t_stat fprint_addr (FILE *of, t_addr addr, uint32_t rx, uint32_t ea1,
+    uint32_t ea2)
 {
-uint32 rx2;
+uint32_t rx2;
 
 if ((ea1 & 0xC000) == 0) {                              /* RX1 */
     fprintf (of, "%-X", ea1);
@@ -415,7 +415,7 @@ return -3;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val)
 {
-uint32 i, j, inst, r1, r2, ea1, ea2;
+uint32_t i, j, inst, r1, r2, ea1, ea2;
 
 inst = val[0];
 ea1 = val[1];
@@ -529,7 +529,7 @@ return reg;
         sta     =       status
 */
 
-t_stat get_imm (char *cptr, uint32 *imm, uint32 *inst, uint32 max)
+t_stat get_imm (char *cptr, uint32_t *imm, uint32_t *inst, uint32_t max)
 {
 char *tptr;
 int32 idx;
@@ -669,7 +669,7 @@ return -3;
 
 t_stat parse_sym_m (CONST char *cptr, t_addr addr, t_value *val)
 {
-uint32 i, j, df, db, t, inst;
+uint32_t i, j, df, db, t, inst;
 int32 st, r1, r2, rx2;
 t_stat r;
 char *tptr, gbuf[CBUFSIZE];

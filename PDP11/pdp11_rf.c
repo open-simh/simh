@@ -111,17 +111,17 @@
 #define GET_POS(x)      ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) RF_NUMWD)))
 
-uint32 rf_cs = 0;                                       /* status register */
-uint32 rf_cma = 0;
-uint32 rf_wc = 0;
-uint32 rf_da = 0;                                       /* disk address */
-uint32 rf_dae = 0;
-uint32 rf_dbr = 0;
-uint32 rf_maint = 0;
-uint32 rf_wlk = 0;                                      /* write lock */
-uint32 rf_time = 10;                                    /* inter-word time */
-uint32 rf_burst = 1;                                    /* burst mode flag */
-uint32 rf_stopioe = 1;                                  /* stop on error */
+uint32_t rf_cs = 0;                                       /* status register */
+uint32_t rf_cma = 0;
+uint32_t rf_wc = 0;
+uint32_t rf_da = 0;                                       /* disk address */
+uint32_t rf_dae = 0;
+uint32_t rf_dbr = 0;
+uint32_t rf_maint = 0;
+uint32_t rf_wlk = 0;                                      /* write lock */
+uint32_t rf_time = 10;                                    /* inter-word time */
+uint32_t rf_burst = 1;                                    /* burst mode flag */
+uint32_t rf_stopioe = 1;                                  /* stop on error */
 
 t_stat rf_rd (int32 *data, int32 PA, int32 access);
 t_stat rf_wr (int32 data, int32 PA, int32 access);
@@ -131,7 +131,7 @@ t_stat rf_reset (DEVICE *dptr);
 t_stat rf_boot (int32 unitno, DEVICE *dptr);
 t_stat rf_attach (UNIT *uptr, CONST char *cptr);
 t_stat rf_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-uint32 update_rfcs (uint32 newcs, uint32 newdae);
+uint32_t update_rfcs (uint32_t newcs, uint32_t newdae);
 t_stat rf_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *rf_description (DEVICE *dptr);
 
@@ -323,9 +323,9 @@ return SCPE_OK;
 
 t_stat rf_svc (UNIT *uptr)
 {
-uint32 ma, da, t;
-uint16 dat;
-uint16 *fbuf = (uint16 *) uptr->filebuf;
+uint32_t ma, da, t;
+uint16_t dat;
+uint16_t *fbuf = (uint16_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     update_rfcs (RFCS_NED|RFCS_DONE, 0);                /* nx disk */
@@ -398,10 +398,10 @@ return SCPE_OK;
 
 /* Update CS register */
 
-uint32 update_rfcs (uint32 newcs, uint32 newdae)
+uint32_t update_rfcs (uint32_t newcs, uint32_t newdae)
 {
-uint32 oldcs = rf_cs;
-uint32 da = GET_DEX (rf_dae) | rf_da;
+uint32_t oldcs = rf_cs;
+uint32_t da = GET_DEX (rf_dae) | rf_da;
 
 rf_dae |= newdae;                                       /* update DAE */
 rf_cs |= newcs;                                         /* update CS */
@@ -442,9 +442,9 @@ return auto_config (0, 0);
 #define BOOT_START      02000                           /* start */
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_CSR        (BOOT_START + 010)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0043113,                        /* "FD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012701, 0177472,               /* MOV #RFCS+12, R1     ; csr block */
@@ -478,8 +478,8 @@ return SCPE_OK;
 
 t_stat rf_attach (UNIT *uptr, CONST char *cptr)
 {
-uint32 sz, p;
-uint32 ds_bytes = RF_DKSIZE * sizeof (int16);
+uint32_t sz, p;
+uint32_t ds_bytes = RF_DKSIZE * sizeof (int16);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;

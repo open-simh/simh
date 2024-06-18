@@ -59,36 +59,36 @@
 #define UNIT_CBN                (1 << UNIT_V_CBN)
 #define UNIT_PCA                (1 << UNIT_V_PCA)
 
-uint32 cdr_sta = 0;                                     /* state */
-uint32 cdr_bptr = 0;                                    /* buffer ptr */
-uint32 cdr_tstart = 27500;                              /* timing */
-uint32 cdr_tstop = 27500;
-uint32 cdr_tleft = 150;
-uint32 cdr_tright = 4000;
+uint32_t cdr_sta = 0;                                     /* state */
+uint32_t cdr_bptr = 0;                                    /* buffer ptr */
+uint32_t cdr_tstart = 27500;                              /* timing */
+uint32_t cdr_tstop = 27500;
+uint32_t cdr_tleft = 150;
+uint32_t cdr_tright = 4000;
 t_uint64 cdr_bbuf[CD_BINLNT];                           /* col binary buf */
 
-uint32 cdp_sta = 0;                                     /* state */
-uint32 cdp_bptr = 0;                                    /* buffer ptr */
-uint32 cdp_tstart = 35000;                              /* timing */
-uint32 cdp_tstop = 35000;
-uint32 cdp_tleft = 150;
-uint32 cdp_tright = 15500;
+uint32_t cdp_sta = 0;                                     /* state */
+uint32_t cdp_bptr = 0;                                    /* buffer ptr */
+uint32_t cdp_tstart = 35000;                              /* timing */
+uint32_t cdp_tstop = 35000;
+uint32_t cdp_tleft = 150;
+uint32_t cdp_tright = 15500;
 t_uint64 cdp_chob = 0;
-uint32 cdp_chob_v = 0;
+uint32_t cdp_chob_v = 0;
 t_uint64 cdp_bbuf[CD_BINLNT];                           /* col binary buf */
 
-t_stat cdr_chsel (uint32 ch, uint32 sel, uint32 unit);
+t_stat cdr_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
 t_stat cdr_reset (DEVICE *dptr);
 t_stat cdr_svc (UNIT *uptr);
 t_stat cdr_boot (int32 unitno, DEVICE *dptr);
-t_stat cdp_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat cdp_chwr (uint32 ch, t_uint64 val, uint32 flags);
+t_stat cdp_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat cdp_chwr (uint32_t ch, t_uint64 val, uint32_t flags);
 t_stat cdp_reset (DEVICE *dptr);
 t_stat cdp_svc (UNIT *uptr);
 t_stat cdp_card_end (UNIT *uptr);
 t_stat cd_attach (UNIT *uptr, CONST char *cptr);
 t_stat cd_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
-char colbin_to_bcd (uint32 cb);
+char colbin_to_bcd (uint32_t cb);
 
 
 /* Card reader data structures
@@ -174,7 +174,7 @@ DEVICE cdp_dev = {
 
 /* Card reader select */
 
-t_stat cdr_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat cdr_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 if (sel & CHSL_NDS)                                     /* nds? nop */
     return ch6_end_nds (ch);
@@ -201,7 +201,7 @@ return SCPE_OK;
 
 t_stat cdr_svc (UNIT *uptr)
 {
-uint32 i, col, row, bufw, colbin;
+uint32_t i, col, row, bufw, colbin;
 char cdr_cbuf[(2 * CD_CHRLNT) + 2 + 1];
 t_uint64 dat = 0;
 
@@ -230,8 +230,8 @@ switch (cdr_sta) {                                      /* case on state */
             cdr_cbuf[i] = ascii_to_bcd[cdr_cbuf[i] & 0177] & 077;
         for (col = 0; col < 72; col++) {                /* process 72 columns */
             if (uptr->flags & UNIT_CBN)                 /* column binary? */
-                colbin = (((uint32) cdr_cbuf[2 * col]) << 6) |
-                ((uint32) cdr_cbuf[(2 * col) + 1]);     /* 2 chars -> col bin */
+                colbin = (((uint32_t) cdr_cbuf[2 * col]) << 6) |
+                ((uint32_t) cdr_cbuf[(2 * col) + 1]);     /* 2 chars -> col bin */
             else colbin = bcd_to_colbin[cdr_cbuf[col] & 077]; /* cvt to col binary */
             dat = bit_masks[35 - (col % 36)];           /* mask for column */
             for (row = 0; row < 12; row++) {            /* rows 9..0, 11, 12 */
@@ -269,7 +269,7 @@ return SCPE_OK;
 
 t_stat cdr_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < CD_BINLNT; i++)                         /* clear buffer */
     cdr_bbuf[i] = 0;
@@ -294,7 +294,7 @@ static const t_uint64 boot_rom[] = {
 
 t_stat cdr_boot (int32 unitno, DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 extern t_uint64 *M;
 
 for (i = 0; i < BOOT_SIZE; i++)
@@ -332,7 +332,7 @@ return (uptr->flags & UNIT_ATT)? SCPE_NOFNC: SCPE_OK;
 
 /* Card punch select */
 
-t_stat cdp_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat cdp_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 if (sel & CHSL_NDS)                                     /* nds? nop */
     return ch6_end_nds (ch);
@@ -356,7 +356,7 @@ return SCPE_OK;
 
 /* Channel write routine - write word to buffer, write card when full */
 
-t_stat cdp_chwr (uint32 ch, t_uint64 val, uint32 eorfl)
+t_stat cdp_chwr (uint32_t ch, t_uint64 val, uint32_t eorfl)
 {
 cdp_chob = val & DMASK;                                 /* store data */
 cdp_chob_v = 1;                                         /* buffer valid */
@@ -375,7 +375,7 @@ return SCPE_IERR;
 
 t_stat cdp_svc (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 
 switch (cdp_sta) {                                      /* case on state */
 
@@ -415,7 +415,7 @@ return SCPE_OK;
 
 t_stat cdp_card_end (UNIT *uptr)
 {
-uint32 i, col, row, bufw, colbin;
+uint32_t i, col, row, bufw, colbin;
 const char *pch;
 char bcd, cdp_cbuf[(2 * CD_CHRLNT) + 2];
 t_uint64 dat;
@@ -465,7 +465,7 @@ return SCPE_OK;
 
 t_stat cdp_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < 24; i++)                                /* clear buffer */
     cdp_bbuf[i] = 0;
@@ -493,9 +493,9 @@ static const char row_val[12] = {
     003, 002, 001, 020, 040, 060
     };
 
-char colbin_to_bcd (uint32 cb)
+char colbin_to_bcd (uint32_t cb)
 {
-uint32 i;
+uint32_t i;
 char bcd;
 
 for (i = 0, bcd = 0; i < 12; i++) {                     /* 'sum' rows */

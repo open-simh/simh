@@ -75,65 +75,65 @@
 #define DATA_PHASE  2
 
 typedef union {
-    uint8 raw[I8272_SECTOR_LEN];
+    uint8_t raw[I8272_SECTOR_LEN];
 } SECTOR_FORMAT;
 
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint8 ntracks;   /* number of tracks */
-    uint8 nheads;    /* number of heads */
-    uint32 sectsize; /* sector size, not including pre/postamble */
-    uint8 track;     /* Current Track */
-    uint8 ready;     /* Is drive ready? */
+    uint8_t ntracks;   /* number of tracks */
+    uint8_t nheads;    /* number of heads */
+    uint32_t sectsize; /* sector size, not including pre/postamble */
+    uint8_t track;     /* Current Track */
+    uint8_t ready;     /* Is drive ready? */
 } I8272_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO pnp;       /* Plug-n-Play Information */
-    uint32 fdc_dma_addr;/* DMA Transfer Address */
-    uint8 fdc_msr;      /* 8272 Main Status Register */
-    uint8 fdc_phase;    /* Phase that the 8272 is currently in */
-    uint8 fdc_srt;      /* Step Rate in ms */
-    uint8 fdc_hut;      /* Head Unload Time in ms */
-    uint8 fdc_hlt;      /* Head Load Time in ms */
-    uint8 fdc_nd;       /* Non-DMA Mode 1=Non-DMA, 0=DMA */
-    uint8 fdc_head;     /* H Head Number */
-    uint8 fdc_sector;   /* R Record (Sector) */
-    uint8 fdc_sec_len;  /* N Sector Length, in bytes: 2^(7 + fdc_sec_len),  fdc_sec_len <= I8272_MAX_N */
-    uint8 fdc_eot;      /* EOT End of Track (Final sector number of cyl) */
-    uint8 fdc_gpl;      /* GPL Gap3 Length */
-    uint8 fdc_dtl;      /* DTL Data Length */
-    uint8 fdc_mt;       /* Multiple sectors */
-    uint8 fdc_mfm;      /* MFM mode */
-    uint8 fdc_sk;       /* Skip Deleted Data */
-    uint8 fdc_hds;      /* Head Select */
-    uint8 fdc_fillbyte; /* Fill-byte used for FORMAT TRACK */
-    uint8 fdc_sc;       /* Sector count for FORMAT TRACK */
-    uint8 fdc_sectorcount; /* Current sector being formatted by FORMAT TRACK */
-    uint8 fdc_sectormap[I8272_MAX_SECTOR]; /* Physical to logical sector map for FORMAT TRACK */
-    uint8 fdc_status[3];/* Status Register Bytes */
-    uint8 fdc_seek_end; /* Seek was executed successfully */
-    uint8 cmd_index;    /* Index of command byte */
-    uint8 cmd[10];      /* Storage for current command */
-    uint8 cmd_len;      /* FDC Command Length */
-    uint8 result_index; /* Index of result byte */
-    uint8 result[10];   /* Result data */
-    uint8 result_len;   /* FDC Result Length */
-    uint8 sel_drive;    /* Currently selected drive */
+    uint32_t fdc_dma_addr;/* DMA Transfer Address */
+    uint8_t fdc_msr;      /* 8272 Main Status Register */
+    uint8_t fdc_phase;    /* Phase that the 8272 is currently in */
+    uint8_t fdc_srt;      /* Step Rate in ms */
+    uint8_t fdc_hut;      /* Head Unload Time in ms */
+    uint8_t fdc_hlt;      /* Head Load Time in ms */
+    uint8_t fdc_nd;       /* Non-DMA Mode 1=Non-DMA, 0=DMA */
+    uint8_t fdc_head;     /* H Head Number */
+    uint8_t fdc_sector;   /* R Record (Sector) */
+    uint8_t fdc_sec_len;  /* N Sector Length, in bytes: 2^(7 + fdc_sec_len),  fdc_sec_len <= I8272_MAX_N */
+    uint8_t fdc_eot;      /* EOT End of Track (Final sector number of cyl) */
+    uint8_t fdc_gpl;      /* GPL Gap3 Length */
+    uint8_t fdc_dtl;      /* DTL Data Length */
+    uint8_t fdc_mt;       /* Multiple sectors */
+    uint8_t fdc_mfm;      /* MFM mode */
+    uint8_t fdc_sk;       /* Skip Deleted Data */
+    uint8_t fdc_hds;      /* Head Select */
+    uint8_t fdc_fillbyte; /* Fill-byte used for FORMAT TRACK */
+    uint8_t fdc_sc;       /* Sector count for FORMAT TRACK */
+    uint8_t fdc_sectorcount; /* Current sector being formatted by FORMAT TRACK */
+    uint8_t fdc_sectormap[I8272_MAX_SECTOR]; /* Physical to logical sector map for FORMAT TRACK */
+    uint8_t fdc_status[3];/* Status Register Bytes */
+    uint8_t fdc_seek_end; /* Seek was executed successfully */
+    uint8_t cmd_index;    /* Index of command byte */
+    uint8_t cmd[10];      /* Storage for current command */
+    uint8_t cmd_len;      /* FDC Command Length */
+    uint8_t result_index; /* Index of result byte */
+    uint8_t result[10];   /* Result data */
+    uint8_t result_len;   /* FDC Result Length */
+    uint8_t sel_drive;    /* Currently selected drive */
     I8272_DRIVE_INFO drive[I8272_MAX_DRIVES];
 } I8272_INFO;
 
 static SECTOR_FORMAT sdata;
-extern uint32 PCX;
+extern uint32_t PCX;
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index(UNIT* uptr);
 
 /* These are needed for DMA.  PIO Mode has not been implemented yet. */
-extern void PutByteDMA(const uint32 Addr, const uint32 Value);
-extern uint8 GetByteDMA(const uint32 Addr);
+extern void PutByteDMA(const uint32_t Addr, const uint32_t Value);
+extern uint8_t GetByteDMA(const uint32_t Addr);
 
 #define UNIT_V_I8272_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
 #define UNIT_I8272_VERBOSE      (1 << UNIT_V_I8272_VERBOSE)
@@ -172,7 +172,7 @@ static const char* i8272_description(DEVICE *dptr);
 I8272_INFO i8272_info_data = { { 0x0, 0, 0xC0, 2 } };
 I8272_INFO *i8272_info = &i8272_info_data;
 
-uint8 i8272_irq = 1;
+uint8_t i8272_irq = 1;
 
 static UNIT i8272_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, I8272_CAPACITY) },
@@ -222,7 +222,7 @@ DEVICE i8272_dev = {
     i8272_dt, NULL, NULL, NULL, NULL, NULL, &i8272_description
 };
 
-static uint8 I8272_Setup_Cmd(uint8 fdc_cmd);
+static uint8_t I8272_Setup_Cmd(uint8_t fdc_cmd);
 
 
 /* Reset routine */
@@ -353,23 +353,23 @@ static int32 i8272dev(const int32 port, const int32 io, const int32 data)
     }
 }
 
-uint8 I8272_Set_DMA(const uint32 dma_addr)
+uint8_t I8272_Set_DMA(const uint32_t dma_addr)
 {
     i8272_info->fdc_dma_addr = dma_addr & 0xFFFFFF;
 
     return 0;
 }
 
-extern uint8 floorlog2(unsigned int n);
+extern uint8_t floorlog2(unsigned int n);
 
 #define I8272_MSR_RQM           (1 << 7)
 #define I8272_MSR_DATA_OUT      (1 << 6)
 #define I8272_MSR_NON_DMA       (1 << 5)
 #define I8272_MSR_FDC_BUSY      (1 << 4)
 
-uint8 I8272_Read(const uint32 Addr)
+uint8_t I8272_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
     I8272_DRIVE_INFO    *pDrive;
 
     pDrive = &i8272_info->drive[i8272_info->sel_drive];
@@ -445,12 +445,12 @@ static const char *messages[0x20] = {
     "Undefined Command 0x1C","Scan High Equal",     "Undefined Command 0x1E","Undefined Command 0x1F"
 };
 
-uint8 I8272_Write(const uint32 Addr, uint8 cData)
+uint8_t I8272_Write(const uint32_t Addr, uint8_t cData)
 {
     I8272_DRIVE_INFO    *pDrive;
-    uint32 flags = 0;
-    uint32 readlen;
-    uint8   disk_read = 0;
+    uint32_t flags = 0;
+    uint32_t readlen;
+    uint8_t   disk_read = 0;
     int32 i;
 
     pDrive = &i8272_info->drive[i8272_info->sel_drive];
@@ -887,9 +887,9 @@ uint8 I8272_Write(const uint32 Addr, uint8 cData)
     return (cData);
 }
 
-static uint8 I8272_Setup_Cmd(uint8 fdc_cmd)
+static uint8_t I8272_Setup_Cmd(uint8_t fdc_cmd)
 {
-    uint8 result = 0;
+    uint8_t result = 0;
 
     switch(fdc_cmd) {
         case I8272_READ_DATA:

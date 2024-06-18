@@ -96,7 +96,7 @@ t_stat pl_detach (UNIT *u)
     return detach_unit (u);
 }
 
-void pl_control (int num, uint32 cmd)
+void pl_control (int num, uint32_t cmd)
 {
     UNIT *u = &pl_unit[num];
     FILE *f = u->fileref;

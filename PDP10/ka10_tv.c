@@ -46,7 +46,7 @@
 #define ROTLBT  010LL  /* Rotate left. */
 #define HYPRBT  014LL  /* Hyperspace = right + left. */
 
-static t_stat tv_devio(uint32 dev, uint64 *data);
+static t_stat tv_devio(uint32_t dev, uint64 *data);
 static t_stat tv_reset (DEVICE *dptr);
 static const char  *tv_description (DEVICE *dptr);
 
@@ -102,7 +102,7 @@ static uint64 tv_buttons (void)
     return buttons;
 }
 
-t_stat tv_devio(uint32 dev, uint64 *data)
+t_stat tv_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONI|4:

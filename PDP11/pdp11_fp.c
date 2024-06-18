@@ -160,7 +160,7 @@
 
 /* Reg change word */
 
-#define FPCHG(v,r)      ((int32)((((uint32)(v)) << FPCHG_V_VAL) | (r)))
+#define FPCHG(v,r)      ((int32)((((uint32_t)(v)) << FPCHG_V_VAL) | (r)))
 #define FPCHG_REG       07                              /* register number */
 #define FPCHG_V_VAL     3                               /* offset to value */
 #define FPCHG_GETREG(x) ((x) & FPCHG_REG)
@@ -227,7 +227,7 @@
 #define GET_SIGN_W(ir)  GET_BIT((ir), 15)
 
 extern jmp_buf save_env;
-extern uint32 cpu_type;
+extern uint32_t cpu_type;
 extern int32 FEC, FEA, FPS;
 extern int32 CPUERR, trap_req;
 extern int32 N, Z, V, C;
@@ -243,7 +243,7 @@ fpac_t fround_fac = { (1u << (FP_V_FROUND + 32)), 0 };
 fpac_t fround_guard_fac = { 0, (1u << (FP_V_FROUND + FP_GUARD)) };
 fpac_t dround_guard_fac = { (1u << (FP_V_DROUND + FP_GUARD)), 0 };
 fpac_t fmask_fac = { 0xFFFFFFFF, (1u << (FP_V_HB + FP_GUARD + 1)) - 1 };
-static const uint32 and_mask[33] = { 0,
+static const uint32_t and_mask[33] = { 0,
     0x1, 0x3, 0x7, 0xF,
     0x1F, 0x3F, 0x7F, 0xFF,
     0x1FF, 0x3FF, 0x7FF, 0xFFF,
@@ -259,7 +259,7 @@ int32 fp_change;
 int32 fpnotrap (int32 code);
 int32 GeteaFW (int32 spec);
 int32 GeteaFP (int32 spec, int32 len);
-uint32 ReadI (int32 addr, int32 spec, int32 len);
+uint32_t ReadI (int32 addr, int32 spec, int32 len);
 t_bool ReadFP (fpac_t *fac, int32 addr, int32 spec, int32 len);
 void WriteI (int32 data, int32 addr, int32 spec, int32 len);
 void WriteFP (fpac_t *data, int32 addr, int32 spec, int32 len);
@@ -287,7 +287,7 @@ int32 dst, ea, ac, dstspec;
 int32 i, qdouble, lenf, leni;
 int32 newV, exp, sign;
 fpac_t fac, fsrc, modfrac;
-static const uint32 i_limit[2][2] = {
+static const uint32_t i_limit[2][2] = {
     { 0x80000000, 0x80010000 },
     { 0x80000000, 0x80000001 }
     };
@@ -752,7 +752,7 @@ return 0;
         data    =       data read from memory or I/O space
 */
 
-uint32 ReadI (int32 VA, int32 spec, int32 len)
+uint32_t ReadI (int32 VA, int32 spec, int32 len)
 {
 if ((len == WORD) || (spec == 027))
     return (ReadW (VA) << 16);

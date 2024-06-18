@@ -33,8 +33,8 @@
    16-May-16    JDB     TAPELIB_PROPERTIES.action is now a pointer-to-constant
    13-May-16    JDB     Modified for revised SCP API function parameter types
    03-May-16    JDB     Changed clear/attach/on/offline trace from INCO to CMD
-   24-Mar-16    JDB     Changed the buffer element type from uint8 to TL_BUFFER
-   21-Mar-16    JDB     Changed uint16 types to HP_WORD
+   24-Mar-16    JDB     Changed the buffer element type from uint8_t to TL_BUFFER
+   21-Mar-16    JDB     Changed uint16_t types to HP_WORD
    20-Nov-15    JDB     First release version
    24-Mar-13    JDB     Created tape controller common library from MS simulator
 
@@ -447,9 +447,9 @@ typedef enum {
 typedef struct {
     CNTLR_TYPE  controller;                     /* the controller model */
     DRIVE_TYPE  drive;                          /* a supported tape drive model */
-    uint32      density;                        /* a supported tape drive density code */
-    uint32      bpi;                            /* the recording density in bits per inch */
-    uint32      gap_size;                       /* the erase gap size in tenths of an inch */
+    uint32_t      density;                        /* a supported tape drive density code */
+    uint32_t      bpi;                            /* the recording density in bits per inch */
+    uint32_t      gap_size;                       /* the erase gap size in tenths of an inch */
     } DRIVE_PROPS;
 
 static const DRIVE_PROPS drive_props [] = {
@@ -607,7 +607,7 @@ typedef enum {
     Write_Status
     } STATUS_CONDITION;
 
-static const uint32 status_bits [] [CNTLR_COUNT] = {    /* indexed by STATUS_CONDITION and CNTLR_TYPE */
+static const uint32_t status_bits [] [CNTLR_COUNT] = {    /* indexed by STATUS_CONDITION and CNTLR_TYPE */
 
 /*    HP_13181   HP_13183   HP_30215   */
 /*    --------   --------   --------   */
@@ -822,7 +822,7 @@ static void           add_crcc_lrcc    (CVPTR cvptr, CNTLR_OPCODE opcode);
 /* Tape library local utility routines */
 
 static void   activate_unit  (CVPTR cvptr, UNIT *uptr);
-static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32 new_bpi);
+static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32_t new_bpi);
 
 
 
@@ -1000,7 +1000,7 @@ return status;
 HP_WORD tl_status (CVPTR cvptr)
 {
 UNIT *const uptr = cvptr->device->units + cvptr->unit_selected; /* a pointer to the selected unit */
-uint32 status;
+uint32_t status;
 
 status = cvptr->status | CST_UNITSEL;                   /* merge the controller status and the selected unit number */
 
@@ -1043,7 +1043,7 @@ return LOWER_WORD (status);                             /* return the 16-bit com
 
 t_stat tl_reset (CVPTR cvptr)
 {
-uint32     unit;
+uint32_t     unit;
 UNIT       *uptr;
 DRIVE_TYPE drive;
 
@@ -1129,7 +1129,7 @@ return SCPE_OK;
 
 void tl_clear (CVPTR cvptr)
 {
-uint32   unit;
+uint32_t   unit;
 int32    remaining_time;
 UNIT     *uptr;
 t_addr   reset_position, relative_position;
@@ -1406,13 +1406,13 @@ t_stat tl_set_density (UNIT *uptr, int32 value, CONST char *cptr, void *desc)
 {
 const CVPTR cvptr = (CVPTR) desc;                       /* the controller state structure pointer */
 const DRIVE_TYPE model = GET_MODEL (uptr->flags);       /* the current drive model ID */
-uint32 new_bpi;
+uint32_t new_bpi;
 t_stat status;
 
 if (cptr == NULL || *cptr == '\0')                      /* if no density value is present */
     return SCPE_MISVAL;                                 /*   then report a missing value error */
 
-new_bpi = (uint32) get_uint (cptr, 10, UINT_MAX, &status);  /* parse the supplied value */
+new_bpi = (uint32_t) get_uint (cptr, 10, UINT_MAX, &status);  /* parse the supplied value */
 
 if (status != SCPE_OK)                                      /* if a parsing failure occurred */
     return status;                                          /*   then report the problem */
@@ -1449,7 +1449,7 @@ else                                                        /* otherwise a numer
 
 t_stat tl_set_reelsize (UNIT *uptr, int32 value, CONST char *cptr, void *desc)
 {
-const uint32 tape_bpi = drive_props [PROP_INDEX (uptr)].bpi;    /* the tape unit density */
+const uint32_t tape_bpi = drive_props [PROP_INDEX (uptr)].bpi;    /* the tape unit density */
 int32  reel;
 t_stat status;
 
@@ -1724,7 +1724,7 @@ else {                                                  /* otherwise the command
     cvptr->gaplen = 0;                                  /*     and clear the gap length */
 
     if (opcode >= Select_Unit_0 && opcode <= Select_Unit_3) {       /* if the opcode is a Select Unit command */
-        cvptr->unit_selected = (uint32) (opcode - Select_Unit_0);   /*   then select the indicated unit */
+        cvptr->unit_selected = (uint32_t) (opcode - Select_Unit_0);   /*   then select the indicated unit */
 
         dpprintf (cvptr->device, TL_DEB_INCO, "%s completed\n",
                   opcode_names [opcode]);
@@ -2788,7 +2788,7 @@ static CNTLR_IFN_IBUS call_tapelib (CVPTR cvptr, UNIT *uptr, TAPELIB_CALL lib_ca
 {
 t_bool         do_gap, do_data;
 int32          unit;
-uint32         gap_inches, gap_tenths;
+uint32_t         gap_inches, gap_tenths;
 CNTLR_IFN_IBUS result = (CNTLR_IFN_IBUS) NO_FUNCTIONS;  /* the expected case */
 
 switch (lib_call) {                                     /* dispatch to the selected routine */
@@ -2820,7 +2820,7 @@ switch (lib_call) {                                     /* dispatch to the selec
         break;
 
     case lib_write_gap:                                 /* write erase gap */
-        cvptr->call_status = sim_tape_wrgap (uptr, (uint32) parameter);
+        cvptr->call_status = sim_tape_wrgap (uptr, (uint32_t) parameter);
         break;
 
     case lib_write_tmk:                                 /* write tape mark */
@@ -3090,7 +3090,7 @@ return;
 
 static void add_crcc_lrcc (CVPTR cvptr, CNTLR_OPCODE opcode)
 {
-uint32  index;
+uint32_t  index;
 HP_WORD byte, crc, lrc;
 
 crc = 0;                                                /* initialize the CRC  */
@@ -3177,10 +3177,10 @@ return;
    default for selectable-density drives, is used.
 */
 
-static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32 new_bpi)
+static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32_t new_bpi)
 {
 const CNTLR_TYPE ctype = cvptr->type;                   /* the controller type */
-uint32 entry;
+uint32_t entry;
 
 for (entry = 0; entry < PROPS_COUNT; entry++)           /* check each property table entry for a match */
     if (drive_props [entry].controller == ctype         /* if this is our controller */

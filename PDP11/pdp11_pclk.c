@@ -167,13 +167,13 @@ BITFIELD pclk_notused_bits[] = {
 static BITFIELD* bitdefs[] = {pclk_csr_bits, pclk_buf_bits, pclk_ctr_bits, pclk_notused_bits};
 
 
-uint32 pclk_csr = 0;                                    /* control/status */
-uint32 pclk_csb = 0;                                    /* count set buffer */
-uint32 pclk_ctr = 0;                                    /* counter */
-static void pclk_set_ctr (uint32 val);
-static uint32 pclk_get_ctr (void);
-static uint32 rate[4] = { 100000, 10000, 60, 10 };      /* ticks per second */
-static uint32 xtim[4] = { 10, 100, 16667, 100000 };     /* nominal usec delay per inc/dec */
+uint32_t pclk_csr = 0;                                    /* control/status */
+uint32_t pclk_csb = 0;                                    /* count set buffer */
+uint32_t pclk_ctr = 0;                                    /* counter */
+static void pclk_set_ctr (uint32_t val);
+static uint32_t pclk_get_ctr (void);
+static uint32_t rate[4] = { 100000, 10000, 60, 10 };      /* ticks per second */
+static uint32_t xtim[4] = { 10, 100, 16667, 100000 };     /* nominal usec delay per inc/dec */
 
 t_stat pclk_rd (int32 *data, int32 PA, int32 access);
 t_stat pclk_wr (int32 data, int32 PA, int32 access);
@@ -278,7 +278,7 @@ switch ((PA >> 1) & 03) {
         }
 
 sim_debug(DBG_REG, &pclk_dev, "pclk_rd(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, pclk_regs[(PA >> 1) & 03], access, *data);
-sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), TRUE);
+sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32_t)(*data), (uint32_t)(*data), TRUE);
 
 return SCPE_OK;
 }
@@ -289,7 +289,7 @@ int32 old_csr = pclk_csr;
 int32 rv;
 
 sim_debug(DBG_REG, &pclk_dev, "pclk_wr(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, pclk_regs[(PA >> 1) & 03], access, data);
-sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), TRUE);
+sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32_t)((PA & 1) ? data<<8 : data), (uint32_t)((PA & 1) ? data<<8 : data), TRUE);
 switch ((PA >> 1) & 03) {
 
     case 00:                                            /* CSR */
@@ -330,13 +330,13 @@ switch ((PA >> 1) & 03) {
 return SCPE_OK;
 }
 
-static void pclk_set_ctr (uint32 val)
+static void pclk_set_ctr (uint32_t val)
 {
 if ((pclk_csr & CSR_GO) == 0)                           /* stopped? */
     pclk_ctr = val;                                     /* save */
 else {
-    uint32 delay = DMASK & ((pclk_csr & CSR_UPDN) ? (DMASK + 1 - val) : val);
-    uint32 usec_delay;
+    uint32_t delay = DMASK & ((pclk_csr & CSR_UPDN) ? (DMASK + 1 - val) : val);
+    uint32_t usec_delay;
     int32 rv;
 
     if (delay == 0)
@@ -348,16 +348,16 @@ else {
     }
 }
 
-static uint32 pclk_get_ctr (void)
+static uint32_t pclk_get_ctr (void)
 {
-uint32 val;
+uint32_t val;
 int32 rv;
 
 if (!sim_is_active (&pclk_unit))
     return pclk_ctr;
 
 rv = CSR_GETRATE (pclk_csr);                            /* get rate */
-val = (uint32)((sim_activate_time_usecs (&pclk_unit) / xtim[rv]));
+val = (uint32_t)((sim_activate_time_usecs (&pclk_unit) / xtim[rv]));
 val &= DMASK;
 if (pclk_csr & CSR_UPDN) 
     val = DMASK + 1 - val;

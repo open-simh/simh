@@ -302,8 +302,8 @@ return SCPE_OK;
 /* Transfer received packets into receive ring. */
 void xs_process_receive(CTLR* xs)
 {
-uint8 b0, b1, b2, b3;
-uint32 segb, ba;
+uint8_t b0, b1, b2, b3;
+uint32_t segb, ba;
 int slen, wlen, off = 0;
 t_stat rstatus, wstatus;
 ETH_ITEM* item = 0;
@@ -345,7 +345,7 @@ while (xs->var->ReadQ.count > 0) {
         }
 
     /* set buffer length and address */
-    slen = (uint16)(xs->var->rxhdr[2] * -1);            /* 2s Complement */
+    slen = (uint16_t)(xs->var->rxhdr[2] * -1);            /* 2s Complement */
     segb = xs->var->rxhdr[0] + ((xs->var->rxhdr[1] & RXR_HADR) << 16);
     segb |= XS_ADRMBO;                                  /* set system specific bits */
 
@@ -452,7 +452,7 @@ while (xs->var->ReadQ.count > 0) {
 
 void xs_process_transmit (CTLR* xs)
 {
-uint32 segb, ba;
+uint32_t segb, ba;
 int slen, wlen, off, giant, runt;
 t_stat rstatus, wstatus;
 
@@ -475,7 +475,7 @@ for (;;) {
         break;
 
     /* set buffer length and address */
-    slen = (uint16)(xs->var->txhdr[2] * -1);            /* 2s complement */
+    slen = (uint16_t)(xs->var->txhdr[2] * -1);            /* 2s complement */
     segb = xs->var->txhdr[0] + ((xs->var->txhdr[1] & TXR_HADR) << 16);
     segb |= XS_ADRMBO;                                  /* set system specific bits */
     wlen = slen;
@@ -534,7 +534,7 @@ for (;;) {
         /* update transmit status in transmit buffer */
         if (xs->var->write_buffer.status != 0) {
             /* failure */
-            const uint16 tdr = 100 + wlen * 8; /* arbitrary value */
+            const uint16_t tdr = 100 + wlen * 8; /* arbitrary value */
             xs->var->txhdr[3] |= TXR_RTRY;
             xs->var->txhdr[3] |= tdr & TXR_TDR;
             xs->var->txhdr[1] |= TXR_ERRS;
@@ -577,8 +577,8 @@ xs_updateint (xs);
 
 t_stat xs_init (CTLR* xs)
 {
-uint16 w1, w2;
-uint8 inb[0x18];
+uint16_t w1, w2;
+uint8_t inb[0x18];
 
 sim_debug (DBG_TRC, &xs_dev, "xs_init() at %08X\n", fault_PC);
 
@@ -779,12 +779,12 @@ int rrlen = xs->var->rrlen;
 sim_printf ("receive ring[%s]: base address: %08x  headers: %d, header size: %d, current: %d\n",
             xs->dev->name, xs->var->rdrb, xs->var->rrlen, xs->var->relen, xs->var->rxnext);
 for (i=0; i<rrlen; i++) {
-    uint16 rxhdr[4] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-    uint32 ba = xs->var->rdrb + (xs->var->relen * 2) * i;
+    uint16_t rxhdr[4] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+    uint32_t ba = xs->var->rdrb + (xs->var->relen * 2) * i;
     t_stat rstatus = XS_READW (ba, 8, rxhdr);  /* get rxring entry[i] */
     int own = (rxhdr[2] & RXR_OWN) >> 15;
     int len = rxhdr[0];
-    uint32 addr = rxhdr[1] + ((rxhdr[2] & 3) << 16);
+    uint32_t addr = rxhdr[1] + ((rxhdr[2] & 3) << 16);
     if (rstatus == 0)
         sim_printf ("  header[%d]: own:%d, len:%d, address:%08x data:{%04x,%04x,%04x,%04x}\n",
                     i, own, len, addr, rxhdr[0], rxhdr[1], rxhdr[2], rxhdr[3]);
@@ -798,12 +798,12 @@ int trlen = xs->var->trlen;
 sim_printf ("transmit ring[%s]: base address: %08x  headers: %d, header size: %d, current: %d\n",
             xs->dev->name, xs->var->tdrb, xs->var->trlen, xs->var->telen, xs->var->txnext);
 for (i=0; i<trlen; i++) {
-    uint16 txhdr[4];
-    uint32 ba = xs->var->tdrb + (xs->var->telen * 2) * i;
+    uint16_t txhdr[4];
+    uint32_t ba = xs->var->tdrb + (xs->var->telen * 2) * i;
     t_stat tstatus = XS_READW (ba, 8, txhdr);  /* get rxring entry[i] */
     int own = (txhdr[2] & RXR_OWN) >> 15;
     int len = txhdr[0];
-    uint32 addr = txhdr[1] + ((txhdr[2] & 3) << 16);
+    uint32_t addr = txhdr[1] + ((txhdr[2] & 3) << 16);
     if (tstatus == 0)
         sim_printf ("  header[%d]: own:%d, len:%d, address:%08x data:{%04x,%04x,%04x,%04x}\n",
                     i, own, len, addr, txhdr[0], txhdr[1], txhdr[2], txhdr[3]);

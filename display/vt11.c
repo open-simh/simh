@@ -235,7 +235,7 @@ unsigned char vt11_init = 0;    /* set after display_init() called */
  * resume       0
  */
 #define DPC stack[8]._dpc               /* Display PC (always even) */
-static uint16 bdb = 0;                  /* Buffered Data Bits register;
+static uint16_t bdb = 0;                  /* Buffered Data Bits register;
                                            see comment in vt11_get_dpc() */
 
 /*
@@ -299,7 +299,7 @@ static int           edge_ypos;         /* (normalized) */
  * spare                                15:12
  * relocate register value[17:6]        11:0
  */
-static uint32 reloc = 0;                /* relocation, aligned with DPC */
+static uint32_t reloc = 0;                /* relocation, aligned with DPC */
 
 /*
  * Status Parameter Register (VS60 only)
@@ -660,7 +660,7 @@ vt11_get_dpc(void)
 }
 
 void
-vt11_set_dpc(uint16 d)
+vt11_set_dpc(uint16_t d)
 {   INIT
     bdb = d;                            /* save all bits in case maint1 used */
     DEBUGF("set DPC 0%06o\r\n", (unsigned)d);
@@ -732,7 +732,7 @@ vt11_get_mpr(void)
 }
 
 void
-vt11_set_mpr(uint16 d)
+vt11_set_mpr(uint16_t d)
 {   INIT
     /* beeps the "bell" on the LK40 keyboard */
 #if 0   /* probably doesn't hurt to do it for the VS60 also */
@@ -751,7 +751,7 @@ vt11_get_xpr(void)
 }
 
 void
-vt11_set_xpr(uint16 d)
+vt11_set_xpr(uint16_t d)
 {   INIT
     DEBUGF("set XPR: no effect\r\n");
 }
@@ -766,7 +766,7 @@ vt11_get_ypr(void)
 }
 
 void
-vt11_set_ypr(uint16 d)
+vt11_set_ypr(uint16_t d)
 {   INIT
     DEBUGF("set YPR: no effect\r\n");
 }
@@ -780,9 +780,9 @@ vt11_get_rr(void)
 }
 
 void
-vt11_set_rr(uint16 d)
+vt11_set_rr(uint16_t d)
 {   INIT
-    reloc = (uint32)GETFIELD(d,11,0) << 6;
+    reloc = (uint32_t)GETFIELD(d,11,0) << 6;
 }
 
 int32
@@ -794,7 +794,7 @@ vt11_get_spr(void)
 }
 
 void
-vt11_set_spr(uint16 d)
+vt11_set_spr(uint16_t d)
 {   INIT
     ext_stop = TESTBIT(d,7);    /* stop occurs at end of next display cycle */
 
@@ -815,7 +815,7 @@ vt11_get_xor(void)
 }
 
 void
-vt11_set_xor(uint16 d)
+vt11_set_xor(uint16_t d)
 {   INIT
     xoff = PSCALE(GETFIELD(d,11,0));
     s_xoff = TESTBIT(d,13);
@@ -834,7 +834,7 @@ vt11_get_yor(void)
 }
 
 void
-vt11_set_yor(uint16 d)
+vt11_set_yor(uint16_t d)
 {   INIT
     yoff = PSCALE(GETFIELD(d,11,0));
     s_yoff = TESTBIT(d,13);
@@ -850,7 +850,7 @@ vt11_get_anr(void)
 }
 
 void
-vt11_set_anr(uint16 d)
+vt11_set_anr(uint16_t d)
 {   INIT
     if (TESTBIT(d,14))
         search = GETFIELD(d,13,12);
@@ -868,7 +868,7 @@ vt11_get_scr(void)
 }
 
 void
-vt11_set_scr(uint16 d)
+vt11_set_scr(uint16_t d)
 {   INIT
     if (maint3) {
         if (TESTBIT(d,14) && lp0_intr_ena) {
@@ -919,7 +919,7 @@ vt11_get_nr(void)
 }
 
 void
-vt11_set_nr(uint16 d)
+vt11_set_nr(uint16_t d)
 {   INIT
     DEBUGF("set NR: no effect\r\n");
 }
@@ -955,7 +955,7 @@ vt11_get_sdr(void)
 }
 
 void
-vt11_set_sdr(uint16 d)
+vt11_set_sdr(uint16_t d)
 {   INIT
     DEBUGF("set SDR: no effect\r\n");
 }
@@ -967,7 +967,7 @@ vt11_get_str(void)
 }
 
 void
-vt11_set_str(uint16 d)
+vt11_set_str(uint16_t d)
 {   INIT
     if (TESTBIT(d,7))
         char_term = GETFIELD(d,6,0);
@@ -998,7 +998,7 @@ vt11_get_sar(void)
 }
 
 void
-vt11_set_sar(uint16 d)
+vt11_set_sar(uint16_t d)
 {   INIT
     maint4 = TESTBIT(d,15);             /* 1 => synch. processing pipeline */
     maint3 = TESTBIT(d,14);             /* 1 => copy delta,tangent to x,y pos */
@@ -1033,7 +1033,7 @@ vt11_get_zpr(void)
 }
 
 void
-vt11_set_zpr(uint16 d)
+vt11_set_zpr(uint16_t d)
 {   INIT
     DEBUGF("set ZPR: no effect\r\n");
 }
@@ -1055,7 +1055,7 @@ vt11_get_zor(void)
 }
 
 void
-vt11_set_zor(uint16 d)
+vt11_set_zor(uint16_t d)
 {   INIT
     zoff = PSCALE(GETFIELD(d,11,0));
     s_zoff = TESTBIT(d,13);
@@ -3061,9 +3061,9 @@ vt11_cycle(int us, int slowdown)
     static int32 x, y, z, ex, ey, sxo, syo, szo;
     int c;
     int32 ez;
-    static uint32 usec = 0;             /* cumulative */
-    static uint32 msec = 0;             /* ditto */
-    uint32 new_msec;
+    static uint32_t usec = 0;             /* cumulative */
+    static uint32_t msec = 0;             /* ditto */
+    uint32_t new_msec;
     INIT
     /* keep running time counter; track state even when processor is idle */
 
@@ -3143,7 +3143,7 @@ vt11_cycle(int us, int slowdown)
     /* fetch next word from display file (if needed) and process it */
 
     if (word_number != 1 || (graphic_mode != CHAR && graphic_mode != BSVECT)) {
-        time_out = vt_fetch((uint32)((DPC+reloc)&0777777), &inst);
+        time_out = vt_fetch((uint32_t)((DPC+reloc)&0777777), &inst);
         DPC += 2;
         if (time_out)
             goto bus_timeout;

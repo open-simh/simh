@@ -157,7 +157,7 @@ t_uint64 bit_mask[64] = {
         0
 };
 
-uint8 bit_number[64] = {
+uint8_t bit_number[64] = {
     /*  00  01  02  03  04  05  06  07 */
         47, 46, 45, 44, 43, 42, 42, 42, /* 00 */
         41, 40, 39, 38, 37, 36, 36, 36, /* 10 */
@@ -169,7 +169,7 @@ uint8 bit_number[64] = {
          5,  4,  3,  2,  1,  0,  0,  0, /* 70 */
 };
 
-uint8 rank[64] = {
+uint8_t rank[64] = {
      /* 00  01  02  03  04  05  06  07 */
         53, 54, 55, 56, 57, 58, 59, 60,  /* 00 */
       /* 8   9   #   @   ?   :   >  ge  */
@@ -195,56 +195,56 @@ t_uint64            a_reg[2];                   /* A register */
 t_uint64            b_reg[2];                   /* B register */
 t_uint64            x_reg[2];                   /* extension to B */
 t_uint64            y_reg[2];                   /* extension to A not original */
-uint8               arof_reg[2];                /* True if A full */
-uint8               brof_reg[2];                /* True if B full */
-uint8               gh_reg[2];                  /* G & H source char selectors */
-uint8               kv_reg[2];                  /* K & V dest char selectors */
-uint16              ma_reg[2];                  /* M memory address regiser */
-uint16              s_reg[2];                   /* S Stack pointer */
-uint16              f_reg[2];                   /* F MCSV pointer */
-uint16              r_reg[2];                   /* R PRT pointer */
+uint8_t               arof_reg[2];                /* True if A full */
+uint8_t               brof_reg[2];                /* True if B full */
+uint8_t               gh_reg[2];                  /* G & H source char selectors */
+uint8_t               kv_reg[2];                  /* K & V dest char selectors */
+uint16_t              ma_reg[2];                  /* M memory address regiser */
+uint16_t              s_reg[2];                   /* S Stack pointer */
+uint16_t              f_reg[2];                   /* F MCSV pointer */
+uint16_t              r_reg[2];                   /* R PRT pointer */
 t_uint64            p_reg[2];                   /* P insruction buffer */
-uint8               prof_reg[2];                /* True if P valid */
-uint16              t_reg[2];                   /* T current instruction */
-uint8               trof_reg[2];                /* True if T valid */
-uint16              c_reg[2];                   /* C program counter */
-uint16              l_reg[2];                   /* L current syllable pointer */
-uint8               ncsf_reg[2];                /* True if normal state */
-uint8               salf_reg[2];                /* True if subrogram mode */
-uint8               cwmf_reg[2];                /* True if character mode */
-uint16              hltf[2];                    /* True if processor halted */
-uint8               msff_reg[2];                /* Mark stack flag Word mode */
+uint8_t               prof_reg[2];                /* True if P valid */
+uint16_t              t_reg[2];                   /* T current instruction */
+uint8_t               trof_reg[2];                /* True if T valid */
+uint16_t              c_reg[2];                   /* C program counter */
+uint16_t              l_reg[2];                   /* L current syllable pointer */
+uint8_t               ncsf_reg[2];                /* True if normal state */
+uint8_t               salf_reg[2];                /* True if subrogram mode */
+uint8_t               cwmf_reg[2];                /* True if character mode */
+uint16_t              hltf[2];                    /* True if processor halted */
+uint8_t               msff_reg[2];                /* Mark stack flag Word mode */
 #define TFFF MSFF                               /* True state in Char mode */
-uint8               varf_reg[2];                /* Variant Flag */
-uint8               q_reg[2];                   /* Holds error code */
-uint16              IAR;                        /* Interrupt register */
-uint32              iostatus;                   /* Hold status of devices */
-uint8               RTC;                        /* Real time clock counter */
-uint8               loading;                    /* Set when loading */
-uint8               HALT;                       /* Set when halt requested */
-uint8               P1_run;                     /* Run flag for P1 */
-uint8               P2_run;                     /* Run flag for P2 */
-uint16              idle_addr = 0;              /* Address of idle loop */
+uint8_t               varf_reg[2];                /* Variant Flag */
+uint8_t               q_reg[2];                   /* Holds error code */
+uint16_t              IAR;                        /* Interrupt register */
+uint32_t              iostatus;                   /* Hold status of devices */
+uint8_t               RTC;                        /* Real time clock counter */
+uint8_t               loading;                    /* Set when loading */
+uint8_t               HALT;                       /* Set when halt requested */
+uint8_t               P1_run;                     /* Run flag for P1 */
+uint8_t               P2_run;                     /* Run flag for P2 */
+uint16_t              idle_addr = 0;              /* Address of idle loop */
 
 
 struct InstHistory
 {
-        uint16          c;
-        uint16          op;
-        uint16          s;
-        uint16          f;
-        uint16          r;
-        uint16          ma;
+        uint16_t          c;
+        uint16_t          op;
+        uint16_t          s;
+        uint16_t          f;
+        uint16_t          r;
+        uint16_t          ma;
         t_uint64        a_reg;
         t_uint64        b_reg;
         t_uint64        x_reg;
-        uint8           flags;
-        uint8           gh;
-        uint8           kv;
-        uint16          l;
-        uint8           q;
-        uint8           cpu;
-        uint16          iar;
+        uint8_t           flags;
+        uint8_t           gh;
+        uint8_t           kv;
+        uint16_t          l;
+        uint8_t           q;
+        uint8_t           cpu;
+        uint16_t          iar;
 };
 
 struct InstHistory *hst = NULL;
@@ -381,10 +381,10 @@ DEVICE              cpu_dev = {
 #define HLTF    hltf[cpu_index]
 
 /* Definitions to help extract fields */
-#define FF(x)    (uint16)(((x) & FFIELD) >> FFIELD_V)
-#define CF(x)    (uint16) ((x) & CORE)
-#define LF(x)    (uint16)(((x) & RL) >> RL_V)
-#define RF(x)    (uint16)(((x) & RFIELD) >> RFIELD_V)
+#define FF(x)    (uint16_t)(((x) & FFIELD) >> FFIELD_V)
+#define CF(x)    (uint16_t) ((x) & CORE)
+#define LF(x)    (uint16_t)(((x) & RL) >> RL_V)
+#define RF(x)    (uint16_t)(((x) & RFIELD) >> RFIELD_V)
 
 #define toF(x)   ((((t_uint64)(x)) << FFIELD_V) & FFIELD)
 #define toC(x)    (((t_uint64)(x)) & CORE)
@@ -429,8 +429,8 @@ DEVICE              cpu_dev = {
         16      Fetch
 */
 
-int memory_cycle(uint8 E) {
-        uint16 addr = 0;
+int memory_cycle(uint8_t E) {
+        uint16_t addr = 0;
 
         sim_interval--;
         if (E & 2)
@@ -493,10 +493,10 @@ int  set_via_RCW(t_uint64 word, int no_set_lc, int no_bits) {
         }
         F = FF(word);
         if (!no_bits) {
-            uint16 t;
-            t = (uint16)((word & RGH) >> RGH_V);
+            uint16_t t;
+            t = (uint16_t)((word & RGH) >> RGH_V);
             GH = ((t << 3) & 070) | ((t >> 8) & 07);
-            t = (uint16)((word & RKV) >> RKV_V);
+            t = (uint16_t)((word & RKV) >> RKV_V);
             KV = ((t << 3) & 070) | ((t >> 8) & 07);
         }
         return (word & PRESENT) != 0;
@@ -928,7 +928,7 @@ void initiate() {
 /* Save processor state in case of error or halt */
 void storeInterrupt(int forced, int test) {
     int         f;
-    uint16      temp;
+    uint16_t      temp;
 
     if (forced || test)
         NCSF = 0;
@@ -1024,16 +1024,16 @@ void storeInterrupt(int forced, int test) {
 */
 
 int check_idle() {
-    static uint16  loop_data[7] = {
+    static uint16_t  loop_data[7] = {
           WMOP_TUS, WMOP_OPDC, WMOP_LOR, WMOP_OPDC,
           WMOP_NEQ, WMOP_LITC, WMOP_BBC };
-    static uint16  loop_mask[7] = {
+    static uint16_t  loop_mask[7] = {
           07777,    00003,     07777,     00003,
           07777,    07733,     05777};
     t_uint64     data;
-    uint16       addr = C;
+    uint16_t       addr = C;
     int          l = (3 - L) * 12;
-    uint16       word;
+    uint16_t       word;
     int          i;
 
     /* Quick check to see if not correct location */
@@ -1046,7 +1046,7 @@ int check_idle() {
     /* Not set, see if this could be loop */
     data = M[addr];
     for (i = 0; i < 7; i++) {
-        word = (uint16)(data >> l) & 07777;
+        word = (uint16_t)(data >> l) & 07777;
         if ((word & loop_mask[i]) != loop_data[i])
             return 0;
         if (l == 0) {
@@ -1069,7 +1069,7 @@ int check_idle() {
         return 2 if B > A
         return 4 if B < A
 */
-uint8   compare() {
+uint8_t   compare() {
     int         sign_a, sign_b;
     int         exp_a, exp_b;
     t_uint64    ma, mb;
@@ -1931,8 +1931,8 @@ void double_divide() {
 }
 
 void relativeAddr(int store) {
-    uint16    base = R;
-    uint16    addr = (uint16)(A & 01777);
+    uint16_t    base = R;
+    uint16_t    addr = (uint16_t)(A & 01777);
 
     if (SALF) {
        switch ((addr >> 7) & 7) {
@@ -1978,9 +1978,9 @@ sim_instr(void)
 {
     t_stat              reason;
     t_uint64            temp = 0LL;
-    uint16              atemp;
-    uint8               opcode;
-    uint8               field;
+    uint16_t              atemp;
+    uint8_t               opcode;
+    uint8_t               field;
     int                 bit_a;
     int                 bit_b;
     int                 f;
@@ -2261,7 +2261,7 @@ crf_loop:
                     field--;
                 }
                 B &= FLAG|FWORD;
-                GH = (uint8)((B >> 12) & 070);
+                GH = (uint8_t)((B >> 12) & 070);
                 Ma = CF(B);
                 break;
 
@@ -2281,7 +2281,7 @@ crf_loop:
                     field--;
                 }
                 BROF = 0;
-                KV = (uint8)((temp >> 12) & 070);
+                KV = (uint8_t)((temp >> 12) & 070);
                 S = CF(temp);
                 break;
 
@@ -2514,7 +2514,7 @@ crf_loop:
                 A = B;
                 AROF = BROF;
                 B = X;
-                field = (uint8)((B & REPFLD) >> REPFLD_V);
+                field = (uint8_t)((B & REPFLD) >> REPFLD_V);
                 if (field) {
                      X &= ~REPFLD;
                      X |= ((t_uint64)(field - 1) << REPFLD_V) & REPFLD;
@@ -3034,7 +3034,7 @@ control:
                             C = INVADR_ERR;
                             q_reg[0] &= ~INVALID_ADDR;
                         } else if (IAR) {
-                            uint16  x;
+                            uint16_t  x;
                             C = INTER_TIME;
                             for(x = 1; (IAR & x) == 0; x <<= 1)
                                 C++;
@@ -3688,7 +3688,7 @@ control:
                         S = CF(B);
                         KV = 0;
                         if ((B & FLAG) == 0)
-                            KV = (uint8)((B >> (FFIELD_V - 3)) & 070);
+                            KV = (uint8_t)((B >> (FFIELD_V - 3)) & 070);
                         else if ((B & PRESENT) == 0 && NCSF)
                             Q |= PRES_BIT;
                         break;
@@ -3910,7 +3910,7 @@ t_stat
 cpu_set_size(UNIT * uptr, int32 val, CONST char *cptr, void *desc)
 {
     t_uint64            mc = 0;
-    uint32              i;
+    uint32_t              i;
     int32               v;
 
     v = val >> UNIT_V_MSIZE;

@@ -92,7 +92,7 @@ DEVICE m6810_dev = {
 t_stat m6810_reset (DEVICE *dptr)
 {
     if (m6810_unit.filebuf == NULL) {
-        m6810_unit.filebuf = calloc(128, sizeof(uint8));
+        m6810_unit.filebuf = calloc(128, sizeof(uint8_t));
         if (m6810_unit.filebuf == NULL) {
             printf("m6810_reset: Calloc error\n");
             return SCPE_MEM;
@@ -113,7 +113,7 @@ int32 m6810_get_mbyte(int32 offset)
     int32 val;
 
     if (((t_addr)offset) < m6810_unit.capac) {
-        val = *((uint8 *)(m6810_unit.filebuf) + offset) & 0xFF;
+        val = *((uint8_t *)(m6810_unit.filebuf) + offset) & 0xFF;
         return val;
     } else {
         return 0xFF;
@@ -125,7 +125,7 @@ int32 m6810_get_mbyte(int32 offset)
 void m6810_put_mbyte(int32 offset, int32 val)
 {
     if ((t_addr)offset < m6810_unit.capac) {
-        *((uint8 *)(m6810_unit.filebuf) + offset) = val & 0xFF;
+        *((uint8_t *)(m6810_unit.filebuf) + offset) = val & 0xFF;
         return;
     }
     return;

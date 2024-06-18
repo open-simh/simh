@@ -274,7 +274,7 @@ return attach_unit (uptr, cptr);
 #define BOOT_START 07756
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06014,                      /* 7756, RFC */
     06011,                      /* 7757, LOOP, RSF */
     05357,                      /* JMP .-1 */
@@ -298,7 +298,7 @@ static const uint16 boot_rom[] = {
 t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 {
 size_t i;
-extern uint16 M[];
+extern uint16_t M[];
 
 if (ptr_dib.dev != DEV_PTR)                             /* only std devno */
     return STOP_NOTSTD;

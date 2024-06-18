@@ -111,7 +111,7 @@ t_stat mp_8m_reset (DEVICE *dptr)
         else
             uptr->u3 = 0x2000 * (i + 1);
         if (uptr->filebuf == NULL) {
-            uptr->filebuf = calloc(0x2000, sizeof(uint8));
+            uptr->filebuf = calloc(0x2000, sizeof(uint8_t));
             if (uptr->filebuf == NULL) {
                 printf("mp_8m_reset: Calloc error\n");
                 return SCPE_MEM;
@@ -138,7 +138,7 @@ int32 mp_8m_get_mbyte(int32 addr)
         org = uptr->u3;
         len = uptr->capac - 1;
         if ((addr >= org) && (addr <= org + len)) {
-            val = *((uint8 *)(uptr->filebuf) + (addr - org));
+            val = *((uint8_t *)(uptr->filebuf) + (addr - org));
             return (val & BYTEMASK);
         }
     }
@@ -169,7 +169,7 @@ void mp_8m_put_mbyte(int32 addr, int32 val)
         org = uptr->u3;
         len = uptr->capac - 1;
         if ((addr >= org) && (addr <= org + len)) {
-            *((uint8 *)(uptr->filebuf) + (addr - org)) = val & BYTEMASK;
+            *((uint8_t *)(uptr->filebuf) + (addr - org)) = val & BYTEMASK;
             return;
         }
     }

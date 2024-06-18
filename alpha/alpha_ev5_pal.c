@@ -68,50 +68,50 @@ t_uint64 ev5_dtb_pte = 0;                               /* DTLB pte */
 t_uint64 ev5_dtb_pte_temp = 0;                          /* DTLB readout */
 t_uint64 ev5_dc_test_tag = 0;                           /* Dcache test tag */
 t_uint64 ev5_dc_test_tag_temp = 0;                      /* Dcache tag readout */
-uint32 ev5_itb_tag = 0;                                 /* ITLB tag (vpn) */
-uint32 ev5_dtb_tag = 0;                                 /* DTLB tag (vpn) */
-uint32 ev5_icperr = 0;                                  /* Icache par err */
-uint32 ev5_mm_stat = 0;                                 /* MBox fault code */
-uint32 ev5_mcsr = 0;                                    /* MBox control */
-uint32 ev5_alt_mode = 0;                                /* MBox alt mode */
-uint32 ev5_dc_mode = 0;                                 /* Dcache mode */
-uint32 ev5_dcperr = 0;                                  /* Dcache par err */
-uint32 ev5_dc_test_ctl = 0;                             /* Dcache test ctrl */
-uint32 ev5_maf_mode = 0;                                /* MAF mode */
-uint32 ev5_va_lock = 0;                                 /* VA lock flag */
-uint32 ev5_mchk = 0;                                    /* machine check pin */
-uint32 ev5_sli = 0;                                     /* serial line intr */
-uint32 ev5_crd = 0;                                     /* corr read data pin */
-uint32 ev5_pwrfl = 0;                                   /* power fail pin */
-uint32 ev5_ipl = 0;                                     /* ipl */
-uint32 ev5_sirr = 0;                                    /* software int req */
-uint32 ev5_astrr = 0;                                   /* AST requests */
-uint32 ev5_asten = 0;                                   /* AST enables */
-const uint32 ast_map[4] = { 0x1, 0x3, 0x7, 0xF };
+uint32_t ev5_itb_tag = 0;                                 /* ITLB tag (vpn) */
+uint32_t ev5_dtb_tag = 0;                                 /* DTLB tag (vpn) */
+uint32_t ev5_icperr = 0;                                  /* Icache par err */
+uint32_t ev5_mm_stat = 0;                                 /* MBox fault code */
+uint32_t ev5_mcsr = 0;                                    /* MBox control */
+uint32_t ev5_alt_mode = 0;                                /* MBox alt mode */
+uint32_t ev5_dc_mode = 0;                                 /* Dcache mode */
+uint32_t ev5_dcperr = 0;                                  /* Dcache par err */
+uint32_t ev5_dc_test_ctl = 0;                             /* Dcache test ctrl */
+uint32_t ev5_maf_mode = 0;                                /* MAF mode */
+uint32_t ev5_va_lock = 0;                                 /* VA lock flag */
+uint32_t ev5_mchk = 0;                                    /* machine check pin */
+uint32_t ev5_sli = 0;                                     /* serial line intr */
+uint32_t ev5_crd = 0;                                     /* corr read data pin */
+uint32_t ev5_pwrfl = 0;                                   /* power fail pin */
+uint32_t ev5_ipl = 0;                                     /* ipl */
+uint32_t ev5_sirr = 0;                                    /* software int req */
+uint32_t ev5_astrr = 0;                                   /* AST requests */
+uint32_t ev5_asten = 0;                                   /* AST enables */
+const uint32_t ast_map[4] = { 0x1, 0x3, 0x7, 0xF };
 
-t_stat ev5_palent (t_uint64 fpc, uint32 off);
-t_stat ev5_palent_d (t_uint64 fpc, uint32 off, uint32 sta);
+t_stat ev5_palent (t_uint64 fpc, uint32_t off);
+t_stat ev5_palent_d (t_uint64 fpc, uint32_t off, uint32_t sta);
 t_stat pal_proc_reset_hwre (DEVICE *dptr);
-t_stat pal_proc_intr_ev5 (uint32 lvl);
-uint32 pal_eval_intr_ev5 (uint32 flag);
+t_stat pal_proc_intr_ev5 (uint32_t lvl);
+uint32_t pal_eval_intr_ev5 (uint32_t flag);
 
 extern t_uint64 R[32];
 extern t_uint64 PC;
 extern t_uint64 trap_mask;
 extern t_uint64 p1;
-extern uint32 ir;
-extern uint32 vax_flag, lock_flag;
-extern uint32 fpen;
-extern uint32 pcc_h, pcc_l, pcc_enb;
-extern uint32 trap_summ;
-extern uint32 arch_mask;
-extern uint32 pal_mode, pal_type;
-extern uint32 int_req[IPL_HLVL];
-extern uint32 itlb_cm, dtlb_cm;
-extern uint32 itlb_asn, dtlb_asn;
-extern uint32 itlb_spage, dtlb_spage;
+extern uint32_t ir;
+extern uint32_t vax_flag, lock_flag;
+extern uint32_t fpen;
+extern uint32_t pcc_h, pcc_l, pcc_enb;
+extern uint32_t trap_summ;
+extern uint32_t arch_mask;
+extern uint32_t pal_mode, pal_type;
+extern uint32_t int_req[IPL_HLVL];
+extern uint32_t itlb_cm, dtlb_cm;
+extern uint32_t itlb_asn, dtlb_asn;
+extern uint32_t itlb_spage, dtlb_spage;
 extern jmp_buf save_env;
-extern uint32 pal_type;
+extern uint32_t pal_type;
 extern t_uint64 pcq[PCQ_SIZE];                          /* PC queue */
 extern int32 pcq_p;                                     /* PC queue ptr */
 
@@ -177,7 +177,7 @@ DEVICE ev5pal_dev = {
 /* EV5 interrupt dispatch - reached from top of instruction loop -
    dispatch to PALcode */
 
-t_stat pal_proc_intr (uint32 lvl)
+t_stat pal_proc_intr (uint32_t lvl)
 {
 return ev5_palent (PC, PALO_INTR);
 }
@@ -185,7 +185,7 @@ return ev5_palent (PC, PALO_INTR);
 /* EV5 trap dispatch - reached from bottom of instruction loop -
    trap_mask and trap_summ are set up correctly - dispatch to PALcode */
 
-t_stat pal_proc_trap (uint32 summ)
+t_stat pal_proc_trap (uint32_t summ)
 {
 return ev5_palent (PC, PALO_TRAP);
 }
@@ -193,7 +193,7 @@ return ev5_palent (PC, PALO_TRAP);
 /* EV5 exception dispatch - reached from ABORT handler -
    set up any exception-specific registers - dispatch to PALcode */
 
-t_stat pal_proc_excp (uint32 abval)
+t_stat pal_proc_excp (uint32_t abval)
 {
 switch (abval) {
 
@@ -266,9 +266,9 @@ return SCPE_OK;
 /* EV5 call PAL - reached from instruction decoder -
    compute offset from function code - dispatch to PALcode */
 
-t_stat pal_proc_inst (uint32 fnc)
+t_stat pal_proc_inst (uint32_t fnc)
 {
-uint32 off = (fnc & 0x3F) << 6;
+uint32_t off = (fnc & 0x3F) << 6;
 
 if (fnc & 0x80) return ev5_palent (PC, PALO_CALLUNPR + off);
 if (itlb_cm != MODE_K) ABORT (EXC_RSVI);
@@ -281,10 +281,10 @@ return ev5_palent (PC, PALO_CALLPR + off);
    flag = 1: evaluate for real interrupt capability
    flag = 0: evaluate as though IPL = 0, normal mode */
 
-uint32 pal_eval_intr (uint32 flag)
+uint32_t pal_eval_intr (uint32_t flag)
 {
-uint32 i, req = 0;
-uint32 lvl = flag? ev5_ipl: 0;
+uint32_t i, req = 0;
+uint32_t lvl = flag? ev5_ipl: 0;
 
 if (flag && pal_mode) return 0;
 if (ev5_mchk) req = IPL_1F;
@@ -313,7 +313,7 @@ return req;
 /* EV5 enter PAL, data TLB miss/memory management flows -
    set Mbox registers - dispatch to PALcode  */
 
-t_stat ev5_palent_d (t_uint64 fpc, uint32 off, uint32 sta)
+t_stat ev5_palent_d (t_uint64 fpc, uint32_t off, uint32_t sta)
 {
 if (!ev5_va_lock) {                                     /* not locked? */
     ev5_mm_stat = sta |                                 /* merge IR<31:21> */
@@ -329,7 +329,7 @@ return ev5_palent (fpc, off);
 
 /* EV5 enter PAL */
 
-t_stat ev5_palent (t_uint64 fpc, uint32 off)
+t_stat ev5_palent (t_uint64 fpc, uint32_t off)
 {
 ev5_excaddr = fpc | pal_mode;                           /* save exc addr */
 PCQ_ENTRY;                                              /* save PC */
@@ -345,10 +345,10 @@ return SCPE_OK;
 
 /* 1B: HW_LD */
 
-t_stat pal_1b (uint32 ir)
+t_stat pal_1b (uint32_t ir)
 {
 t_uint64 dsp, ea, res;
-uint32 ra, rb, acc, mode;
+uint32_t ra, rb, acc, mode;
 
 if (!pal_mode && (!(itlb_cm == MODE_K) ||               /* pal mode, or kernel */
     !(ev5_icsr & ICSR_HWE))) ABORT (EXC_RSVI);          /* and enabled? */
@@ -377,10 +377,10 @@ return SCPE_OK;
 
 /* 1F: HW_ST */
 
-t_stat pal_1f (uint32 ir)
+t_stat pal_1f (uint32_t ir)
 {
 t_uint64 dsp, ea;
-uint32 ra, rb, acc, mode;
+uint32_t ra, rb, acc, mode;
 
 if (!pal_mode && (!(itlb_cm == MODE_K) ||               /* pal mode, or kernel */
     !(ev5_icsr & ICSR_HWE))) ABORT (EXC_RSVI);          /* and enabled? */
@@ -405,9 +405,9 @@ return SCPE_OK;
 
 /* 1E: HW_REI */
 
-t_stat pal_1e (uint32 ir)
+t_stat pal_1e (uint32_t ir)
 {
-uint32 new_pal = ((uint32) ev5_excaddr) & 1;
+uint32_t new_pal = ((uint32_t) ev5_excaddr) & 1;
 
 if (!pal_mode && (!(itlb_cm == MODE_K) ||               /* pal mode, or kernel */
     !(ev5_icsr & ICSR_HWE))) ABORT (EXC_RSVI);          /* and enabled? */
@@ -422,11 +422,11 @@ return SCPE_OK;
 
 /* PAL move from processor registers */
 
-t_stat pal_19 (uint32 ir)
+t_stat pal_19 (uint32_t ir)
 {
 t_uint64 res;
-uint32 fnc, ra;
-static const uint32 itbr_map_gh[4] = {
+uint32_t fnc, ra;
+static const uint32_t itbr_map_gh[4] = {
     ITBR_PTE_GH0, ITBR_PTE_GH1, ITBR_PTE_GH2, ITBR_PTE_GH3 };
 
 if (!pal_mode && (!(itlb_cm == MODE_K) ||               /* pal mode, or kernel */
@@ -593,10 +593,10 @@ return SCPE_OK;
 
 /* PAL move to processor registers */
 
-t_stat pal_1d (uint32 ir)
+t_stat pal_1d (uint32_t ir)
 {
-uint32 fnc = I_GETMDSP (ir);
-uint32 ra = I_GETRA (ir);
+uint32_t fnc = I_GETMDSP (ir);
+uint32_t ra = I_GETRA (ir);
 t_uint64 val = R[ra];
 
 if (!pal_mode && (!(itlb_cm == MODE_K) ||               /* pal mode, or kernel */
@@ -614,7 +614,7 @@ switch (fnc) {
         break;
 
     case ITB_ASN:
-        itlb_set_asn ((((uint32) val) >> ITB_ASN_V_ASN) & ITB_ASN_M_ASN);
+        itlb_set_asn ((((uint32_t) val) >> ITB_ASN_V_ASN) & ITB_ASN_M_ASN);
         break;
 
     case ITB_IA:
@@ -630,15 +630,15 @@ switch (fnc) {
         break;
 
     case SIRR:
-        ev5_sirr = (((uint32) val) >> SIRR_V_SIRR) & SIRR_M_SIRR;
+        ev5_sirr = (((uint32_t) val) >> SIRR_V_SIRR) & SIRR_M_SIRR;
         break;
 
     case ASTRR:
-        ev5_astrr = ((uint32) val) & AST_MASK;
+        ev5_astrr = ((uint32_t) val) & AST_MASK;
         break;
 
     case ASTEN:
-        ev5_asten = ((uint32) val) & AST_MASK;
+        ev5_asten = ((uint32_t) val) & AST_MASK;
         break;
 
     case EXC_ADDR:
@@ -655,11 +655,11 @@ switch (fnc) {
         break;
 
     case ICM:
-        itlb_set_cm ((((uint32) val) >> ICM_V_CM) & ICM_M_CM);
+        itlb_set_cm ((((uint32_t) val) >> ICM_V_CM) & ICM_M_CM);
         break;
 
     case IPLR:
-        ev5_ipl = (((uint32) val) >> IPLR_V_IPL) & IPLR_M_IPL;
+        ev5_ipl = (((uint32_t) val) >> IPLR_V_IPL) & IPLR_M_IPL;
         break;
 
     case IVPTBR:
@@ -677,14 +677,14 @@ switch (fnc) {
             else { PAL_USE_MAIN; }
             }
         ev5_icsr = val & ICSR_RW;
-        itlb_set_spage ((((uint32) val) >> ICSR_V_SPE) & ICSR_M_SPE);
-        fpen = (((uint32) val) >> ICSR_V_FPE) & 1;
+        itlb_set_spage ((((uint32_t) val) >> ICSR_V_SPE) & ICSR_M_SPE);
+        fpen = (((uint32_t) val) >> ICSR_V_FPE) & 1;
         if (val & ICSR_BSE) arch_mask = arch_mask | AMASK_BWX;
         else arch_mask = arch_mask & ~AMASK_BWX;
         break;
 
     case ICPERR_STAT:
-        ev5_icperr = ev5_icperr & ~(((uint32) val) & ICPERR_W1C);
+        ev5_icperr = ev5_icperr & ~(((uint32_t) val) & ICPERR_W1C);
         break;
 
     case PALTEMP+0x00:     case PALTEMP+0x01:     case PALTEMP+0x02:     case PALTEMP+0x03:
@@ -697,11 +697,11 @@ switch (fnc) {
         break;
 
     case DTB_ASN:
-        dtlb_set_asn (((uint32) (val >> DTB_ASN_V_ASN)) & DTB_ASN_M_ASN);
+        dtlb_set_asn (((uint32_t) (val >> DTB_ASN_V_ASN)) & DTB_ASN_M_ASN);
         break;
 
     case DTB_CM:
-        dtlb_set_cm (((uint32) (val >> ICM_V_CM)) & ICM_M_CM);
+        dtlb_set_cm (((uint32_t) (val >> ICM_V_CM)) & ICM_M_CM);
         break;
 
     case DTB_TAG:
@@ -719,7 +719,7 @@ switch (fnc) {
         break;
 
     case DC_PERR_STAT:
-        ev5_dcperr = ev5_dcperr & ~(((uint32) val) & DC_PERR_W1C);
+        ev5_dcperr = ev5_dcperr & ~(((uint32_t) val) & DC_PERR_W1C);
         if ((ev5_dcperr & DC_PERR_W1C) == 0) ev5_dcperr = 0;
         break;
 
@@ -736,31 +736,31 @@ switch (fnc) {
         break;
 
     case MCSR:
-        ev5_mcsr = ((uint32) val) & MCSR_RW;
-        dtlb_set_spage ((((uint32) val) >> MCSR_V_SPE) & MCSR_M_SPE);
+        ev5_mcsr = ((uint32_t) val) & MCSR_RW;
+        dtlb_set_spage ((((uint32_t) val) >> MCSR_V_SPE) & MCSR_M_SPE);
         if (ev5_mcsr & MCSR_NT) pal_type = PAL_NT;
         break;
 
     case DC_MODE:
-        ev5_dc_mode = ((uint32) val) & DC_MODE_RW;
+        ev5_dc_mode = ((uint32_t) val) & DC_MODE_RW;
         break;
 
     case MAF_MODE:
-        ev5_maf_mode = ((uint32) val) & MAF_MODE_RW;
+        ev5_maf_mode = ((uint32_t) val) & MAF_MODE_RW;
         break;
 
     case CC:
-        pcc_h = (uint32) ((val >> 32) & M32);
+        pcc_h = (uint32_t) ((val >> 32) & M32);
         break;
 
     case CC_CTL:
-        pcc_l = ((uint32) val) & (M32 & ~CC_CTL_MBZ);
+        pcc_l = ((uint32_t) val) & (M32 & ~CC_CTL_MBZ);
         if (val & CC_CTL_ENB) pcc_enb = 1;
         else pcc_enb = 0;
         break;
 
     case DC_TEST_CTL:
-        ev5_dc_test_ctl = ((uint32) val) & DC_TEST_CTL_RW;
+        ev5_dc_test_ctl = ((uint32_t) val) & DC_TEST_CTL_RW;
         break;
 
     case DC_TEST_TAG:
@@ -798,12 +798,12 @@ static const char *pal_inam[] = {
     "HW_MFPR", "HW_LD", "HW_MTPR", "HW_REI", "HW_ST", NULL
     };
 
-static const uint32 pal_ival[] = {
+static const uint32_t pal_ival[] = {
     0x64000000, 0x6C000000, 0x74000000, 0x7BFF8000, 0x7C000000
     };
 
 struct pal_opt {
-    uint32      mask;                                   /* bit mask */
+    uint32_t      mask;                                   /* bit mask */
     char        let;                                    /* matching letter */
     };
 
@@ -824,9 +824,9 @@ static struct pal_opt rei_opt[] = {
 
 /* Print options for hardware PAL instruction */
 
-void fprint_opt_ev5 (FILE *of, uint32 inst, struct pal_opt opt[])
+void fprint_opt_ev5 (FILE *of, uint32_t inst, struct pal_opt opt[])
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; opt[i].mask != 0; i++) {
     if (inst & opt[i].mask) {
@@ -839,9 +839,9 @@ return;
 
 /* Parse options for hardware PAL instruction */
 
-CONST char *parse_opt_ev5 (CONST char *cptr, uint32 *val, struct pal_opt opt[])
+CONST char *parse_opt_ev5 (CONST char *cptr, uint32_t *val, struct pal_opt opt[])
 {
-uint32 i;
+uint32_t i;
 char *tptr, gbuf[CBUFSIZE];
 
 if (*(cptr - 1) != '/') return cptr;
@@ -863,9 +863,9 @@ return cptr;
 
 /* Print PAL hardware opcode symbolically */
 
-t_stat fprint_pal_hwre (FILE *of, uint32 inst)
+t_stat fprint_pal_hwre (FILE *of, uint32_t inst)
 {
-uint32 op, ra, rb;
+uint32_t op, ra, rb;
 
 op = I_GETOP (inst);
 ra = I_GETRA (inst);
@@ -902,7 +902,7 @@ return -3;
 
 t_stat parse_pal_hwre (CONST char *cptr, t_value *inst)
 {
-uint32 i, d, val = 0;
+uint32_t i, d, val = 0;
 int32 reg;
 CONST char *tptr;
 char gbuf[CBUFSIZE];
@@ -922,7 +922,7 @@ switch (I_GETOP (val)) {
         if ((reg = parse_reg (gbuf)) < 0) return SCPE_ARG;
         val = val | (reg << I_V_RA) | (reg << I_V_RB);
         cptr = get_glyph (cptr, gbuf, 0);               /* get ipr */
-        d = (uint32) get_uint (gbuf, 16, M16, &r);
+        d = (uint32_t) get_uint (gbuf, 16, M16, &r);
         if (r != SCPE_OK) return r;
         val = val | d;
         break;
@@ -935,7 +935,7 @@ switch (I_GETOP (val)) {
         if ((reg = parse_reg (gbuf)) < 0) return SCPE_ARG;
         val = val | (reg << I_V_RA);
         cptr = get_glyph (cptr, gbuf, 0);
-        d = (uint32) strtotv (gbuf, &tptr, 16);
+        d = (uint32_t) strtotv (gbuf, &tptr, 16);
         if ((gbuf == tptr) || (d > HW_LD_DSP)) return SCPE_ARG;
         val = val | d;
         if (*tptr == '(') {

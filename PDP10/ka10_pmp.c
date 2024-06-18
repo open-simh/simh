@@ -25,29 +25,29 @@
 
      Devid = "CKD_P370"
 
-       uint8    devid[8]        device header.
-       uint32   heads           number of heads per cylinder
-       uint32   tracksize       size of track
-       uint8    devtype         Hex code of last two digits of device type.
-       uint8    fileseq         always 0.
-       uint16   highcyl         highest cylinder.
+       uint8_t    devid[8]        device header.
+       uint32_t   heads           number of heads per cylinder
+       uint32_t   tracksize       size of track
+       uint8_t    devtype         Hex code of last two digits of device type.
+       uint8_t    fileseq         always 0.
+       uint16_t   highcyl         highest cylinder.
 
-       uint8    resv[492]       pad to 512 byte block
+       uint8_t    resv[492]       pad to 512 byte block
 
    Each Track has:
-       uint8    bin             Track header.
-       uint16   cyl             Cylinder number
-       uint16   head            Head number.
+       uint8_t    bin             Track header.
+       uint16_t   cyl             Cylinder number
+       uint16_t   head            Head number.
 
    Each Record has:
-       uint16   cyl             Cylinder number  <- tpos
-       uint16   head            Head number
-       uint8    rec             Record id.
-       uint8    klen            Length of key
-       uint16   dlen            Length of data
+       uint16_t   cyl             Cylinder number  <- tpos
+       uint16_t   head            Head number
+       uint8_t    rec             Record id.
+       uint8_t    klen            Length of key
+       uint16_t   dlen            Length of data
 
-       uint8    key[klen]       Key data.
-       uint8    data[dlen]      Data len.
+       uint8_t    key[klen]       Key data.
+       uint8_t    data[dlen]      Data len.
 
    cpos points to where data is actually read/written from
 
@@ -196,20 +196,20 @@
 /* Pointer held in up7 */
 struct pmp_t
 {
-     uint8             *cbuf;    /* Cylinder buffer */
-     uint32             cpos;    /* Position of head of cylinder in file */
-     uint32             tstart;  /* Location of start of track */
-     uint16             ccyl;    /* Current Cylinder number */
-     uint16             cyl;     /* Cylinder head at */
-     uint16             tpos;    /* Track position */
-     uint16             rpos;    /* Start of current record */
-     uint16             dlen;    /* remaining in data */
-     uint32             tsize;   /* Size of one track include rounding */
-     uint8              state;   /* Current state */
-     uint8              klen;    /* remaining in key */
-     uint8              filemsk; /* Current file mask */
-     uint8              rec;     /* Current record number */
-     uint16             count;   /* Remaining in current operation */
+     uint8_t             *cbuf;    /* Cylinder buffer */
+     uint32_t             cpos;    /* Position of head of cylinder in file */
+     uint32_t             tstart;  /* Location of start of track */
+     uint16_t             ccyl;    /* Current Cylinder number */
+     uint16_t             cyl;     /* Cylinder head at */
+     uint16_t             tpos;    /* Track position */
+     uint16_t             rpos;    /* Start of current record */
+     uint16_t             dlen;    /* remaining in data */
+     uint32_t             tsize;   /* Size of one track include rounding */
+     uint8_t              state;   /* Current state */
+     uint8_t              klen;    /* remaining in key */
+     uint8_t              filemsk; /* Current file mask */
+     uint8_t              rec;     /* Current record number */
+     uint16_t             count;   /* Remaining in current operation */
 };
 
 
@@ -311,10 +311,10 @@ struct disk_t
 {
     const char         *name;         /* Type Name */
     int                 cyl;          /* Number of cylinders */
-    uint32              heads;        /* Number of heads/cylinder */
+    uint32_t              heads;        /* Number of heads/cylinder */
     int                 bpt;          /* Max bytes per track */
-    uint8               sen_cnt;      /* Number of sense bytes */
-    uint8               dev_type;     /* Device type code */
+    uint8_t               sen_cnt;      /* Number of sense bytes */
+    uint8_t               dev_type;     /* Device type code */
 }
 disk_type[] =
 {
@@ -334,36 +334,36 @@ disk_type[] =
 /* Header block */
 struct pmp_header
 {
-       uint8    devid[8];      /* device header. */
-       uint32   heads;         /* number of heads per cylinder */
-       uint32   tracksize;     /* size of track */
-       uint8    devtype;       /* Hex code of last two digits of device type. */
-       uint8    fileseq;       /* always 0. */
-       uint16   highcyl;       /* highest cylinder. */
-       uint8    resv[492];     /* pad to 512 byte block */
+       uint8_t    devid[8];      /* device header. */
+       uint32_t   heads;         /* number of heads per cylinder */
+       uint32_t   tracksize;     /* size of track */
+       uint8_t    devtype;       /* Hex code of last two digits of device type. */
+       uint8_t    fileseq;       /* always 0. */
+       uint16_t   highcyl;       /* highest cylinder. */
+       uint8_t    resv[492];     /* pad to 512 byte block */
 };
 
 int                 pmp_pia;         /* PIA for PMP device */
 uint64              pmp_status;      /* CONI status for device 500 */
 int                 pmp_statusb;
-uint32              pmp_cmd_hold;    /* Command hold register */
-uint32              pmp_wc_hold;     /* Word count hold */
+uint32_t              pmp_cmd_hold;    /* Command hold register */
+uint32_t              pmp_wc_hold;     /* Word count hold */
 t_addr              pmp_addr_hold;   /* Address register hold */
-uint32              pmp_wc;          /* Current word count register */
+uint32_t              pmp_wc;          /* Current word count register */
 t_addr              pmp_addr;        /* Current address register */
 uint64              pmp_data;        /* Data assembly register */
 int                 pmp_cnt;         /* Character count in asm register */
 int                 pmp_cmd;         /* Current command */
-uint32              pmp_irq;         /* Irq enable flags */
+uint32_t              pmp_irq;         /* Irq enable flags */
 UNIT               *pmp_cur_unit;    /* Currently addressed unit */
 
 
-t_stat              pmp_devio(uint32 dev, uint64 *data);
+t_stat              pmp_devio(uint32_t dev, uint64 *data);
 int                 pmp_checkirq();
 int                 pmp_posterror(uint64);
-int                 chan_read_byte(uint8 *data);
-int                 chan_write_byte(uint8 *data);
-void                chan_end(uint8 flags);
+int                 chan_read_byte(uint8_t *data);
+int                 chan_write_byte(uint8_t *data);
+void                chan_end(uint8_t flags);
 void                pmp_startcmd();
 void                pmp_adjpos(UNIT * uptr);
 t_stat              pmp_srv(UNIT *);
@@ -416,7 +416,7 @@ DEVICE              pmp_dev = {
 
 /* IOT routines */
 t_stat
-pmp_devio(uint32 dev, uint64 *data) {
+pmp_devio(uint32_t dev, uint64 *data) {
      int      i;
 
      switch(dev & 07) {
@@ -445,7 +445,7 @@ pmp_devio(uint32 dev, uint64 *data) {
                     dev, *data, PC);
           if (*data & 010)
              pmp_pia = *data & 7;
-          pmp_irq = (uint32)(*data);
+          pmp_irq = (uint32_t)(*data);
           (void)pmp_checkirq();
           break;
 
@@ -586,7 +586,7 @@ pmp_posterror(uint64 err) {
 
 /* read byte from memory */
 int
-chan_read_byte(uint8 *data) {
+chan_read_byte(uint8_t *data) {
     int         byte;
     int         xfer = 0;
 
@@ -649,7 +649,7 @@ chan_read_byte(uint8 *data) {
 
 /* write byte to memory */
 int
-chan_write_byte(uint8 *data) {
+chan_write_byte(uint8_t *data) {
     int          xfer = 0;
 
     if ((pmp_cmd & 0x1)  != 0) {
@@ -749,7 +749,7 @@ chan_write_byte(uint8 *data) {
  * Signal end of transfer by device.
  */
 void
-chan_end(uint8 flags) {
+chan_end(uint8_t flags) {
 
     sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_end(%x) %x\n", flags, pmp_wc);
     /* If PCI flag set, trigger interrupt */
@@ -798,12 +798,12 @@ chan_end(uint8 flags) {
 /* Issue command to device */
 void
 pmp_startcmd() {
-    uint16         addr;
+    uint16_t         addr;
     int            i;
     int            unit;
     int            cmd;
     int            old_cmd = pmp_cmd;
-    uint8          ch;
+    uint8_t          ch;
 
     sim_debug(DEBUG_CMD, &pmp_dev, "start command %o\n", pmp_statusb);
     if ((pmp_statusb & CMD_LD) == 0 || (pmp_statusb & IDLE_CH) == 0) {
@@ -826,7 +826,7 @@ pmp_startcmd() {
             pmp_wc = pmp_wc_hold;
             pmp_cnt = BUFF_EMPTY;
         }
-        addr = (uint16)((pmp_cmd & DEV_ADDR) >> 14);
+        addr = (uint16_t)((pmp_cmd & DEV_ADDR) >> 14);
         sim_debug(DEBUG_CMD, &pmp_dev, "initiate on %02x\n", addr);
         /* scan units looking for matching device. */
         for (i = 0; i < NUM_UNITS_PMP; i++) {
@@ -969,7 +969,7 @@ void
 pmp_adjpos(UNIT * uptr)
 {
     struct pmp_t      *data = (struct pmp_t *)(uptr->DATAPTR);
-    uint8               *rec;
+    uint8_t               *rec;
     int                 pos;
 
     /* Save current position */
@@ -1054,14 +1054,14 @@ t_stat pmp_srv(UNIT * uptr)
     int                 trk;
     int                 i;
     int                 rd = ((cmd & 0x3) == 0x1) | ((cmd & 0x3) == 0x2);
-    uint8               *rec;
-    uint8               *da;
-    uint8               ch;
-    uint8               buf[8];
+    uint8_t               *rec;
+    uint8_t               *da;
+    uint8_t               ch;
+    uint8_t               buf[8];
 
     /* Check if read or write command, if so grab correct cylinder */
     if (rd && data->cyl != data->ccyl) {
-        uint32 tsize = data->tsize * disk_type[type].heads;
+        uint32_t tsize = data->tsize * disk_type[type].heads;
         if (uptr->CMD & DK_CYL_DIRTY) {
               (void)sim_fseek(uptr->fileref, data->cpos, SEEK_SET);
               (void)sim_fwrite(data->cbuf, 1, tsize, uptr->fileref);
@@ -1096,7 +1096,7 @@ t_stat pmp_srv(UNIT * uptr)
                  goto index;
              }
              uptr->POS ++;
-             if ((uint32)(uptr->POS & 0xff) >= disk_type[type].heads) {
+             if ((uint32_t)(uptr->POS & 0xff) >= disk_type[type].heads) {
                  sim_debug(DEBUG_DETAIL, dptr, "end cyl unit=%d %02x %d\n",
                            unit, state, data->tpos);
                  uptr->SENSE = (SNS_ENDCYL << 8);
@@ -2142,8 +2142,8 @@ pmp_format(UNIT * uptr, int flag) {
     int                 cyl;
     int                 sector;
     int                 rec;
-    uint32              hd;
-    uint32              pos;
+    uint32_t              hd;
+    uint32_t              pos;
 
     if (flag || get_yn("Initialize dasd? [Y] ", TRUE)) {
         memset(&hdr, 0, sizeof(struct pmp_header));
@@ -2159,12 +2159,12 @@ pmp_format(UNIT * uptr, int flag) {
         uptr->DATAPTR = (void *)data;
         tsize = hdr.tracksize * hdr.heads;
         data->tsize = hdr.tracksize;
-        if ((data->cbuf = (uint8 *)calloc(tsize, sizeof(uint8))) == 0)
+        if ((data->cbuf = (uint8_t *)calloc(tsize, sizeof(uint8_t))) == 0)
             return 1;
         for (cyl = 0; cyl < disk_type[type].cyl; cyl++) {
             pos = 0;
             for (hd = 0; hd < disk_type[type].heads; hd++) {
-                uint32 cpos = pos;
+                uint32_t cpos = pos;
                 rec = 0;
                 data->cbuf[pos++] = 0;            /* HA */
                 data->cbuf[pos++] = (cyl >> 8);
@@ -2222,13 +2222,13 @@ pmp_format(UNIT * uptr, int flag) {
 t_stat
 pmp_attach(UNIT * uptr, CONST char *file)
 {
-    uint16              addr = GET_UADDR(uptr->flags);
+    uint16_t              addr = GET_UADDR(uptr->flags);
     int                 flag = (sim_switches & SWMASK ('I')) != 0;
     t_stat              r;
     unsigned int        i;
     struct pmp_header   hdr;
     struct pmp_t       *data;
-    uint32              tsize;
+    uint32_t              tsize;
 
     if ((r = attach_unit(uptr, file)) != SCPE_OK)
        return r;
@@ -2246,7 +2246,7 @@ pmp_attach(UNIT * uptr, CONST char *file)
     sim_messagef(SCPE_OK, "Drive %03x=%d %d %02x %d\r\n",  addr,
              hdr.heads, hdr.tracksize, hdr.devtype, hdr.highcyl);
     for (i = 0; disk_type[i].name != 0; i++) {
-         tsize = (uint32)((disk_type[i].bpt | 0x1ff) + 1);
+         tsize = (uint32_t)((disk_type[i].bpt | 0x1ff) + 1);
          if (hdr.devtype == disk_type[i].dev_type && hdr.tracksize == tsize &&
              hdr.heads == disk_type[i].heads && hdr.highcyl == disk_type[i].cyl) {
              if (GET_TYPE(uptr->flags) != i) {
@@ -2272,7 +2272,7 @@ pmp_attach(UNIT * uptr, CONST char *file)
     uptr->DATAPTR = (void *)data;
     tsize = hdr.tracksize * hdr.heads;
     data->tsize = hdr.tracksize;
-    if ((data->cbuf = (uint8 *)calloc(tsize, sizeof(uint8))) == 0) {
+    if ((data->cbuf = (uint8_t *)calloc(tsize, sizeof(uint8_t))) == 0) {
         detach_unit(uptr);
         return SCPE_ARG;
     }

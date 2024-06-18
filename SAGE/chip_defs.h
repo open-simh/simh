@@ -126,8 +126,8 @@ t_stat mux_detach(UNIT*,SERMUX*);
 typedef struct i8259 {
     PNP_INFO    pnp;
     DEVICE* dev;         /* backlink to device */
-    t_stat (*write)(struct i8259* chip,int port,uint32 value);
-    t_stat (*read)(struct i8259* chip,int port,uint32* value);
+    t_stat (*write)(struct i8259* chip,int port,uint32_t value);
+    t_stat (*read)(struct i8259* chip,int port,uint32_t* value);
     t_stat (*reset)(struct i8259* chip);
     int   state;
     int   rmode;
@@ -143,9 +143,9 @@ typedef struct i8259 {
     int intvector;
 } I8259;
 
-extern t_stat i8259_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask);
-extern t_stat i8259_read(I8259* pic,int addr,uint32* value);
-extern t_stat i8259_write(I8259* pic,int addr, uint32 value);
+extern t_stat i8259_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+extern t_stat i8259_read(I8259* pic,int addr,uint32_t* value);
+extern t_stat i8259_write(I8259* pic,int addr, uint32_t value);
 extern t_stat i8259_reset(I8259* chip);
 extern t_stat i8259_raiseint(I8259* chip,int level);
 
@@ -197,8 +197,8 @@ extern DEBTAB i8259_dt[];
 typedef struct i8251 {
     PNP_INFO pnp;
     DEVICE* dev;         /* backlink to device */
-    t_stat (*write)(struct i8251* chip,int port,uint32 value);
-    t_stat (*read)(struct i8251* chip,int port,uint32* value);
+    t_stat (*write)(struct i8251* chip,int port,uint32_t value);
+    t_stat (*read)(struct i8251* chip,int port,uint32_t* value);
     t_stat (*reset)(struct i8251* chip);
     t_stat (*txint)(struct i8251* chip);
     t_stat (*rxint)(struct i8251* chip);
@@ -219,9 +219,9 @@ typedef struct i8251 {
 } I8251;
 
 /* default handlers */
-extern t_stat i8251_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask);
-extern t_stat i8251_write(I8251* chip,int port,uint32 value);
-extern t_stat i8251_read(I8251* chip,int port,uint32* value);
+extern t_stat i8251_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+extern t_stat i8251_write(I8251* chip,int port,uint32_t value);
+extern t_stat i8251_read(I8251* chip,int port,uint32_t* value);
 extern t_stat i8251_reset(I8251* chip);
 
 /* Debug flags */
@@ -236,7 +236,7 @@ extern DEBTAB i8251_dt[];
  *****************************************************************************************/
 /*forward*/ struct i8253;
 typedef struct {
-    t_stat (*call)(struct i8253* chip,int rw,uint32* src);
+    t_stat (*call)(struct i8253* chip,int rw,uint32_t* src);
     int state;          /* the current output state (latching, MSB/LSB out */
     int mode;           /* programmed mode */
     int32 latch;        /* the latched value of count */
@@ -249,7 +249,7 @@ typedef struct i8253 {
     DEVICE* dev;         /* backlink to device */
     UNIT* unit;          /* backlink to unit */
     t_stat (*reset)(struct i8253* chip);
-    t_stat (*ckmode)(struct i8253* chip, uint32 value);
+    t_stat (*ckmode)(struct i8253* chip, uint32_t value);
     I8253CNTR cntr[3];
     int init;
 } I8253;
@@ -280,7 +280,7 @@ typedef struct i8253 {
 #define I8253_ST_LATCH      0x08
 
 /* default handlers */
-extern t_stat i8253_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask);
+extern t_stat i8253_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
 extern t_stat i8253_reset(I8253* chip);
 
 /* Debug flags */
@@ -303,11 +303,11 @@ extern DEBTAB i8253_dt[];
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint8 ntracks;   /* number of tracks */
-    uint8 nheads;    /* number of heads */
-    uint32 sectsize; /* sector size, not including pre/postamble */
-    uint8 track;     /* Current Track */
-    uint8 ready;     /* Is drive ready? */
+    uint8_t ntracks;   /* number of tracks */
+    uint8_t nheads;    /* number of heads */
+    uint32_t sectsize; /* sector size, not including pre/postamble */
+    uint8_t track;     /* Current Track */
+    uint8_t ready;     /* Is drive ready? */
 } I8272_DRIVE_INFO;
 
 typedef enum i8272state {
@@ -317,57 +317,57 @@ typedef enum i8272state {
 typedef struct i8272 {
     PNP_INFO pnp;       /* Plug-n-Play Information */
     DEVICE* dev;         /* backlink to device */
-    t_stat (*write)(struct i8272* chip,int port,uint32 data);
-    t_stat (*read)(struct i8272* chip,int port,uint32* data);
+    t_stat (*write)(struct i8272* chip,int port,uint32_t data);
+    t_stat (*read)(struct i8272* chip,int port,uint32_t* data);
     t_stat (*reset)(struct i8272* chip);
     void   (*seldrv)(struct i8272* chip,int seldrv);
     void   (*irq)(struct i8272* chip,int delay);
     
     I8272_STATE fdc_state;  /* internal state machine */
-    uint32 fdc_dma_addr;/* DMA Transfer Address */
-    uint8 fdc_msr;      /* 8272 Main Status Register */
-    uint8 fdc_nd;       /* Non-DMA Mode 1=Non-DMA, 0=DMA */
-    uint8 fdc_head;     /* H Head Number */
-    uint8 fdc_sector;   /* R Record (Sector) */
-    uint8 fdc_sec_len;  /* N Sector Length in controller units (2^(7+fdc_sec_len)) */
-    uint8 fdc_eot;      /* EOT End of Track (Final sector number of cyl) */
-    uint8 fdc_gap;      /* GAP Length */
-    uint8 fdc_dtl;      /* DTL Data Length */
-    uint8 fdc_mt;       /* Multiple sectors */
-    uint8 fdc_mfm;      /* MFM mode */
-    uint8 fdc_sk;       /* Skip Deleted Data */
-    uint8 fdc_hds;      /* Head Select */
-    uint8 fdc_seek_end; /* Seek was executed successfully */
+    uint32_t fdc_dma_addr;/* DMA Transfer Address */
+    uint8_t fdc_msr;      /* 8272 Main Status Register */
+    uint8_t fdc_nd;       /* Non-DMA Mode 1=Non-DMA, 0=DMA */
+    uint8_t fdc_head;     /* H Head Number */
+    uint8_t fdc_sector;   /* R Record (Sector) */
+    uint8_t fdc_sec_len;  /* N Sector Length in controller units (2^(7+fdc_sec_len)) */
+    uint8_t fdc_eot;      /* EOT End of Track (Final sector number of cyl) */
+    uint8_t fdc_gap;      /* GAP Length */
+    uint8_t fdc_dtl;      /* DTL Data Length */
+    uint8_t fdc_mt;       /* Multiple sectors */
+    uint8_t fdc_mfm;      /* MFM mode */
+    uint8_t fdc_sk;       /* Skip Deleted Data */
+    uint8_t fdc_hds;      /* Head Select */
+    uint8_t fdc_seek_end; /* Seek was executed successfully */
     int   fdc_secsz;    /* N Sector Length in bytes: 2^(7 + fdc_sec_len),  fdc_sec_len <= I8272_MAX_N */
     int   fdc_nd_cnt;   /* read/write count in non-DMA mode, -1 if start read */
-    uint8 fdc_sdata[I8272_MAX_SECTOR_SZ]; /* sector buffer */
-    uint8 fdc_fault;    /* error code passed from some commands to sense_int */
+    uint8_t fdc_sdata[I8272_MAX_SECTOR_SZ]; /* sector buffer */
+    uint8_t fdc_fault;    /* error code passed from some commands to sense_int */
     
-    uint8 cmd_cnt;      /* command read count */
-    uint8 cmd[10];      /* Storage for current command */
-    uint8 cmd_len;      /* FDC Command Length */
+    uint8_t cmd_cnt;      /* command read count */
+    uint8_t cmd[10];      /* Storage for current command */
+    uint8_t cmd_len;      /* FDC Command Length */
 
-    uint8 result_cnt;   /* result emit count */
-    uint8 result[10];   /* Result data */
-    uint8 result_len;   /* FDC Result Length */
+    uint8_t result_cnt;   /* result emit count */
+    uint8_t result[10];   /* Result data */
+    uint8_t result_len;   /* FDC Result Length */
 
-    uint8 idcount;      /* used to cycle sector numbers during ReadID */
-    uint8 irqflag;      /* set by interrupt, cleared by I8272_SENSE_INTERRUPT */
+    uint8_t idcount;      /* used to cycle sector numbers during ReadID */
+    uint8_t irqflag;      /* set by interrupt, cleared by I8272_SENSE_INTERRUPT */
 
-    uint8 fdc_curdrv;   /* Currently selected drive */
+    uint8_t fdc_curdrv;   /* Currently selected drive */
     I8272_DRIVE_INFO drive[I8272_MAX_DRIVES];
 } I8272;
 
-extern t_stat i8272_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask);
-extern t_stat i8272_write(I8272* chip, int addr, uint32 value);
-extern t_stat i8272_read(I8272* chip,int addr,uint32* value);
+extern t_stat i8272_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+extern t_stat i8272_write(I8272* chip, int addr, uint32_t value);
+extern t_stat i8272_read(I8272* chip,int addr,uint32_t* value);
 extern t_stat i8272_reset(I8272* chip);
 extern void   i8272_seldrv(I8272* chip,int drvnum);
 extern t_stat i8272_abortio(I8272* chip);
 extern t_stat i8272_finish(I8272* chip);
 extern t_stat i8272_attach(UNIT *uptr, CONST char *cptr);
 extern t_stat i8272_detach(UNIT *uptr);
-extern t_stat i8272_setDMA(I8272* chip, uint32 dma_addr);
+extern t_stat i8272_setDMA(I8272* chip, uint32_t dma_addr);
 
 /* Debug flags */
 #define DBG_FD_ERROR   (1 << 0)
@@ -399,24 +399,24 @@ extern DEVICE* i8272_dev;
 typedef struct i8255 {
     PNP_INFO pnp;
     DEVICE* dev;         /* backlink to device */
-    t_stat (*write)(struct i8255* chip,int port,uint32 data);
-    t_stat (*read)(struct i8255* chip,int port,uint32* data);
+    t_stat (*write)(struct i8255* chip,int port,uint32_t data);
+    t_stat (*read)(struct i8255* chip,int port,uint32_t* data);
     t_stat (*reset)(struct i8255* chip);
     t_stat (*calla)(struct i8255* chip,int rw);
     t_stat (*callb)(struct i8255* chip,int rw);
     t_stat (*callc)(struct i8255* chip,int rw);
-    t_stat (*ckmode)(struct i8255* chip,uint32 data);
-    uint32 porta;
-    uint32 last_porta; /* for edge detection */
-    uint32 portb;
-    uint32 last_portb; /* for edge detection */
-    uint32 portc;
-    uint32 last_portc; /* for edge detection */
-    uint32 ctrl;
+    t_stat (*ckmode)(struct i8255* chip,uint32_t data);
+    uint32_t porta;
+    uint32_t last_porta; /* for edge detection */
+    uint32_t portb;
+    uint32_t last_portb; /* for edge detection */
+    uint32_t portc;
+    uint32_t last_portc; /* for edge detection */
+    uint32_t ctrl;
 } I8255;
-extern t_stat i8255_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask);
-extern t_stat i8255_read(I8255* chip,int port,uint32* data);
-extern t_stat i8255_write(I8255* chip,int port,uint32 data);
+extern t_stat i8255_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+extern t_stat i8255_read(I8255* chip,int port,uint32_t* data);
+extern t_stat i8255_write(I8255* chip,int port,uint32_t data);
 #define I8255_RISEEDGE(port,bit) ((chip->last_##port & bit)==0 && (chip->port & bit))
 #define I8255_FALLEDGE(port,bit) ((chip->last_##port & bit) && (chip->port & bit)==0)
 #define I8255_ISSET(port,bit) ((chip->port & (bit))==(bit))

@@ -100,7 +100,7 @@
 #include "pdp8_defs.h"
 
 extern int32 int_req;
-extern uint16 M[];
+extern uint16_t M[];
 extern int32 stop_inst;
 extern UNIT cpu_unit;
 
@@ -147,69 +147,69 @@ extern UNIT cpu_unit;
 #define FPN_NFR_FP      2                               /* std precision */
 #define FPN_NFR_EP      5                               /* ext precision */
 #define FPN_NFR_MDS     6                               /* mul/div precision */
-#define EXACT           (uint32)((fpp_sta & FPS_EP)? FPN_NFR_EP: FPN_NFR_FP)
-#define EXTEND          ((uint32) FPN_NFR_EP)
+#define EXACT           (uint32_t)((fpp_sta & FPS_EP)? FPN_NFR_EP: FPN_NFR_FP)
+#define EXTEND          ((uint32_t) FPN_NFR_EP)
 
 typedef struct {
     int32       exp;
-    uint32      fr[FPN_NFR_MDS+1];
+    uint32_t      fr[FPN_NFR_MDS+1];
     } FPN;
 
-uint32 fpp_apta = 0;                                    /* APT pointer */
-uint32 fpp_aptsvf = 0;                                  /* APT saved field */
-uint32 fpp_opa = 0;                                     /* operand pointer */
-uint32 fpp_fpc = 0;                                     /* FP PC */
-uint32 fpp_bra = 0;                                     /* base reg pointer */
-uint32 fpp_xra = 0;                                     /* indx reg pointer */
-uint32 fpp_cmd = 0;                                     /* command */
-uint32 fpp_sta = 0;                                     /* status */
-uint32 fpp_flag = 0;                                    /* flag */
+uint32_t fpp_apta = 0;                                    /* APT pointer */
+uint32_t fpp_aptsvf = 0;                                  /* APT saved field */
+uint32_t fpp_opa = 0;                                     /* operand pointer */
+uint32_t fpp_fpc = 0;                                     /* FP PC */
+uint32_t fpp_bra = 0;                                     /* base reg pointer */
+uint32_t fpp_xra = 0;                                     /* indx reg pointer */
+uint32_t fpp_cmd = 0;                                     /* command */
+uint32_t fpp_sta = 0;                                     /* status */
+uint32_t fpp_flag = 0;                                    /* flag */
 FPN fpp_ac;                                             /* FAC */
-uint32 fpp_ssf = 0;                                     /* single-step flag */
-uint32 fpp_last_lockbit = 0;                            /* last lockbit */
+uint32_t fpp_ssf = 0;                                     /* single-step flag */
+uint32_t fpp_last_lockbit = 0;                            /* last lockbit */
 
 static FPN fpp_zero = { 0, { 0, 0, 0, 0, 0 } };
 static FPN fpp_one = { 1, { 02000, 0, 0, 0, 0 } };
 
 int32 fpp55 (int32 IR, int32 AC);
 int32 fpp56 (int32 IR, int32 AC);
-void fpp_load_apt (uint32 apta);
-void fpp_dump_apt (uint32 apta, uint32 sta);
-uint32 fpp_1wd_dir (uint32 ir);
-uint32 fpp_2wd_dir (uint32 ir);
-uint32 fpp_indir (uint32 ir);
-uint32 fpp_ad15 (uint32 hi);
-uint32 fpp_adxr (uint32 ir, uint32 base_ad);
-void fpp_add (FPN *a, FPN *b, uint32 sub);
+void fpp_load_apt (uint32_t apta);
+void fpp_dump_apt (uint32_t apta, uint32_t sta);
+uint32_t fpp_1wd_dir (uint32_t ir);
+uint32_t fpp_2wd_dir (uint32_t ir);
+uint32_t fpp_indir (uint32_t ir);
+uint32_t fpp_ad15 (uint32_t hi);
+uint32_t fpp_adxr (uint32_t ir, uint32_t base_ad);
+void fpp_add (FPN *a, FPN *b, uint32_t sub);
 void fpp_mul (FPN *a, FPN *b);
 void fpp_div (FPN *a, FPN *b);
 t_bool fpp_imul (FPN *a, FPN *b);
-uint32 fpp_fr_add (uint32 *c, uint32 *a, uint32 *b, uint32 cnt);
-void fpp_fr_sub (uint32 *c, uint32 *a, uint32 *b, uint32 cnt);
-void fpp_fr_mul (uint32 *c, uint32 *a, uint32 *b, t_bool fix);
-t_bool fpp_fr_div (uint32 *c, uint32 *a, uint32 *b);
-uint32 fpp_fr_neg (uint32 *a, uint32 cnt);
-int32 fpp_fr_cmp (uint32 *a, uint32 *b, uint32 cnt);
-int32 fpp_fr_test (uint32 *a, uint32 v0, uint32 cnt);
-uint32 fpp_fr_abs (uint32 *a, uint32 *b, uint32 cnt);
-void fpp_fr_fill (uint32 *a, uint32 v, uint32 cnt);
-void fpp_fr_lshn (uint32 *a, uint32 sc, uint32 cnt);
-void fpp_fr_lsh12 (uint32 *a, uint32 cnt);
-void fpp_fr_lsh1 (uint32 *a, uint32 cnt);
-void fpp_fr_rsh1 (uint32 *a, uint32 sign, uint32 cnt);
-void fpp_fr_algn (uint32 *a, uint32 sc, uint32 cnt);
-t_bool fpp_cond_met (uint32 cond);
-t_bool fpp_norm (FPN *a, uint32 cnt);
+uint32_t fpp_fr_add (uint32_t *c, uint32_t *a, uint32_t *b, uint32_t cnt);
+void fpp_fr_sub (uint32_t *c, uint32_t *a, uint32_t *b, uint32_t cnt);
+void fpp_fr_mul (uint32_t *c, uint32_t *a, uint32_t *b, t_bool fix);
+t_bool fpp_fr_div (uint32_t *c, uint32_t *a, uint32_t *b);
+uint32_t fpp_fr_neg (uint32_t *a, uint32_t cnt);
+int32 fpp_fr_cmp (uint32_t *a, uint32_t *b, uint32_t cnt);
+int32 fpp_fr_test (uint32_t *a, uint32_t v0, uint32_t cnt);
+uint32_t fpp_fr_abs (uint32_t *a, uint32_t *b, uint32_t cnt);
+void fpp_fr_fill (uint32_t *a, uint32_t v, uint32_t cnt);
+void fpp_fr_lshn (uint32_t *a, uint32_t sc, uint32_t cnt);
+void fpp_fr_lsh12 (uint32_t *a, uint32_t cnt);
+void fpp_fr_lsh1 (uint32_t *a, uint32_t cnt);
+void fpp_fr_rsh1 (uint32_t *a, uint32_t sign, uint32_t cnt);
+void fpp_fr_algn (uint32_t *a, uint32_t sc, uint32_t cnt);
+t_bool fpp_cond_met (uint32_t cond);
+t_bool fpp_norm (FPN *a, uint32_t cnt);
 void fpp_round (FPN *a);
 t_bool fpp_test_xp (FPN *a);
 void fpp_copy (FPN *a, FPN *b);
 void fpp_zcopy (FPN *a, FPN *b);
-void fpp_read_op (uint32 ea, FPN *a);
-void fpp_write_op (uint32 ea, FPN *a);
-uint32 fpp_read (uint32 ea);
-void fpp_write (uint32 ea, uint32 val);
-uint32 apt_read (uint32 ea);
-void apt_write (uint32 ea, uint32 val);
+void fpp_read_op (uint32_t ea, FPN *a);
+void fpp_write_op (uint32_t ea, FPN *a);
+uint32_t fpp_read (uint32_t ea);
+void fpp_write (uint32_t ea, uint32_t val);
+uint32_t apt_read (uint32_t ea);
+void apt_write (uint32_t ea, uint32_t val);
 t_stat fpp_svc (UNIT *uptr);
 t_stat fpp_reset (DEVICE *dptr);
 const char *fpp_description (DEVICE *dptr);
@@ -321,7 +321,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 
     case 7:                                             /* FPIST */
         if (fpp_flag) {                                 /* if flag set */
-            uint32 old_sta = fpp_sta;
+            uint32_t old_sta = fpp_sta;
             fpp_flag = 0;                               /* clr flag, status */
             fpp_sta &= ~(FPS_DP|FPS_EP|FPS_TRPX|FPS_DVZX|FPS_IOVX|FPS_FOVX|FPS_UNF);
             int_req &= ~INT_FPP;                        /* clr int req */
@@ -359,8 +359,8 @@ return AC;
 t_stat fpp_svc (UNIT *uptr)
 {
 FPN x;
-uint32 ir, op, op2, op3, ad, ea, wd;
-uint32 i;
+uint32_t ir, op, op2, op3, ad, ea, wd;
+uint32_t i;
 int32 sc;
 
 fpp_ac.exp = SEXT12 (fpp_ac.exp);                       /* sext AC exp */
@@ -575,7 +575,7 @@ do {                                                    /* repeat */
         break;
 
     case 010: {                                         /* JNX */
-        uint32 xrn = op2 & 07;
+        uint32_t xrn = op2 & 07;
         ad = fpp_ad15 (op3);                            /* get 15b addr */
         wd = fpp_read_xr (xrn);                         /* read xr */
         if (op2 & 010) {                                /* inc? */
@@ -758,9 +758,9 @@ return SCPE_OK;
 
 /* Address decoding routines */
 
-uint32 fpp_1wd_dir (uint32 ir)
+uint32_t fpp_1wd_dir (uint32_t ir)
 {
-uint32 ad; 
+uint32_t ad; 
 
 ad = fpp_bra + ((ir & 0177) * 3);                       /* base + 3*7b off */
 if (fpp_sta & FPS_DP)                                   /* dp? skip exp */
@@ -772,17 +772,17 @@ else fpp_opa = ad + 2;
 return ad;
 }
 
-uint32 fpp_2wd_dir (uint32 ir)
+uint32_t fpp_2wd_dir (uint32_t ir)
 {
-uint32 ad;
+uint32_t ad;
 
 ad = fpp_ad15 (ir);                                     /* get 15b addr */
 return fpp_adxr (ir, ad);                               /* do indexing */
 }
 
-uint32 fpp_indir (uint32 ir)
+uint32_t fpp_indir (uint32_t ir)
 {
-uint32 ad, wd1, wd2;
+uint32_t ad, wd1, wd2;
 
 ad = fpp_bra + ((ir & 07) * 3);                         /* base + 3*3b off */
 wd1 = fpp_read (ad + 1);                                /* bp+off points to */
@@ -796,18 +796,18 @@ else fpp_opa = ad + 2;
 return ad;
 }
 
-uint32 fpp_ad15 (uint32 hi)
+uint32_t fpp_ad15 (uint32_t hi)
 {
-uint32 ad;
+uint32_t ad;
 
 ad = ((hi & 07) << 12) | fpp_read (fpp_fpc);            /* 15b addr */
 fpp_fpc = (fpp_fpc + 1) & ADDRMASK;                     /* incr FPC */
 return ad;                                              /* return addr */
 }
 
-uint32 fpp_adxr (uint32 ir, uint32 base_ad)
+uint32_t fpp_adxr (uint32_t ir, uint32_t base_ad)
 {
-uint32 xr, wd;
+uint32_t xr, wd;
 
 xr = (ir >> 3) & 07;
 wd = fpp_read_xr (xr);                                  /* get xr */
@@ -830,18 +830,18 @@ else return base_ad & ADDRMASK;                         /* return addr */
 
 /* Fraction/floating add */
 
-void fpp_add (FPN *a, FPN *b, uint32 sub)
+void fpp_add (FPN *a, FPN *b, uint32_t sub)
 {
 FPN x, y, z;
-uint32 c, ediff;
+uint32_t c, ediff;
 
 fpp_zcopy (&x, a);                                      /* copy opnds */
 fpp_zcopy (&y, b);
 if (sub)                                                /* subtract? */
     fpp_fr_neg (y.fr, EXACT);                           /* neg B, exact */
 if (fpp_sta & FPS_DP) {                                 /* dp? */
-    uint32 cout = fpp_fr_add (z.fr, x.fr, y.fr, EXTEND);/* z = a + b */
-    uint32 zsign = z.fr[0] & FPN_FRSIGN;
+    uint32_t cout = fpp_fr_add (z.fr, x.fr, y.fr, EXTEND);/* z = a + b */
+    uint32_t zsign = z.fr[0] & FPN_FRSIGN;
     cout = (cout? 04000: 0);                            /* make sign bit */
     z.exp = 0;                                          /* not used in DP */
     /* overflow is indicated when signs are equal and overflow does not
@@ -865,7 +865,7 @@ else {                                                  /* fp or ep */
             y = z;
             }
         ediff = x.exp - y.exp;                          /* exp diff */
-        if (ediff <= (uint32) ((fpp_sta & FPS_EP)? 59: 24)) { /* any add? */
+        if (ediff <= (uint32_t) ((fpp_sta & FPS_EP)? 59: 24)) { /* any add? */
             z.exp = x.exp;                              /* result exp */
             if (ediff != 0)                             /* any align? */
                 fpp_fr_algn (y.fr, ediff, EXTEND);      /* align, 60b */
@@ -949,7 +949,7 @@ else {                                                  /* fp or ep */
         }
     z.exp = x.exp - y.exp;                              /* calc exp */
     if (fpp_fr_div (z.fr, x.fr, y.fr)) {                /* fr div, ovflo? */
-        uint32 cin = (a->fr[0] ^ b->fr[0]) & FPN_FRSIGN;
+        uint32_t cin = (a->fr[0] ^ b->fr[0]) & FPN_FRSIGN;
         fpp_fr_rsh1 (z.fr, cin, EXTEND);                /* rsh, insert sign */
         z.exp = z.exp + 1;                              /* incr exp */
         }
@@ -970,7 +970,7 @@ return;
 
 t_bool fpp_imul (FPN *a, FPN *b)
 {
-uint32 sext;
+uint32_t sext;
 FPN x, y, z;
 
 fpp_zcopy (&x, a);                                      /* copy args */
@@ -991,7 +991,7 @@ return FALSE;
 
 /* Auxiliary floating point routines */
 
-t_bool fpp_cond_met (uint32 cond)
+t_bool fpp_cond_met (uint32_t cond)
 {
 switch (cond) {
 
@@ -1024,7 +1024,7 @@ return 0;
 
 /* Normalization - returns TRUE if rounding possible, FALSE if exact */
 
-t_bool fpp_norm (FPN *a, uint32 cnt)
+t_bool fpp_norm (FPN *a, uint32_t cnt)
 {
 if (fpp_fr_test (a->fr, 0, cnt) == 0) {                 /* zero? */
     a->exp = 0;                                         /* clean exp */
@@ -1051,7 +1051,7 @@ return TRUE;
 
 void fpp_copy (FPN *a, FPN *b)
 {
-uint32 i;
+uint32_t i;
 
 if (!(fpp_sta & FPS_DP))
     a->exp = b->exp;
@@ -1064,7 +1064,7 @@ return;
 
 void fpp_zcopy (FPN *a, FPN *b)
 {
-uint32 i;
+uint32_t i;
 
 a->exp = b->exp;
 for (i = 0; i < FPN_NFR_EP; i++) {
@@ -1100,7 +1100,7 @@ return FALSE;
 void fpp_round (FPN *a)
 {
 int32 i;
-uint32 cin, afr0_sign;
+uint32_t cin, afr0_sign;
 
 if (fpp_sta & FPS_EP)                               /* ep? */
     return;                                         /* don't round */
@@ -1123,10 +1123,10 @@ return;
 
 /* Fraction add/sub */
 
-uint32 fpp_fr_add (uint32 *c, uint32 *a, uint32 *b, uint32 cnt)
+uint32_t fpp_fr_add (uint32_t *c, uint32_t *a, uint32_t *b, uint32_t cnt)
 
 {
-uint32 i, cin;
+uint32_t i, cin;
 
 for (i = cnt, cin = 0; i > 0; i--) {
     c[i - 1] = a[i - 1] + b[i - 1] + cin;
@@ -1136,9 +1136,9 @@ for (i = cnt, cin = 0; i > 0; i--) {
 return cin;
 }
 
-void fpp_fr_sub (uint32 *c, uint32 *a, uint32 *b, uint32 cnt)
+void fpp_fr_sub (uint32_t *c, uint32_t *a, uint32_t *b, uint32_t cnt)
 {
-uint32 i, cin;
+uint32_t i, cin;
 
 for (i = cnt, cin = 0; i > 0; i--) {
     c[i - 1] = a[i - 1] - b[i - 1] - cin;
@@ -1169,9 +1169,9 @@ return;
    If a-sign != c-sign, shift-in = result-sign
    */
 
-void fpp_fr_mul (uint32 *c, uint32 *a, uint32 *b, t_bool fix)
+void fpp_fr_mul (uint32_t *c, uint32_t *a, uint32_t *b, t_bool fix)
 {
-uint32 i, cnt, lo, wc, fill, b_sign;
+uint32_t i, cnt, lo, wc, fill, b_sign;
 
 b_sign = b[0] & FPN_FRSIGN;                         /* remember b's sign */
 
@@ -1217,11 +1217,11 @@ return;
 
 /* Fraction divide */
 
-t_bool fpp_fr_div (uint32 *c, uint32 *a, uint32 *b)
+t_bool fpp_fr_div (uint32_t *c, uint32_t *a, uint32_t *b)
 {
-uint32 i, old_c, lo, cnt, sign, b_sign, addsub, limit;
+uint32_t i, old_c, lo, cnt, sign, b_sign, addsub, limit;
 /* Number of words processed by each divide step */
-static uint32 limits[7] = {6, 6, 5, 4, 3, 3, 2};
+static uint32_t limits[7] = {6, 6, 5, 4, 3, 3, 2};
 
 fpp_fr_fill (c, 0, FPN_NFR_MDS);                    /* clr answer */
 sign = (a[0] ^ b[0]) & FPN_FRSIGN;                  /* sign of result */
@@ -1257,9 +1257,9 @@ return FALSE;
 
 /* Negate - 24b or 60b */
 
-uint32 fpp_fr_neg (uint32 *a, uint32 cnt)
+uint32_t fpp_fr_neg (uint32_t *a, uint32_t cnt)
 {
-uint32 i, cin;
+uint32_t i, cin;
 
 for (i = cnt, cin = 1; i > 0; i--) {
     a[i - 1] = (~a[i - 1] + cin) & 07777;
@@ -1270,9 +1270,9 @@ return cin;
 
 /* Test (compare to x'0...0) - 24b or 60b */
 
-int32 fpp_fr_test (uint32 *a, uint32 v0, uint32 cnt)
+int32 fpp_fr_test (uint32_t *a, uint32_t v0, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 if (a[0] != v0)
     return (a[0] & FPN_FRSIGN)? -1: +1;
@@ -1285,9 +1285,9 @@ return 0;
 
 /* Fraction compare - 24b or 60b */
 
-int32 fpp_fr_cmp (uint32 *a, uint32 *b, uint32 cnt)
+int32 fpp_fr_cmp (uint32_t *a, uint32_t *b, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 if ((a[0] ^ b[0]) & FPN_FRSIGN)
     return (b[0] & FPN_FRSIGN)? +1: -1;
@@ -1302,9 +1302,9 @@ return 0;
 
 /* Fraction fill */
 
-void fpp_fr_fill (uint32 *a, uint32 v, uint32 cnt)
+void fpp_fr_fill (uint32_t *a, uint32_t v, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < cnt; i++)
     a[i] = v;
@@ -1313,9 +1313,9 @@ return;
 
 /* Left shift n (unsigned) */
 
-void fpp_fr_lshn (uint32 *a, uint32 sc, uint32 cnt)
+void fpp_fr_lshn (uint32_t *a, uint32_t sc, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 if (sc >= (cnt * 12)) {                             /* out of range? */
     fpp_fr_fill (a, 0, cnt);
@@ -1335,9 +1335,9 @@ return;
 
 /* Left shift 12b (unsigned) */
 
-void fpp_fr_lsh12 (uint32 *a, uint32 cnt)
+void fpp_fr_lsh12 (uint32_t *a, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 1; i < cnt; i++)
     a[i - 1] = a[i];
@@ -1347,9 +1347,9 @@ return;
 
 /* Left shift 1b (unsigned) */
 
-void fpp_fr_lsh1 (uint32 *a, uint32 cnt)
+void fpp_fr_lsh1 (uint32_t *a, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 1; i < cnt; i++)
     a[i - 1] = ((a[i - 1] << 1) | (a[i] >> 11)) & 07777;
@@ -1359,9 +1359,9 @@ return;
 
 /* Right shift 1b, with shift in */
 
-void fpp_fr_rsh1 (uint32 *a, uint32 sign, uint32 cnt)
+void fpp_fr_rsh1 (uint32_t *a, uint32_t sign, uint32_t cnt)
 {
-uint32 i;
+uint32_t i;
 
 for (i = cnt - 1; i > 0; i--)
     a[i] = ((a[i] >> 1) | (a[i - 1] << 11)) & 07777;
@@ -1371,9 +1371,9 @@ return;
 
 /* Right shift n (signed) */
 
-void fpp_fr_algn (uint32 *a, uint32 sc, uint32 cnt)
+void fpp_fr_algn (uint32_t *a, uint32_t sc, uint32_t cnt)
 {
-uint32 i, sign;
+uint32_t i, sign;
 
 sign = (a[0] & FPN_FRSIGN)? 07777: 0;
 if (sc >= (cnt * 12)) {                             /* out of range? */
@@ -1397,9 +1397,9 @@ return;
 
 /* Read/write routines */
 
-void fpp_read_op (uint32 ea, FPN *a)
+void fpp_read_op (uint32_t ea, FPN *a)
 {
-uint32 i;
+uint32_t i;
 
 if (!(fpp_sta & FPS_DP)) {
     a->exp = fpp_read (ea++);
@@ -1410,9 +1410,9 @@ for (i = 0; i < EXACT; i++)
 return;
 }
 
-void fpp_write_op (uint32 ea, FPN *a)
+void fpp_write_op (uint32_t ea, FPN *a)
 {
-uint32 i;
+uint32_t i;
 
 fpp_opa = ea + 2;
 if (!(fpp_sta & FPS_DP))
@@ -1422,7 +1422,7 @@ for (i = 0; i < EXACT; i++)
 return;
 }
 
-uint32 fpp_read (uint32 ea)
+uint32_t fpp_read (uint32_t ea)
 {
 ea = ea & ADDRMASK;
 if (fpp_cmd & FPC_FIXF)
@@ -1430,7 +1430,7 @@ if (fpp_cmd & FPC_FIXF)
 return M[ea];
 }
 
-void fpp_write (uint32 ea, uint32 val)
+void fpp_write (uint32_t ea, uint32_t val)
 {
 ea = ea & ADDRMASK;
 if (fpp_cmd & FPC_FIXF)
@@ -1440,13 +1440,13 @@ if (MEM_ADDR_OK (ea))
 return;
 }
 
-uint32 apt_read (uint32 ea)
+uint32_t apt_read (uint32_t ea)
 {
 ea = ea & ADDRMASK;
 return M[ea];
 }
 
-void apt_write (uint32 ea, uint32 val)
+void apt_write (uint32_t ea, uint32_t val)
 {
 ea = ea & ADDRMASK;
 if (MEM_ADDR_OK (ea))
@@ -1456,9 +1456,9 @@ return;
 
 /* Utility routines */
 
-void fpp_load_apt (uint32 ad)
+void fpp_load_apt (uint32_t ad)
 {
-uint32 wd0, i;
+uint32_t wd0, i;
 
 wd0 = apt_read (ad++);
 fpp_fpc = ((wd0 & 07) << 12) | apt_read (ad++);
@@ -1475,9 +1475,9 @@ fpp_sta |= FPS_RUN;
 return;
 }
 
-void fpp_dump_apt (uint32 ad, uint32 sta)
+void fpp_dump_apt (uint32_t ad, uint32_t sta)
 {
-uint32 wd0, i;
+uint32_t wd0, i;
 
 wd0 = (fpp_fpc >> 12) & 07;
 if (FPC_GETFAST (fpp_cmd) != 017)

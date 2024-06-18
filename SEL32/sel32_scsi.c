@@ -32,7 +32,7 @@
 
 #define UNIT_SCSI   UNIT_ATTABLE|UNIT_DISABLE
 
-extern  uint32  SPAD[];                         /* cpu SPAD memory */
+extern  uint32_t  SPAD[];                         /* cpu SPAD memory */
 
 /* useful conversions */
 /* Fill STAR value from cyl, trk, sec data */
@@ -259,12 +259,12 @@ bits 24-31 - FHD head count (number of heads on FHD or number head on FHD option
 struct scsi_t
 {
     const char  *name;                          /* Device ID Name */
-    uint16      nhds;                           /* Number of heads */
-    uint16      ssiz;                           /* sector size in words */
-    uint16      spt;                            /* # sectors per track(head) */
-    uint16      ucyl;                           /* Number of cylinders used */
-    uint16      cyl;                            /* Number of cylinders on disk */
-    uint8       type;                           /* Device type code */
+    uint16_t      nhds;                           /* Number of heads */
+    uint16_t      ssiz;                           /* sector size in words */
+    uint16_t      spt;                            /* # sectors per track(head) */
+    uint16_t      ucyl;                           /* Number of cylinders used */
+    uint16_t      cyl;                            /* Number of cylinders on disk */
+    uint8_t       type;                           /* Device type code */
     /* bit 1 mhd */
     /* bits 6/7 = 0 768 byte blk */             /* not used on UDP/DPII */
     /*          = 1 1024 byte blk */            /* not used on UDP/DPII */
@@ -290,8 +290,8 @@ scsi_type[] =
     {NULL, 0}
 };
 
-t_stat  scsi_preio(UNIT *uptr, uint16 chan);
-t_stat  scsi_startcmd(UNIT *uptr, uint16 chan, uint8 cmd);
+t_stat  scsi_preio(UNIT *uptr, uint16_t chan);
+t_stat  scsi_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd);
 t_stat  scsi_haltio(UNIT *uptr);
 t_stat  scsi_srv(UNIT *);
 t_stat  scsi_boot(int32 unitnum, DEVICE *);
@@ -307,8 +307,8 @@ const   char  *scsi_description (DEVICE *dptr);
 
 /* One buffer per unit */
 #define BUFFSIZE        (512)
-uint8   scsi_buf[NUM_DEVS_SCSI][NUM_UNITS_SCSI][BUFFSIZE];
-uint8   scsi_pcmd[NUM_DEVS_SCSI][NUM_UNITS_SCSI];
+uint8_t   scsi_buf[NUM_DEVS_SCSI][NUM_UNITS_SCSI][BUFFSIZE];
+uint8_t   scsi_pcmd[NUM_DEVS_SCSI][NUM_UNITS_SCSI];
 
 /* channel program information */
 CHANP   sba_chp[NUM_UNITS_SCSI] = {0};
@@ -328,8 +328,8 @@ UNIT    sba_unit[] = {
 };
 
 DIB     sba_dib = {
-    scsi_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    scsi_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    scsi_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    scsi_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     scsi_haltio,    /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
@@ -340,12 +340,12 @@ DIB     sba_dib = {
     sba_unit,       /* UNIT* units */                           /* Pointer to units structure */
     sba_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_SCSI, /* uint8 numunits */                        /* number of units defined */
-    0x38,           /* uint8 mask */                            /* 8 devices - device mask */
-    0x7600,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_SCSI, /* uint8_t numunits */                        /* number of units defined */
+    0x38,           /* uint8_t mask */                            /* 8 devices - device mask */
+    0x7600,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE  sba_dev = {
@@ -372,8 +372,8 @@ UNIT    sbb_unit[] = {
 //  scsi_ini, sdb_unit, sdb_chp, NUM_UNITS_SCSI, 0x0f, 0x0c00, 0, 0, 0};
 
 DIB     sbb_dib = {
-    scsi_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    scsi_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    scsi_preio,     /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    scsi_startcmd,  /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     scsi_haltio,    /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
@@ -384,12 +384,12 @@ DIB     sbb_dib = {
     sbb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     sbb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_SCSI, /* uint8 numunits */                        /* number of units defined */
-    0x38,           /* uint8 mask */                            /* 2 devices - device mask */
-    0x7600,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_SCSI, /* uint8_t numunits */                        /* number of units defined */
+    0x38,           /* uint8_t mask */                            /* 2 devices - device mask */
+    0x7600,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE  sbb_dev = {
@@ -403,7 +403,7 @@ DEVICE  sbb_dev = {
 #endif
 
 /* convert sector disk address to star values (c,h,s) */
-uint32 scsisec2star(uint32 daddr, int type)
+uint32_t scsisec2star(uint32_t daddr, int type)
 {
     int32 sec = daddr % scsi_type[type].spt;    /* get sector value */
     int32 spc = scsi_type[type].nhds * scsi_type[type].spt; /* sec per cyl */
@@ -415,10 +415,10 @@ uint32 scsisec2star(uint32 daddr, int type)
 }
 
 /* start a disk operation */
-t_stat scsi_preio(UNIT *uptr, uint16 chan)
+t_stat scsi_preio(UNIT *uptr, uint16_t chan)
 {
     DEVICE      *dptr = get_dev(uptr);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     int         unit = (uptr - dptr->units);
 
     sim_debug(DEBUG_CMD, dptr, "scsi_preio CMD %08x unit=%02x\n", uptr->CMD, unit);
@@ -429,9 +429,9 @@ t_stat scsi_preio(UNIT *uptr, uint16 chan)
     return 0;                                   /* good to go */
 }
 
-t_stat scsi_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
+t_stat scsi_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
 {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
@@ -509,7 +509,7 @@ t_stat scsi_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
 /* Handle processing of disk requests. */
 t_stat scsi_srv(UNIT *uptr)
 {
-    uint16          chsa = GET_UADDR(uptr->CMD);
+    uint16_t          chsa = GET_UADDR(uptr->CMD);
     DEVICE          *dptr = get_dev(uptr);
     /* get pointer to Dev Info Blk for this device */
     CHANP           *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
@@ -519,13 +519,13 @@ t_stat scsi_srv(UNIT *uptr)
     int             bufnum = GET_DEV_BUF(dptr->flags);
     int             len=0;
     int             i;
-    uint32          cap = CAP(type);
-    uint32          mema;                       /* memory address */
-    uint8           ch;
+    uint32_t          cap = CAP(type);
+    uint32_t          mema;                       /* memory address */
+    uint8_t           ch;
     int32           ssize = scsi_type[type].ssiz*4; /* Size of one sector in bytes */
-    uint32          tstart = 0;                 /* Location of start of cyl/track/sect in data */
-    uint8           buf2[1024];
-    uint8           buf[1024];
+    uint32_t          tstart = 0;                 /* Location of start of cyl/track/sect in data */
+    uint8_t           buf2[1024];
+    uint8_t           buf[1024];
 
     sim_debug(DEBUG_DETAIL, &sba_dev,
         "scsi_srv entry unit %02x CMD %08x chsa %04x count %04x %x/%x/%x \n",
@@ -846,14 +846,14 @@ t_stat scsi_srv(UNIT *uptr)
         if (uptr->SNS & SNS_TCMD) {
             /* we need to process a read TCMD data */
             int cnt = scsi_buf[bufnum][unit][4];    /* byte count of status to send */
-            uint32  cyl = CYL(type);            /* number of cylinders */
-            uint32  spt = SPT(type);            /* sectors per track */
-            uint32  ssb = SSB(type);            /* sector size in bytes */
+            uint32_t  cyl = CYL(type);            /* number of cylinders */
+            uint32_t  spt = SPT(type);            /* sectors per track */
+            uint32_t  ssb = SSB(type);            /* sector size in bytes */
             int     bcnt;
 
             /* cnt has # bytes to return (0xf0) */
-            uint8   pagecode = scsi_buf[bufnum][unit][2] & 0x3f;   /* get page code */
-            uint8   pagecont = (scsi_buf[bufnum][unit][2] & 0xc0) >> 6; /* get page control */
+            uint8_t   pagecode = scsi_buf[bufnum][unit][2] & 0x3f;   /* get page code */
+            uint8_t   pagecont = (scsi_buf[bufnum][unit][2] & 0xc0) >> 6; /* get page control */
 
             ch = scsi_buf[bufnum][unit][0];     /* return TCMD cmd */
             uptr->SNS &= ~SNS_TCMD;             /* show not presessing TCMD cmd chain */
@@ -913,8 +913,8 @@ t_stat scsi_srv(UNIT *uptr)
                     buf[4] = 0x81;              /* savable and page type 1 */
                     buf[8] = 0x91;
                     buf[12] = 0xf4;
-                    buf[17] = (uint8)HDS(type); /* # of heads */
-                    buf[23] = (uint8)SPT(type); /* Sect/track */
+                    buf[17] = (uint8_t)HDS(type); /* # of heads */
+                    buf[23] = (uint8_t)SPT(type); /* Sect/track */
                     goto merge;                 /* go output data and return */
                 }
                 /* this is most likely UTX calling */
@@ -942,10 +942,10 @@ t_stat scsi_srv(UNIT *uptr)
                     buf[11] = 0;                /* alt trks per zone lb */
                     buf[12] = 0;                /* alt trks per unit ub */
                     buf[13] = 0;                /* alt trks per unit lb */
-                    buf[14] = (uint8)((spt & 0xff00) >> 8); /* Sect/track */
-                    buf[15] = (uint8)((spt & 0x00ff));  /* Sect/track */
-                    buf[16] = (uint8)((ssb & 0xff00) >> 8); /* Sect size */
-                    buf[17] = (uint8)((ssb & 0x00ff));  /* Sect size */
+                    buf[14] = (uint8_t)((spt & 0xff00) >> 8); /* Sect/track */
+                    buf[15] = (uint8_t)((spt & 0x00ff));  /* Sect/track */
+                    buf[16] = (uint8_t)((ssb & 0xff00) >> 8); /* Sect size */
+                    buf[17] = (uint8_t)((ssb & 0x00ff));  /* Sect size */
                     buf[18] = 0;                /* interleave ub */
                     buf[19] = 0;                /* interleave lb */
                     buf[20] = 0;                /* track skew factor ub */
@@ -965,10 +965,10 @@ t_stat scsi_srv(UNIT *uptr)
 //                  buf[4] = 0x84;              /* savable and page type 4 */
                     buf[4] = 0x04;              /* not savable and page type 4 */
                     buf[5] = 18;                /* 18 data bytes follow */
-                    buf[6] = (uint8)((cyl & 0xff0000) >> 16);
-                    buf[7] = (uint8)((cyl & 0x00ff00) >> 8);
-                    buf[8] = (uint8)((cyl & 0x0000ff));
-                    buf[9] = (uint8)HDS(type);  /* # of heads */
+                    buf[6] = (uint8_t)((cyl & 0xff0000) >> 16);
+                    buf[7] = (uint8_t)((cyl & 0x00ff00) >> 8);
+                    buf[8] = (uint8_t)((cyl & 0x0000ff));
+                    buf[9] = (uint8_t)HDS(type);  /* # of heads */
                     goto merge;                 /* go output data and return */
                 }
 
@@ -983,8 +983,8 @@ t_stat scsi_srv(UNIT *uptr)
                 buf[4] = 0x81;                  /* savable and page type 1 */
                 buf[8] = 0x91;
                 buf[12] = 0xf4;
-                buf[17] = (uint8)HDS(type);     /* # of heads */
-                buf[23] = (uint8)SPT(type);     /* Sect/track */
+                buf[17] = (uint8_t)HDS(type);     /* # of heads */
+                buf[23] = (uint8_t)SPT(type);     /* Sect/track */
 
 merge:
                 /* output response data */
@@ -1098,7 +1098,7 @@ doread:
             tstart++;                           /* bump to next sector */
             uptr->CHS = tstart;                 /* new position */
             /* see if over end of disk */
-            if (tstart >= (uint32)CAP(type)) {
+            if (tstart >= (uint32_t)CAP(type)) {
                 /* EOM reached, abort */
                 sim_debug(DEBUG_CMD, dptr,
                     "SCSI Read reached EOM for read from disk @ sector %06x\n",
@@ -1300,7 +1300,7 @@ dowrite:
             tstart++;                           /* bump to next sector */
             uptr->CHS = tstart;                 /* save new sector */
             /* see if over end of disk */
-            if (tstart >= (uint32)CAP(type)) {
+            if (tstart >= (uint32_t)CAP(type)) {
                 /* EOM reached, abort */
                 sim_debug(DEBUG_CMD, dptr,
                     "SCSI Write reached EOM for write to disk @ sector %06x\n",
@@ -1340,7 +1340,7 @@ read_cap:                                       /* merge point from TCMD process
         }
         /* ssize has sector size in bytes */
         for (i=0; i<4; i++) {
-            ch = (((uint32)ssize) >> ((3-i)*8)) & 0xff;
+            ch = (((uint32_t)ssize) >> ((3-i)*8)) & 0xff;
             if (chan_write_byte(chsa, &ch)) {
                 /* we have error, bail out */
                 uptr->CMD &= LMASK;             /* remove old status bits & cmd */
@@ -1363,7 +1363,7 @@ read_cap:                                       /* merge point from TCMD process
     /* address points to CDB */
     case DSK_TCMD:                              /* Transfer command packet 0xD3 */
         {
-        uint32  mema;                           /* memory address */
+        uint32_t  mema;                           /* memory address */
         int32   i;
 
         uptr->SNS &= ~SNS_TCMD;                 /* show not presessing TCMD cmd chain */
@@ -1454,7 +1454,7 @@ void scsi_ini(UNIT *uptr, t_bool f)
 /* handle rschnlio cmds for scsi */
 t_stat  scsi_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t  chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & DSK_CMDMSK;
 
     sim_debug(DEBUG_EXP, dptr,
@@ -1466,7 +1466,7 @@ t_stat  scsi_rschnlio(UNIT *uptr) {
 t_stat scsi_reset(DEVICE *dptr)
 {
     UNIT    *uptr = dptr->units;
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t  chsa = GET_UADDR(uptr->CMD);
 
     /* add reset code here */
     sim_debug(DEBUG_EXP, dptr,
@@ -1479,20 +1479,20 @@ int scsi_format(UNIT *uptr) {
     int         type = GET_TYPE(uptr->flags);
     DEVICE      *dptr = get_dev(uptr);
     int32       ssize = scsi_type[type].ssiz * 4;   /* disk sector size in bytes */
-    uint32      tsize = scsi_type[type].spt;    /* get track size in sectors */
-    uint32      csize = scsi_type[type].nhds * tsize;   /* get cylinder size in sectors */
-    uint32      cyl = scsi_type[type].cyl;      /* get # cyl */
-    uint32      cap = scsi_type[type].cyl * csize;  /* disk capacity in sectors */
-    uint32      cylv = cyl;                     /* number of cylinders */
-    uint8       *buff;
+    uint32_t      tsize = scsi_type[type].spt;    /* get track size in sectors */
+    uint32_t      csize = scsi_type[type].nhds * tsize;   /* get cylinder size in sectors */
+    uint32_t      cyl = scsi_type[type].cyl;      /* get # cyl */
+    uint32_t      cap = scsi_type[type].cyl * csize;  /* disk capacity in sectors */
+    uint32_t      cylv = cyl;                     /* number of cylinders */
+    uint8_t       *buff;
     int         i;
     t_stat      oldsw = sim_switches;           /* save switches */
 
                 /* last sector address of disk (cyl * hds * spt) - 1 */
-    uint32      laddr = CAP(type) - 1;          /* last sector of disk */
+    uint32_t      laddr = CAP(type) - 1;          /* last sector of disk */
 
                 /* last track address of disk (cyl * hds * spt) - spt */
-    uint32      ltaddr = CAP(type)-SPT(type);   /* last sector of disk */
+    uint32_t      ltaddr = CAP(type)-SPT(type);   /* last sector of disk */
 
                 /* get sector address of vendor defect table VDT */
                 /* put data = 0xf0000000 0xf4000000 */
@@ -1515,24 +1515,24 @@ int scsi_format(UNIT *uptr) {
     int32       luaddr = (CYL(type)-4) * SPC(type);
 
                 /* make up a UMAP with the partiton data for 9346 disk */
-    uint32      umap[256] =
+    uint32_t      umap[256] =
                 {
                     /* try to makeup a utx dmap */
-                    0x4e554d50,(cap-1),(uint32)(luaddr-1),0,0,0,0,0xe10,
-                    0,0x5320,0,0x4e60,0x46,(uint32)luaddr,0,0xd360,
+                    0x4e554d50,(cap-1),(uint32_t)(luaddr-1),0,0,0,0,0xe10,
+                    0,0x5320,0,0x4e60,0x46,(uint32_t)luaddr,0,0xd360,
                     0x88,0x186b0,0x13a,0xd100,0x283,0,0,0,
                     0,0x22c2813e,0,0x06020000,0xf4,0,0x431b1c,0,
                 };
 
                 /* vendor flaw map in vaddr */
-    uint32      vmap[2] = {0xf0000004, 0xf4000000};
+    uint32_t      vmap[2] = {0xf0000004, 0xf4000000};
 
                 /* defect map */
-    uint32      dmap[4] = {0xf0000000 | (cap-1), 0x8a000000 | daddr,
+    uint32_t      dmap[4] = {0xf0000000 | (cap-1), 0x8a000000 | daddr,
                     0x9a000000 | (cap-1), 0xf4000000};
 
                 /* utx flaw map */
-    uint32      fmap[4] = {0xf0000000 | (cap-1), 0x8a000000 | daddr,
+    uint32_t      fmap[4] = {0xf0000000 | (cap-1), 0x8a000000 | daddr,
                     0x9a000000 | ltaddr, 0xf4000000};
 
     /* see if -i or -n specified on attach command */
@@ -1564,7 +1564,7 @@ int scsi_format(UNIT *uptr) {
     }
 
     /* get buffer for track data */
-    if ((buff = (uint8 *)calloc(csize*ssize, sizeof(uint8))) == 0) {
+    if ((buff = (uint8_t *)calloc(csize*ssize, sizeof(uint8_t))) == 0) {
         detach_unit(uptr);
         return SCPE_ARG;
     }
@@ -1617,7 +1617,7 @@ int scsi_format(UNIT *uptr) {
         cap-1, (cap-1)*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&dmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+    if ((sim_fwrite((char *)&dmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing DMAP to sect %06x offset %06x\n",
         cap-1, (cap-1)*ssize);
@@ -1631,7 +1631,7 @@ int scsi_format(UNIT *uptr) {
         vaddr, vaddr*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&vmap, sizeof(uint32), 2, uptr->fileref)) != 2) {
+    if ((sim_fwrite((char *)&vmap, sizeof(uint32_t), 2, uptr->fileref)) != 2) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing VMAP to sect %06x offset %06x\n",
         vaddr, vaddr*ssize);
@@ -1645,7 +1645,7 @@ int scsi_format(UNIT *uptr) {
         daddr, daddr*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&dmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+    if ((sim_fwrite((char *)&dmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing DMAP to sect %06x offset %06x\n",
         daddr, daddr*ssize);
@@ -1659,7 +1659,7 @@ int scsi_format(UNIT *uptr) {
         faddr, faddr*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&dmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+    if ((sim_fwrite((char *)&dmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing flaw map to sect %06x offset %06x\n",
         faddr, faddr*ssize);
@@ -1673,7 +1673,7 @@ int scsi_format(UNIT *uptr) {
         uaddr, uaddr*ssize);
         return 1;
     }
-    if ((sim_fwrite((char *)&umap, sizeof(uint32), 256, uptr->fileref)) != 256) {
+    if ((sim_fwrite((char *)&umap, sizeof(uint32_t), 256, uptr->fileref)) != 256) {
         sim_debug(DEBUG_CMD, dptr,
         "Error writing UMAP to sect %06x offsewt %06x\n",
         uaddr, uaddr*ssize);
@@ -1703,20 +1703,20 @@ int scsi_format(UNIT *uptr) {
 
 /* attach the selected file to the disk */
 t_stat scsi_attach(UNIT *uptr, CONST char *file) {
-    uint16          chsa = GET_UADDR(uptr->CMD);
+    uint16_t          chsa = GET_UADDR(uptr->CMD);
     int             type = GET_TYPE(uptr->flags);
     DEVICE          *dptr = get_dev(uptr);
     DIB             *dibp = 0;
     t_stat          r, s;
-    uint32          ssize;                      /* sector size in bytes */
-    uint32          info, good,zmap = 0x5a4d4150;   /* ZMAP */
-    uint8           buff[1024];
+    uint32_t          ssize;                      /* sector size in bytes */
+    uint32_t          info, good,zmap = 0x5a4d4150;   /* ZMAP */
+    uint8_t           buff[1024];
     int             i, j;
 
                     /* last sector address of disk (cyl * hds * spt) - 1 */
-    uint32          laddr = CAP(type) - 1;      /* last sector of disk */
+    uint32_t          laddr = CAP(type) - 1;      /* last sector of disk */
                     /* defect map */
-    uint32          dmap[4] = {0xf0000000 | (CAP(type)-1), 0x8a000000,
+    uint32_t          dmap[4] = {0xf0000000 | (CAP(type)-1), 0x8a000000,
                         0x9a000000 | (CAP(type)-1), 0xf4000000};
 
     for (i=0; i<4; i++) {                       /* byte swap data for last sector */
@@ -1786,7 +1786,7 @@ t_stat scsi_attach(UNIT *uptr, CONST char *file) {
         /* must be MPX 1.X disk, extend to MPX 3.X size */
         /* write sectors of zero to end of disk to fill it out */
         for (i=0; i<j; i++) {
-            if ((r = sim_fwrite(buff, sizeof(uint8), ssize, uptr->fileref) != ssize)) {
+            if ((r = sim_fwrite(buff, sizeof(uint8_t), ssize, uptr->fileref) != ssize)) {
                 sim_debug(DEBUG_CMD, dptr, "SCSI Disk attach fread ret = %04d\n", r);
                 printf("SCSI Disk attach fread ret = %04d\r\n", r);
                 goto fmt;                       /* not setup, go format */
@@ -1806,7 +1806,7 @@ t_stat scsi_attach(UNIT *uptr, CONST char *file) {
     }
 
     /* see if there is disk size-1 in last sector of disk, if not add it */
-    if ((r = sim_fread(buff, sizeof(uint8), ssize, uptr->fileref) != ssize)) {
+    if ((r = sim_fread(buff, sizeof(uint8_t), ssize, uptr->fileref) != ssize)) {
         sim_debug(DEBUG_CMD, dptr, "SCSI Disk format fread error = %04d\n", r);
         printf("SCSI Disk format fread error = %04d\r\n", r);
 add_size:
@@ -1821,7 +1821,7 @@ add_size:
                     (CAP(type)-1), (CAP(type)-1)*ssize);
                 goto fmt;
             }
-            if ((sim_fwrite((char *)&dmap, sizeof(uint32), 4, uptr->fileref)) != 4) {
+            if ((sim_fwrite((char *)&dmap, sizeof(uint32_t), 4, uptr->fileref)) != 4) {
                 sim_debug(DEBUG_CMD, dptr,
                     "SCSI Error writing DMAP to sect %06x offset %06d bytes\n",
                     (CAP(type)-1), (CAP(type)-1)*ssize);
@@ -1921,7 +1921,7 @@ t_stat scsi_detach(UNIT *uptr) {
 
 /* Handle haltio transfers for disk */
 t_stat  scsi_haltio(UNIT *uptr) {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t      chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int         cmd = uptr->CMD & DSK_CMDMSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */

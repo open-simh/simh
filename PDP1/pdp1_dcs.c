@@ -41,10 +41,10 @@
 #define DCS_NUMLIN      dcs_desc.lines
 
 int32 dcs_sbs = 0;                                      /* SBS level */
-uint32 dcs_send = 0;                                    /* line for send */
-uint32 dcs_scan = 0;                                    /* line for scanner */
-uint8 dcs_flg[DCS_LINES];                               /* line flags */
-uint8 dcs_buf[DCS_LINES];                               /* line bufffers */
+uint32_t dcs_send = 0;                                    /* line for send */
+uint32_t dcs_scan = 0;                                    /* line for scanner */
+uint8_t dcs_flg[DCS_LINES];                               /* line flags */
+uint8_t dcs_buf[DCS_LINES];                               /* line bufffers */
 
 extern int32 iosta, stop_inst;
 extern int32 tmxr_poll;
@@ -276,7 +276,7 @@ return SCPE_OK;
 t_stat dcso_svc (UNIT *uptr)
 {
 int32 c;
-uint32 ln = uptr - dcsl_unit;                           /* line # */
+uint32_t ln = uptr - dcsl_unit;                           /* line # */
 
 if (dcs_dev.flags & DEV_DIS)
     return SCPE_OK;

@@ -226,9 +226,9 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t              opbase;
     const char         *name;
-    uint8               type;
+    uint8_t               type;
 }
 t_opcode;
 
@@ -494,11 +494,11 @@ const char *chname[11] = {
 void
 print_opcode(FILE * of, t_value val, t_opcode * tab)
 {
-    uint32      MA;
-    uint8       f1;
-    uint8       f2;
-    uint8       IX;
-    uint16      op;
+    uint32_t      MA;
+    uint8_t       f1;
+    uint8_t       f2;
+    uint8_t       IX;
+    uint16_t      op;
     int         type;
     int         t;
 
@@ -1064,7 +1064,7 @@ parse_sym(CONST char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
                 break;
         }
     } else if (sw & SWMASK('C')) {
-        extern uint8    bcd_mem[64];
+        extern uint8_t    bcd_mem[64];
         i = 0;
         while (*cptr != '\0' && i < 5) {
             d <<= 8;

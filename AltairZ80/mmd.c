@@ -134,12 +134,12 @@
 #define DBG_PRINT(args)
 #endif
 
-extern uint32 vectorInterrupt;            /* Interrupt Request */
-extern uint8 dataBus[MAX_INT_VECTORS];    /* Data Bus Value    */
-extern uint32 PCX;
+extern uint32_t vectorInterrupt;            /* Interrupt Request */
+extern uint8_t dataBus[MAX_INT_VECTORS];    /* Data Bus Value    */
+extern uint32_t PCX;
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 
 /* Debug flags */
 #define VERBOSE_MSG         (1 << 0)
@@ -184,21 +184,21 @@ static int32 mmddev(int32 Addr, int32 rw, int32 data);
 static int32 mmdrom(int32 Addr, int32 rw, int32 data);
 static int32 mmdmem(int32 Addr, int32 rw, int32 data);
 static void intZ80(void);
-static uint8 MMD_Dev_Read(uint32 Addr);
-static uint8 MMD_FDC_Read_Data(void);
-static uint8 MMD_Dev_Write(uint32 Addr, int32 data);
+static uint8_t MMD_Dev_Read(uint32_t Addr);
+static uint8_t MMD_FDC_Read_Data(void);
+static uint8_t MMD_Dev_Write(uint32_t Addr, int32 data);
 static void MMD_FDC_Write_Data(int32 Data);
 static void MMD_Command_New(int32 Data);
 static void MMD_Command_Stack(int32 Data);
 static void MMD_Command_Proc(void);
-static uint8 MMD_Result_Stack(void);
-static uint8 MMD_Exec_Format(void);
-static uint8 MMD_Exec_Read(void);
-static uint8 MMD_Exec_Write(int32 Data);
-static uint8 MMD_Term_Count(void);
-static uint8 MMD_Seek_Sector(uint8 drive);
-static uint8 MMD_Read_Sector(uint8 drive);
-static uint8 MMD_Write_Sector(uint8 drive);
+static uint8_t MMD_Result_Stack(void);
+static uint8_t MMD_Exec_Format(void);
+static uint8_t MMD_Exec_Read(void);
+static uint8_t MMD_Exec_Write(int32 Data);
+static uint8_t MMD_Term_Count(void);
+static uint8_t MMD_Seek_Sector(uint8_t drive);
+static uint8_t MMD_Read_Sector(uint8_t drive);
+static uint8_t MMD_Write_Sector(uint8_t drive);
 static void MMD_Dump_Sector(void);
 static const char * MMD_Command_String(int32 command);
 
@@ -210,10 +210,10 @@ static const char * MMD_Command_String(int32 command);
 #define MMD_ROM_SIZE   4096
 #define MMD_ROM_MASK   (MMD_ROM_SIZE-1)
 
-static uint8 mmd_mem[MMD_ROM_SIZE];    /* 4K Banked Memory */
+static uint8_t mmd_mem[MMD_ROM_SIZE];    /* 4K Banked Memory */
 
 /* MD2 1.3 ROM is 2048 bytes */
-static uint8 mmd_rom_13[MMD_ROM_SIZE] = {
+static uint8_t mmd_rom_13[MMD_ROM_SIZE] = {
     0xc3, 0x1d, 0x00, 0xc3, 0xba, 0x01, 0xc3, 0x10,
     0x04, 0xc3, 0xd3, 0x01, 0xc3, 0xe0, 0x01, 0xc3,
     0x64, 0x02, 0xc3, 0x93, 0x03, 0xc3, 0xdd, 0x03,
@@ -473,7 +473,7 @@ static uint8 mmd_rom_13[MMD_ROM_SIZE] = {
     };
 
 /* MD3 2.3 ROM is 4096 bytes */
-static uint8 mmd_rom_23[MMD_ROM_SIZE] = {
+static uint8_t mmd_rom_23[MMD_ROM_SIZE] = {
     0xc3, 0x26, 0x00, 0xc3, 0xc3, 0x01, 0xc3, 0x5d,
     0x05, 0xc3, 0x01, 0x03, 0xc3, 0x0e, 0x03, 0xc3,
     0x92, 0x03, 0xc3, 0xd3, 0x04, 0xc3, 0x2a, 0x05,
@@ -989,7 +989,7 @@ static uint8 mmd_rom_23[MMD_ROM_SIZE] = {
     };
 
 /* MD3 2.4 ROM is 4096 bytes */
-static uint8 mmd_rom_24[MMD_ROM_SIZE] = {
+static uint8_t mmd_rom_24[MMD_ROM_SIZE] = {
     0xc3, 0x26, 0x00, 0xc3, 0xc3, 0x01, 0xc3, 0x70,
     0x05, 0xc3, 0x01, 0x03, 0xc3, 0x0e, 0x03, 0xc3,
     0x92, 0x03, 0xc3, 0xe6, 0x04, 0xc3, 0x3d, 0x05,
@@ -1505,7 +1505,7 @@ static uint8 mmd_rom_24[MMD_ROM_SIZE] = {
     };
 
 /* MD3 2.5 ROM is 4096 bytes */
-static uint8 mmd_rom_25[MMD_ROM_SIZE] = {
+static uint8_t mmd_rom_25[MMD_ROM_SIZE] = {
     0xc3, 0x26, 0x00, 0xc3, 0xc3, 0x01, 0xc3, 0x89,
     0x05, 0xc3, 0x01, 0x03, 0xc3, 0x0e, 0x03, 0xc3,
     0x92, 0x03, 0xc3, 0xff, 0x04, 0xc3, 0x56, 0x05,
@@ -2021,7 +2021,7 @@ static uint8 mmd_rom_25[MMD_ROM_SIZE] = {
     };
 
 /* MD3 3.1 ROM is 4096 bytes */
-static uint8 mmd_rom_31[MMD_ROM_SIZE] = {
+static uint8_t mmd_rom_31[MMD_ROM_SIZE] = {
     0xc3, 0x2c, 0x00, 0xc3, 0x68, 0x01, 0xc3, 0x30,
     0x05, 0xc3, 0xa4, 0x02, 0xc3, 0xb1, 0x02, 0xc3,
     0x35, 0x03, 0xc3, 0xa6, 0x04, 0xc3, 0xfd, 0x04,
@@ -2536,7 +2536,7 @@ static uint8 mmd_rom_31[MMD_ROM_SIZE] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     };
 
-static uint8 *mmd_rom = mmd_rom_31;    /* Default 3.1 ROM */
+static uint8_t *mmd_rom = mmd_rom_31;    /* Default 3.1 ROM */
 
 /*******************/
 /* MMD Definitions */
@@ -2641,7 +2641,7 @@ static uint8 *mmd_rom = mmd_rom_31;    /* Default 3.1 ROM */
 #define MMD_FLAG_MF      0x40
 #define MMD_FLAG_MT      0x80
 
-static uint8 secbuf[MMD_SECTOR_LEN];   /* Sector Buffer */
+static uint8_t secbuf[MMD_SECTOR_LEN];   /* Sector Buffer */
 
 /***************/
 /* MMD Device */
@@ -2654,55 +2654,55 @@ static uint8 secbuf[MMD_SECTOR_LEN];   /* Sector Buffer */
 ** MMD Registers and Interface Controls
 */
 typedef struct {
-    uint8   phase;                          /* Phase */
-    uint8   status;                         /* Main Status Register */
-    uint8   motor[MMD_MAX_DRIVES];          /* Motor Status */
-    uint8   stat0[MMD_MAX_DRIVES];          /* Status 0 Register */
-    uint8   stat1[MMD_MAX_DRIVES];          /* Status 1 Register */
-    uint8   stat2[MMD_MAX_DRIVES];          /* Status 2 Register */
-    uint8   stat3[MMD_MAX_DRIVES];          /* Status 3 Register */
-    uint8   c[MMD_MAX_DRIVES];
-    uint8   hd[MMD_MAX_DRIVES];             /* Head Register */
-    uint8   h;                              /* Head Register */
-    uint8   r;                              /* Sector Register */
-    uint8   n;                              /* Number Register */
-    uint8   eot;                            /* EOT Register */
-    uint8   gpl;                            /* GPL Register */
-    uint8   dtl;                            /* DTL Register */
-    uint8   sto;                            /* STO Register */
-    uint8   pcn;                            /* PCN Register */
-    uint8   sc;                             /* SC Register */
-    uint8   d;                              /* D Register */
-    uint8   cmdflags;                       /* Command Flags */
-    uint8   cmd;                            /* Command Register */
-    uint8   stack[10];                      /* Stack Buffer */
-    uint8   stkidx;                         /* Stack Index */
-    uint8   stkcnt;                         /* Stack Count */
-    uint32  secidx;                         /* Sector index */
-    uint32  seccnt;                         /* Sector count */
-    uint8   rxd;                            /* Console rx data register */
-    uint8   txd;                            /* Console tx data register */
-    uint8   txp;                            /* Console tx data pending */
-    uint8   cstatus;                        /* Console status register */
-    uint16  baud;                           /* Console baud rate */
-    uint8   intenable;                      /* Interrupt enable */
-    uint8   intvec;                         /* Interrupt vector */
-    uint8   databus;                        /* Mode 2 interrupt data bus */
-    uint8   tc;                             /* Terminal Count */
+    uint8_t   phase;                          /* Phase */
+    uint8_t   status;                         /* Main Status Register */
+    uint8_t   motor[MMD_MAX_DRIVES];          /* Motor Status */
+    uint8_t   stat0[MMD_MAX_DRIVES];          /* Status 0 Register */
+    uint8_t   stat1[MMD_MAX_DRIVES];          /* Status 1 Register */
+    uint8_t   stat2[MMD_MAX_DRIVES];          /* Status 2 Register */
+    uint8_t   stat3[MMD_MAX_DRIVES];          /* Status 3 Register */
+    uint8_t   c[MMD_MAX_DRIVES];
+    uint8_t   hd[MMD_MAX_DRIVES];             /* Head Register */
+    uint8_t   h;                              /* Head Register */
+    uint8_t   r;                              /* Sector Register */
+    uint8_t   n;                              /* Number Register */
+    uint8_t   eot;                            /* EOT Register */
+    uint8_t   gpl;                            /* GPL Register */
+    uint8_t   dtl;                            /* DTL Register */
+    uint8_t   sto;                            /* STO Register */
+    uint8_t   pcn;                            /* PCN Register */
+    uint8_t   sc;                             /* SC Register */
+    uint8_t   d;                              /* D Register */
+    uint8_t   cmdflags;                       /* Command Flags */
+    uint8_t   cmd;                            /* Command Register */
+    uint8_t   stack[10];                      /* Stack Buffer */
+    uint8_t   stkidx;                         /* Stack Index */
+    uint8_t   stkcnt;                         /* Stack Count */
+    uint32_t  secidx;                         /* Sector index */
+    uint32_t  seccnt;                         /* Sector count */
+    uint8_t   rxd;                            /* Console rx data register */
+    uint8_t   txd;                            /* Console tx data register */
+    uint8_t   txp;                            /* Console tx data pending */
+    uint8_t   cstatus;                        /* Console status register */
+    uint16_t  baud;                           /* Console baud rate */
+    uint8_t   intenable;                      /* Interrupt enable */
+    uint8_t   intvec;                         /* Interrupt vector */
+    uint8_t   databus;                        /* Mode 2 interrupt data bus */
+    uint8_t   tc;                             /* Terminal Count */
 } MMD_REG;
 
 enum { MMD_PHASE_CMDNEW, MMD_PHASE_CMDSTK, MMD_PHASE_EXECRD, MMD_PHASE_EXECWR, MMD_PHASE_RSLTSTK };
 
 typedef struct {
-    uint32    rom_base;     /* Memory Base Address */
-    uint32    rom_size;     /* Memory Address space requirement */
-    uint32    io_base;      /* I/O Base Address */
-    uint32    io_size;      /* I/O Address Space requirement */
+    uint32_t    rom_base;     /* Memory Base Address */
+    uint32_t    rom_size;     /* Memory Address space requirement */
+    uint32_t    io_base;      /* I/O Base Address */
+    uint32_t    io_size;      /* I/O Address Space requirement */
     int32     conn[2];      /* Connected Status */
-    uint8     diagEnabled;  /* DIAG is enabled */
-    uint8     romEnabled;   /* ROM is enabled */
-    uint32    sio1ticks;    /* SIO Timer ticks */
-    uint8     drive;        /* Currently selected drive */
+    uint8_t     diagEnabled;  /* DIAG is enabled */
+    uint8_t     romEnabled;   /* ROM is enabled */
+    uint32_t    sio1ticks;    /* SIO Timer ticks */
+    uint8_t     drive;        /* Currently selected drive */
     MMD_REG   MMD;          /* MMD Registers and Data */
     UNIT *uptr[MMD_UNITS];
 } MMD_CTX;
@@ -2798,12 +2798,12 @@ static TMXR mmd_tmxr = {    /* multiplexer descriptor */
 typedef struct {
     PNP_INFO  pnp;          /* Must be first */
     int32     conn;         /* Connected Status */
-    uint32    ticks;        /* SIO Timer ticks */
-    uint16    baud;         /* Baud rate */
-    uint8     rxd;          /* Receive Buffer */
-    uint8     txd;          /* Transmit Buffer */
-    uint8     txp;          /* Transmit Pending */
-    uint8     status;       /* Status Buffer */
+    uint32_t    ticks;        /* SIO Timer ticks */
+    uint16_t    baud;         /* Baud rate */
+    uint8_t     rxd;          /* Receive Buffer */
+    uint8_t     txd;          /* Transmit Buffer */
+    uint8_t     txp;          /* Transmit Pending */
+    uint8_t     status;       /* Status Buffer */
     TMLN     *tmln;         /* TMLN pointer */
     TMXR     *tmxr;         /* TMXR pointer */
 } MMD_UART_CTX;
@@ -2908,7 +2908,7 @@ static const char* mmd_description(DEVICE *dptr) {
 /* Reset routines */
 static t_stat mmd_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
         sim_map_resource(mmd_ctx->rom_base, mmd_ctx->rom_size, RESOURCE_TYPE_MEMORY, &mmdrom, "mmdrom", TRUE);
@@ -3444,9 +3444,9 @@ static void intZ80(void)
     }
 }
 
-static uint8 MMD_Dev_Read(uint32 Addr)
+static uint8_t MMD_Dev_Read(uint32_t Addr)
 {
-    uint8 cData = 0xff;
+    uint8_t cData = 0xff;
 
     switch(Addr & 0xff) {
         case MMD_REG_ROMCTL:
@@ -3502,9 +3502,9 @@ static uint8 MMD_Dev_Read(uint32 Addr)
     return (cData);
 }
 
-static uint8 MMD_FDC_Read_Data(void)
+static uint8_t MMD_FDC_Read_Data(void)
 {
-    uint8 cData = 0xff;
+    uint8_t cData = 0xff;
 
     switch (mmd_ctx->MMD.phase) {
         case MMD_PHASE_RSLTSTK:
@@ -3523,7 +3523,7 @@ static uint8 MMD_FDC_Read_Data(void)
     return cData;
 }
 
-static uint8 MMD_Dev_Write(uint32 Addr, int32 Data)
+static uint8_t MMD_Dev_Write(uint32_t Addr, int32 Data)
 {
     switch(Addr & 0xff) {
         case MMD_REG_CTCSEL:
@@ -3811,9 +3811,9 @@ static const char * MMD_Command_String(int32 command)
     return string;
 }
 
-static uint8 MMD_Result_Stack(void)
+static uint8_t MMD_Result_Stack(void)
 {
-    uint8 cData;
+    uint8_t cData;
 
     cData = mmd_ctx->MMD.stack[mmd_ctx->MMD.stkidx++];
 
@@ -3825,9 +3825,9 @@ static uint8 MMD_Result_Stack(void)
     return cData;
 }
 
-static uint8 MMD_Exec_Format(void)
+static uint8_t MMD_Exec_Format(void)
 {
-    uint8 drive = mmd_ctx->drive;
+    uint8_t drive = mmd_ctx->drive;
 
     /* Set filler byte */
     memset(secbuf, mmd_ctx->MMD.d, sizeof(secbuf));
@@ -3853,10 +3853,10 @@ static uint8 MMD_Exec_Format(void)
     return 0;
 }
 
-static uint8 MMD_Exec_Read(void)
+static uint8_t MMD_Exec_Read(void)
 {
-    uint8 cData;
-    uint8 drive = mmd_ctx->drive;
+    uint8_t cData;
+    uint8_t drive = mmd_ctx->drive;
 
     cData = secbuf[mmd_ctx->MMD.secidx++];
 
@@ -3886,9 +3886,9 @@ static uint8 MMD_Exec_Read(void)
     return cData;
 }
 
-static uint8 MMD_Exec_Write(int32 Data)
+static uint8_t MMD_Exec_Write(int32 Data)
 {
-    uint8 drive = mmd_ctx->drive;
+    uint8_t drive = mmd_ctx->drive;
 
     secbuf[mmd_ctx->MMD.secidx++] = Data;
 
@@ -3920,7 +3920,7 @@ static uint8 MMD_Exec_Write(int32 Data)
     return Data;
 }
 
-static uint8 MMD_Term_Count(void)
+static uint8_t MMD_Term_Count(void)
 {
     if (mmd_ctx->MMD.status & MMD_STAT_EXM) {
         mmd_ctx->MMD.tc = TRUE;
@@ -3930,10 +3930,10 @@ static uint8 MMD_Term_Count(void)
 }
 
 /* Seek to sector on disk */
-static uint8 MMD_Seek_Sector(uint8 drive)
+static uint8_t MMD_Seek_Sector(uint8_t drive)
 {
-    uint32 offset;
-    uint8 track;
+    uint32_t offset;
+    uint8_t track;
 
     /* If no disk mounted, return error */
     if (mmd_ctx->uptr[drive]->fileref == NULL) {
@@ -3958,9 +3958,9 @@ static uint8 MMD_Seek_Sector(uint8 drive)
 }
 
 /* Read sector from disk */
-static uint8 MMD_Read_Sector(uint8 drive)
+static uint8_t MMD_Read_Sector(uint8_t drive)
 {
-    uint8 r;
+    uint8_t r;
 
     if ((r = MMD_Seek_Sector(drive)) != 0) {
         return r;
@@ -3982,9 +3982,9 @@ static uint8 MMD_Read_Sector(uint8 drive)
 }
 
 /* Write sector to disk */
-static uint8 MMD_Write_Sector(uint8 drive)
+static uint8_t MMD_Write_Sector(uint8_t drive)
 {
-    uint8 r;
+    uint8_t r;
 
     if ((r = MMD_Seek_Sector(drive)) != 0) {
         return r;

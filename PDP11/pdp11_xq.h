@@ -45,7 +45,7 @@
   02-Jun-03  DTH  Added struct xq_stats
   28-May-03  DTH  Made xq_msg_que.item dynamic
   28-May-03  MP   Optimized structures, removed rtime variable
-  06-May-03  DTH  Changed 32-bit t_addr to uint32 for v3.0
+  06-May-03  DTH  Changed 32-bit t_addr to uint32_t for v3.0
   28-Apr-03  DTH  Added callbacks for multicontroller identification
   25-Mar-03  DTH  Removed bootrom field - no longer needed; Updated copyright
   15-Jan-03  DTH  Merged Mark Pizzolato's changes into main source
@@ -118,7 +118,7 @@ struct xq_setup {
 };
 
 struct xq_turbo_init_block { /* DELQA-T Initialization Block */
-  uint16            mode;
+  uint16_t            mode;
 #define XQ_IN_MO_PRO 0x8000               /* Promiscuous Mode */
 #define XQ_IN_MO_INT 0x0040               /* Internal Loopback Mode */
 #define XQ_IN_MO_DRT 0x0020               /* Disable Retry */
@@ -126,31 +126,31 @@ struct xq_turbo_init_block { /* DELQA-T Initialization Block */
 #define XQ_IN_MO_LOP 0x0004               /* Loopback */
   ETH_MAC           phys;                 /* Physical MAC Address */
   ETH_MULTIHASH     hash_filter;          /* 64bit LANCE Hash Filter for Multicast Address selection */
-  uint16            rdra_l;
-  uint16            rdra_h;
-  uint16            tdra_l;
-  uint16            tdra_h;
-  uint16            options;
+  uint16_t            rdra_l;
+  uint16_t            rdra_h;
+  uint16_t            tdra_l;
+  uint16_t            tdra_h;
+  uint16_t            options;
 #define XQ_IN_OP_HIT 0x0002               /* Host Inactivity Timer Enable Flag */
 #define XQ_IN_OP_INT 0x0001               /* Interrupt Enable Flag*/
-  uint16            vector;               /* Interrupt Vector */
-  uint16            hit_timeout;          /* Host Inactivity Timer Timeout Value */
-  uint8             bootpassword[6];      /* MOP Console Boot Password */
+  uint16_t            vector;               /* Interrupt Vector */
+  uint16_t            hit_timeout;          /* Host Inactivity Timer Timeout Value */
+  uint8_t             bootpassword[6];      /* MOP Console Boot Password */
 };
 
 /* DELQA-T Mode - Transmit Buffer Descriptor */
 struct transmit_buffer_descriptor {
-    uint16         tmd0;
+    uint16_t         tmd0;
 #define XQ_TMD0_ERR1  0x4000    /* Error Summary. The OR of TMD1 (LC0, LCA, and RTR) */
 #define XQ_TMD0_MOR   0x1000    /* More than one retry on transmit */
 #define XQ_TMD0_ONE   0x0800    /* One retry on transmit */
 #define XQ_TMD0_DEF   0x0400    /* Deferral during transmit */
-    uint16         tmd1;
+    uint16_t         tmd1;
 #define XQ_TMD1_LCO   0x1000    /* Late collision on transmit - packet not transmitted */
 #define XQ_TMD1_LCA   0x0800    /* Loss of carrier on transmit - packet not transmitted */
 #define XQ_TMD1_RTR   0x0400    /* Retry error on transmit - packet not transmitted */
 #define XQ_TMD1_TDR   0x03FF    /* Time Domain Reflectometry value */
-    uint16         tmd2;
+    uint16_t         tmd2;
 #define XQ_TMD2_ERR2  0x8000    /* Error Summary. The OR of TMD2 (BBL, CER, and MIS)  */
 #define XQ_TMD2_BBL   0x4000    /* Babble error on transmit */
 #define XQ_TMD2_CER   0x2000    /* Collision error on transmit */
@@ -158,19 +158,19 @@ struct transmit_buffer_descriptor {
 #define XQ_TMD2_EOR   0x0800    /* End Of Receive Ring Reached */
 #define XQ_TMD2_RON   0x0020    /* Receiver On */
 #define XQ_TMD2_TON   0x0010    /* Transmitter On */
-    uint16         tmd3;
+    uint16_t         tmd3;
 #define XQ_TMD3_OWN   0x8000    /* Ownership field. 0 = DELQA-T, 1 = Host Driver */
 #define XQ_TMD3_FOT   0x4000    /* First Of Two flag. 1 = first in chained, 0 = no chain or last in chain */
 #define XQ_TMD3_BCT   0x0FFF    /* Byte Count */
-    uint16         ladr;        /* Low 16bits of Buffer Address */
-    uint16         hadr;        /* Most significant bits of the Buffer Address */
-    uint16         hostuse1;
-    uint16         hostuse2;
+    uint16_t         ladr;        /* Low 16bits of Buffer Address */
+    uint16_t         hadr;        /* Most significant bits of the Buffer Address */
+    uint16_t         hostuse1;
+    uint16_t         hostuse2;
 };
 #define XQ_TURBO_XM_BCNT  12    /* Transmit Buffer Descriptor Count */
 
 struct receive_buffer_descriptor {
-    uint16         rmd0;
+    uint16_t         rmd0;
 #define XQ_RMD0_ERR3  0x4000    /* Error Summary. The OR of FRA, CRC, OFL and BUF */
 #define XQ_RMD0_FRA   0x2000    /* Framing error on receive */
 #define XQ_RMD0_OFL   0x1000    /* Overflow error on receive (Giant packet) */
@@ -178,9 +178,9 @@ struct receive_buffer_descriptor {
 #define XQ_RMD0_BUF   0x0400    /* Internal device buffer error. Part of Giant packet lost */
 #define XQ_RMD0_STP   0x0200    /* Start of Packet Flag */
 #define XQ_RMD0_ENP   0x0100    /* End of Packet Flag */
-    uint16         rmd1;
+    uint16_t         rmd1;
 #define XQ_RMD1_MCNT  0x0FFF    /* Message byte count (including CRC) */
-    uint16         rmd2;
+    uint16_t         rmd2;
 #define XQ_RMD2_ERR4  0x8000    /* Error Summary. The OR of RMD2 (RBL, CER, and MIS)  */
 #define XQ_RMD2_BBL   0x4000    /* Babble error on transmit */
 #define XQ_RMD2_CER   0x2000    /* Collision error on transmit */
@@ -188,12 +188,12 @@ struct receive_buffer_descriptor {
 #define XQ_RMD2_EOR   0x0800    /* End Of Receive Ring Reached */
 #define XQ_RMD2_RON   0x0020    /* Receiver On */
 #define XQ_RMD2_TON   0x0010    /* Transmitter On */
-    uint16         rmd3;
+    uint16_t         rmd3;
 #define XQ_RMD3_OWN   0x8000    /* Ownership field. 0 = DELQA-T, 1 = Host Driver */
-    uint16         ladr;        /* Low 16bits of Buffer Address */
-    uint16         hadr;        /* Most significant bits of the Buffer Address */
-    uint16         hostuse1;
-    uint16         hostuse2;
+    uint16_t         ladr;        /* Low 16bits of Buffer Address */
+    uint16_t         hadr;        /* Most significant bits of the Buffer Address */
+    uint16_t         hostuse1;
+    uint16_t         hostuse2;
 };
 #define XQ_TURBO_RC_BCNT  32    /* Receive Buffer Descriptor Count */
 
@@ -212,45 +212,45 @@ struct xq_stats {
 
 #pragma pack(2)
 struct xq_mop_counters {
-  uint16            seconds;            /* Seconds since last zeroed */
-  uint32            b_rcvd;             /* Bytes Received */
-  uint32            b_xmit;             /* Bytes Transmitted */
-  uint32            p_rcvd;             /* Packets Received */
-  uint32            p_xmit;             /* Packets Transmitted */
-  uint32            mb_rcvd;            /* Multicast Bytes Received */
-  uint32            mp_rcvd;            /* Multicast Packets Received */
-  uint32            p_x_col1;           /* Packets Transmitted Initially Deferred */
-  uint32            p_x_col2;           /* Packets Transmitted after 2 attempts */
-  uint32            p_x_col3;           /* Packets Transmitted after 3+ attempts */
-  uint16            p_x_fail;           /* Transmit Packets Aborted (Send Failure) */
-  uint16            p_x_f_bitmap;       /* Transmit Packets Aborted (Send Failure) Bitmap */
+  uint16_t            seconds;            /* Seconds since last zeroed */
+  uint32_t            b_rcvd;             /* Bytes Received */
+  uint32_t            b_xmit;             /* Bytes Transmitted */
+  uint32_t            p_rcvd;             /* Packets Received */
+  uint32_t            p_xmit;             /* Packets Transmitted */
+  uint32_t            mb_rcvd;            /* Multicast Bytes Received */
+  uint32_t            mp_rcvd;            /* Multicast Packets Received */
+  uint32_t            p_x_col1;           /* Packets Transmitted Initially Deferred */
+  uint32_t            p_x_col2;           /* Packets Transmitted after 2 attempts */
+  uint32_t            p_x_col3;           /* Packets Transmitted after 3+ attempts */
+  uint16_t            p_x_fail;           /* Transmit Packets Aborted (Send Failure) */
+  uint16_t            p_x_f_bitmap;       /* Transmit Packets Aborted (Send Failure) Bitmap */
 #define XQ_XF_RTRY  0x0001              /* Excessive Collisions */
 #define XQ_XF_LCAR  0x0002              /* Loss of Carrier */
 #define XQ_XF_MLEN  0x0010              /* Data Block Too Long */
 #define XQ_XF_LCOL  0x0020              /* Late Collision */
-  uint16            p_r_fail;           /* Packets received with Error (Receive Failure) */
-  uint16            p_r_f_bitmap;       /* Packets received with Error (Receive Failure) Bitmap */
+  uint16_t            p_r_fail;           /* Packets received with Error (Receive Failure) */
+  uint16_t            p_r_f_bitmap;       /* Packets received with Error (Receive Failure) Bitmap */
 #define XQ_RF_CRC   0x0001              /* Block Check Error */
 #define XQ_RF_FRAM  0x0002              /* Framing Error */
 #define XQ_RF_MLEN  0x0004              /* Message Length Error */
-  uint16            h_dest_err;         /* Host Counter - Unrecognized Frame Destination Error */
-  uint16            r_p_lost_i;         /* Receive Packet Lost: Internal Buffer Error */
-  uint16            r_p_lost_s;         /* Receive Packet Lost: System Buffer Error (Unavailable or Truncated) */
-  uint16            h_no_buf;           /* Host Counter - User Buffer Unavailable */
-  uint32            mb_xmit;            /* Multicast Bytes Tramsmitted */
-  uint16            reserved1;          /*  */
-  uint16            reserved2;          /*  */
-  uint16            babble;             /* Babble Counter */
+  uint16_t            h_dest_err;         /* Host Counter - Unrecognized Frame Destination Error */
+  uint16_t            r_p_lost_i;         /* Receive Packet Lost: Internal Buffer Error */
+  uint16_t            r_p_lost_s;         /* Receive Packet Lost: System Buffer Error (Unavailable or Truncated) */
+  uint16_t            h_no_buf;           /* Host Counter - User Buffer Unavailable */
+  uint32_t            mb_xmit;            /* Multicast Bytes Tramsmitted */
+  uint16_t            reserved1;          /*  */
+  uint16_t            reserved2;          /*  */
+  uint16_t            babble;             /* Babble Counter */
 };
 #pragma pack()
 
 struct xq_meb {                                         /* MEB block */
-  uint8   type;
-  uint8   add_lo;
-  uint8   add_mi;
-  uint8   add_hi;
-  uint8   siz_lo;
-  uint8   siz_hi;
+  uint8_t   type;
+  uint8_t   add_lo;
+  uint8_t   add_mi;
+  uint8_t   add_hi;
+  uint8_t   siz_lo;
+  uint8_t   siz_hi;
 };
 
 struct xq_device {
@@ -260,54 +260,54 @@ struct xq_device {
   ETH_MAC           mac;                                /* Hardware MAC address */
   enum xq_type      type;                               /* controller type */
   enum xq_type      mode;                               /* controller operating mode */
-  uint32            poll;                               /* configured poll ethernet times/sec for receive */
-  uint32            coalesce_latency;                   /* microseconds to hold-off interrupts when not polling */
-  uint32            coalesce_latency_ticks;             /* instructions in coalesce_latency microseconds */
+  uint32_t            poll;                               /* configured poll ethernet times/sec for receive */
+  uint32_t            coalesce_latency;                   /* microseconds to hold-off interrupts when not polling */
+  uint32_t            coalesce_latency_ticks;             /* instructions in coalesce_latency microseconds */
   struct xq_sanity  sanity;                             /* sanity timer information */
   t_bool            lockmode;                           /* DEQNA-Lock mode */
-  uint32            throttle_time;                      /* ms burst time window */
-  uint32            throttle_burst;                     /* packets passed with throttle_time which trigger throttling */
-  uint32            throttle_delay;                     /* ms to delay when throttling.  0 disables throttling */
-  uint32            startup_delay;                      /* instructions to delay when starting the receiver */
+  uint32_t            throttle_time;                      /* ms burst time window */
+  uint32_t            throttle_burst;                     /* packets passed with throttle_time which trigger throttling */
+  uint32_t            throttle_delay;                     /* ms to delay when throttling.  0 disables throttling */
+  uint32_t            startup_delay;                      /* instructions to delay when starting the receiver */
                                                         /*- initialized values - DO NOT MOVE */
 
                                                         /* I/O register storage */
 
-  uint16            rbdl[2];                            /* Receive Buffer Descriptor List */
-  uint16            xbdl[2];                            /* Transmit Buffer Descriptor List */
-  uint16            var;                                /* Vector Address Register */
-  uint16            csr;                                /* Control and Status Register */
+  uint16_t            rbdl[2];                            /* Receive Buffer Descriptor List */
+  uint16_t            xbdl[2];                            /* Transmit Buffer Descriptor List */
+  uint16_t            var;                                /* Vector Address Register */
+  uint16_t            csr;                                /* Control and Status Register */
 
-  uint16            srr;                                /* Status and Response Register - DELQA-T only */
-  uint16            srqr;                               /* Synchronous Request Register - DELQA-T only */
-  uint32            iba;                                /* Init Block Address Register - DELQA-T only */
-  uint16            icr;                                /* Interrupt Request Register - DELQA-T only */
-  uint16            pending_interrupt;                  /* Pending Interrupt - DELQA-T only */
+  uint16_t            srr;                                /* Status and Response Register - DELQA-T only */
+  uint16_t            srqr;                               /* Synchronous Request Register - DELQA-T only */
+  uint32_t            iba;                                /* Init Block Address Register - DELQA-T only */
+  uint16_t            icr;                                /* Interrupt Request Register - DELQA-T only */
+  uint16_t            pending_interrupt;                  /* Pending Interrupt - DELQA-T only */
   struct xq_turbo_init_block
                     init;
   struct transmit_buffer_descriptor
                     xring[XQ_TURBO_XM_BCNT];            /* Transmit Buffer Ring */
-  uint32            tbindx;                             /* Transmit Buffer Ring Index */
+  uint32_t            tbindx;                             /* Transmit Buffer Ring Index */
   struct receive_buffer_descriptor
                     rring[XQ_TURBO_RC_BCNT];            /* Receive Buffer Ring */
-  uint32            rbindx;                             /* Receive Buffer Ring Index */
+  uint32_t            rbindx;                             /* Receive Buffer Ring Index */
 
-  uint32            irq;                                /* interrupt request flag */
+  uint32_t            irq;                                /* interrupt request flag */
 
                                                         /* buffers, etc. */
   struct xq_setup   setup;
   struct xq_stats   stats;
-  uint8             mac_checksum[2];
-  uint16            rbdl_buf[6];
-  uint16            xbdl_buf[6];
-  uint32            rbdl_ba;
-  uint32            xbdl_ba;
+  uint8_t             mac_checksum[2];
+  uint16_t            rbdl_buf[6];
+  uint16_t            xbdl_buf[6];
+  uint32_t            rbdl_ba;
+  uint32_t            xbdl_ba;
   ETH_DEV*          etherface;
   ETH_PACK          read_buffer;
   ETH_PACK          write_buffer;
   ETH_QUE           ReadQ;
   int32             idtmr;                              /* countdown for ID Timer */
-  uint32            must_poll;                          /* receiver must poll instead of counting on asynch polls */
+  uint32_t            must_poll;                          /* receiver must poll instead of counting on asynch polls */
   t_bool            initialized;                        /* flag for one time initializations */
 };
 

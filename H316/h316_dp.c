@@ -194,13 +194,13 @@
 
 struct drvtyp {
     const char          *name;
-    uint32              numu;
-    uint32              cyl;
-    uint32              surf;
-    uint32              cap;
-    uint32              umsk;
-    uint32              hmsk;
-    uint32              cmsk;
+    uint32_t              numu;
+    uint32_t              cyl;
+    uint32_t              surf;
+    uint32_t              cap;
+    uint32_t              umsk;
+    uint32_t              hmsk;
+    uint32_t              cmsk;
     float               wrds;
     };
 
@@ -216,31 +216,31 @@ static struct drvtyp dp_tab[] = {
     };
 
 extern int32 dev_int, dev_enb;
-extern uint32 chan_req;
+extern uint32_t chan_req;
 extern int32 stop_inst;
-extern uint32 dma_ad[DMA_MAX];
+extern uint32_t dma_ad[DMA_MAX];
 
-uint32 dp_cw1 = 0;                                      /* cmd word 1 */
-uint32 dp_cw2 = 0;                                      /* cmd word 2 */
-uint32 dp_fnc = 0;                                      /* saved function */
-uint32 dp_buf = 0;                                      /* buffer */
-uint32 dp_otas = 0;                                     /* state */
-uint32 dp_sta = 0;                                      /* status */
-uint32 dp_defint = 0;                                   /* deferred seek int */
-uint32 dp_ctype = TYPE_4651;                            /* controller type */
-uint32 dp_dma = 0;                                      /* DMA/DMC */
-uint32 dp_eor = 0;                                      /* end of range */
-uint32 dp_xip = 0;                                      /* transfer in prog */
-uint32 dp_csum = 0;                                     /* parity checksum */
-uint32 dp_rptr = 0;                                     /* start of record */
-uint32 dp_wptr = 0;                                     /* word ptr in record */
-uint32 dp_bctr = 0;                                     /* format bit cntr */
-uint32 dp_gap = 0;                                      /* format gap size */
-uint32 dp_stopioe = 1;                                  /* stop on error */
+uint32_t dp_cw1 = 0;                                      /* cmd word 1 */
+uint32_t dp_cw2 = 0;                                      /* cmd word 2 */
+uint32_t dp_fnc = 0;                                      /* saved function */
+uint32_t dp_buf = 0;                                      /* buffer */
+uint32_t dp_otas = 0;                                     /* state */
+uint32_t dp_sta = 0;                                      /* status */
+uint32_t dp_defint = 0;                                   /* deferred seek int */
+uint32_t dp_ctype = TYPE_4651;                            /* controller type */
+uint32_t dp_dma = 0;                                      /* DMA/DMC */
+uint32_t dp_eor = 0;                                      /* end of range */
+uint32_t dp_xip = 0;                                      /* transfer in prog */
+uint32_t dp_csum = 0;                                     /* parity checksum */
+uint32_t dp_rptr = 0;                                     /* start of record */
+uint32_t dp_wptr = 0;                                     /* word ptr in record */
+uint32_t dp_bctr = 0;                                     /* format bit cntr */
+uint32_t dp_gap = 0;                                      /* format gap size */
+uint32_t dp_stopioe = 1;                                  /* stop on error */
 int32 dp_stime = 1000;                                  /* seek per cylinder */
 int32 dp_xtime = 10;                                    /* xfer per word */
 int32 dp_btime = 30;                                    /* busy time */
-uint16 dpxb[DP_TRKLEN];                                 /* track buffer */
+uint16_t dpxb[DP_TRKLEN];                                 /* track buffer */
 
 int32 dpio (int32 inst, int32 fnc, int32 dat, int32 dev);
 t_stat dp_svc (UNIT *uptr);
@@ -248,15 +248,15 @@ t_stat dp_reset (DEVICE *dptr);
 t_stat dp_attach (UNIT *uptr, CONST char *cptr);
 t_stat dp_settype (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat dp_showtype (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-t_stat dp_go (uint32 dma);
-t_stat dp_go1 (uint32 dat);
-t_stat dp_go2 (uint32 dat);
-t_stat dp_rdtrk (UNIT *uptr, uint16 *buf, uint32 cyl, uint32 hd);
-t_stat dp_wrtrk (UNIT *uptr, uint16 *buf, uint32 cyl, uint32 hd);
-t_bool dp_findrec (uint32 addr);
-t_stat dp_wrwd (UNIT *uptr, uint32 dat);
-t_stat dp_wrdone (UNIT *uptr, uint32 flg);
-t_stat dp_done (uint32 req, uint32 f);
+t_stat dp_go (uint32_t dma);
+t_stat dp_go1 (uint32_t dat);
+t_stat dp_go2 (uint32_t dat);
+t_stat dp_rdtrk (UNIT *uptr, uint16_t *buf, uint32_t cyl, uint32_t hd);
+t_stat dp_wrtrk (UNIT *uptr, uint16_t *buf, uint32_t cyl, uint32_t hd);
+t_bool dp_findrec (uint32_t addr);
+t_stat dp_wrwd (UNIT *uptr, uint32_t dat);
+t_stat dp_wrdone (UNIT *uptr, uint32_t flg);
+t_stat dp_done (uint32_t req, uint32_t f);
 t_stat dp_setformat (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat dp_showformat (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
@@ -491,7 +491,7 @@ return dat;
 
 /* Start new operation - recal, seek, read address, format, read/write */
 
-t_stat dp_go (uint32 fnc)
+t_stat dp_go (uint32_t fnc)
 {
 int32 ch = dp_dib.chan - 1;                             /* DMA/DMC chan */
 
@@ -512,10 +512,10 @@ return SCPE_OK;
 
 /* Process command word 1 - recal, seek, read address, format, read/write */
 
-t_stat dp_go1 (uint32 dat)
+t_stat dp_go1 (uint32_t dat)
 {
 int32 ch = dp_dib.chan - 1;                             /* DMA/DMC chan */
-uint32 u = CW1_GETUNIT (dat);
+uint32_t u = CW1_GETUNIT (dat);
 UNIT *uptr = dp_dev.units + u;
 
 dp_cw1 = dat;                                           /* store CW1 */
@@ -555,9 +555,9 @@ return SCPE_OK;
 
 /* Process command word 2 - read/write only */
 
-t_stat dp_go2 (uint32 dat)
+t_stat dp_go2 (uint32_t dat)
 {
-uint32 u = CW1_GETUNIT (dp_cw1);
+uint32_t u = CW1_GETUNIT (dp_cw1);
 UNIT *uptr = dp_dev.units + u;
 
 dp_cw2 = dat;                                           /* store CW2 */
@@ -573,9 +573,9 @@ t_stat dp_svc (UNIT *uptr)
 {
 int32 dcyl = 0;                                         /* assume recalibrate */
 int32 ch = dp_dib.chan - 1;                             /* DMA/DMC chan */
-uint32 h = CW1_GETHEAD (dp_cw1);                        /* head */
+uint32_t h = CW1_GETHEAD (dp_cw1);                        /* head */
 int32 st;
-uint32 i, offs, lnt, ming, tpos;
+uint32_t i, offs, lnt, ming, tpos;
 t_stat r;
 
 if (!(uptr->flags & UNIT_ATT)) {                        /* not attached? */
@@ -623,7 +623,7 @@ switch (uptr->FNC) {                                    /* case on function */
         dp_rptr = 0;                                    /* init rec ptr */
         if (dpxb[dp_rptr + REC_LNT] == 0)               /* unformated? */
             return dp_done (1, STA_ADRER);              /* error */
-        tpos = (uint32) (fmod (sim_gtime () / (double) dp_xtime, DP_TRKLEN));
+        tpos = (uint32_t) (fmod (sim_gtime () / (double) dp_xtime, DP_TRKLEN));
         do {                                            /* scan down track */
             dp_buf = dpxb[dp_rptr + REC_ADDR];          /* get rec addr */
             dp_rptr = dp_rptr + dpxb[dp_rptr + REC_LNT] + REC_OVHD;
@@ -654,7 +654,7 @@ switch (uptr->FNC) {                                    /* case on function */
         dp_xip = dp_xip | XIP_FMT;                      /* format in progress */
         dp_rptr = 0;                                    /* init record ptr */
         dp_gap = 0;                                     /* no gap before first */
-        dp_bctr = (uint32) (16.0 * dp_tab[dp_ctype].wrds); /* init bit cntr */
+        dp_bctr = (uint32_t) (16.0 * dp_tab[dp_ctype].wrds); /* init bit cntr */
         uptr->FNC = uptr->FNC | FNC_2ND;                /* address state */
         break;                                          /* set up next word */
 
@@ -784,13 +784,13 @@ return SCPE_OK;
 
 /* Read track */
 
-t_stat dp_rdtrk (UNIT *uptr, uint16 *buf, uint32 c, uint32 h)
+t_stat dp_rdtrk (UNIT *uptr, uint16_t *buf, uint32_t c, uint32_t h)
 {
-uint32 da = ((c * dp_tab[dp_ctype].surf) + h) * DP_TRKLEN;
+uint32_t da = ((c * dp_tab[dp_ctype].surf) + h) * DP_TRKLEN;
 int32 l;
 
-(void)fseek (uptr->fileref, da * sizeof (uint16), SEEK_SET);
-l = fxread (buf, sizeof (uint16), DP_TRKLEN, uptr->fileref);
+(void)fseek (uptr->fileref, da * sizeof (uint16_t), SEEK_SET);
+l = fxread (buf, sizeof (uint16_t), DP_TRKLEN, uptr->fileref);
 for ( ; l < DP_TRKLEN; l++)
     buf[l] = 0;
 if (ferror (uptr->fileref)) {
@@ -804,12 +804,12 @@ return SCPE_OK;
 
 /* Write track */
 
-t_stat dp_wrtrk (UNIT *uptr, uint16 *buf, uint32 c, uint32 h)
+t_stat dp_wrtrk (UNIT *uptr, uint16_t *buf, uint32_t c, uint32_t h)
 {
-uint32 da = ((c * dp_tab[dp_ctype].surf) + h) * DP_TRKLEN;
+uint32_t da = ((c * dp_tab[dp_ctype].surf) + h) * DP_TRKLEN;
 
-(void)fseek (uptr->fileref, da * sizeof (uint16), SEEK_SET);
-fxwrite (buf, sizeof (uint16), DP_TRKLEN, uptr->fileref);
+(void)fseek (uptr->fileref, da * sizeof (uint16_t), SEEK_SET);
+fxwrite (buf, sizeof (uint16_t), DP_TRKLEN, uptr->fileref);
 if (ferror (uptr->fileref)) {
     sim_perror ("DP I/O error");
     clearerr (uptr->fileref);
@@ -821,7 +821,7 @@ return SCPE_OK;
 
 /* Find record; true if found, false if not found */
 
-t_bool dp_findrec (uint32 addr)
+t_bool dp_findrec (uint32_t addr)
 {
 dp_rptr = 0;
 
@@ -839,9 +839,9 @@ return FALSE;
 
 /* Write next word to track buffer; return TRUE if ok, FALSE if next record trashed */
 
-t_stat dp_wrwd (UNIT *uptr, uint32 dat)
+t_stat dp_wrwd (UNIT *uptr, uint32_t dat)
 {
-uint32 lnt = dpxb[dp_rptr + REC_LNT];
+uint32_t lnt = dpxb[dp_rptr + REC_LNT];
 t_stat r;
 
 dp_csum = dp_csum ^ dat;
@@ -863,7 +863,7 @@ return STOP_DPOVR;
 
 /* Write done, dump track, clear busy */
 
-t_stat dp_wrdone (UNIT *uptr, uint32 flg)
+t_stat dp_wrdone (UNIT *uptr, uint32_t flg)
 {
 dp_done (1, flg);
 return dp_wrtrk (uptr, dpxb, uptr->CYL, CW1_GETHEAD (dp_cw1));
@@ -871,7 +871,7 @@ return dp_wrtrk (uptr, dpxb, uptr->CYL, CW1_GETHEAD (dp_cw1));
 
 /* Clear busy, set errors, request interrupt if required */
 
-t_stat dp_done (uint32 req, uint32 flg)
+t_stat dp_done (uint32_t req, uint32_t flg)
 {
 dp_xip = 0;                                             /* clear xfr in prog */
 dp_sta = (dp_sta | flg) & ~(STA_BUSY | STA_MBZ);        /* clear busy */
@@ -973,9 +973,9 @@ return SCPE_OK;
 
 t_stat dp_setformat (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-uint32 h, c, cntr, rptr;
+uint32_t h, c, cntr, rptr;
 int32 i, nr, nw, inp;
-uint16 tbuf[DP_TRKLEN];
+uint16_t tbuf[DP_TRKLEN];
 float finp;
 t_stat r;
 
@@ -1030,12 +1030,12 @@ return SCPE_OK;
 
 t_stat dp_showformat (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-uint32 c, h, rptr, rlnt, sec;
-uint32 minrec = DP_TRKLEN;
-uint32 maxrec = 0;
-uint32 minsec = DP_TRKLEN;
-uint32 maxsec = 0;
-uint16 tbuf[DP_TRKLEN];
+uint32_t c, h, rptr, rlnt, sec;
+uint32_t minrec = DP_TRKLEN;
+uint32_t maxrec = 0;
+uint32_t minsec = DP_TRKLEN;
+uint32_t maxsec = 0;
+uint16_t tbuf[DP_TRKLEN];
 t_stat r;
 
 if (uptr == NULL)

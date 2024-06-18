@@ -36,8 +36,8 @@
 struct xs_setup {
     int32               promiscuous;                    /* promiscuous mode enabled */
     int32               multicast;                      /* enable all multicast addresses */
-    uint32              mult0;
-    uint32              mult1;
+    uint32_t              mult0;
+    uint32_t              mult1;
     int32               mac_count;                      /* number of multicast mac addresses */
     ETH_MAC             macs[XS_FILTER_MAX];            /* MAC addresses to respond to */
 };
@@ -49,7 +49,7 @@ struct xs_device {
                                                         /*- initialized values - DO NOT MOVE */
 
                                                         /* I/O register storage */
-    uint32              irq;                            /* interrupt request flag */
+    uint32_t              irq;                            /* interrupt request flag */
 
     ETH_MAC             mac;                            /* MAC address */
     ETH_DEV*            etherface;                      /* buffers, etc. */
@@ -58,25 +58,25 @@ struct xs_device {
     ETH_QUE             ReadQ;
     struct xs_setup     setup;
 
-    uint16              csr0;                           /* LANCE registers */
-    uint16              csr1;
-    uint16              csr2;
-    uint16              csr3;
-    uint16              rptr;                           /* register pointer */
-    uint16              mode;                           /* mode register */
-    uint32              inbb;                           /* initialisation block base */
+    uint16_t              csr0;                           /* LANCE registers */
+    uint16_t              csr1;
+    uint16_t              csr2;
+    uint16_t              csr3;
+    uint16_t              rptr;                           /* register pointer */
+    uint16_t              mode;                           /* mode register */
+    uint32_t              inbb;                           /* initialisation block base */
 
-    uint32              tdrb;                           /* transmit desc ring base */
-    uint32              telen;                          /* transmit desc ring entry len */
-    uint32              trlen;                          /* transmit desc ring length */
-    uint32              txnext;                         /* transmit buffer pointer */
-    uint32              rdrb;                           /* receive desc ring base */
-    uint32              relen;                          /* receive desc ring entry len */
-    uint32              rrlen;                          /* receive desc ring length */
-    uint32              rxnext;                         /* receive buffer pointer */
+    uint32_t              tdrb;                           /* transmit desc ring base */
+    uint32_t              telen;                          /* transmit desc ring entry len */
+    uint32_t              trlen;                          /* transmit desc ring length */
+    uint32_t              txnext;                         /* transmit buffer pointer */
+    uint32_t              rdrb;                           /* receive desc ring base */
+    uint32_t              relen;                          /* receive desc ring entry len */
+    uint32_t              rrlen;                          /* receive desc ring length */
+    uint32_t              rxnext;                         /* receive buffer pointer */
 
-    uint16              rxhdr[4];                       /* content of RX ring entry, during wait */
-    uint16              txhdr[4];                       /* content of TX ring entry, during xmit */
+    uint16_t              rxhdr[4];                       /* content of RX ring entry, during wait */
+    uint16_t              txhdr[4];                       /* content of TX ring entry, during xmit */
 };
 
 struct xs_controller {

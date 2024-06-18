@@ -85,11 +85,11 @@
 
 /* external globals */
 
-extern uint16    PCX;
+extern uint16_t    PCX;
 
 /* function prototypes */
 
-t_stat sys_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat sys_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat sys_clr(void);
 t_stat sys_reset(DEVICE *dptr);
 static const char* sys_desc(DEVICE *dptr);
@@ -98,22 +98,22 @@ t_stat sys_show_model (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
-extern t_stat i3214_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat i8253_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat i8255_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat i8259_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat ioc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat ipc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
-extern t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum);
-extern t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy);
-extern t_stat isbc064_cfg(uint16 base, uint16 size, uint8 dummy);
-extern t_stat isbc464_cfg(uint16 base, uint16 size, uint8 dummy);
-extern t_stat isbc201_cfg(uint16 base, uint16 size, uint8 dummy);
-extern t_stat isbc202_cfg(uint16 base, uint16 size, uint8 dummy);
-extern t_stat isbc208_cfg(uint16 base, uint16 size, uint8 dummy);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
+extern t_stat i3214_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat i8251_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat i8253_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat i8255_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat i8259_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat ioc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat ipc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
+extern t_stat EPROM_cfg(uint16_t base, uint16_t size, uint8_t devnum);
+extern t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy);
+extern t_stat isbc064_cfg(uint16_t base, uint16_t size, uint8_t dummy);
+extern t_stat isbc464_cfg(uint16_t base, uint16_t size, uint8_t dummy);
+extern t_stat isbc201_cfg(uint16_t base, uint16_t size, uint8_t dummy);
+extern t_stat isbc202_cfg(uint16_t base, uint16_t size, uint8_t dummy);
+extern t_stat isbc208_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 extern t_stat i3214_clr(void);
 extern t_stat i8251_clr(void);
 extern t_stat i8253_clr(void);
@@ -140,9 +140,9 @@ typedef struct device {
     const char *name;
     int num;
     int args;
-    t_stat (*cfg_routine)(uint16 val1, uint16 val2, uint8 val3);
+    t_stat (*cfg_routine)(uint16_t val1, uint16_t val2, uint8_t val3);
     t_stat (*clr_routine)(void);
-    uint16 val[8];
+    uint16_t val[8];
     } SYS_DEV;
 
 typedef struct system_model {
@@ -361,7 +361,7 @@ static const char* sys_desc(DEVICE *dptr) {
     return sys_name;
 }
 
-t_stat sys_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat sys_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     int i, j;
     DEVICE *dptr;

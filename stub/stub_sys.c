@@ -31,7 +31,7 @@
 int32 sim_emax = 1;
 char sim_name[] = "Stub";
 
-uint16 M[040000];
+uint16_t M[040000];
 REG *sim_PC = &cpu_reg[0];
 
 DEVICE *sim_devices[] = {

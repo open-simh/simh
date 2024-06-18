@@ -82,7 +82,7 @@ return SCPE_OK;
 
 t_stat rom_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 {
-uint16 *image = (uint16 *)uptr->filebuf;
+uint16_t *image = (uint16_t *)uptr->filebuf;
 
 image[(addr - uptr->unit_base) >> 1] = val;
 return SCPE_OK;
@@ -93,7 +93,7 @@ t_stat rom_rd (int32 *data, int32 PA, int32 access)
 int i;
 for (i = 0; i < ROM_UNITS; i++) {
     if (PA >= rom_unit[i].unit_base && PA < rom_unit[i].unit_end) {
-        uint16 *image = (uint16 *)rom_unit[i].filebuf;
+        uint16_t *image = (uint16_t *)rom_unit[i].filebuf;
         *data = image[(PA - rom_unit[i].unit_base) >> 1];
         return SCPE_OK;
     }

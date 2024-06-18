@@ -208,18 +208,18 @@
 
 /* external globals */
 
-extern uint16    PCX;
+extern uint16_t    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16 port);
-extern uint8 get_mbyte(uint16 addr);
-extern void put_mbyte(uint16 addr, uint8 val);
+extern uint8_t reg_dev(uint8_t (*routine)(t_bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t port);
+extern uint8_t get_mbyte(uint16_t addr);
+extern void put_mbyte(uint16_t addr, uint8_t val);
 
 /* function prototypes */
 
-t_stat isbc201_cfg(uint16 baseport, uint16 devnum, uint8 intnum);
+t_stat isbc201_cfg(uint16_t baseport, uint16_t devnum, uint8_t intnum);
 t_stat isbc201_clr(void);
 t_stat isbc201_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat isbc201_set_port (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
@@ -229,11 +229,11 @@ t_stat isbc201_show_param (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat isbc201_reset(DEVICE *dptr);
 void isbc201_reset_dev(void);
 t_stat isbc201_attach (UNIT *uptr, CONST char *cptr);
-uint8 isbc201r0(t_bool io, uint8 data, uint8 devnum);  /* isbc201 0 */
-uint8 isbc201r1(t_bool io, uint8 data, uint8 devnum);  /* isbc201 1 */
-uint8 isbc201r2(t_bool io, uint8 data, uint8 devnum);  /* isbc201 2 */
-uint8 isbc201r3(t_bool io, uint8 data, uint8 devnum);  /* isbc201 3 */
-uint8 isbc201r7(t_bool io, uint8 data, uint8 devnum);  /* isbc201 7 */
+uint8_t isbc201r0(t_bool io, uint8_t data, uint8_t devnum);  /* isbc201 0 */
+uint8_t isbc201r1(t_bool io, uint8_t data, uint8_t devnum);  /* isbc201 1 */
+uint8_t isbc201r2(t_bool io, uint8_t data, uint8_t devnum);  /* isbc201 2 */
+uint8_t isbc201r3(t_bool io, uint8_t data, uint8_t devnum);  /* isbc201 3 */
+uint8_t isbc201r7(t_bool io, uint8_t data, uint8_t devnum);  /* isbc201 7 */
 void isbc201_diskio(void);      //do actual disk i/o
 
 /* globals */
@@ -244,21 +244,21 @@ static const char* isbc201_desc(DEVICE *dptr) {
 }
 
 typedef    struct    {                  //FDD definition
-    uint8   sec;
-    uint8   cyl;
+    uint8_t   sec;
+    uint8_t   cyl;
     }    FDDDEF;
 
 typedef    struct    {                  //FDC board definition
-    uint8   baseport;                   //FDC base port
-    uint8   intnum;                     //interrupt number
-    uint8   verb;                       //verbose flag
-    uint16  iopb;                       //FDC IOPB
-    uint8   stat;                       //FDC status
-    uint8   rdychg;                     //FDC ready changed
-    uint8   rtype;                      //FDC result type
-    uint8   rbyte0;                     //FDC result byte for type 00
-    uint8   rbyte1;                     //FDC result byte for type 10
-    uint8   intff;                      //FDC interrupt FF
+    uint8_t   baseport;                   //FDC base port
+    uint8_t   intnum;                     //interrupt number
+    uint8_t   verb;                       //verbose flag
+    uint16_t  iopb;                       //FDC IOPB
+    uint8_t   stat;                       //FDC status
+    uint8_t   rdychg;                     //FDC ready changed
+    uint8_t   rtype;                      //FDC result type
+    uint8_t   rbyte0;                     //FDC result byte for type 00
+    uint8_t   rbyte1;                     //FDC result byte for type 10
+    uint8_t   intff;                      //FDC interrupt FF
     FDDDEF  fdd[FDD_NUM];               //indexed by the FDD number
     }    FDCDEF;
 
@@ -336,7 +336,7 @@ DEVICE isbc201_dev = {
 
 // iSBC 201 configuration
 
-t_stat isbc201_cfg(uint16 baseport, uint16 devnum, uint8 intnum)
+t_stat isbc201_cfg(uint16_t baseport, uint16_t devnum, uint8_t intnum)
 {
     int i;
     UNIT *uptr;
@@ -403,7 +403,7 @@ t_stat isbc201_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat isbc201_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result;
+    uint32_t size, result;
     
     if (uptr == NULL)
         return SCPE_ARG;
@@ -423,7 +423,7 @@ t_stat isbc201_set_port(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 
 t_stat isbc201_set_int(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    uint32 size, result;
+    uint32_t size, result;
     
     if (uptr == NULL)
         return SCPE_ARG;
@@ -509,7 +509,7 @@ void isbc201_reset_dev(void)
 t_stat isbc201_attach (UNIT *uptr, CONST char *cptr)
 {
     t_stat r;
-    uint8 fddnum;
+    uint8_t fddnum;
 
     fddnum = uptr->u6;
     if ((r = attach_unit (uptr, cptr)) != SCPE_OK) { 
@@ -537,7 +537,7 @@ t_stat isbc201_attach (UNIT *uptr, CONST char *cptr)
 
 /* ISBC201 control port functions */
 
-uint8 isbc201r0(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc201r0(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read status*/
         return fdc201.stat;
@@ -545,7 +545,7 @@ uint8 isbc201r0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r1(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc201r1(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         fdc201.intff = 0;               //clear interrupt FF
@@ -558,7 +558,7 @@ uint8 isbc201r1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r2(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc201r2(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -571,7 +571,7 @@ uint8 isbc201r2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r3(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc201r3(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         if (fdc201.rtype == ROK) {
@@ -589,7 +589,7 @@ uint8 isbc201r3(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r7(t_bool io, uint8 data, uint8 devnum)
+uint8_t isbc201r7(t_bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -603,13 +603,13 @@ uint8 isbc201r7(t_bool io, uint8 data, uint8 devnum)
 
 void isbc201_diskio(void)
 {
-    uint8 cw, di, nr, ta, sa, bn, data, nrptr;
-    uint16 ba, ni;
-    uint32 dskoff;
-    uint8 fddnum, fmtb;
-    uint32 i;
+    uint8_t cw, di, nr, ta, sa, bn, data, nrptr;
+    uint16_t ba, ni;
+    uint32_t dskoff;
+    uint8_t fddnum, fmtb;
+    uint32_t i;
     UNIT *uptr;
-    uint8 *fbuf;
+    uint8_t *fbuf;
 
     //parse the IOPB
     cw = get_mbyte(fdc201.iopb);        //Channel Word
@@ -624,7 +624,7 @@ void isbc201_diskio(void)
     ni |= (get_mbyte(fdc201.iopb + 9) << 8); //Next IOPB Address
     fddnum = (di & 0x10) >> 4;          //Floppy Disk Number
     uptr = isbc201_dev.units + fddnum;  //Unit Pointer
-    fbuf = (uint8 *) uptr->filebuf;     //File Buffer
+    fbuf = (uint8_t *) uptr->filebuf;     //File Buffer
     if (fdc201.verb)
         sim_printf("\n   SBC201: FDD %d - nr=%02XH ta=%02XH sa=%02XH IOPB=%04XH PCX=%04XH",
             fddnum, nr, ta, sa, fdc201.iopb, PCX);
@@ -701,7 +701,7 @@ void isbc201_diskio(void)
             fmtb = get_mbyte(ba);       //get the format byte
             //calculate offset into disk image
             dskoff = ((ta * MAXSECSD) + (sa - 1)) * SECSIZ;
-            for(i=0; i<=((uint32)(MAXSECSD) * SECSIZ); i++) {
+            for(i=0; i<=((uint32_t)(MAXSECSD) * SECSIZ); i++) {
                 *(fbuf + (dskoff + i)) = fmtb;
             }
             fdc201.rtype = ROK;
