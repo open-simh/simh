@@ -2180,7 +2180,7 @@ return SCPE_OK;
 t_stat cpu_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 int32 mc = 0;
-uint32 i;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -2200,7 +2200,7 @@ t_stat set_devno (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newdev;
+uint32_t newdev;
 t_stat r;
 
 if (cptr == NULL)
@@ -2254,8 +2254,8 @@ t_bool build_dev_tab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, p;
-static const uint8 std_dev[] =
+uint32_t i, j, p;
+static const uint8_t std_dev[] =
 #if defined (PDP4)
     { 000 };
 #elif defined (PDP7)
@@ -2268,7 +2268,7 @@ for (i = 0; i < DEV_MAX; i++) {                         /* clr tables */
     dev_tab[i] = NULL;
     dev_iors[i] = NULL;
     }
-for (i = 0; i < ((uint32) sizeof (std_dev)); i++)       /* std entries */
+for (i = 0; i < ((uint32_t) sizeof (std_dev)); i++)       /* std entries */
     dev_tab[std_dev[i]] = &bad_dev;
 for (i = p = 0; (dptr = sim_devices[i]) != NULL; i++) { /* add devices */
     dibp = (DIB *) dptr->ctxt;                          /* get DIB */

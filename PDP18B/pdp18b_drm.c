@@ -184,7 +184,7 @@ return AC;
 t_stat drm_svc (UNIT *uptr)
 {
 int32 i;
-uint32 da;
+uint32_t da;
 int32 *fbuf = (int32 *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */

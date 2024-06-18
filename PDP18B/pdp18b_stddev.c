@@ -101,8 +101,8 @@ int32 tty_shift = 0;                                    /* KSR28 shift state */
 int32 tti_fdpx = 0;                                     /* prog mode full duplex */
 int32 clk_tps = 60;                                     /* ticks/second */
 int32 tmxr_poll = 16000;                                /* term mux poll */
-uint32 clk_task_last = 0;
-uint32 clk_task_timer = 0;
+uint32_t clk_task_last = 0;
+uint32_t clk_task_timer = 0;
 
 const int32 asc_to_baud[128] = {
     000,000,000,000,000,000,000,064,                    /* bell */
@@ -465,8 +465,8 @@ return SCPE_OK;
 
 int32 clk_task_upd (t_bool clr)
 {
-uint32 delta, val, iusec10;
-uint32 cur = sim_grtime ();
+uint32_t delta, val, iusec10;
+uint32_t cur = sim_grtime ();
 double usec10;
 
 if (cur > clk_task_last)
