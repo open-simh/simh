@@ -821,7 +821,7 @@ float32 int32_to_float32( int32 a )
 float64 int32_to_float64( int32 a )
 {
     flag zSign;
-    uint32 absA;
+    uint32_t absA;
     int8 shiftCount;
     bits64 zSig;
 
@@ -846,7 +846,7 @@ float64 int32_to_float64( int32 a )
 floatx80 int32_to_floatx80( int32 a )
 {
     flag zSign;
-    uint32 absA;
+    uint32_t absA;
     int8 shiftCount;
     bits64 zSig;
 
@@ -872,7 +872,7 @@ floatx80 int32_to_floatx80( int32 a )
 float128 int32_to_float128( int32 a )
 {
     flag zSign;
-    uint32 absA;
+    uint32_t absA;
     int8 shiftCount;
     bits64 zSig0;
 

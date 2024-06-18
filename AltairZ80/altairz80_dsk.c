@@ -166,11 +166,11 @@ static t_stat dsk_attach(UNIT *uptr, CONST char *cptr);
 static const char* dsk_description(DEVICE *dptr);
 
 extern UNIT cpu_unit;
-extern uint32 PCX;
+extern uint32_t PCX;
 
 extern t_stat install_bootrom(const int32 bootrom[], const int32 size, const int32 addr, const int32 makeROM);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 void install_ALTAIRbootROM(void);
 extern int32 find_unit_index(UNIT *uptr);
 

@@ -45,12 +45,12 @@
 /* SIMH */
 /********/
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32 flag, CONST char *cptr);
 extern t_stat set_cmd(int32 flag, CONST char *cptr);
-extern void PutBYTEWrapper(const uint32 Addr, const uint32 Value);
-extern uint32 nmiInterrupt;
+extern void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
+extern uint32_t nmiInterrupt;
 
 /* Debug flags */
 #define VERBOSE_MSG         (1 << 0)
@@ -87,14 +87,14 @@ static const char* jairs1_description(DEVICE *dptr);
 static const char* jairp_description(DEVICE *dptr);
 static int jair_get_modem_status(UNIT *uptr);
 static void jair_get_rxdata(UNIT *uptr);
-static int jair_set_mc(TMLN *tmln, uint8 data);
+static int jair_set_mc(TMLN *tmln, uint8_t data);
 static int jair_new_baud(UNIT *uptr);
 static t_stat jair_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
 static t_stat jair_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
 static t_stat jair_show_ports(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static int32 jairio(int32 addr, int32 rw, int32 data);
-static uint8 jair_io_in(uint32 addr);
-static uint8 jair_io_out(uint32 addr, int32 data);
+static uint8_t jair_io_in(uint32_t addr);
+static uint8_t jair_io_out(uint32_t addr, int32 data);
 static t_stat jair_set_rom(UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static t_stat jair_set_norom(UNIT *uptr, int32 value, CONST char *cptr, void *desc);
 static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data);
@@ -110,7 +110,7 @@ static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data);
 #define JAIR_ROM_READ   FALSE
 #define JAIR_ROM_WRITE  TRUE
 
-static uint8 jair_rom_v25[JAIR_ROM_SIZE] = {
+static uint8_t jair_rom_v25[JAIR_ROM_SIZE] = {
     0x3e, 0x02, 0x21, 0x00, 0x00, 0x01, 0x01, 0x00,
     0x09, 0xd2, 0x08, 0x00, 0x3d, 0xc2, 0x02, 0x00,
     0x3e, 0x80, 0xd3, 0x23, 0xd3, 0x2b, 0x3e, 0x0c,
@@ -579,7 +579,7 @@ static uint8 jair_rom_v25[JAIR_ROM_SIZE] = {
     0xc3, 0x7f, 0x0e, 0x3a, 0x3d, 0xfd, 0xa3, 0xc9
     };
 
-static uint8 jair_ram[JAIR_ROM_SIZE] = {0};
+static uint8_t jair_ram[JAIR_ROM_SIZE] = {0};
 
 /*********************/
 /* JAIR Definitions */
@@ -667,20 +667,20 @@ static uint8 jair_ram[JAIR_ROM_SIZE] = {0};
 */
 
 typedef struct {
-    uint32    rom_base;       /* Memory Base Address */
-    uint32    rom_size;       /* Memory Address space requirement */
-    uint32    io_base;        /* I/O Base Address */
-    uint32    io_size;        /* I/O Address Space requirement */
+    uint32_t    rom_base;       /* Memory Base Address */
+    uint32_t    rom_size;       /* Memory Address space requirement */
+    uint32_t    io_base;        /* I/O Base Address */
+    uint32_t    io_size;        /* I/O Address Space requirement */
     t_bool    sr_ena;         /* Shadow ROM enable */
     t_bool    spi_cs;         /* SPI *CS (Active Low) */
-    uint8     sd_istate;      /* SD Card Input State */
-    uint8     sd_ostate;      /* SD Card Output State */
-    uint8     sd_cmd[512+6];  /* SD Card Command */
-    uint16    sd_cmd_len;
-    uint16    sd_cmd_idx;
-    uint8     sd_resp[512+6]; /* SD Card Response */
-    uint16    sd_resp_len;
-    uint16    sd_resp_idx;
+    uint8_t     sd_istate;      /* SD Card Input State */
+    uint8_t     sd_ostate;      /* SD Card Output State */
+    uint8_t     sd_cmd[512+6];  /* SD Card Command */
+    uint16_t    sd_cmd_len;
+    uint16_t    sd_cmd_idx;
+    uint8_t     sd_resp[512+6]; /* SD Card Response */
+    uint16_t    sd_resp_len;
+    uint16_t    sd_resp_idx;
     t_bool    sd_appcmd;      /* SD app command flag */
 } JAIR_CTX;
 
@@ -751,26 +751,26 @@ DEVICE jair_dev = {
 typedef struct {
     PNP_INFO  pnp;          /* Must be first */
     int32     conn;         /* Connected Status */
-    uint16    baud;         /* Baud rate */
-    uint8     status;       /* Status Byte */
-    uint8     rdr;          /* Receive Data Ready */
-    uint8     rxd;          /* Receive Data Buffer */
-    uint8     txd;          /* Transmit Data Buffer */
+    uint16_t    baud;         /* Baud rate */
+    uint8_t     status;       /* Status Byte */
+    uint8_t     rdr;          /* Receive Data Ready */
+    uint8_t     rxd;          /* Receive Data Buffer */
+    uint8_t     txd;          /* Transmit Data Buffer */
     t_bool    txp;          /* Transmit Data Pending */
-    uint8     ier;          /* Interrupt Enable Register */
-    uint8     iir;          /* Interrupt Ident Register */
-    uint8     lcr;          /* Line Control Register */
-    uint8     mcr;          /* Modem Control Register */
-    uint8     lsr;          /* Line Status Register */
-    uint8     msr;          /* Modem Status Register */
-    uint8     sr;           /* Scratch Register */
-    uint8     dlls;         /* Divisor Latch LS */
-    uint8     dlms;         /* Divisor Latch MS */
+    uint8_t     ier;          /* Interrupt Enable Register */
+    uint8_t     iir;          /* Interrupt Ident Register */
+    uint8_t     lcr;          /* Line Control Register */
+    uint8_t     mcr;          /* Modem Control Register */
+    uint8_t     lsr;          /* Line Status Register */
+    uint8_t     msr;          /* Modem Status Register */
+    uint8_t     sr;           /* Scratch Register */
+    uint8_t     dlls;         /* Divisor Latch LS */
+    uint8_t     dlms;         /* Divisor Latch MS */
     TMLN     *tmln;         /* TMLN pointer */
     TMXR     *tmxr;         /* TMXR pointer */
     int32    iobuf[JAIR_IOBUF_SIZE];
-    uint32   iobufin;
-    uint32   iobufout;
+    uint32_t   iobufin;
+    uint32_t   iobufout;
 } JAIR_PORT_CTX;
 
 /**************************/
@@ -1076,7 +1076,7 @@ static t_stat jair_reset(DEVICE *dptr)
 static t_stat jair_port_reset(DEVICE *dptr) {
     JAIR_PORT_CTX *port;
     char uname[12];
-    uint32 u;
+    uint32_t u;
 
     port = (JAIR_PORT_CTX *) dptr->ctxt;
 
@@ -1412,7 +1412,7 @@ static void jair_get_rxdata(UNIT *uptr)
 static int jair_get_modem_status(UNIT *uptr)
 {
     JAIR_PORT_CTX *port;
-    uint8 msr;
+    uint8_t msr;
     int32 s;
     t_stat r;
 
@@ -1461,7 +1461,7 @@ static int jair_get_modem_status(UNIT *uptr)
     return r;
 }
 
-static int jair_set_mc(TMLN *tmln, uint8 data)
+static int jair_set_mc(TMLN *tmln, uint8_t data)
 {
     int s = 0;
 
@@ -1536,9 +1536,9 @@ static int32 jairio(int32 addr, int32 rw, int32 data)
     }
 }
 
-static uint8 jair_io_in(uint32 addr)
+static uint8_t jair_io_in(uint32_t addr)
 {
-    uint8 data = 0xff;
+    uint8_t data = 0xff;
 
     switch(addr & 0xff) {
         case JAIR_UART0 + JAIR_LSR:
@@ -1626,9 +1626,9 @@ static uint8 jair_io_in(uint32 addr)
     return (data);
 }
 
-static uint8 jair_io_out(uint32 addr, int32 data)
+static uint8_t jair_io_out(uint32_t addr, int32 data)
 {
-    uint32 sd_addr;
+    uint32_t sd_addr;
 
     switch(addr & 0xff) {
         case JAIR_UART0 + JAIR_SDATA:
@@ -1762,8 +1762,8 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                             case JAIR_CMD17:
                                 sd_addr = jair_ctx.sd_cmd[1] * 0x1000000;
                                 sd_addr |= jair_ctx.sd_cmd[2] * 0x10000;
-                                sd_addr |= (uint32) jair_ctx.sd_cmd[3] * 0x100;
-                                sd_addr |= (uint32) jair_ctx.sd_cmd[4];
+                                sd_addr |= (uint32_t) jair_ctx.sd_cmd[3] * 0x100;
+                                sd_addr |= (uint32_t) jair_ctx.sd_cmd[4];
                                 if (!(jair_unit[0].flags & UNIT_ATT)) {
                                     jair_ctx.sd_resp[0] |= 0x04;
                                     jair_ctx.sd_resp_len = 1;
@@ -1846,8 +1846,8 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                     else {
                         sd_addr = jair_ctx.sd_cmd[1] * 0x1000000;
                         sd_addr |= jair_ctx.sd_cmd[2] * 0x10000;
-                        sd_addr |= (uint32) jair_ctx.sd_cmd[3] * 0x100;
-                        sd_addr |= (uint32) jair_ctx.sd_cmd[4];
+                        sd_addr |= (uint32_t) jair_ctx.sd_cmd[3] * 0x100;
+                        sd_addr |= (uint32_t) jair_ctx.sd_cmd[4];
 
                         if (!(jair_unit[0].flags & UNIT_ATT)) {
                             jair_ctx.sd_resp[0] = 0x0b;

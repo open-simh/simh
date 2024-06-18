@@ -43,7 +43,7 @@ static t_stat show_format(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat hdsk_reset(DEVICE *dptr);
 static t_stat hdsk_attach(UNIT *uptr, CONST char *cptr);
 static t_stat hdsk_detach(UNIT *uptr);
-static uint32 is_imd(const UNIT *uptr);
+static uint32_t is_imd(const UNIT *uptr);
 static void assignFormat(UNIT *uptr);
 static void verifyDiskInfo(const DISK_INFO *info, const char unitChar);
 
@@ -70,18 +70,18 @@ static void verifyDiskInfo(const DISK_INFO *info, const char unitChar);
 #define DPB_NAME_LENGTH         15
 #define BOOTROM_SIZE_HDSK       256
 
-extern uint32 PCX;
+extern uint32_t PCX;
 extern UNIT cpu_unit;
 
 extern void install_ALTAIRbootROM(void);
-extern void PutBYTEWrapper(const uint32 Addr, const uint32 Value);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
+extern void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
 extern t_stat install_bootrom(const int32 bootrom[], const int32 size, const int32 addr, const int32 makeROM);
 extern int32 bootrom_dsk[];
 extern t_stat set_iobase(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8_t unmap);
 extern int32 find_unit_index(UNIT *uptr);
 
 static t_stat hdsk_boot(int32 unitno, DEVICE *dptr);
@@ -128,18 +128,18 @@ int32 hdsk_getStatus(void) {
 typedef struct {
     char    name[DPB_NAME_LENGTH + 1];  /* name of CP/M disk parameter block                        */
     t_addr  capac;                      /* capacity                                                 */
-    uint32  spt;                        /* sectors per track                                        */
-    uint8   bsh;                        /* data allocation block shift factor                       */
-    uint8   blm;                        /* data allocation block mask                               */
-    uint8   exm;                        /* extent mask                                              */
-    uint16  dsm;                        /* maximum data block number                                */
-    uint16  drm;                        /* total number of directory entries                        */
-    uint8   al0;                        /* determine reserved directory blocks                      */
-    uint8   al1;                        /* determine reserved directory blocks                      */
-    uint16  cks;                        /* size of directory check vector                           */
-    uint16  off;                        /* number of reserved tracks                                */
-    uint8   psh;                        /* physical record shift factor, CP/M 3                     */
-    uint8   phm;                        /* physical record mask, CP/M 3                             */
+    uint32_t  spt;                        /* sectors per track                                        */
+    uint8_t   bsh;                        /* data allocation block shift factor                       */
+    uint8_t   blm;                        /* data allocation block mask                               */
+    uint8_t   exm;                        /* extent mask                                              */
+    uint16_t  dsm;                        /* maximum data block number                                */
+    uint16_t  drm;                        /* total number of directory entries                        */
+    uint8_t   al0;                        /* determine reserved directory blocks                      */
+    uint8_t   al1;                        /* determine reserved directory blocks                      */
+    uint16_t  cks;                        /* size of directory check vector                           */
+    uint16_t  off;                        /* number of reserved tracks                                */
+    uint8_t   psh;                        /* physical record shift factor, CP/M 3                     */
+    uint8_t   phm;                        /* physical record mask, CP/M 3                             */
     int32   physicalSectorSize;         /* 0 for 128 << psh, > 0 for special                        */
     int32   offset;                     /* offset in physical sector where logical sector starts    */
     int32   *skew;                      /* pointer to skew table or NULL                            */
@@ -484,13 +484,13 @@ static t_stat hdsk_reset(DEVICE *dptr)  {
     return SCPE_OK;
 }
 
-static uint32 is_imd(const UNIT *uptr) {
+static uint32_t is_imd(const UNIT *uptr) {
     return ((uptr != NULL) && (uptr -> filename != NULL) && (strlen(uptr -> filename) > 3) &&
             (strcasecmp(".IMD", uptr -> filename + strlen(uptr -> filename) - 4) == 0));
 }
 
 static void assignFormat(UNIT *uptr) {
-    uint32 i;
+    uint32_t i;
     uptr -> HDSK_FORMAT_TYPE = -1;              /* default to unknown format type   */
     for (i = 0; dpb[i].capac != 0; i++) {       /* find disk parameter block        */
         if (dpb[i].capac == uptr -> capac) {    /* found if correct capacity        */
@@ -501,7 +501,7 @@ static void assignFormat(UNIT *uptr) {
 }
 
 static void verifyDiskInfo(const DISK_INFO *info, const char unitChar) {
-    uint32 track, head;
+    uint32_t track, head;
     if (info->ntracks < 1)
         sim_printf("HDSK%c (IMD): WARNING: Number of tracks is 0.\n", unitChar);
     if (info->nsides < 1) {
@@ -591,7 +591,7 @@ static t_stat hdsk_attach(UNIT *uptr, CONST char *cptr) {
         uptr -> flags |= UNIT_HDSK_WLK;
         sim_printf("HDSK%c: WARNING: Forcing WRTLCK.\n", unitChar);
         /* check whether capacity corresponds to setting of tracks, sectors per track and sector size   */
-        if (uptr -> capac != (uint32)(uptr -> HDSK_NUMBER_OF_TRACKS *
+        if (uptr -> capac != (uint32_t)(uptr -> HDSK_NUMBER_OF_TRACKS *
                                       uptr -> HDSK_SECTORS_PER_TRACK * uptr -> HDSK_SECTOR_SIZE)) {
             sim_printf("HDSK%c: WARNING: Fixing geometry.\n", unitChar);
             if (uptr -> HDSK_SECTORS_PER_TRACK == 0)
@@ -642,7 +642,7 @@ static t_stat hdsk_detach(UNIT *uptr) {
 
 /* Set disk geometry routine */
 static t_stat set_geom(UNIT *uptr, int32 val, CONST char *cptr, void *desc) {
-    uint32 numberOfTracks, numberOfSectors, sectorSize;
+    uint32_t numberOfTracks, numberOfSectors, sectorSize;
     int result, n;
 
     if (cptr == NULL)
@@ -906,7 +906,7 @@ static int32 doSeek(void) {
     return CPM_OK;
 }
 
-static uint8 hdskbuf[HDSK_MAX_SECTOR_SIZE] = { 0 };    /* data buffer  */
+static uint8_t hdskbuf[HDSK_MAX_SECTOR_SIZE] = { 0 };    /* data buffer  */
 
 /* pre-condition: hdsk_checkParameters has been executed to repair any faulty parameters */
 int32 hdsk_read(void) {
@@ -915,10 +915,10 @@ int32 hdsk_read(void) {
     DISK_INFO *thisDisk;
     int32 hostSector;
     int32 sectorSize;
-    uint32 flags;
-    uint32 readlen;
-    uint32 cylinder;
-    uint32 head;
+    uint32_t flags;
+    uint32_t readlen;
+    uint32_t cylinder;
+    uint32_t head;
     UNIT *uptr = &hdsk_dev.units[selectedDisk];
     if (is_imd(uptr)) {
         thisDisk = hdsk_imd[selectedDisk];
@@ -979,10 +979,10 @@ int32 hdsk_write(void) {
     DISK_INFO *thisDisk;
     int32 hostSector;
     int32 sectorSize;
-    uint32 flags;
-    uint32 writelen;
-    uint32 cylinder;
-    uint32 head;
+    uint32_t flags;
+    uint32_t writelen;
+    uint32_t cylinder;
+    uint32_t head;
     size_t rtn;
     UNIT *uptr = &hdsk_dev.units[selectedDisk];
     if (((uptr -> flags) & UNIT_HDSK_WLK) == 0) { /* write enabled */
@@ -1043,7 +1043,7 @@ int32 hdsk_write(void) {
 
 /* flush all attached drives. Returns CPM_OK if everything fine, otherwise CPM_ERROR */
 int32 hdsk_flush(void) {
-    uint32 drive;
+    uint32_t drive;
     hdskStatus = CPM_OK;
     for (drive = 0; drive < HDSK_NUMBER; drive++) {
         const UNIT *uptr = hdsk_dev.units + drive;
@@ -1060,7 +1060,7 @@ int32 hdsk_flush(void) {
 }
 
 #define PARAMETER_BLOCK_SIZE    19
-static uint8 parameterBlock[PARAMETER_BLOCK_SIZE];
+static uint8_t parameterBlock[PARAMETER_BLOCK_SIZE];
 
 static int32 hdsk_in(const int32 port) {
     if ((hdskCommandPosition == 6) && ((hdskLastCommand == HDSK_READ) || (hdskLastCommand == HDSK_WRITE))) {
