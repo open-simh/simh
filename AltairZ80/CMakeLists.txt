@@ -18,6 +18,7 @@ add_simulator(altairz80
     SOURCES
         altairz80_cpu.c
         altairz80_cpu_nommu.c
+        s100_tuart.c
         s100_dazzler.c
         s100_jair.c
         sol20.c
@@ -62,7 +63,6 @@ add_simulator(altairz80
         s100_scp300f.c
         s100_tarbell.c
         s100_tdd.c
-	s100_tuart.c
         wd179x.c
         s100_hdc1001.c
         s100_if3.c

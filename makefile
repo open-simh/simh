@@ -2074,7 +2074,7 @@ KA10 = ${KA10D}/kx10_cpu.c ${KA10D}/kx10_sys.c ${KA10D}/kx10_df.c \
 	${KA10D}/ka10_ai.c ${KA10D}/ka10_iii.c ${KA10D}/kx10_disk.c \
 	${KA10D}/ka10_pclk.c ${KA10D}/ka10_tv.c ${KA10D}/ka10_dd.c \
     ${KA10D}/kx10_ddc.c ${DISPLAYL} ${DISPLAY340} ${DISPLAYIII}
-KA10_OPT = -DKA=1 -DUSE_INT64 -I ${KA10D} -DUSE_SIM_CARD ${NETWORK_OPT} ${DISPLAY_OPT} ${KA10_DISPLAY_OPT}
+KA10_OPT = -DKA=1 -DUSE_INT64 -I ${KA10D} -DUSE_SIM_CARD ${NETWORK_OPT} ${DISPLAY_OPT} ${KA10_DISPLAY_OPT} ${AIO_CCDEFS}
 ifneq (${PANDA_LIGHTS},)
 # ONLY for Panda display.
 KA10_OPT += -DPANDA_LIGHTS
@@ -2094,7 +2094,7 @@ KI10 = ${KI10D}/kx10_cpu.c ${KI10D}/kx10_sys.c ${KI10D}/kx10_df.c \
 	${KI10D}/kx10_cp.c ${KI10D}/kx10_tu.c ${KI10D}/kx10_rs.c \
 	${KI10D}/kx10_imp.c ${KI10D}/kx10_dpy.c ${KI10D}/kx10_disk.c \
     ${KI10D}/kx10_ddc.c ${KI10D}/kx10_tym.c ${DISPLAYL} ${DISPLAY340}
-KI10_OPT = -DKI=1 -DUSE_INT64 -I ${KI10D} -DUSE_SIM_CARD ${NETWORK_OPT} ${DISPLAY_OPT} ${KI10_DISPLAY_OPT}
+KI10_OPT = -DKI=1 -DUSE_INT64 -I ${KI10D} -DUSE_SIM_CARD ${NETWORK_OPT} ${DISPLAY_OPT} ${KI10_DISPLAY_OPT} ${AIO_CCDEFS}
 ifneq (${PANDA_LIGHTS},)
 # ONLY for Panda display.
 KI10_OPT += -DPANDA_LIGHTS
@@ -2110,7 +2110,7 @@ KL10 =  ${KL10D}/kx10_cpu.c ${KL10D}/kx10_sys.c ${KL10D}/kx10_df.c \
     ${KL10D}/kx10_rp.c ${KL10D}/kx10_tu.c ${KL10D}/kx10_rs.c \
     ${KL10D}/kx10_imp.c ${KL10D}/kl10_fe.c ${KL10D}/ka10_pd.c \
     ${KL10D}/ka10_ch10.c ${KL10D}/kl10_nia.c ${KL10D}/kx10_disk.c
-KL10_OPT = -DKL=1 -DUSE_INT64 -I $(KL10D) -DUSE_SIM_CARD ${NETWORK_OPT} 
+KL10_OPT = -DKL=1 -DUSE_INT64 -I $(KL10D) -DUSE_SIM_CARD ${NETWORK_OPT}  ${AIO_CCDEFS}
 
 KS10D = ${SIMHD}/PDP10
 KS10 = ${KS10D}/kx10_cpu.c ${KS10D}/kx10_sys.c ${KS10D}/kx10_disk.c \
@@ -2118,7 +2118,7 @@ KS10 = ${KS10D}/kx10_cpu.c ${KS10D}/kx10_sys.c ${KS10D}/kx10_disk.c \
 	${KS10D}/kx10_rp.c ${KS10D}/kx10_tu.c ${KS10D}/ks10_dz.c \
 	${KS10D}/ks10_tcu.c ${KS10D}/ks10_lp.c ${KS10D}/ks10_ch11.c \
 	${KS10D}/ks10_kmc.c ${KS10D}/ks10_dup.c ${KS10D}/kx10_imp.c
-KS10_OPT = -DKS=1 -DUSE_INT64 -I $(KS10D) -I $(PDP11D) ${NETWORK_OPT}
+KS10_OPT = -DKS=1 -DUSE_INT64 -I $(KS10D) -I $(PDP11D) ${NETWORK_OPT} ${AIO_CCDEFS}
 
 ATT3B2D = ${SIMHD}/3B2
 ATT3B2M400 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
