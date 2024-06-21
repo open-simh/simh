@@ -577,6 +577,29 @@ sim_card_input_hopper_count(UNIT *uptr) {
     return (int)((data->hopper_cards - uptr->pos) - ((col & CARD_EOF) ? 1 : 0));
 }
 
+/* Returns the number of cards available to read with CDSE_OK status. */
+t_addr
+sim_card_input_hopper_ok_count(UNIT *uptr) {
+    struct card_context  *data = (struct card_context *)uptr->card_ctx;
+    uint16                col;
+    int                   i;
+
+    if (data == NULL || data->images == NULL)
+        return 0;           /* attached? */
+
+    if (uptr->pos >= data->hopper_cards)
+        return 0;
+
+    /* Check each card to see if it has an EOF or ERR marker. */
+    for (i = uptr->pos; i < data->hopper_cards; i++) {
+        col = (*data->images)[i][0];
+        if (col & (CARD_EOF | CARD_ERR))
+            break;
+    }
+
+    return i - uptr->pos;
+}
+
 t_addr
 sim_card_output_hopper_count(UNIT *uptr) {
     struct card_context  *data = (struct card_context *)uptr->card_ctx;

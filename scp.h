@@ -211,6 +211,7 @@ DEVICE *find_dev (const char *ptr);
 DEVICE *find_unit (const char *ptr, UNIT **uptr);
 DEVICE *find_dev_from_unit (UNIT *uptr);
 t_stat sim_register_internal_device (DEVICE *dptr);
+t_stat sim_unregister_internal_device (DEVICE *dptr);
 void sim_sub_args (char *in_str, size_t in_str_size, char *do_arg[]);
 REG *find_reg (CONST char *ptr, CONST char **optr, DEVICE *dptr);
 CTAB *find_ctab (CTAB *tab, const char *gbuf);
