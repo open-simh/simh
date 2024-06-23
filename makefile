@@ -675,13 +675,13 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       OS_CCDEFS += -DHAVE_LIBPNG
       OS_LDFLAGS += -lpng
       $(info using libpng: $(call find_lib,png) $(call find_include,png))
-      ifneq (,$(call find_include,zlib))
-        ifneq (,$(call find_lib,z))
-          OS_CCDEFS += -DHAVE_ZLIB
-          OS_LDFLAGS += -lz
-          $(info using zlib: $(call find_lib,z) $(call find_include,zlib))
-        endif
-      endif
+    endif
+  endif
+  ifneq (,$(call find_include,zlib))
+    ifneq (,$(call find_lib,z))
+      OS_CCDEFS += -DHAVE_ZLIB
+      OS_LDFLAGS += -lz
+      $(info using zlib: $(call find_lib,z) $(call find_include,zlib))
     endif
   endif
   ifneq (,$(call find_include,glob))
