@@ -27,7 +27,8 @@ Configure and build simh simulators on Linux and *nix-like platforms.
                     msys2
                     mingw
                     ucrt
---config (-c)     Specifies the build configuration: 'Release' or 'Debug'
+--config (-c)     Specifies the build configuration: 'Release', 'Debug', or
+                  'RelWithDebInfo'
 
 --target          Build a specific simulator or simulators. Separate multiple
                   targets with a comma, e.g. "--target pdp8,pdp11,vax750,altairz80,3b2"
@@ -219,7 +220,7 @@ while true; do
             ;;
         -c | --config)
             case "$2" in
-                Release|Debug)
+                Release|Debug|RelWithDebInfo)
                     buildConfig=$2
                     shift 2
                     ;;

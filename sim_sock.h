@@ -53,6 +53,8 @@ extern "C" {
 #if defined (_WIN32)                                    /* Windows */
 #include <winsock2.h>
 #include <winerror.h>
+#include <ws2tcpip.h>
+#include <in6addr.h>
 
 #elif !defined (__OS2__) || defined (__EMX__)           /* VMS, Mac, Unix, OS/2 EMX */
 #include <sys/types.h>                                  /* for fcntl, getpid */
@@ -69,7 +71,10 @@ extern "C" {
 
 #define WSAGetLastError()       errno                   /* Windows macros */
 #define WSASetLastError(err) errno = err
+#if !defined(closesocket)
+/* libslirp defines this too. */
 #define closesocket     close
+#endif
 #define SOCKET          int
 #if defined(__hpux)
 #define WSAEWOULDBLOCK  EAGAIN
@@ -111,31 +116,46 @@ extern "C" {
 #define sim_printf printf
 #endif
 
-int sim_parse_addr (const char *cptr, char *host, size_t hostlen, const char *default_host,
-                                      char *port, size_t port_len, const char *default_port,
-                                      const char *validate_addr);
-int sim_parse_addr_ex (const char *cptr, char *host, size_t hostlen, const char *default_host,
-                                         char *port, size_t port_len, char *localport, size_t local_port_len, const char *default_port);
-int sim_addr_acl_check (const char *validate_addr, const char *acl);
-#define SIM_SOCK_OPT_REUSEADDR      0x0001
-#define SIM_SOCK_OPT_DATAGRAM       0x0002
-#define SIM_SOCK_OPT_NODELAY        0x0004
-#define SIM_SOCK_OPT_BLOCKING       0x0008
-SOCKET sim_master_sock_ex (const char *hostport, int *parse_status, int opt_flags);
-#define sim_master_sock(hostport, parse_status) sim_master_sock_ex(hostport, parse_status, ((sim_switches & SWMASK ('U')) ? SIM_SOCK_OPT_REUSEADDR : 0))
-SOCKET sim_connect_sock_ex (const char *sourcehostport, const char *hostport, const char *default_host, const char *default_port, int opt_flags);
+int sim_parse_addr(const char *cptr, char *host, size_t hostlen, const char *default_host,
+                   char *port, size_t port_len, const char *default_port,
+                   const char *validate_addr);
+int sim_parse_addr_ex(const char *cptr, char *host, size_t hostlen, const char *default_host,
+                      char *port, size_t port_len, char *localport, size_t local_port_len, const char *default_port);
+const char *sim_inet_ntoa4(const struct in_addr *addr);
+#if defined(AF_INET6)
+const char *sim_inet_ntoa6(const struct in6_addr *addr);
+#else
+const char *sim_inet_ntoa6(const void *addr);
+#endif
+#if defined(WINVER) && WINVER < 0x0601
+int sim_inet_pton(int af, const char *src, void *dst);
+#endif
+
+int sim_addr_acl_check(const char *validate_addr, const char *acl);
+
+#define SIM_SOCK_OPT_REUSEADDR 0x0001
+#define SIM_SOCK_OPT_DATAGRAM 0x0002
+#define SIM_SOCK_OPT_NODELAY 0x0004
+#define SIM_SOCK_OPT_BLOCKING 0x0008
+SOCKET sim_master_sock_ex(const char *hostport, int *parse_status, int opt_flags);
+
+#define sim_master_sock(hostport, parse_status) sim_master_sock_ex(hostport, parse_status, ((sim_switches & SWMASK('U')) ? SIM_SOCK_OPT_REUSEADDR : 0))
+SOCKET sim_connect_sock_ex(const char *sourcehostport, const char *hostport, const char *default_host, const char *default_port, int opt_flags);
+
 #define sim_connect_sock(hostport, default_host, default_port) sim_connect_sock_ex(NULL, hostport, default_host, default_port, SIM_SOCK_OPT_BLOCKING)
-SOCKET sim_accept_conn_ex (SOCKET master, char **connectaddr, int opt_flags);
+SOCKET sim_accept_conn_ex(SOCKET master, char **connectaddr, int opt_flags);
+
 #define sim_accept_conn(master, connectaddr) sim_accept_conn_ex(master, connectaddr, 0)
-int sim_check_conn (SOCKET sock, int rd);
-int sim_read_sock (SOCKET sock, char *buf, int nbytes);
-int sim_write_sock (SOCKET sock, const char *msg, int nbytes);
-void sim_close_sock (SOCKET sock);
-const char *sim_get_err_sock (const char *emsg);
-SOCKET sim_err_sock (SOCKET sock, const char *emsg);
-int sim_getnames_sock (SOCKET sock, char **socknamebuf, char **peernamebuf);
-void sim_init_sock (void);
-void sim_cleanup_sock (void);
+
+int sim_check_conn(SOCKET sock, int rd);
+int sim_read_sock(SOCKET sock, char *buf, int nbytes);
+int sim_write_sock(SOCKET sock, const char *msg, int nbytes);
+void sim_close_sock(SOCKET sock);
+const char *sim_get_err_sock(const char *emsg);
+SOCKET sim_err_sock(SOCKET sock, const char *emsg);
+int sim_getnames_sock(SOCKET sock, char **socknamebuf, char **peernamebuf);
+void sim_init_sock(void);
+void sim_cleanup_sock(void);
 
 #ifdef  __cplusplus
 }

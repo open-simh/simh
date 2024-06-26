@@ -279,6 +279,8 @@ class IBM650Simulator(SIMHBasicSimulator):
             'if (WIN32)',
             '    if (MSVC)',
             '        set(I650_STACK_FLAG "/STACK:{0}")'.format(self.stack_size),
+            '    elseif (CMAKE_C_COMPILER_ID MATCHES ".*Clang")',
+            '        set(I650_STACK_FLAG "-Xlinker" "/STACK:{0}")'.format(self.stack_size),
             '    else ()',
             '        set(I650_STACK_FLAG "-Wl,--stack,{0}")'.format(self.stack_size),
             '    endif ()',

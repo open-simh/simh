@@ -161,7 +161,6 @@
 /* Forward declarations of platform specific routines */
 
 static t_stat sim_os_poll_kbd (void);
-static t_bool sim_os_poll_kbd_ready (int ms_timeout);
 static t_stat sim_os_putchar (int32 out);
 static t_stat sim_os_ttinit (void);
 static t_stat sim_os_ttrun (void);
@@ -658,7 +657,7 @@ for (i=connections=0; i<sim_rem_con_tmxr.lines; i++) {
         }
     if (rem->smp_reg_count) {
         uint32 reg;
-        DEVICE *dptr = NULL;
+        DEVICE *samp_dptr = NULL;
 
         if (rem->smp_sample_dither_pct)
             fprintf (st, "Register Bit Sampling is occurring every %d %s (dithered %d percent)\n", rem->smp_sample_interval, sim_vm_interval_units, rem->smp_sample_dither_pct);
@@ -668,13 +667,13 @@ for (i=connections=0; i<sim_rem_con_tmxr.lines; i++) {
         for (reg = 0; reg < rem->smp_reg_count; reg++) {
             if (rem->smp_regs[reg].indirect)
                 fprintf (st, " indirect ");
-            if (dptr != rem->smp_regs[reg].dptr)
+            if (samp_dptr != rem->smp_regs[reg].dptr)
                 fprintf (st, "%s ", rem->smp_regs[reg].dptr->name);
             if (rem->smp_regs[reg].reg->depth > 1)
                 fprintf (st, "%s[%d]%s", rem->smp_regs[reg].reg->name, rem->smp_regs[reg].idx, ((reg + 1) < rem->smp_reg_count) ? ", " : "");
             else
                 fprintf (st, "%s%s", rem->smp_regs[reg].reg->name, ((reg + 1) < rem->smp_reg_count) ? ", " : "");
-            dptr = rem->smp_regs[reg].dptr;
+            samp_dptr = rem->smp_regs[reg].dptr;
             }
         fprintf (st, "\n");
         if (sim_switches & SWMASK ('D'))
@@ -3483,9 +3482,12 @@ return SCPE_OK;
 #include <fcntl.h>
 #include <io.h>
 #define RAW_MODE 0
+typedef BOOL (WINAPI *std_output_writer_fn)(HANDLE, const void *, DWORD, LPDWORD, LPVOID);
+
 static HANDLE std_input;
 static HANDLE std_output;
 static HANDLE std_error;
+static std_output_writer_fn std_output_writer = NULL;
 static DWORD saved_input_mode;
 static DWORD saved_output_mode;
 static DWORD saved_error_mode;
@@ -3531,11 +3533,14 @@ ControlHandler(DWORD dwCtrlType)
 
 static t_stat sim_os_ttinit (void)
 {
+DWORD mode;
+
 sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_ttinit()\n");
 
 SetConsoleCtrlHandler( ControlHandler, TRUE );
 std_input = GetStdHandle (STD_INPUT_HANDLE);
 std_output = GetStdHandle (STD_OUTPUT_HANDLE);
+std_output_writer = GetConsoleMode(std_output, &mode) ? WriteConsoleA : (std_output_writer_fn) WriteFile;
 std_error = GetStdHandle (STD_ERROR_HANDLE);
 if ((std_input) &&                                      /* Not Background process? */
     (std_input != INVALID_HANDLE_VALUE))
@@ -3667,17 +3672,6 @@ if ((sim_brk_char && ((c & 0177) == sim_brk_char)) || (c & SCPE_BREAK))
 return c | SCPE_KFLAG;
 }
 
-static t_bool sim_os_poll_kbd_ready (int ms_timeout)
-{
-sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_poll_kbd_ready()\n");
-if ((std_input == NULL) ||                              /* No keyboard for */
-    (std_input == INVALID_HANDLE_VALUE)) {              /* background processes */
-    Sleep (ms_timeout);
-    return FALSE;
-    }
-return (WAIT_OBJECT_0 == WaitForSingleObject (std_input, ms_timeout));
-}
-
 
 #define BELL_CHAR           7       /* Bell Character */
 #define BELL_INTERVAL_MS    500     /* No more than 2 Bell Characters Per Second */
@@ -3690,16 +3684,15 @@ return (WAIT_OBJECT_0 == WaitForSingleObject (std_input, ms_timeout));
 static uint8 out_buf[ESC_HOLD_MAX]; /* Buffered characters pending output */
 static int32 out_ptr = 0;
 
-static void sim_console_write(uint8 *outbuf, int32 outsz)
+static inline void sim_console_write(uint8 *outbuf, int32 outsz)
 {
     DWORD unused;
-    DWORD mode;
-
-    if (GetConsoleMode(std_output, &mode)) {
-        WriteConsoleA(std_output, outbuf, outsz, &unused, NULL);
-    } else {
-        BOOL result = WriteFile(std_output, outbuf, outsz, &unused, NULL);
-    }
+    BOOL result;
+        
+    /* Useful to see the return value from std_output_writer. */
+    result = std_output_writer(std_output, outbuf, outsz, &unused, NULL);
+    /* But squelch the set-but-not-used warnings. */
+    (void) result;
 }
 
 static t_stat sim_out_hold_svc (UNIT *uptr)
@@ -4053,22 +4046,6 @@ if (sim_brk_char && (buf[0] == sim_brk_char))
 if (sim_int_char && (buf[0] == sim_int_char))
     return SCPE_STOP;
 return (buf[0] | SCPE_KFLAG);
-}
-
-static t_bool sim_os_poll_kbd_ready (int ms_timeout)
-{
-fd_set readfds;
-struct timeval timeout;
-
-if (!sim_ttisatty()) {                      /* skip if !tty */
-    sim_os_ms_sleep (ms_timeout);
-    return FALSE;
-    }
-FD_ZERO (&readfds);
-FD_SET (0, &readfds);
-timeout.tv_sec = (ms_timeout*1000)/1000000;
-timeout.tv_usec = (ms_timeout*1000)%1000000;
-return (1 == select (1, &readfds, NULL, NULL, &timeout));
 }
 
 static t_stat sim_os_putchar (int32 out)

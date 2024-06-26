@@ -32,6 +32,8 @@ add_simulator(i650
 if (WIN32)
     if (MSVC)
         set(I650_STACK_FLAG "/STACK:8388608")
+    elseif (CMAKE_C_COMPILER_ID MATCHES ".*Clang")
+        set(I650_STACK_FLAG "-Xlinker" "/STACK:8388608")
     else ()
         set(I650_STACK_FLAG "-Wl,--stack,8388608")
     endif ()

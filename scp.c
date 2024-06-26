@@ -376,6 +376,9 @@ pthread_mutex_t sim_timer_lock     = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t sim_timer_wake      = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t sim_tmxr_poll_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t sim_tmxr_poll_cond  = PTHREAD_COND_INITIALIZER;
+
+pthread_mutex_t sim_debug_lock = PTHREAD_MUTEX_INITIALIZER;
+
 int32 sim_tmxr_poll_count;
 pthread_t sim_asynch_main_threadid;
 UNIT * volatile sim_asynch_queue;
@@ -400,7 +403,7 @@ if (AIO_QUEUE_VAL != QUEUE_LIST_END) {  /* List !Empty */
         ++migrated;
         uptr = q;
         q = q->a_next;
-        uptr->a_next = NULL;        /* hygiene */
+        uptr->a_next = NULL;            /* hygiene */
         if (uptr->a_activate_call != &sim_activate_notbefore) {
             a_event_time = uptr->a_event_time-((sim_asynch_inst_latency+1)/2);
             if (a_event_time < 0)
@@ -434,7 +437,7 @@ else {
     uptr->a_activate_call = caller;
     do {
         q = AIO_QUEUE_VAL;
-        uptr->a_next = q;                               /* Mark as on list */
+        uptr->a_next = q;                         /* Mark as on list */
         } while (q != AIO_QUEUE_SET(uptr, q));
     }
 AIO_IUNLOCK;
@@ -447,6 +450,13 @@ if (sim_idle_wait) {
 #else
 t_bool sim_asynch_enabled = FALSE;
 #endif
+
+/* sim_unit_aio_pending(): Test if the UNIT has pending asynch I/O. Does not
+ * depend on being in the main simulator thread, unlike sim_is_active(). */
+t_bool sim_unit_aio_pending(UNIT *uptr)
+{
+    return (uptr->next != NULL) || AIO_IS_ACTIVE(uptr);
+}
 
 /* The per-simulator init routine is a weak global that defaults to NULL
    The other per-simulator pointers can be overridden by the init routine
@@ -12227,7 +12237,7 @@ t_bool sim_is_active (UNIT *uptr)
 {
 AIO_VALIDATE(uptr);
 AIO_UPDATE_QUEUE;
-return (((uptr->next) || AIO_IS_ACTIVE(uptr) || ((uptr->dynflags & UNIT_TMR_UNIT) ? sim_timer_is_active (uptr) : FALSE)) ? TRUE : FALSE);
+return ((sim_unit_aio_pending(uptr) || ((uptr->dynflags & UNIT_TMR_UNIT) ? sim_timer_is_active (uptr) : FALSE)) ? TRUE : FALSE);
 }
 
 /* sim_activate_time - return activation time
@@ -13660,7 +13670,7 @@ if (sim_deb_switches & SWMASK ('F')) {              /* filtering disabled? */
         _debug_fwrite (buf, len);                   /* output now. */
     return;                                         /* done */
     }
-AIO_LOCK;
+AIO_DEBUG_LOCK;
 if (debug_line_offset + len + 1 > debug_line_bufsize) {
     /* realloc(NULL, size) == malloc(size). Initialize the malloc()-ed space. Only
        need to test debug_line_buf since SIMH allocates both buffers at the same
@@ -13745,7 +13755,7 @@ while (NULL != (eol = strchr (debug_line_buf, '\n')) || flush) {
         memmove (debug_line_buf, eol + 1, debug_line_offset);
     debug_line_buf[debug_line_offset] = '\0';
     }
-AIO_UNLOCK;
+AIO_DEBUG_UNLOCK;
 }
 
 static void _sim_debug_write (const char *buf, size_t len)
@@ -13814,13 +13824,14 @@ return some_match ? some_match : debtab_nomatch;
 
 /* Prints standard debug prefix unless previous call unterminated */
 
-static const char *sim_debug_prefix (uint32 dbits, DEVICE* dptr, UNIT* uptr)
+static const char *sim_debug_prefix (const char *dev_name, const char *debug_type)
 {
-const char* debug_type = _get_dbg_verb (dbits, dptr, uptr);
 char tim_t[32] = "";
 char tim_a[32] = "";
 char pc_s[MAX_WIDTH + 1] = "";
 struct timespec time_now;
+
+AIO_DEBUG_LOCK;
 
 if (sim_deb_switches & (SWMASK ('T') | SWMASK ('R') | SWMASK ('A'))) {
     sim_rtcn_get_time(&time_now, 0);
@@ -13852,9 +13863,55 @@ if (sim_deb_switches & SWMASK ('P')) {
     sprintf(pc_s, "-%s:", sim_PC->name);
     sprint_val (&pc_s[strlen(pc_s)], val, sim_PC->radix, sim_PC->width, sim_PC->flags & REG_FMT);
     }
-sprintf(debug_line_prefix, "DBG(%s%s%.0f%s)%s> %s %s: ", tim_t, tim_a, sim_gtime(), pc_s, AIO_MAIN_THREAD ? "" : "+", dptr->name, debug_type);
+
+sprintf(debug_line_prefix, "DBG(%s%s%.0f%s)%s> %s %s: ", tim_t, tim_a, sim_gtime(), pc_s, AIO_MAIN_THREAD ? "" : "+", dev_name, debug_type);
+AIO_DEBUG_UNLOCK;
+
 return debug_line_prefix;
 }
+
+/* Expand the newlines in a debug message: */
+
+void sim_debug_expand_newlines(char *buf, size_t len, const char *debug_prefix)
+{
+size_t i, j;
+
+/* Output the formatted data expanding newlines where they exist */
+AIO_DEBUG_LOCK;
+for (i = j = 0; i < len; ++i) {
+    if ('\n' == buf[i]) {
+        if (i >= j) {
+            if ((i != j) || (i == 0)) {
+                if (!debug_unterm)                  /* print prefix when required */
+                    _sim_debug_write (debug_prefix, strlen (debug_prefix));
+                _sim_debug_write (&buf[j], i-j);
+                _sim_debug_write ("\r\n", 2);
+                }
+            debug_unterm = 0;
+            }
+        j = i + 1;
+        }
+    else {
+        if (buf[i] == 0) {      /* Imbedded \0 character in formatted result? */
+            fprintf (stderr, "sim_debug() formatted result: '%s'\r\n"
+                                "            has an imbedded \\0 character.\r\n"
+                                "DON'T DO THAT!\r\n", buf);
+            abort();
+            }
+        }
+    }
+if (i > j) {
+    if (!debug_unterm)                          /* print prefix when required */
+        _sim_debug_write (debug_prefix, strlen (debug_prefix));
+    _sim_debug_write (&buf[j], i-j);
+    }
+
+/* Set unterminated flag for next time */
+
+debug_unterm = len ? (((buf[len-1]=='\n')) ? 0 : 1) : debug_unterm;
+AIO_DEBUG_UNLOCK;
+}
+
 
 void fprint_fields (FILE *stream, t_value before, t_value after, BITFIELD* bitdefs)
 {
@@ -13907,11 +13964,13 @@ void sim_debug_bits_hdr(uint32 dbits, DEVICE* dptr, const char *header,
     BITFIELD* bitdefs, uint32 before, uint32 after, int terminate)
 {
 if (sim_deb && dptr && (dptr->dctrl & dbits)) {
-    TMLN *saved_oline = sim_oline;
+    TMLN *saved_oline;
 
+    AIO_DEBUG_LOCK;
+    saved_oline = sim_oline;
     sim_oline = NULL;                                                   /* avoid potential debug to active socket */
     if (!debug_unterm)
-        fprintf(sim_deb, "%s", sim_debug_prefix(dbits, dptr, NULL));    /* print prefix if required */
+        fprintf(sim_deb, "%s", sim_debug_prefix(dptr->name, NULL));     /* print prefix if required */
     if (header)
         fprintf(sim_deb, "%s: ", header);
     fprint_fields (sim_deb, (t_value)before, (t_value)after, bitdefs);  /* print xlation, transition */
@@ -13919,6 +13978,7 @@ if (sim_deb && dptr && (dptr->dctrl & dbits)) {
         fprintf(sim_deb, "\r\n");
     debug_unterm = terminate ? 0 : 1;                                   /* set unterm for next */
     sim_oline = saved_oline;                                            /* restore original socket */
+    AIO_DEBUG_UNLOCK;
     }
 }
 
@@ -13932,9 +13992,9 @@ sim_debug_bits_hdr(dbits, dptr, NULL, bitdefs, before, after, terminate);
 void sim_printf (const char* fmt, ...)
 {
 char stackbuf[STACKBUFSIZE];
-int32 bufsize = sizeof(stackbuf);
+size_t bufsize = sizeof(stackbuf);
 char *buf = stackbuf;
-int32 len;
+int len;
 va_list arglist;
 
 while (1) {                                         /* format passed string, args */
@@ -13948,17 +14008,22 @@ while (1) {                                         /* format passed string, arg
 
 /* If the formatted result didn't fit into the buffer, then grow the buffer and try again */
 
-    if ((len < 0) || (len >= bufsize-1)) {
+    if ((len > 0) && ((size_t) len >= bufsize - 1)) {
         if (buf != stackbuf)
             free (buf);
         bufsize = bufsize * 2;
-        if (bufsize < len + 2)
-            bufsize = len + 2;
+        if (bufsize < (size_t) (len + 2))
+            bufsize = (size_t) (len + 2);
         buf = (char *) malloc (bufsize);
         if (buf == NULL)                            /* out of memory */
             return;
         buf[bufsize-1] = '\0';
         continue;
+        }
+    else if (len < 0) {
+        /* Output error. Dubious as to whether this really happens with
+         * vsprintf() or vsprintf(). */
+        return;
         }
     break;
     }
@@ -13977,10 +14042,11 @@ if (sim_is_running) {
     }
 else
     fprintf (stdout, "%s", buf);
-if ((!sim_oline) && (sim_log && (sim_log != stdout)))
+if ((sim_oline == NULL) && (sim_log != NULL && sim_log != stdout))
     fprintf (sim_log, "%s", buf);
-if (sim_deb && (sim_deb != stdout) && (sim_deb != sim_log))
+if (sim_deb != NULL && (sim_deb != stdout) && (sim_deb != sim_log)) {
     _sim_debug_write (buf, strlen (buf));
+}
 
 if (buf != stackbuf)
     free (buf);
@@ -14098,13 +14164,18 @@ return stat | ((stat != SCPE_OK) ? SCPE_NOMESSAGE : 0);
 void _sim_vdebug (uint32 dbits, DEVICE* dptr, UNIT *uptr, const char* fmt, va_list arglist)
 {
 if (sim_deb && dptr && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & dbits)) {
-    TMLN *saved_oline = sim_oline;
+    TMLN *saved_oline;
     char stackbuf[STACKBUFSIZE];
     int32 bufsize = sizeof(stackbuf);
     char *buf = stackbuf;
-    int32 i, j, len;
-    const char* debug_prefix = sim_debug_prefix(dbits, dptr, uptr);   /* prefix to print if required */
+    int32 len;
+    /* prefix to print when required */
+    const char* debug_prefix;
 
+    AIO_DEBUG_LOCK;
+
+    debug_prefix = sim_debug_prefix(dptr->name, _get_dbg_verb (dbits, dptr, uptr));
+    saved_oline = sim_oline;
     sim_oline = NULL;                                   /* avoid potential debug to active socket */
     buf[bufsize-1] = '\0';
 
@@ -14124,50 +14195,34 @@ if (sim_deb && dptr && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & dbits)) {
             if (bufsize < len + 2)
                 bufsize = len + 2;
             buf = (char *) malloc (bufsize);
-            if (buf == NULL)                            /* out of memory */
+            if (buf == NULL) {                          /* out of memory */
+                AIO_DEBUG_UNLOCK;
                 return;
+                }
             buf[bufsize-1] = '\0';
             continue;
             }
         break;
         }
 
-/* Output the formatted data expanding newlines where they exist */
+    sim_debug_expand_newlines(buf, len, debug_prefix);
 
-    for (i = j = 0; i < len; ++i) {
-        if ('\n' == buf[i]) {
-            if (i >= j) {
-                if ((i != j) || (i == 0)) {
-                    if (!debug_unterm)                  /* print prefix when required */
-                        _sim_debug_write (debug_prefix, strlen (debug_prefix));
-                    _sim_debug_write (&buf[j], i-j);
-                    _sim_debug_write ("\r\n", 2);
-                    }
-                debug_unterm = 0;
-                }
-            j = i + 1;
-            }
-        else {
-            if (buf[i] == 0) {      /* Imbedded \0 character in formatted result? */
-                fprintf (stderr, "sim_debug() formatted result: '%s'\r\n"
-                                 "            has an imbedded \\0 character.\r\n"
-                                 "DON'T DO THAT!\r\n", buf);
-                abort();
-                }
-            }
-        }
-    if (i > j) {
-        if (!debug_unterm)                          /* print prefix when required */
-            _sim_debug_write (debug_prefix, strlen (debug_prefix));
-        _sim_debug_write (&buf[j], i-j);
-        }
-
-/* Set unterminated flag for next time */
-
-    debug_unterm = len ? (((buf[len-1]=='\n')) ? 0 : 1) : debug_unterm;
     if (buf != stackbuf)
         free (buf);
     sim_oline = saved_oline;                            /* restore original socket */
+    AIO_DEBUG_UNLOCK;
+    }
+}
+
+void sim_misc_debug (const char *debug_thing, const char *debug_type, const char* msg)
+{
+if (sim_deb != NULL) {
+    char *buf = strdup(msg);
+
+    AIO_DEBUG_LOCK;
+    sim_debug_expand_newlines(buf, strlen(buf), sim_debug_prefix(debug_thing, debug_type));
+    AIO_DEBUG_UNLOCK;
+    free(buf);
     }
 }
 

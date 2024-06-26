@@ -42,6 +42,7 @@ add_simulator(pdp10
     DEFINES
         VM_PDP10
     FEATURE_INT64
+    USES_AIO
     LABEL PDP10
     NO_INSTALL
     TEST pdp10)

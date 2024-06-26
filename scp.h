@@ -261,6 +261,7 @@ void sim_debug_bits (uint32 dbits, DEVICE* dptr, BITFIELD* bitdefs,
 #define CANT_USE_MACRO_VA_ARGS 1
 #endif
 void _sim_vdebug (uint32 dbits, DEVICE* dptr, UNIT *uptr, const char* fmt, va_list arglist);
+void sim_misc_debug (const char *debug_thing, const char *debug_type, const char* msg);
 #ifdef CANT_USE_MACRO_VA_ARGS
 #define _sim_debug_device sim_debug
 void sim_debug (uint32 dbits, DEVICE* dptr, const char *fmt, ...) GCC_FMT_ATTR(3, 4);
@@ -335,6 +336,7 @@ extern BRKTYPTAB *sim_brk_type_desc;                    /* type descriptions */
 extern const char *sim_prog_name;                       /* executable program name */
 extern FILE *stdnul;
 extern t_bool sim_asynch_enabled;
+extern t_bool sim_unit_aio_pending(UNIT *uptr);
 #if defined(SIM_ASYNCH_IO)
 int sim_aio_update_queue (void);
 void sim_aio_activate (ACTIVATE_API caller, UNIT *uptr, int32 event_time);
@@ -382,6 +384,10 @@ extern int32 sim_vm_initial_ips;                        /* base estimate of simu
 extern const char *sim_vm_interval_units;               /* Simulator can change this - default "instructions" */
 extern const char *sim_vm_step_unit;                    /* Simulator can change this - default "instruction" */
 
+/* Debug table manipulation: */
+extern DEBTAB *sim_combine_debtabs(const DEBTAB *tab1, const DEBTAB *tab2);
+extern size_t sim_debtab_nelems(const DEBTAB *debtab);
+extern void sim_fill_debtab_flags(DEBTAB *debtab);
 
 /* Core SCP libraries can potentially have unit test routines.
    These defines help implement consistent unit test functionality */

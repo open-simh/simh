@@ -75,6 +75,7 @@ class CMakeBuildSystem:
         '${NETWORK_OPT}', '$(NETWORK_OPT)',
         '${SCSI}', '$(SCSI)',
         '${DISPLAY_OPT}', '$(DISPLAY_OPT)',
+        '${NETWORK_LDFLAGS}', '$(NETWORK_LDFLAGS)',
         '${VIDEO_CCDEFS}', '$(VIDEO_CCDEFS)',
         '${VIDEO_LDFLAGS}', '$(VIDEO_LDFLAGS)',
         '${BESM6_PANEL_OPT}', '$(BESM6_PANEL_OPT)'])
@@ -156,7 +157,7 @@ class CMakeBuildSystem:
 
 
     def compile_elems_to_ignore(self, elem):
-        return (elem in self._ignore_compile_elems or elem.endswith('_LDFLAGS'))
+        return (elem in self._ignore_compile_elems or elem.endswith('_LDFLAGS)') or elem.endswith('_LDFLAGS}'))
 
     def source_elems_to_ignore(self, elem):
         return self.compile_elems_to_ignore(elem) or elem in _special_sources

@@ -261,7 +261,12 @@ endif()
 ## The default runtime output directory is the BIN subdirectory in the source tree's top
 set(SIMH_LEGACY_INSTALL "${CMAKE_SOURCE_DIR}/BIN")
 if (WIN32)
-    string(APPEND SIMH_LEGACY_INSTALL "/Win32")
+    # MinGW64 environment (MinGW64, Clang64, UCRT64, ...)
+    if (DEFINED ENV{MSYSTEM})
+        string(APPEND SIMH_LEGACY_INSTALL "/$ENV{MSYSTEM}")
+    else ()
+        string(APPEND SIMH_LEGACY_INSTALL "/Win32")
+    endif ()
 endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SIMH_LEGACY_INSTALL})
 
@@ -365,6 +370,48 @@ if (ENABLE_CPPCHECK)
         set(CPPCHECK_STATUS "'cppcheck' not installed.")
     endif ()
 endif ()
+unset(ROM_STATUS)
+
+if (NO_DEP_BUILD AND SIMH_BUILD_DEPS)
+    ## Don't build dependencies. Just wail about them.
+    message("")
+    message("Missing SIMH dependencies:")
+    foreach (dep ${SIMH_BUILD_DEPS})
+        message(STATUS "    ${dep}")
+    endforeach()
+    message("")
+    message("Please install the above dependencies via your platform package management or")
+    message("software installation system and reconfigure.")
+    message("")
+    message("Also see the .travis/deps.h file for Brew and apt packages installed during")
+    message("github.com workflow actions.")
+    message(FATAL_ERROR "Missing dependencies, cannot continue.")
+
+    ## TODO: Assume that these dependencies are optional?
+endif ()
+
+if (NOT DEFINED DO_DEPENDENCY_BUILD OR SIMH_BUILD_DEPS)
+    if (DEFINED DO_DEPENDENCY_BUILD AND NOT DO_DEPENDENCY_BUILD AND SIMH_BUILD_DEPS)
+        message(FATAL_ERROR "Dependency libraries did not build successfully!!??")
+    endif()
+
+    if (SIMH_BUILD_DEPS)
+        message(STATUS "Building dependency libraries as a superbuild")
+        set(DO_DEPENDENCY_BUILD ON CACHE BOOL "Superbuild flag" FORCE)
+    else ()
+        set(DO_DEPENDENCY_BUILD OFF CACHE BOOL "Superbuild flag" FORCE)
+    endif ()
+else ()
+    set(DO_DEPENDENCY_BUILD ${DO_DEPENDENCY_BUILD} CACHE BOOL "Superbuild flag" FORCE)
+endif ()
+
+if (NOT DO_DEPENDENCY_BUILD)
+    include (add_simulator)
+    if (WITH_NETWORK AND WITH_SLIRP)
+      ## Set the "Don't use GLIB" option here so that the libslirp subdirectory sees it.
+      set(NOGLIB TRUE CACHE BOOL "" FORCE)
+      add_subdirectory(libslirp)
+    endif ()
 
 set(_feature_text "Libraries and features:\n")
 string(APPEND _feature_text "\n    * Build with video/graphics support. ${BUILD_WITH_VIDEO}")
@@ -410,47 +457,6 @@ string(APPEND _feature_text "\n")
 
 message(STATUS ${_feature_text})
 unset(_feature_text)
-
-unset(ROM_STATUS)
-
-if (NO_DEP_BUILD AND SIMH_BUILD_DEPS)
-    ## Don't build dependencies. Just wail about them.
-    message("")
-    message("Missing SIMH dependencies:")
-    foreach (dep ${SIMH_BUILD_DEPS})
-        message(STATUS "    ${dep}")
-    endforeach()
-    message("")
-    message("Please install the above dependencies via your platform package management or")
-    message("software installation system and reconfigure.")
-    message("")
-    message("Also see the .travis/deps.h file for Brew and apt packages installed during")
-    message("github.com workflow actions.")
-    message(FATAL_ERROR "Missing dependencies, cannot continue.")
-
-    ## TODO: Assume that these dependencies are optional?
-endif ()
-
-if (NOT DEFINED DO_DEPENDENCY_BUILD OR SIMH_BUILD_DEPS)
-    if (DEFINED DO_DEPENDENCY_BUILD AND NOT DO_DEPENDENCY_BUILD AND SIMH_BUILD_DEPS)
-        message(FATAL_ERROR "Dependency libraries did not build successfully!!??")
-    endif()
-
-    if (SIMH_BUILD_DEPS)
-        message(STATUS "Building dependency libraries as a superbuild")
-        set(DO_DEPENDENCY_BUILD ON CACHE BOOL "Superbuild flag" FORCE)
-    else ()
-        set(DO_DEPENDENCY_BUILD OFF CACHE BOOL "Superbuild flag" FORCE)
-    endif ()
-else ()
-    set(DO_DEPENDENCY_BUILD ${DO_DEPENDENCY_BUILD} CACHE BOOL "Superbuild flag" FORCE)
-endif ()
-
-if (NOT DO_DEPENDENCY_BUILD)
-    include (add_simulator)
-    if (WITH_SLIRP)
-      add_subdirectory(slirp)
-    endif (WITH_SLIRP)
 
 ## Don't delete yet ##    set(Python_ADDITIONAL_VERSIONS 3)
 ## Don't delete yet ##    include(FindPythonInterp)
@@ -508,6 +514,7 @@ else ()
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            -DCOMPILE_DEFINITIONS=${COMPILE_DEFINITIONS}
         INSTALL_COMMAND ""
         BINARY_DIR
             ${CMAKE_BINARY_DIR}

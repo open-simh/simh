@@ -12,7 +12,7 @@ set(AIO_FLAGS)
 if (WITH_ASYNC)
     include(ExternalProject)
 
-    if (MSVC OR (WIN32 AND CMAKE_C_COMPILER_ID MATCHES ".*Clang.*with MSVC-like command-line.*"))
+    if (MSVC OR (WIN32 AND CMAKE_C_COMPILER_ID MATCHES ".*Clang" AND NOT DEFINED ENV{MSYSTEM}))
         # Pthreads4w: pthreads for windows.
         if (USING_VCPKG)
             find_package(PThreads4W REQUIRED)

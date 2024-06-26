@@ -51,10 +51,6 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined(AF_INET6) && defined(_WIN32)
-#include <ws2tcpip.h>
-#endif
-
 #ifdef SIM_HAVE_DLOPEN
 #include <dlfcn.h>
 #endif
@@ -870,6 +866,83 @@ if ((hostp != NULL) && ((hostp[1] == '[') || (NULL != strchr (hostp+1, ':')))) {
     }
 return sim_parse_addr (cptr, host, hostlen, default_host, port, port_len, default_port, NULL);
 }
+
+
+/* Convert IP address to its printable format. Supports IPv6. */ 
+static const char *sim_inet_ntoa(int family, const void *addr)
+{
+#if !defined(WINVER) || WINVER >= 0x0603
+    static char fmt_address[48];
+
+    inet_ntop(family, addr, fmt_address, sizeof(fmt_address) - 1);
+    return fmt_address;
+#else
+    /* Squelch unused arg warning */
+    (void)(family);
+
+    return inet_ntoa(*((const struct in_addr *) addr));
+#endif
+}
+
+/* Convert IPv4 address to printable format. */
+const char *sim_inet_ntoa4(const struct in_addr *v4addr)
+{
+    return sim_inet_ntoa(AF_INET, v4addr);
+}
+
+/* Convert IPv6 address to printable format. */
+#if defined(AF_INET6)
+const char *sim_inet_ntoa6(const struct in6_addr *addr)
+{
+#  if !defined(WINVER) || WINVER >= 0x0603
+    return sim_inet_ntoa(AF_INET6, addr);
+#  else
+    struct sockaddr_storage ss;
+    DWORD s = INET6_ADDRSTRLEN;
+    static char dst[INET6_ADDRSTRLEN + 1];
+
+    ZeroMemory(&ss, sizeof(ss));
+    ss.ss_family = AF_INET6;
+    ((struct sockaddr_in6 *) &ss)->sin6_addr = *addr;
+    return (WSAAddressToString((struct sockaddr *)&ss, sizeof(ss), NULL, dst, &s) == 0) ? dst : NULL;
+#  endif
+}
+#else
+const char *sim_inet_ntoa6(const void *v6addr)
+{
+    return "IPv6 not supported";
+}
+#endif
+
+
+#if defined(WINVER) && WINVER < 0x0601
+/* Windows 7 and below stub, used by sim_slirp/sim_slirp.c */
+
+int sim_inet_pton(int af, const char *src, void *dst)
+{
+  struct sockaddr_storage ss;
+  int size = sizeof(ss);
+  char src_copy[INET6_ADDRSTRLEN+1];
+
+  ZeroMemory(&ss, sizeof(ss));
+  /* stupid non-const API */
+  strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
+  src_copy[INET6_ADDRSTRLEN] = 0;
+
+  if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+    switch(af) {
+      case AF_INET:
+    *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+    return 1;
+      case AF_INET6:
+    *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+    return 1;
+    }
+  }
+  return 0;
+}
+
+#endif
 
 
 void sim_init_sock (void)

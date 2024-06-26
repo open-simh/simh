@@ -454,7 +454,9 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
       (6 != sscanf(strmac, "%x.%x.%x.%x.%x.%x", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5])) &&
       (6 != sscanf(strmac, "%x-%x-%x-%x-%x-%x", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5])))
     return sim_messagef (SCPE_ARG, "Invalid MAC address format: '%s'\n", strmac);
-  for (i=0; i<6; i++)
+
+  memset(newmac, 0, sizeof(newmac) / sizeof(newmac[0]));
+  for (i=0; i<6; i++) {
     if (a[i] > 0xFF)
       return sim_messagef (SCPE_ARG, "Invalid MAC address byte value: %02X\n", a[i]);
     else {
@@ -468,6 +470,7 @@ t_stat eth_mac_scan_ex (ETH_MAC* mac, const char* strmac, UNIT *uptr)
       mask = 0xFF << shift;
       newmac[i] = (unsigned char)((a[i] & mask) | (g[i] & ~mask));
       }
+  }
 
   /* final check - mac cannot be broadcast or multicast address */
   if (!memcmp(newmac, zeros, sizeof(ETH_MAC)) ||  /* broadcast */
@@ -676,7 +679,7 @@ t_stat ethq_init(ETH_QUE* que, int max)
   /* create dynamic queue if it does not exist */
   if (!que->item) {
     que->item = (struct eth_item *) calloc(max, sizeof(struct eth_item));
-    if (!que->item) {
+    if (NULL == que->item) {
       /* failed to allocate memory */
       sim_printf("EthQ: failed to allocate dynamic queue[%d]\n", max);
       return SCPE_MEM;
@@ -779,6 +782,9 @@ ethq_insert_data(que, type, pack->oversize ? pack->oversize : pack->msg, pack->u
 
 t_stat eth_show_devices (FILE* st, DEVICE *dptr, UNIT* uptr, int32 val, CONST char *desc)
 {
+SIM_UNUSED_ARG(dptr);
+SIM_UNUSED_ARG(desc);
+
 return eth_show (st, uptr, val, NULL);
 }
 
@@ -894,6 +900,11 @@ t_stat eth_show (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
   ETH_LIST  list[ETH_MAX_DEVICE];
   int number;
+
+  SIM_UNUSED_ARG(uptr);
+  SIM_UNUSED_ARG(val);
+  SIM_UNUSED_ARG(desc);
+
 
   number = eth_devices(ETH_MAX_DEVICE, list, FALSE);
   fprintf(st, "ETH devices:\n");
@@ -1054,6 +1065,8 @@ typedef void * pcap_t;  /* Pseudo Type to avoid compiler errors */
 static int eth_host_pcap_devices(int used, int max, ETH_LIST* list)
 {
 int i;
+
+SIM_UNUSED_ARG(max);
 
 for (i=0; i<used; ++i) {
   /* Cull any non-ethernet interface types */
@@ -1761,6 +1774,8 @@ return tool;
 
 static void eth_get_nic_hw_addr(ETH_DEV* dev, const char *devname, int set_on)
 {
+  SIM_UNUSED_ARG(set_on);
+
   memset(&dev->host_nic_phy_hw_addr, 0, sizeof(dev->host_nic_phy_hw_addr));
   dev->have_host_nic_phy_addr = 0;
   if (dev->eth_api != ETH_API_PCAP)
@@ -1984,7 +1999,7 @@ while (dev->handle) {
     if (do_select) {
 #ifdef HAVE_SLIRP_NETWORK
       if (dev->eth_api == ETH_API_NAT) {
-        sel_ret = sim_slirp_select ((SLIRP*)dev->handle, 250);
+        sel_ret = sim_slirp_select ((SimSlirpNetwork *) dev->handle, 250);
         }
       else
 #endif
@@ -2062,7 +2077,7 @@ while (dev->handle) {
 #endif /* HAVE_VDE_NETWORK */
 #ifdef HAVE_SLIRP_NETWORK
       case ETH_API_NAT:
-        sim_slirp_dispatch ((SLIRP*)dev->handle);
+        sim_slirp_dispatch ((SimSlirpNetwork *) dev->handle);
         status = 1;
         break;
 #endif /* HAVE_SLIRP_NETWORK */
@@ -2087,17 +2102,6 @@ while (dev->handle) {
             }
           }
         break;
-      }
-    if ((status > 0) && (dev->asynch_io)) {
-      int wakeup_needed;
-
-      pthread_mutex_lock (&dev->lock);
-      wakeup_needed = (dev->read_queue.count != 0);
-      pthread_mutex_unlock (&dev->lock);
-      if (wakeup_needed) {
-        sim_debug(dev->dbit, dev->dptr, "Queueing automatic poll\n");
-        sim_activate_abs (dev->dptr->units, dev->asynch_io_latency);
-        }
       }
     if (status < 0) {
       ++dev->receive_packet_errors;
@@ -2136,26 +2140,27 @@ sim_os_set_thread_priority (PRIORITY_ABOVE_NORMAL);
 sim_debug(dev->dbit, dev->dptr, "Writer Thread Starting\n");
 
 pthread_mutex_lock (&dev->writer_lock);
-while (dev->handle) {
+while (dev->handle != NULL) {
   pthread_cond_wait (&dev->writer_cond, &dev->writer_lock);
   while (NULL != (request = dev->write_requests)) {
-    if (dev->handle == NULL)      /* Shutting down? */
-      break;
-    /* Pull buffer off request list */
-    dev->write_requests = request->next;
-    pthread_mutex_unlock (&dev->writer_lock);
+    if (dev->handle != NULL) {
+      /* Pull buffer off request list */
+      dev->write_requests = request->next;
+      pthread_mutex_unlock (&dev->writer_lock);
 
-    if (dev->throttle_delay != ETH_THROT_DISABLED_DELAY) {
-      uint32 packet_delta_time = sim_os_msec() - dev->throttle_packet_time;
-      dev->throttle_events <<= 1;
-      dev->throttle_events += (packet_delta_time < dev->throttle_time) ? 1 : 0;
-      if ((dev->throttle_events & dev->throttle_mask) == dev->throttle_mask) {
-        sim_os_ms_sleep (dev->throttle_delay);
-        ++dev->throttle_count;
+      if (dev->throttle_delay != ETH_THROT_DISABLED_DELAY) {
+        uint32 packet_delta_time = sim_os_msec() - dev->throttle_packet_time;
+        dev->throttle_events <<= 1;
+        dev->throttle_events += (packet_delta_time < dev->throttle_time) ? 1 : 0;
+        if ((dev->throttle_events & dev->throttle_mask) == dev->throttle_mask) {
+          sim_os_ms_sleep (dev->throttle_delay);
+          ++dev->throttle_count;
+          }
+        dev->throttle_packet_time = sim_os_msec();
         }
-      dev->throttle_packet_time = sim_os_msec();
-      }
-    dev->write_status = _eth_write(dev, &request->packet, NULL);
+      dev->write_status = _eth_write(dev, &request->packet, NULL);
+    } else
+      break;      /* Shutting down? */
 
     pthread_mutex_lock (&dev->writer_lock);
     /* Put buffer on free buffer list */
@@ -2194,11 +2199,11 @@ dev->asynch_io = sim_asynch_enabled;
 dev->asynch_io_latency = latency;
 pthread_mutex_lock (&dev->lock);
 wakeup_needed = (dev->read_queue.count != 0);
-pthread_mutex_unlock (&dev->lock);
 if (wakeup_needed) {
   sim_debug(dev->dbit, dev->dptr, "Queueing automatic poll\n");
   sim_activate_abs (dev->dptr->units, dev->asynch_io_latency);
   }
+pthread_mutex_unlock (&dev->lock);
 #endif
 return SCPE_OK;
 }
@@ -2644,7 +2649,7 @@ switch (eth_api) {
 #endif
 #ifdef HAVE_SLIRP_NETWORK
   case ETH_API_NAT:
-    sim_slirp_close((SLIRP*)pcap);
+    sim_slirp_close((SimSlirpNetwork *) pcap);
     break;
 #endif
   case ETH_API_UDP:
@@ -3082,7 +3087,7 @@ if ((packet->len >= ETH_MIN_PACKET) && (packet->len <= ETH_MAX_PACKET)) {
 #endif
 #ifdef HAVE_SLIRP_NETWORK
     case ETH_API_NAT:
-      status = sim_slirp_send((SLIRP*)dev->handle, (char *)packet->msg, (size_t)packet->len, 0);
+      status = sim_slirp_send((SimSlirpNetwork *)dev->handle, (char *)packet->msg, (size_t)packet->len, 0);
       if ((status == (int)packet->len) || (status == 0))
         status = 0;
       else
@@ -3113,7 +3118,7 @@ if ((packet->len >= ETH_MIN_PACKET) && (packet->len <= ETH_MAX_PACKET)) {
   } /* if packet->len */
 
 /* call optional write callback function */
-if (routine)
+if (routine != NULL)
   (routine)(status);
 
 return ((status == 0) ? SCPE_OK : SCPE_IOERR);
@@ -3792,6 +3797,7 @@ if (bpf_used ? to_me : (to_me && !from_me)) {
     /* This must be done before any needed CRC calculation */
     _eth_fix_ip_xsum_offload(dev, (const u_char*)data, len);
 
+    memset(crc_data, 0, sizeof(crc_data) / sizeof(crc_data[0]));
     if (dev->need_crc)
       crc_len = eth_get_packet_crc32_data(data, len, crc_data);
 
@@ -3799,8 +3805,25 @@ if (bpf_used ? to_me : (to_me && !from_me)) {
 
     pthread_mutex_lock (&dev->lock);
     ethq_insert_data(&dev->read_queue, ETH_ITM_NORMAL, data, 0, len, crc_len, crc_data, 0);
+    if (dev->read_queue.count == 1 || (dev->asynch_io && !sim_unit_aio_pending(dev->dptr->units))) {
+      /* Kick the simulator's lower half UNIT handler if the read queue's depth is 1 (just received
+       * a packet) or an ansynchronous service event is not already scheduled.
+       *
+       * This allows packets to accumulate while ensuring that there is a pending UNIT event
+       * to processes them. Otherwise, the simulator's receiver will stall and unprocessed
+       * packets will accumulate. */
+
+      sim_activate_abs (dev->dptr->units, dev->asynch_io_latency);
+      sim_debug(dev->dbit, dev->dptr, "Scheduling UNIT service event to drain queue (depth = %d)\n",
+                dev->read_queue.count);
+    } else {
+      sim_debug(dev->dbit, dev->dptr, "Deferred -- pending UNIT service event (depth = %d)\n",
+                dev->read_queue.count);
+    }
+
     ++dev->packets_received;
     pthread_mutex_unlock (&dev->lock);
+
     free(moved_data);
     }
 #else /* !USE_READER_THREAD */
@@ -3837,7 +3860,7 @@ if (bpf_used ? to_me : (to_me && !from_me)) {
 
 int eth_read(ETH_DEV* dev, ETH_PACK* packet, ETH_PCALLBACK routine)
 {
-int status;
+int status = 0;
 
 /* make sure device exists */
 
@@ -4119,9 +4142,9 @@ if (hash) {
 if (dev->dptr->dctrl & dev->dbit) {
   sim_debug(dev->dbit, dev->dptr, "Filter Set\n");
   for (i = 0; i < addr_count; i++) {
-    char mac[20];
-    eth_mac_fmt(&dev->filter_address[i], mac);
-    sim_debug(dev->dbit, dev->dptr, "  Addr[%d]: %s\n", i, mac);
+    char mac_daddy[20];
+    eth_mac_fmt(&dev->filter_address[i], mac_daddy);
+    sim_debug(dev->dbit, dev->dptr, "  Addr[%d]: %s\n", i, mac_daddy);
     }
   if (dev->all_multicast) {
     sim_debug(dev->dbit, dev->dptr, "All Multicast\n");
@@ -4294,7 +4317,7 @@ if (dev->bpf_filter)
   fprintf(st, "  BPF Filter: %s\n", dev->bpf_filter);
 #if defined(HAVE_SLIRP_NETWORK)
 if (dev->eth_api == ETH_API_NAT)
-  sim_slirp_show ((SLIRP *)dev->handle, st);
+  sim_slirp_show ((SimSlirpNetwork *) dev->handle, st);
 #endif
 }
 
@@ -4337,6 +4360,9 @@ static uint32 valcrc32[] = {
   0x03E4A7D9, 0xEAF5B6B1, 0x0AB78348, 0xE3A69220, 0x1142EEFB, 0xF853FF93, 0x1811CA6A, 0xF100DB02,
   0x6C311115, 0x8520007D, 0x65623584, 0x8C7324EC, 0x7E975837, 0x9786495F, 0x77C47CA6, 0x9ED56DCE,
   0x497D8351, 0xA06C9239, 0x402EA7C0, 0xA93FB6A8, 0x5BDBCA73, 0xB2CADB1B, 0x5288EEE2, 0xBB99FF8A};
+
+SIM_UNUSED_ARG(dptr);
+
 
 for (val=0; val <= 0xFF; val++) {
   memset (data, val, sizeof (data));
@@ -4496,6 +4522,8 @@ return (errors == 0) ? SCPE_OK : SCPE_IERR;
 
 t_stat sim_ether_test (DEVICE *dptr, const char *cptr)
 {
+SIM_UNUSED_ARG(cptr);
+
 t_stat stat = SCPE_OK;
 SIM_TEST_INIT;
 

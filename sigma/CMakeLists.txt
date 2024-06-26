@@ -31,8 +31,8 @@ add_simulator(sigma
         sigma_rad.c
         sigma_rtc.c
         sigma_tt.c
-        sigma_cp.c
         sigma_cr.c
+        sigma_cp.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
     LABEL sigma

@@ -171,10 +171,14 @@ function (sanitizer_add_flags TARGET NAME PREFIX)
 
     separate_arguments(flags_list UNIX_COMMAND "${${PREFIX}_${TARGET_COMPILER}_FLAGS} ${SanBlist_${TARGET_COMPILER}_FLAGS}")
     target_compile_options(${TARGET} PUBLIC "$<$<CONFIG:Debug>:${flags_list}>")
+    target_compile_options(${TARGET} PUBLIC "$<$<CONFIG:RelWithDebInfo>:${flags_list}>")
     target_compile_options(${TARGET} PUBLIC "$<$<CONFIG:Release>:${flags_list}>")
 
     separate_arguments(flags_list UNIX_COMMAND "${${PREFIX}_${TARGET_COMPILER}_FLAGS}")
-    target_link_options(${TARGET} PUBLIC "$<$<CONFIG:Debug>:${flags_list}>")
-    target_link_options(${TARGET} PUBLIC "$<$<CONFIG:Release>:${flags_list}>")
+    if (NOT MSVC)
+        target_link_options(${TARGET} PUBLIC "$<$<CONFIG:Debug>:${flags_list}>")
+        target_link_options(${TARGET} PUBLIC "$<$<CONFIG:RelWithDebInfo>:${flags_list}>")
+        target_link_options(${TARGET} PUBLIC "$<$<CONFIG:Release>:${flags_list}>")
+    endif ()
 
 endfunction ()

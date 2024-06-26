@@ -40,28 +40,33 @@ jobs:
           - scelbi 3b2 i701 i704 i7010 i7070 i7080 i7090 sigma uc15 i650 sel32 intel-mds ibm1130
     steps:
       - uses: actions/checkout@v4
-      ## Workaround for remnant symlinks in /usr/local pointing back to
-      ## macOS frameworks.
-      ##
-      ## Future: Will have to keep an eye on SDL_ttf's Python dependency
-      ## so that the correct/appropriate Python version is removed.
-      - name: Remnant symlink cleanup (macOS)
+
+      ## Nuke homebrew and start with a clean instance:
+      - name: Reinstall HomeBrew (macOS)
         if: ${{runner.os == 'macOS'}}
         run: |
-          brew unlink python@3 || true
-          brew uninstall --ignore-dependencies python@3 || true
-          brew unlink python@3.12 || true
-          brew uninstall --ignore-dependencies python@3.12 || true
-          for f in $(find /usr/local/bin -type l -print); do \
-            (readlink $f | grep -q -s "/Library") && echo Removing "$f" && rm -f "$f"; \
-          done || exit 0
+          /usr/bin/sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
+          [ -d /opt/homebrew ] && ( sudo rm -rf /opt/homebrew/* || true )
+          [ -d /usr/local ]    && ( sudo rm -rf /usr/local/*    || true )
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
       ## Install our regular dependencies.
       - name: Install dependencies (macOS)
         if: ${{runner.os == 'macOS'}}
-        run: sh -ex .travis/deps.sh osx
+        run: |
+          sh -ex .travis/deps.sh osx
+
       - name: Install dependencies (Linux)
         if: ${{runner.os == 'Linux'}}
         run: sh -ex .travis/deps.sh linux
+
+      - name: libslirp module
+        run: |
+          git submodule sync
+          git submodule set-url -- libslirp https://gitlab.freedesktop.org/bscottmichel/libslirp-minimal.git
+          git submodule set-branch --branch incr-minimal libslirp
+          git submodule update --init --recursive --remote
+
       - name: makefile build
         env:
           SIM: ${{matrix.simulators}}

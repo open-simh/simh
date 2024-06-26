@@ -50,6 +50,107 @@ bridge it with a physical network interface).
 The following steps were performed to get a working SIMH vax simulator
 sharing a physical NIC and allowing Host<->SIMH vax communications:
 
+Linux (iproute2 utilities, /etc/network/interfaces):
+
+   You have the iproute2 utility family installed if typing "ip addr show"
+   at the shell prompt shows you a list of network interfaces and their
+   associated IP addresses:
+
+   $ ip addr show
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+       link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+       inet 127.0.0.1/8 scope host lo
+          valid_lft forever preferred_lft forever
+       inet6 ::1/128 scope host
+          valid_lft forever preferred_lft forever
+   2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+   ...
+
+   The following example /etc/network/interfaces script creates a bridge
+   interface "br-main" and attaches the "eth0" and "tap0" interfaces to
+   the bridge. 
+   
+   Linux networking reads the /etc/network/intefaces script to configure your
+   network at boot time, so this bridge is "one and done". The tap0 interface
+   will persist until such time as you decide it's no longer useful and remove
+   the bridge configuration from the /etc/network/interfaces script.
+
+      ## /etc/network/interfaces bridge configuration example:
+      ##
+      ## THIS IS AN EXAMPLE CONFIGURATION. ADAPT IT TO FIT AND CONFORM
+      ## TO YOUR NETWORK CONFIGURATION.
+
+      auto lo br-main            # Configure lo0, br-main at boot time
+
+      iface lo inet loopback
+      
+      iface br-main inet manual
+         ##-------------------------------------------------------------
+         ## If you don't use iptables to firewall your Linux, you can
+         ## comment out the next line.
+         ##-------------------------------------------------------------
+         pre-up   modprobe br_netfilter
+         pre-up   ip link add name br-main type bridge
+         up       ip link set dev br-main up
+         ##-------------------------------------------------------------
+         ## Static IPv4 address configuration (you don't use DHCP):
+         ##
+         ##  Replace HOSTIP4/NETBITS4 with your IPv4 address and bits in
+         ##  your network mask, e.g., 192.168.1.20/24.
+         ##
+         ##  Replace GATEWAY4 with your router's IPv4 address.
+         ##
+         ##  If you use DHCP for IPv4 address configuration, comment out
+         ##  the next two lines.
+         ##-------------------------------------------------------------
+         up       ip address add HOSTIP4/NETBITS4 dev br-main
+         up       ip route append default via GATEWAY4 dev br-main
+         ##-------------------------------------------------------------
+         ##  IPv6: Replace HOSTIP6/NETBITS6 with your IPv6 address and
+         ##  bits in your network mask, e.g., 2001:db8::/64.
+         ##
+         ##  Replace GATEWAY6 with your router's IPv6 address.
+         ##
+         ##  If your network sends Router Advertisements, comment out the
+         ##  next two lines.
+         ##-------------------------------------------------------------
+         up       ip address HOSTIP6/NETBITS6 dev br-main
+         up       ip route append ::0 via GATEWAY6
+         ##-------------------------------------------------------------
+         ## DHCP address configuration:
+         ##
+         ## If you prefer static IPv4 configuration, comment out the next
+         ## line and refer above.
+         ##-------------------------------------------------------------
+         up       dhclient br-main
+         ##-------------------------------------------------------------
+         ## Attach eth0 and tap0:
+         ##-------------------------------------------------------------
+         up       ifup eth0
+         up       ifup tap0
+         ##-------------------------------------------------------------
+         ## If you don't use iptables to firewall your Linux, you can
+         ## comment out the next line.
+         ##-------------------------------------------------------------
+         post-up  echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+         pre-down ifdown tap0
+         pre-down ifdown eth0
+         down     ip link del dev br-main
+
+      iface eth0 inet manual
+         up      ip link set eth0 master br-main
+         down    ip link set eth0 nomaster
+
+      iface tap0 inet manual
+         pre-up    ip tuntap add tap0 mode tap user USER
+         up        ip link set tap0 master br-main
+         down      ip link set dev tap0 nomaster
+         post-down ip link del dev tap0
+      ## /etc/network/interfaces bridge configuration example ends...
+
+   When you run the simulator: "attach xq tap:tap0"
+
+
 Linux (Ubuntu 10.04):
     apt-get install make
     apt-get install libpcap-dev
@@ -181,37 +282,127 @@ OSX:
     install the net/vde2 package.
 
 -------------------------------------------------------------------------------
-Another alternative to direct pcap and tun/tap networking on all environments is
-NAT (SLiRP) networking.  NAT networking is limited to only IP network protocols
-so DECnet, LAT and Clusting can't work on a NAT connected interface, but this may
-be the easiest solution for many folks.
+NAT (libslirp) networking is another network alternative to direct pcap and
+tun/tap networking on all environments. NAT (libslirp) is always available as a
+network option.
+
+NAT is limited to IP network protocols only, so DECnet, LAT and Clusting can't
+work on a NAT-connected interface.
+
+Basic usage:
 
        sim> attach xq nat:
 
-The simulator can use static IP addresses of 10.0.2.4 thru 10.0.2.14 with a
-netmask of 255.255.255.0 and a gateway of 10.0.2.2 and a nameserver of 10.0.2.3.
-If the simulated machine uses DHCP it will get the address 10.0.2.15.  Various
-NAT based parameters can be configured on the attach command.  HELP XQ ATTACH
-will provide useful information.  Host to simulator connectivity can be
-achieved for a simulator which gets its IP address via DHCP with the following
-command:
+This attaches NAT to the VAX xq Ethernet interface with the following default
+IP parameters:
 
-       sim> attach xq nat:tcp=2323:10.0.2.15:23,tcp=2121:10.0.2.15:21
+      - Simulator's IP: 10.0.2.4 - 10.0.2.14 are available as static IPv4
+        addresses. DHCP is also available with IPv4 addresses starting at
+        10.0.2.15.
+      - Gateway/Router IPv4 address: 10.0.2.2 (i.e., the simulator's O/S
+        should use this as the default route.)
+      - DNS resolver's IPv4 address: 10.0.2.3
 
-The host computer can telnet to localhost:2323 to reach the simulator via
-telnet, etc.
+Advanced usage:
 
-Additionally NAT based networking is useful to allow host systems with WiFi
-networking to a) reach the simulated system and b) allow the simulated system
-to reach out to the Internet.
+      sim> attach xq nat:network=172.16.1.4/24,gateway=172.16.1.2,dns=172.16.1.3
+
+      This example overrides the NAT default and uses the following parameters,
+      where the NAT network uses the set of IPv4 addresses belonging to the
+      172.16.1.0/24 network:
+
+      - "network": Specifies the IPv4 aaddress nd network mask (CIDR format, in bits)
+        for the simulator interface. This basically tells libslirp which IPv4 address
+        the simulator uses (but you still have to configure the simulator's interface
+        with the required IPv4 configuration.)
+      - "gateway": Specifies the default router's IPv4 address.
+      - "dns": The DNS resolver's IPv4 address
+
+Mapping host ports to simulator ports has the general format:
+
+       sim> attach intf nat:tcp=<host port>:<sim IP>:<sim port>
+
+For example, to redirect the simulator's telnet port (port 23) to the host's
+port 2323:
+
+      sim> attach xq nat:tcp=2323:10.0.2.15:23,tcp=2121:10.0.2.15:21
+	   
+      Note 1: 10.0.2.15 is the first libslirp DHCP-assigned address, so this
+              example assumes that the VAX simulator uses DHCP to configure the
+              xq device's IPv4 configuration.
+
+      Note 2: Unless the simulator runs with root or administrator privileges,
+              ports below 1024 are reserved. Mappings should use host port
+              numbers greater than 1024.
+
+Users can subsequently telnet to localhost:2323 to reach the simulator via
+telnet.
+
+For the PDP10-KL simulator, the following IMP configuration is a useful Turism
+starting point:
+
+      set imp enabled
+      set imp mac=e2:6c:84:1d:34:a3
+      set imp host=192.168.1.100
+      set imp ip=192.168.2.4/24
+      set imp gw=192.168.2.2
+      at imp nat:dns=192.168.2.3,gateway=192.168.2.2,network=192.168.2.0/24,tcp=2023:192.168.2.4:23,tcp=2021:192.168.2.4:21,tcp=9595:192.168.2.4:95
+
+      Note: Ensure that ITS was built with a <255,255,0,0> network mask in the
+      PDP-10 KL configuration (See SYSTEM;CONFIG, search for "MCOND KL," and
+      change NM%IMP's definition following "MCOND KL,".) Then rebuild ITS.
+
+      Rebuilding ITS: https://github.com/PDP-10/its/blob/master/doc/NITS.md
+
+Connect a SUPDUP client to port 9595 on localhost, such as Putty's SUPDUP
+support or the user-maintained SUPDUP client (https://github.com/PDP-10/supdup)
+to discover that Today Is A Good Day To Be A Turist. Users can also connect to
+localhost:2023 for telnet Turism. (If ITS is unresponsive -- check the KL's
+network mask and rebuild ITS if necessary!!!)
 
 Note: As mentioned above, NAT networking is specifically capable of providing
       TCP/IP connectivity.  Only expect TCP and UDP traffic to pass through
       the interface.  Do not expect ICMP traffic (ping mostly) to traverse
-      the NAT boundary.  This restriction is a consequence of host platform
+      past the NAT boundary.  This restriction is a consequence of host platform
       and network limitations regarding direct user mode code generating ICMP
       packets.
 
+Debugging NAT: If you need to turn on NAT debugging, the following flags exist:
+
+      POLL     Outputs poll()/select() activities when libslirp polls the active
+               sockets for I/O activity.
+
+      SOCKET   Trace sockets as they are added and removed from libslirp.
+
+These debugging flags can only be set after "attach":
+
+      sim> set debug -n "vax-xq.out"
+      sim> attach xq nat:tcp=2323:10.0.2.15:23,tcp=2121:10.0.2.15:21
+      sim> set xq debug=socket;poll
+
+If you want REALLY verbose output and want to trace NAT's Ethernet traffic, you
+have to set that debugging flag before "attach" (the "ether" debug flag is part
+of the underlying sim_ether.c Ethernet support, not part of NAT):
+
+      sim> set debug -n "vax-xq.out"
+      sim> set xq debug=ether
+      sim> attach xq nat:tcp=2323:10.0.2.15:23,tcp=2121:10.0.2.15:21
+      sim> set xq debug=socket;poll
+
+Internal libslirp debugging is set by the "slirp=" argument to "attach":
+
+      sim> attach xq nat:tcp=2323:10.0.2.15:23,tcp=2121:10.0.2.15:21,slirp=call;misc;error;verbose_call
+
+where:
+
+      CALL          Outputs arguments to libslirp's functions
+      MISC          Outputs generally useful libslirp debugging info
+      ERROR         Outputs error diagnostics when they occur
+      VERBOSE_CALL  Like CALL, but selectively more verbose
+      ALL           All of the above flags
+
+Once turned on, however, libslirp debugging cannot be turned off until the
+simulator exits.
 
 -------------------------------------------------------------------------------
 
