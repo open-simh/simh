@@ -285,6 +285,12 @@ binaries.
     $ sudo sh .travis/deps.sh osx
     ```
 
+  - macOS MacPorts:
+
+    ```bash
+    $ sudo sh .travis/deps.sh macports
+    ```
+
   - MinGW-w64 Win64 console:
 
     ```bash
