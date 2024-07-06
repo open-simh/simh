@@ -468,7 +468,7 @@ the [appveyor] CI/CD pipelines execute these scripts.
     $ git clone https://github.com/open-simh/simh.git
     $ cd simh
 
-    # Install feature dependency libraries (use "osx" instead of "linux"
+    # Install feature dependency libraries (use "osx", for HomeBrew or "macports" for MacPorts)
     # on macOS with HomeBrew.)
     $ sh .travis/deps.sh linux
 
