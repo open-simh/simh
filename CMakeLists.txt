@@ -96,7 +96,7 @@ if (NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 # SIMH_SYSTEM_ID: Roughly analogous to the autoconf system triple. Used (almost exclusively)
-# as part of the depedencies' top-level directory name. 
+# as part of the dependencies' top-level directory name.
 set(SIMH_SYSTEM_ID ${CMAKE_SYSTEM_NAME})
 string(REPLACE "." ";" version_list ${CMAKE_SYSTEM_VERSION})
 list(GET version_list 0 version_major)
@@ -163,9 +163,9 @@ if (NOT DEFINED MAC_UNIVERSAL)
 else ()
     set(MAC_UNIVERSAL_OPTVAL ${MAC_UNIVERSAL})
     if (MAC_UNIVERSAL_OPTVAL)
-        message(STATUS "macOS unversal binaries WILL BE BUILT.")
+        message(STATUS "macOS universal binaries WILL BE BUILT.")
     else ()
-        message(STATUS "macOS unversal binaries NOT WILL BE BUILT.")
+        message(STATUS "macOS universal binaries NOT WILL BE BUILT.")
     endif ()
 endif ()
 
@@ -247,7 +247,7 @@ set(DEP_CMAKE_ARGS "-Wno-dev" "--no-warn-unused-cli")
 if (NOT (USING_VCPKG OR NO_DEP_BUILD) AND NOT EXISTS ${SIMH_DEP_TOPDIR})
     message(STATUS "Creating dependency library directory hierarchy")
     execute_process(
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${SIMH_DEP_TOPDIR} ${SIMH_DEP_TOPDIR}/include ${SIMH_DEP_TOPDIR}/lib 
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${SIMH_DEP_TOPDIR} ${SIMH_DEP_TOPDIR}/include ${SIMH_DEP_TOPDIR}/lib
                     ${SIMH_DEP_TOPDIR}/bin
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
@@ -297,7 +297,7 @@ include(platform-quirks)
 
 # Find packages, arrange for dependency download/compile/install:
 #
-# SIMH_BUILD_DEPS is the list of the dependecies' names, for pretty-printing.
+# SIMH_BUILD_DEPS is the list of the dependencies' names, for pretty-printing.
 # SIMH_DEP_TARGETS is the list of dependency targets' names that we'll actually build.
 
 set(SIMH_BUILD_DEPS)

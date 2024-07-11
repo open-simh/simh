@@ -34,33 +34,33 @@
    10-Nov-14    JDB     Added -N option to SET CONSOLE LOG and SET CONSOLE DEBUG
    02-Jan-14    RMS     Added tab stop routines
    18-Mar-12    RMS     Removed unused reference to sim_switches (Dave Bryan)
-   07-Dec-11    MP      Added sim_ttisatty to support reasonable behaviour (i.e. 
+   07-Dec-11    MP      Added sim_ttisatty to support reasonable behaviour (i.e.
                         avoid in infinite loop) in the main command input
-                        loop when EOF is detected and input is coming from 
+                        loop when EOF is detected and input is coming from
                         a file (or a null device: /dev/null or NUL:) This may
-                        happen when a simulator is running in a background 
+                        happen when a simulator is running in a background
                         process.
    17-Apr-11    MP      Cleaned up to support running in a background/detached
                         process
-   20-Jan-11    MP      Fixed support for BREAK key on Windows to account 
+   20-Jan-11    MP      Fixed support for BREAK key on Windows to account
                         for/ignore other keyboard Meta characters.
    18-Jan-11    MP      Added log file reference count support
    17-Jan-11    MP      Added support for a "Buffered" behaviors which include:
                         - If Buffering is enabled and Telnet is enabled, a
-                          telnet connection is not required for simulator 
+                          telnet connection is not required for simulator
                           operation (instruction execution).
-                        - If Buffering is enabled, all console output is 
+                        - If Buffering is enabled, all console output is
                           written to the buffer at all times (deleting the
                           oldest buffer contents on overflow).
-                        - when a connection is established on the console 
+                        - when a connection is established on the console
                           telnet port, the whole contents of the Buffer is
-                          presented on the telnet session and connection 
+                          presented on the telnet session and connection
                           will then proceed as if the connection had always
                           been there.
                         This concept allows a simulator to run in the background
-                        and when needed a console session to be established.  
-                        The "when needed" case usually will be interested in 
-                        what already happened before looking to address what 
+                        and when needed a console session to be established.
+                        The "when needed" case usually will be interested in
+                        what already happened before looking to address what
                         to do, hence the buffer contents being presented.
    28-Dec-10    MP      Added support for BREAK key on Windows
    30-Sep-06    RMS     Fixed non-printable characters in KSR mode
@@ -94,7 +94,7 @@
    25-Jan-97    RMS     Added POSIX terminal I/O support
    02-Jan-97    RMS     Fixed bug in sim_poll_kbd
 
-   This module implements the following routines to support terminal and 
+   This module implements the following routines to support terminal and
    Remote Console I/O:
 
    sim_poll_kbd                 poll for keyboard input
@@ -158,7 +158,7 @@
 #define MIN(a,b)  (((a) <= (b)) ? (a) : (b))
 #endif
 
-/* Forward Declaraations of Platform specific routines */
+/* Forward declarations of platform specific routines */
 
 static t_stat sim_os_poll_kbd (void);
 static t_bool sim_os_poll_kbd_ready (int ms_timeout);
@@ -257,9 +257,9 @@ return "Console telnet support";
 }
 
 DEVICE sim_con_telnet = {
-    "CON-TELNET", sim_con_units, sim_con_reg, sim_con_mod, 
-    2, 0, 0, 0, 0, 0, 
-    NULL, NULL, sim_con_reset, NULL, sim_con_attach, sim_con_detach, 
+    "CON-TELNET", sim_con_units, sim_con_reg, sim_con_mod,
+    2, 0, 0, 0, 0, 0,
+    NULL, NULL, sim_con_reset, NULL, sim_con_attach, sim_con_detach,
     NULL, DEV_DEBUG | DEV_NOSAVE, 0, sim_con_debug,
     NULL, NULL, NULL, NULL, NULL, sim_con_telnet_description};
 TMLN sim_con_ldsc = { 0 };                                          /* console line descr */
@@ -325,7 +325,7 @@ static t_stat sim_con_detach (UNIT *uptr)
 return sim_set_notelnet (0, NULL);
 }
 
-/* Forward declaratations */
+/* Forward declarations */
 
 static t_stat sim_os_fd_isatty (int fd);
 
@@ -505,9 +505,9 @@ return "Remote Console Facility";
 }
 
 DEVICE sim_remote_console = {
-    "REM-CON", NULL, NULL, sim_rem_con_mod, 
-    0, 0, 0, 0, 0, 0, 
-    NULL, NULL, sim_rem_con_reset, NULL, NULL, NULL, 
+    "REM-CON", NULL, NULL, sim_rem_con_mod,
+    0, 0, 0, 0, 0, 0,
+    NULL, NULL, sim_rem_con_reset, NULL, NULL, NULL,
     NULL, DEV_DEBUG | DEV_NOSAVE, 0, sim_rem_con_debug,
     NULL, NULL, NULL, NULL, NULL, sim_rem_con_description};
 
@@ -711,7 +711,7 @@ if (c >= 0) {                                           /* poll connect */
     tmxr_linemsgf (lp, "%s Remote Console\r\n"
                        "Enter single commands or to enter multiple command mode enter the %s character\r"
                        "%s",
-                       sim_name, wru_name, 
+                       sim_name, wru_name,
                        ((sim_rem_master_mode && (c == 0)) ? "" : "\nSimulator Running..."));
     if (sim_rem_master_mode && (c == 0))                /* Master Mode session? */
         rem->single_mode = FALSE;                       /*  start in multi-command mode */
@@ -878,7 +878,7 @@ return SCPE_OK;
 static t_stat _sim_rem_message (const char *cmd, t_stat stat)
 {
 CTAB *cmdp = NULL;
-t_stat stat_nomessage = stat & SCPE_NOMESSAGE;  /* extract possible message supression flag */
+t_stat stat_nomessage = stat & SCPE_NOMESSAGE;  /* extract possible message suppression flag */
 
 cmdp = find_cmd (cmd);
 stat = SCPE_BARE_STATUS(stat);                  /* remove possible flag */
@@ -906,7 +906,7 @@ if ((!sim_oline) && (sim_log)) {
         tmxr_linemsgf (lp, "%s", cbuf);
     }
 sim_oline = NULL;
-if ((rem->act == NULL) && 
+if ((rem->act == NULL) &&
     (!tmxr_input_pending_ln (lp))) {
     size_t unwritten;
 
@@ -1001,7 +1001,7 @@ if ((ep != NULL) && (*ep != ';')) {             /* if a quoted string is present
         if (ep [0] == '\\' && ep [1] == quote)  /*   if an escaped quote sequence follows */
             ep = ep + 2;                        /*     then skip over the pair */
         else                                    /*   otherwise */
-            ep = ep + 1;                        /*     skip the non-quote character */  
+            ep = ep + 1;                        /*     skip the non-quote character */
     ep = strchr (ep, ';');                      /* the next semicolon is outside the quotes if it exists */
     }
 
@@ -1019,7 +1019,7 @@ else {
 return buf;
 }
 
-/* 
+/*
     Parse and setup Remote Console REPEAT command:
        REPEAT EVERY nnn USECS Command {; command...}
  */
@@ -1100,7 +1100,7 @@ return stat;
 }
 
 
-/* 
+/*
     Parse and setup Remote Console REPEAT command:
        COLLECT nnn SAMPLES EVERY nnn CYCLES reg{,reg...}
  */
@@ -1396,8 +1396,8 @@ CTAB *basecmdp = NULL;
 uint32 read_start_time = 0;
 
 tmxr_poll_rx (&sim_rem_con_tmxr);                      /* poll input */
-for (i=(was_active_command ? sim_rem_cmd_active_line : 0); 
-     (i < sim_rem_con_tmxr.lines) && (!active_command); 
+for (i=(was_active_command ? sim_rem_cmd_active_line : 0);
+     (i < sim_rem_con_tmxr.lines) && (!active_command);
      i++) {
     REMOTE *rem = &sim_rem_consoles[i];
     t_bool master_session = (sim_rem_master_mode && (i == 0));
@@ -1553,7 +1553,7 @@ for (i=(was_active_command ? sim_rem_cmd_active_line : 0);
                 c = tmxr_getc_ln (lp);
                 if (!(TMXR_VALID & c)) {
                     tmxr_send_buffered_data (lp);       /* flush any buffered data */
-                    if (!master_session && 
+                    if (!master_session &&
                         rem->read_timeout &&
                         ((sim_os_msec() - read_start_time)/1000 >= rem->read_timeout)) {
                         while (rem->buf_ptr > 0) {      /* Erase current input line */
@@ -1879,7 +1879,7 @@ if (sim_rem_cmd_active_line != -1) {
         return SCPE_REMOTE;                                 /* force sim_instr() to exit to process command */
     }
 else
-    sim_activate_after(uptr, 100000);                       /* check again in 100 milliaeconds */
+    sim_activate_after(uptr, 100000);                       /* check again in 100 milliseconds */
 if (sim_rem_master_was_enabled && !sim_rem_master_mode) {   /* Transitioning out of master mode? */
     lp = &sim_rem_con_tmxr.ldsc[0];
     tmxr_linemsgf (lp, "Non Master Mode Session...");       /* report transition */
@@ -2059,7 +2059,7 @@ return sim_rem_master_mode &&                                           /* maste
 /* In master mode, commands are subsequently processed from the
    primary/initial (master mode) remote console session.  Commands
    are processed from that source until that source disables master
-   mode or the simulator exits 
+   mode or the simulator exits
  */
 
 static t_stat sim_set_rem_master (int32 flag, CONST char *cptr)
@@ -2092,7 +2092,7 @@ if (sim_rem_master_mode) {
         sim_activate (rem_con_data_unit, -1);
         stat = run_cmd (RU_GO, "");
         if (stat != SCPE_TTMO) {
-            stat_nomessage = stat & SCPE_NOMESSAGE;         /* extract possible message supression flag */
+            stat_nomessage = stat & SCPE_NOMESSAGE;         /* extract possible message suppression flag */
             stat = _sim_rem_message ("RUN", stat);
             }
         brk_action = sim_brk_replace_act (NULL);
@@ -2203,7 +2203,7 @@ if (sim_devices[0]->dradix == 16)
 else
     fprintf (st, "pchar mask = %o", sim_tt_pchar);
 if (sim_tt_pchar) {
-    static const char *pchars[] = {"NUL(^@)", "SOH(^A)", "STX(^B)", "ETX(^C)", "EOT(^D)", "ENQ(^E)", "ACK(^F)", "BEL(^G)", 
+    static const char *pchars[] = {"NUL(^@)", "SOH(^A)", "STX(^B)", "ETX(^C)", "EOT(^D)", "ENQ(^E)", "ACK(^F)", "BEL(^G)",
                                    "BS(^H)" , "HT(^I)",  "LF(^J)",  "VT(^K)",  "FF(^L)",  "CR(^M)",  "SO(^N)",  "SI(^O)",
                                    "DLE(^P)", "DC1(^Q)", "DC2(^R)", "DC3(^S)", "DC4(^T)", "NAK(^U)", "SYN(^V)", "ETB(^W)",
                                    "CAN(^X)", "EM(^Y)",  "SUB(^Z)", "ESC",     "FS",      "GS",      "RS",      "US"};
@@ -2258,14 +2258,14 @@ cptr = get_glyph_nc (cptr, gbuf, 0);                    /* get file name */
 if (*cptr != 0)                                         /* now eol? */
     return SCPE_2MARG;
 sim_set_logoff (0, NULL);                               /* close cur log */
-r = sim_open_logfile (gbuf, (sim_switches & SWMASK ('B')) == SWMASK ('B'), 
+r = sim_open_logfile (gbuf, (sim_switches & SWMASK ('B')) == SWMASK ('B'),
                             &sim_log, &sim_log_ref);    /* open log */
 if (r != SCPE_OK)                                       /* error? */
     return r;
 if ((!sim_quiet) && (!(sim_switches & SWMASK ('Q'))))
-    fprintf (stdout, "Logging to file \"%s\"\n", 
+    fprintf (stdout, "Logging to file \"%s\"\n",
              sim_logfile_name (sim_log, sim_log_ref));
-fprintf (sim_log, "Logging to file \"%s\"\n", 
+fprintf (sim_log, "Logging to file \"%s\"\n",
              sim_logfile_name (sim_log, sim_log_ref));  /* start of log */
 time(&now);
 if ((!sim_quiet) && (!(sim_switches & SWMASK ('Q'))))
@@ -2296,7 +2296,7 @@ t_stat sim_show_log (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, CONST char 
 if (cptr && (*cptr != 0))
     return SCPE_2MARG;
 if (sim_log)
-    fprintf (st, "Logging enabled to \"%s\"\n", 
+    fprintf (st, "Logging enabled to \"%s\"\n",
                  sim_logfile_name (sim_log, sim_log_ref));
 else
     fprintf (st, "Logging disabled\n");
@@ -2309,9 +2309,9 @@ int32 sim_set_deb_switches (int32 switches)
 {
 int32 old_deb_switches = sim_deb_switches;
 
-sim_deb_switches = switches & 
-                   (SWMASK ('R') | SWMASK ('P') | 
-                    SWMASK ('T') | SWMASK ('A') | 
+sim_deb_switches = switches &
+                   (SWMASK ('R') | SWMASK ('P') |
+                    SWMASK ('T') | SWMASK ('A') |
                     SWMASK ('F') | SWMASK ('N') |
                     SWMASK ('B') | SWMASK ('E') |
                     SWMASK ('D') );                 /* save debug switches */
@@ -2370,7 +2370,7 @@ if (sim_deb_switches & SWMASK ('F'))
 if (sim_deb_switches & SWMASK ('E'))
     sim_messagef (SCPE_OK, "   Debug messages containing blob data in EBCDIC will display in readable form\n");
 if (sim_deb_switches & SWMASK ('B'))
-    sim_messagef (SCPE_OK, "   Debug messages will be written to a %u MB circular memory buffer\n", 
+    sim_messagef (SCPE_OK, "   Debug messages will be written to a %u MB circular memory buffer\n",
                                 (unsigned int)buffer_size);
 time(&now);
 if (!sim_quiet) {
@@ -2432,7 +2432,7 @@ int32 i;
 if (cptr && (*cptr != 0))
     return SCPE_2MARG;
 if (sim_deb) {
-    fprintf (st, "Debug output enabled to \"%s\"\n", 
+    fprintf (st, "Debug output enabled to \"%s\"\n",
                  sim_logfile_name (sim_deb, sim_deb_ref));
     if (sim_deb_switches & SWMASK ('P'))
         fprintf (st, "   Debug messages contain current PC value\n");
@@ -2536,7 +2536,7 @@ t_stat sim_show_telnet (FILE *st, DEVICE *dunused, UNIT *uunused, int32 flag, CO
 {
 if (cptr && (*cptr != 0))
     return SCPE_2MARG;
-if ((sim_con_tmxr.master == 0) && 
+if ((sim_con_tmxr.master == 0) &&
     (sim_con_ldsc.serport == 0))
     fprintf (st, "Connected to console window\n");
 else {
@@ -2544,7 +2544,7 @@ else {
         fprintf (st, "Connected to ");
         tmxr_fconns (st, &sim_con_ldsc, -1);
         }
-    else 
+    else
         if (sim_con_ldsc.sock == 0)
             fprintf (st, "Listening on port %s\n", sim_con_tmxr.port);
         else {
@@ -2790,7 +2790,7 @@ if (!ref)
 return ref->name;
 }
 
-/* Check connection before executing 
+/* Check connection before executing
    (including a remote console which may be required in master mode) */
 
 t_stat sim_check_console (int32 sec)
@@ -2827,7 +2827,7 @@ if (trys == sec) {
     return SCPE_TTMO;                                   /* timed out */
     }
 if (sim_con_ldsc.serport)
-    if (tmxr_poll_conn (&sim_con_tmxr) >= 0) 
+    if (tmxr_poll_conn (&sim_con_tmxr) >= 0)
         sim_con_ldsc.rcve = 1;                          /* rcv enabled */
 if ((sim_con_tmxr.master == 0) ||                       /* serial console or not Telnet? done */
     (sim_con_ldsc.serport))
@@ -2931,7 +2931,7 @@ if (!sim_rem_master_mode) {
         }
     }
 tmxr_poll_rx (&sim_con_tmxr);                               /* poll for input */
-if ((c = (t_stat)tmxr_getc_ln (&sim_con_ldsc))) {           /* any char? */ 
+if ((c = (t_stat)tmxr_getc_ln (&sim_con_ldsc))) {           /* any char? */
     sim_debug (DBG_RCV, &sim_con_telnet, "sim_poll_kbd() tmxr_getc_ln() returning: '%c' (0x%02X)\n", sim_isprint (c & 0xFF) ? c & 0xFF : '.', c);
     return (c & (SCPE_BREAK | 0377)) | SCPE_KFLAG;
     }
@@ -3128,7 +3128,7 @@ if ((md == TTUF_MODE_UC) && (par_mode == TTUF_PAR_MARK))
     fprintf (st, "KSR (UC, MARK parity)");
 else
     fprintf (st, "%s", modes[md]);
-if ((md != TTUF_MODE_8B) && 
+if ((md != TTUF_MODE_8B) &&
     ((md != TTUF_MODE_UC) || (par_mode != TTUF_PAR_MARK))) {
     if (par_mode != 0)
         fprintf (st, ", %s parity", parity[par_mode]);
@@ -3153,8 +3153,8 @@ _console_poll(void *arg)
 int wait_count = 0;
 DEVICE *d;
 
-/* Boost Priority for this I/O thread vs the CPU instruction execution 
-   thread which, in general, won't be readily yielding the processor when 
+/* Boost Priority for this I/O thread vs the CPU instruction execution
+   thread which, in general, won't be readily yielding the processor when
    this thread needs to run */
 sim_os_set_thread_priority (PRIORITY_ABOVE_NORMAL);
 
@@ -3496,11 +3496,11 @@ static DWORD saved_error_mode;
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
 
-/* Note: This routine catches all the potential events which some aspect 
-         of the windows system can generate.  The CTRL_C_EVENT won't be 
-         generated by a  user typing in a console session since that 
+/* Note: This routine catches all the potential events which some aspect
+         of the windows system can generate.  The CTRL_C_EVENT won't be
+         generated by a  user typing in a console session since that
          session is in RAW mode.  In general, Ctrl-C on a simulator's
-         console terminal is a useful character to be passed to the 
+         console terminal is a useful character to be passed to the
          simulator.  This code does nothing to disable or affect that. */
 
 #include <signal.h>
@@ -3513,7 +3513,7 @@ ControlHandler(DWORD dwCtrlType)
 
     switch (dwCtrlType)
         {
-        case CTRL_BREAK_EVENT:      // Use CTRL-Break or CTRL-C to simulate 
+        case CTRL_BREAK_EVENT:      // Use CTRL-Break or CTRL-C to simulate
         case CTRL_C_EVENT:          // SERVICE_CONTROL_STOP in debug mode
             int_handler(SIGINT);
             return TRUE;
@@ -3927,11 +3927,11 @@ static t_stat sim_os_ttinit (void)
 sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_ttinit()\n");
 
 cmdfl = fcntl (fileno (stdin), F_GETFL, 0);             /* get old flags  and status */
-/* 
+/*
  * make sure systems with broken termios (that don't honor
- * VMIN=0 and VTIME=0) actually implement non blocking reads.  
- * This will have no negative effect on other systems since 
- * this is turned on and off depending on whether simulation 
+ * VMIN=0 and VTIME=0) actually implement non blocking reads.
+ * This will have no negative effect on other systems since
+ * this is turned on and off depending on whether simulation
  * is running or not.
  */
 runfl = cmdfl | O_NONBLOCK;
@@ -4130,7 +4130,7 @@ else {
 
     mbuf2 = (char *)malloc (3 + strlen(cptr));
     sprintf (mbuf2, "%s%s%s", (sim_switches & SWMASK ('A')) ? "\n" : "",
-                              mbuf, 
+                              mbuf,
                               (sim_switches & SWMASK ('I')) ? "" : "\n");
     free (mbuf);
     mbuf = sim_encode_quoted_string ((uint8 *)mbuf2, strlen (mbuf2));

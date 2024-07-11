@@ -2,7 +2,7 @@
  * sim_printf_fmts.h
  *
  * Cross-platform printf() formats for simh data types. Refactored out to
- * this header so that these formats are avaiable to more than SCP.
+ * this header so that these formats are available to more than SCP.
  *
  * Author: B. Scott Michel
  *

@@ -71,7 +71,7 @@
 #define KEY_ILLREQ      5                               /* illegal request */
 #define KEY_PROT        7                               /* data protect */
 #define KEY_BLANK       8                               /* blank check */
-#define KEY_M_ILI       0x20                            /* incorrent length indicator */
+#define KEY_M_ILI       0x20                            /* incorrect length indicator */
 
 /* Additional sense codes */
 
@@ -380,7 +380,7 @@ scsi_debug_cmd (bus, "Test Unit Ready\n");
 
 if (uptr->flags & UNIT_ATT)                             /* attached? */
     scsi_status (bus, STS_OK, KEY_OK, ASC_OK);          /* unit is ready */
-else  
+else
     scsi_status (bus, STS_CHK, KEY_NOTRDY, ASC_NOMEDIA); /* no media present */
 }
 
@@ -428,11 +428,11 @@ else {
         }
 #endif
     if (dev->removeable)
-        bus->buf[bus->buf_b++] = 0x80;                  /* removeable */
+        bus->buf[bus->buf_b++] = 0x80;                  /* removable */
     else
         bus->buf[bus->buf_b++] = 0;                     /* fixed */
     bus->buf[bus->buf_b++] = dev->scsiver;              /* versions */
-    bus->buf[bus->buf_b++] = dev->scsiver;              /* respose data format */
+    bus->buf[bus->buf_b++] = dev->scsiver;              /* response data format */
     bus->buf[bus->buf_b++] = 31;                        /* additional length */
     bus->buf[bus->buf_b++] = 0;                         /* reserved */
     bus->buf[bus->buf_b++] = 0;                         /* reserved */
@@ -639,7 +639,7 @@ if ((pc == 0x4) || (pc == 0x3F)) {
     bus->buf[bus->buf_b++] = 0x4;                       /* landing zone cyl (15:8) */
     bus->buf[bus->buf_b++] = 0;                         /* landing zone cyl (7:0) */
     bus->buf[bus->buf_b++] = 0;                         /* reserved, RPL */
-    bus->buf[bus->buf_b++] = 0;                         /* rotational offet */
+    bus->buf[bus->buf_b++] = 0;                         /* rotational offset */
     bus->buf[bus->buf_b++] = 0;                         /* reserved */
     bus->buf[bus->buf_b++] = 0x1C;                      /* medium rotation rate (15:8) */
     bus->buf[bus->buf_b++] = 0x20;                      /* medium rotation rate (7:0) */
@@ -1189,7 +1189,7 @@ for (i = 0; i < sects; i++) {
     r = sim_tape_wrtmk (uptr);
     if (r != MTSE_OK) break;
     }
-    
+
 scsi_tape_status (bus, r);
 bus->buf[bus->buf_b++] = bus->status;                   /* status code */
 scsi_set_phase (bus, SCSI_STS);                         /* status phase next */
@@ -1782,7 +1782,7 @@ t_stat scsi_attach (UNIT *uptr, CONST char *cptr)
 return scsi_attach_ex (uptr, cptr, NULL);
 }
 
-/* Dettach device */
+/* Detach device */
 
 t_stat scsi_detach (UNIT *uptr)
 {

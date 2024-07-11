@@ -99,7 +99,7 @@
 
 #### CDC 1700 simulator from John Forecast
 
-#### Hans-Åke Lund has implemented an SCELBI (SCientic-ELectronics-BIology) simulator.
+#### Hans-Åke Lund has implemented an SCELBI (SCientific-ELectronics-BIology) simulator.
 
 #### IBM 650 simulator from Roberto Sancho Villa
 
@@ -351,7 +351,7 @@ The EXPECT command now exists to provide a means of reacting to simulator output
 
 #### Help
 
-The built-in help system provides a heirarchical oriented help command interface.
+The built-in help system provides a hierarchical oriented help command interface.
 In addition, there is explicit support for per device help:
 
     HELP dev
@@ -600,7 +600,7 @@ This link will return a file called simh-vms-pcap.zip which should be unpacked a
     $ unzip -a simh-vms-pcap.zip
     $ rename [.simh-vms-pcap]pcap-vms.dir []
 
-The PCAP-VMS components are presumed (by the descript.mms file) to be
+The PCAP-VMS components are presumed (by the descrip.mms file) to be
 located in a directory at the same level as the directory containing the
 simh source files.  For example, if these exist here:
 

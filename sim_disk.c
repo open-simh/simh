@@ -28,7 +28,7 @@
    This is the place which hides processing of various disk formats,
    as well as OS-specific direct hardware access.
 
-   25-Jan-11    MP      Initial Implemementation
+   25-Jan-11    MP      Initial Implementation
 
 Public routines:
 
@@ -276,8 +276,8 @@ return NULL;
    processing events for any unit. It is only called when an asynchronous
    thread has called sim_activate() to activate a unit.  The job of this
    routine is to put the unit in proper condition to digest what may have
-   occurred in the asynchrconous thread.
-  
+   occurred in the asynchronous thread.
+
    Since disk processing only handles a single I/O at a time to a
    particular disk device (due to using stdio for the SimH Disk format
    and stdio doesn't have an atomic seek+(read|write) operation),
@@ -487,7 +487,7 @@ switch (DK_GET_FMT (uptr)) {                            /* case on format */
                 sim_switches = 0;
                 sim_quiet = 1;
                 strcpy (path, uptr->filename);
-                sim_disk_attach (uptr, path, ctx->sector_size, ctx->xfer_element_size, 
+                sim_disk_attach (uptr, path, ctx->sector_size, ctx->xfer_element_size,
                                  FALSE, ctx->dbit, NULL, 0, 0);
                 sim_quiet = saved_quiet;
                 sim_switches = saved_switches;
@@ -524,7 +524,7 @@ DEVICE *dptr;
 uint32 dev, unit, count = 0;
 
 if (flag == sim_disk_no_autosize)
-    return sim_messagef (SCPE_ARG, "Autosizing is already %sabled!\n", 
+    return sim_messagef (SCPE_ARG, "Autosizing is already %sabled!\n",
                                     sim_disk_no_autosize ? "dis" : "en");
 for (dev = 0; (dptr = sim_devices[dev]) != NULL; dev++) {
     if ((DEV_TYPE (dptr) != DEV_DISK) ||
@@ -665,7 +665,7 @@ while (tbc) {
     if (i < tbc)                 /* fill */
         memset (&buf[i], 0, tbc-i);
     if ((i == 0) &&             /* Reading at or past EOF? */
-        feof (uptr->fileref))   
+        feof (uptr->fileref))
         i = tbc;                /* return 0's which have already been filled in buffer */
     sectbytes = (i / ctx->sector_size) * ctx->sector_size;
     if (i > sectbytes)
@@ -871,7 +871,7 @@ if (f == DKUF_F_RAW) {
         if (tbuf == NULL)
             return SCPE_MEM;
         /* Partial Sector writes require a read-modify-write sequence for the partial sectors */
-        if (soffset) 
+        if (soffset)
             sim_os_disk_read (uptr, ssaddr, tbuf, NULL, ctx->storage_sector_size);
         sim_os_disk_read (uptr, sladdr, tbuf + (size_t)(sladdr - ssaddr), NULL, ctx->storage_sector_size);
         sim_buf_copy_swapped (tbuf + soffset,
@@ -982,13 +982,13 @@ static t_stat _sim_disk_rdsect_interleave (UNIT *uptr, t_lba lba, uint8 *buf, t_
 struct disk_context *ctx = (struct disk_context *)uptr->disk_ctx;
 t_lba sectno = lba, psa;
 t_stat status;
- 
+
 if (sectsread)
     *sectsread = 0;
 
 do {
     uint16 i, track, sector;
-    
+
     /*
      * Map an LBA address into a physical sector address
      */
@@ -1141,7 +1141,7 @@ typedef struct _ODS2_FileHeader
 
 typedef union _ODS2_Retreval
     {
-        struct 
+        struct
             {
             unsigned fm2___fill   : 14;       /* type specific data               */
             unsigned fm2_v_format : 2;        /* format type code                 */
@@ -1278,31 +1278,31 @@ if ((_DEC_rdsect (uptr, 512 / ctx->sector_size, (uint8 *)&Home, &sects_read, siz
     goto Return_Cleanup;
 CheckSum1 = ODSChecksum (&Home, (uint16)((((char *)&Home.hm2_w_checksum1)-((char *)&Home.hm2_l_homelbn))/2));
 CheckSum2 = ODSChecksum (&Home, (uint16)((((char *)&Home.hm2_w_checksum2)-((char *)&Home.hm2_l_homelbn))/2));
-if ((Home.hm2_l_homelbn == 0) || 
-    (Home.hm2_l_alhomelbn == 0) || 
-    (Home.hm2_l_altidxlbn == 0) || 
-    ((Home.hm2_b_struclev != 2) && (Home.hm2_b_struclev != 5)) || 
-    (Home.hm2_b_strucver == 0) || 
-    (Home.hm2_w_cluster == 0) || 
-    (Home.hm2_w_homevbn == 0) || 
-    (Home.hm2_w_alhomevbn == 0) || 
-    (Home.hm2_w_ibmapvbn == 0) || 
-    (Home.hm2_l_ibmaplbn == 0) || 
-    (Home.hm2_w_resfiles >= Home.hm2_l_maxfiles) || 
-    (Home.hm2_w_ibmapsize == 0) || 
-    (Home.hm2_w_resfiles < 5) || 
+if ((Home.hm2_l_homelbn == 0) ||
+    (Home.hm2_l_alhomelbn == 0) ||
+    (Home.hm2_l_altidxlbn == 0) ||
+    ((Home.hm2_b_struclev != 2) && (Home.hm2_b_struclev != 5)) ||
+    (Home.hm2_b_strucver == 0) ||
+    (Home.hm2_w_cluster == 0) ||
+    (Home.hm2_w_homevbn == 0) ||
+    (Home.hm2_w_alhomevbn == 0) ||
+    (Home.hm2_w_ibmapvbn == 0) ||
+    (Home.hm2_l_ibmaplbn == 0) ||
+    (Home.hm2_w_resfiles >= Home.hm2_l_maxfiles) ||
+    (Home.hm2_w_ibmapsize == 0) ||
+    (Home.hm2_w_resfiles < 5) ||
     (Home.hm2_w_checksum1 != CheckSum1) ||
     (Home.hm2_w_checksum2 != CheckSum2))
     goto Return_Cleanup;
-if ((_DEC_rdsect (uptr, (Home.hm2_l_ibmaplbn+Home.hm2_w_ibmapsize+1) * (512 / ctx->sector_size), 
-                  (uint8 *)&Header, &sects_read, sizeof (Header) / ctx->sector_size, physsectsz)) || 
+if ((_DEC_rdsect (uptr, (Home.hm2_l_ibmaplbn+Home.hm2_w_ibmapsize+1) * (512 / ctx->sector_size),
+                  (uint8 *)&Header, &sects_read, sizeof (Header) / ctx->sector_size, physsectsz)) ||
     (sects_read != (sizeof (Header) / ctx->sector_size)))
     goto Return_Cleanup;
 CheckSum1 = ODSChecksum (&Header, 255);
 if (CheckSum1 != *(((uint16 *)&Header)+255)) /* Verify Checksum on BITMAP.SYS file header */
     goto Return_Cleanup;
 Retr = (ODS2_Retreval *)(((uint16*)(&Header))+Header.fh2_b_mpoffset);
-/* The BitMap File has a single extent, which may be preceeded by a placement descriptor */
+/* The BitMap File has a single extent, which may be preceded by a placement descriptor */
 if (Retr->fm2_r_word0_bits.fm2_v_format == 0)
     Retr = (ODS2_Retreval *)(((uint16 *)Retr)+1); /* skip placement descriptor */
 switch (Retr->fm2_r_word0_bits.fm2_v_format)
@@ -1324,12 +1324,12 @@ if ((_DEC_rdsect (uptr, ScbLbn * (512 / ctx->sector_size), (uint8 *)&Scb, &sects
 CheckSum1 = ODSChecksum (&Scb, 255);
 if (CheckSum1 != *(((uint16 *)&Scb)+255)) /* Verify Checksum on Storage Control Block */
     goto Return_Cleanup;
-if ((Scb.scb_w_cluster != Home.hm2_w_cluster) || 
+if ((Scb.scb_w_cluster != Home.hm2_w_cluster) ||
     (Scb.scb_b_strucver != Home.hm2_b_strucver) ||
     (Scb.scb_b_struclev != Home.hm2_b_struclev))
     goto Return_Cleanup;
 sim_messagef (SCPE_OK, "%s: '%s' Contains ODS%d File system\n", sim_uname (uptr), uptr->filename, Home.hm2_b_struclev);
-sim_messagef (SCPE_OK, "%s: Volume Name: %12.12s Format: %12.12s Sectors In Volume: %u\n", 
+sim_messagef (SCPE_OK, "%s: Volume Name: %12.12s Format: %12.12s Sectors In Volume: %u\n",
                                    sim_uname (uptr), Home.hm2_t_volname, Home.hm2_t_format, Scb.scb_l_volsize);
 ret_val = ((t_offset)Scb.scb_l_volsize) * 512;
 
@@ -1365,12 +1365,12 @@ if ((_DEC_rdsect (uptr, 512 / ctx->sector_size, (uint8 *)&Home, &sects_read, siz
     goto Return_Cleanup;
 CheckSum1 = ODSChecksum (&Home, (uint16)((((char *)&Home.hm1_w_checksum1)-((char *)&Home.hm1_w_ibmapsize))/2));
 CheckSum2 = ODSChecksum (&Home, (uint16)((((char *)&Home.hm1_w_checksum2)-((char *)&Home.hm1_w_ibmapsize))/2));
-if ((Home.hm1_w_ibmapsize == 0) || 
-    (Home.hm1_l_ibmaplbn == 0) || 
-    (Home.hm1_w_maxfiles == 0) || 
-    (Home.hm1_w_cluster != 1) || 
-    ((Home.hm1_w_structlev != HM1_C_LEVEL1) && (Home.hm1_w_structlev != HM1_C_LEVEL2)) || 
-    (Home.hm1_l_ibmaplbn == 0) || 
+if ((Home.hm1_w_ibmapsize == 0) ||
+    (Home.hm1_l_ibmaplbn == 0) ||
+    (Home.hm1_w_maxfiles == 0) ||
+    (Home.hm1_w_cluster != 1) ||
+    ((Home.hm1_w_structlev != HM1_C_LEVEL1) && (Home.hm1_w_structlev != HM1_C_LEVEL2)) ||
+    (Home.hm1_l_ibmaplbn == 0) ||
     (Home.hm1_w_checksum1 != CheckSum1) ||
     (Home.hm1_w_checksum2 != CheckSum2))
     goto Return_Cleanup;
@@ -1392,7 +1392,7 @@ if (Scb->scb_b_bitmapblks < 127)
 else
     ret_val = (((t_offset)Scb->scb_r_blocks[0].scb_w_freeblks << 16) + Scb->scb_r_blocks[0].scb_w_freeptr) * 512;
 sim_messagef (SCPE_OK, "%s: '%s' Contains an ODS1 File system\n", sim_uname (uptr), uptr->filename);
-sim_messagef (SCPE_OK, "%s: Volume Name: %12.12s Format: %12.12s Sectors In Volume: %u\n", 
+sim_messagef (SCPE_OK, "%s: Volume Name: %12.12s Format: %12.12s Sectors In Volume: %u\n",
                                 sim_uname (uptr), Home.hm1_t_volname, Home.hm1_t_format, (uint32)(ret_val / 512));
 Return_Cleanup:
 uptr->capac = saved_capac;
@@ -1434,7 +1434,7 @@ if ((_DEC_rdsect (uptr, 31 * (512 / ctx->sector_size), sector_buf, &sects_read, 
     (sects_read != (512 / ctx->sector_size)))
     goto Return_Cleanup;
 
-if ((Label->pt_magic != PT_MAGIC) || 
+if ((Label->pt_magic != PT_MAGIC) ||
     (Label->pt_valid != PT_VALID))
     goto Return_Cleanup;
 
@@ -1524,7 +1524,7 @@ saved_capac = uptr->capac;
 uptr->capac = temp_capac;
 
 while (sim_disk_rdsect(uptr, (t_lba)(sectfactor * cur_pos / sizeof (*Desc)), (uint8 *)Desc, &sectsread, sectfactor) == DKSE_OK) {
-    if ((sectsread != sectfactor)               || 
+    if ((sectsread != sectfactor)               ||
         (Desc->Version != 1)                    ||
         (0 != memcmp (Desc->Identifier, "CD001", sizeof (Desc->Identifier))))
         break;
@@ -2027,7 +2027,7 @@ for (context.dcshift = 0; context.dcshift < 8; context.dcshift++) {
                                 }
 
                             sim_messagef(SCPE_OK, "%s: '%s' Contains a RSTS File system\n", sim_uname (uptr), uptr->filename);
-                            sim_messagef(SCPE_OK, "%s: Pack ID: %6.6s Revision Level: %3s Pack Clustersize: %d\n", 
+                            sim_messagef(SCPE_OK, "%s: Pack ID: %6.6s Revision Level: %3s Pack Clustersize: %d\n",
                                                                   sim_uname (uptr), context.packid, fmt, context.pcs);
                             sim_messagef(SCPE_OK, "%s: Last Unallocated Sector In File System: %u\n", sim_uname (uptr), (uint32)((ret_val / 512) - 1));
                             goto cleanup_done;
@@ -2120,7 +2120,7 @@ if (strncmp((char *)&home->hb_b_sysid, HB_C_SYSID, strlen(HB_C_SYSID)) == 0) {
 
 if (strncmp((char *)&home->hb_b_sysid, HB_C_VMSSYSID, strlen(HB_C_VMSSYSID)) == 0)
     return RT11_SINGLEPART;
- 
+
 return RT11_NOPART;
 }
 
@@ -2156,7 +2156,7 @@ for (part = 0; part < RT11_MAXPARTITIONS; part++) {
      */
     if ((part != 0) && (physsectsz != 0))
       break;
-    
+
     base = part << 16;
 
     if (_DEC_rdsect(uptr, (base + RT11_HOME) * (512 / ctx->sector_size), (uint8 *)&Home, &sects_read, 512 / ctx->sector_size, physsectsz) ||
@@ -2293,22 +2293,22 @@ for (i = 0; checks[i] != NULL; i++)
     if ((ret_val = checks[i] (uptr, 0, readonly)) != (t_offset)-1) {
         /* ISO files that haven't already been determined to be ISO 9660
          * which contain a known file system are also marked read-only
-         * now.  This fits early DEC distribution CDs that were created 
+         * now.  This fits early DEC distribution CDs that were created
          * before ISO 9660 was standardized and operating support was added.
          */
-        if ((readonly != NULL)          && 
+        if ((readonly != NULL)          &&
             (*readonly == FALSE)        &&
             (NULL != match_ext (uptr->filename, "ISO")))
             *readonly = TRUE;
         return ret_val;
         }
-/* 
- * The only known interleaved disk devices have either 256 byte 
- * or 128 byte sector sizes.  If additional interleaved file 
+/*
+ * The only known interleaved disk devices have either 256 byte
+ * or 128 byte sector sizes.  If additional interleaved file
  * system scenarios with different sector sizes come up they
  * should be added here.
  */
-   
+
 for (i = 0; checks[i] != NULL; i++) {
     ctx->sector_size = 256;
     if ((ret_val = checks[i] (uptr, ctx->sector_size, readonly)) != (t_offset)-1)
@@ -2318,7 +2318,7 @@ for (i = 0; checks[i] != NULL; i++) {
         break;
     }
 if ((ret_val != (t_offset)-1) && (ctx->sector_size != saved_sector_size ))
-    sim_messagef (SCPE_OK, "%s: with an unexpected sector size of %u bytes instead of %u bytes\n", 
+    sim_messagef (SCPE_OK, "%s: with an unexpected sector size of %u bytes instead of %u bytes\n",
                            sim_uname (uptr), ctx->sector_size, saved_sector_size);
 ctx->sector_size = saved_sector_size;
 return ret_val;
@@ -2395,7 +2395,7 @@ if (f) {
         }
     else {
         /* We've got a valid footer, but it may need to be corrected */
-        if ((NtoHl (f->TransferElementSize) == 1) && 
+        if ((NtoHl (f->TransferElementSize) == 1) &&
             (0 == memcmp (f->DriveType, "RZ", 2))) {
             f->TransferElementSize = NtoHl (2);
             f->Checksum = NtoHl (eth_crc32 (0, f, sizeof (*f) - sizeof (f->Checksum)));
@@ -2415,12 +2415,12 @@ if (f) {
             "   AccessFormat:        %u\n"
             "   CreationTime:        %s",
             sim_uname (uptr), uptr->filename,
-            f->CreatingSimulator, f->DriveType, NtoHl(f->SectorSize), NtoHl (f->SectorCount), 
+            f->CreatingSimulator, f->DriveType, NtoHl(f->SectorSize), NtoHl (f->SectorCount),
             NtoHl (f->TransferElementSize), f->FooterVersion, f->AccessFormat, f->CreationTime);
         if (f->DeviceName[0] != '\0')
-            sim_debug_unit (ctx->dbit, uptr, 
+            sim_debug_unit (ctx->dbit, uptr,
                 "   DeviceName:          %s\n", (char *)f->DeviceName);
-        sim_debug_unit (ctx->dbit, uptr, 
+        sim_debug_unit (ctx->dbit, uptr,
             "   HighwaterSector:     %u\n", (uint32)(ctx->highwater/ctx->sector_size));
         }
     }
@@ -2677,7 +2677,7 @@ if (sim_switches & SWMASK ('C')) {                      /* create new disk conta
             }
         sim_messagef (SCPE_OK, "Copying %u sectors each %u bytes in size\n", (uint32)total_sectors, (uint32)sector_size);
         if (source_capac > target_capac) {
-            sim_messagef (SCPE_OK, "The source container is %u sectors larger than the destination disk container\n", 
+            sim_messagef (SCPE_OK, "The source container is %u sectors larger than the destination disk container\n",
                         (t_lba)(((source_capac - target_capac)*capac_factor)/(sector_size/((dptr->flags & DEV_SECTORS) ? 512 : 1))));
             sim_messagef (SCPE_OK, "these additional sectors will be unavailable on the target drive\n");
             }
@@ -2739,7 +2739,7 @@ if (sim_switches & SWMASK ('C')) {                      /* create new disk conta
                     uptr->fileref = save_unit_fileref;
                     uptr->flags = saved_unit_flags;
                     if (r == SCPE_OK) {
-                        if ((sects_read != verify_read) || 
+                        if ((sects_read != verify_read) ||
                             (0 != memcmp (copy_buf, verify_buf, verify_read*sector_size)))
                             r = SCPE_IOERR;
                         }
@@ -2967,7 +2967,7 @@ if ((DK_GET_FMT (uptr) == DKUF_F_VHD) || (ctx->footer)) {
                 if ((container_sector_size != 0) && (sector_size != container_sector_size))
                     r = sim_messagef (SCPE_OPENERR, "%s: Incompatible Container Sector Size %d\n", sim_uname (uptr), container_sector_size);
                 else {
-                    if (dontchangecapac && 
+                    if (dontchangecapac &&
                         ((((t_lba)(ctx->container_size/sector_size) > current_unit_sectors)) ||
                          ((container_sectors != 0) && (container_sectors != current_unit_sectors)))) {
                          r = sim_messagef (SCPE_OK, "%s: Container has %u sectors, drive has: %u sectors\n", sim_uname (uptr), container_sectors, current_unit_sectors);
@@ -3034,7 +3034,7 @@ if ((created) && (!copied)) {
         t_lba lba;
         t_lba total_lbas = (t_lba)((((t_offset)uptr->capac)*ctx->capac_factor*((dptr->flags & DEV_SECTORS) ? 512 : 1))/ctx->sector_size);
 
-        for (lba = 0; (r == SCPE_OK) && (lba < total_lbas); lba += 128) { 
+        for (lba = 0; (r == SCPE_OK) && (lba < total_lbas); lba += 128) {
             t_seccnt sectors = ((lba + 128) <= total_lbas) ? 128 : total_lbas - lba;
 
             r = sim_disk_wrsect (uptr, lba, secbuf, NULL, sectors);
@@ -3077,7 +3077,7 @@ if ((created) && (!copied)) {
                 free (init_buf);
                 sim_disk_detach (uptr);                         /* report error now */
                 (void)remove (cptr);                            /* remove the created file */
-                return sim_messagef (SCPE_OPENERR, "Error initializing each sector with its address: %s\n", 
+                return sim_messagef (SCPE_OPENERR, "Error initializing each sector with its address: %s\n",
                                                    (r == SCPE_OK) ? sim_error_text (r) : "sectors written not what was requested");
                 }
             sim_messagef (SCPE_OK, "%s: Initialized To Sector Address %u/%u sectors.  %d%% complete.\r", sim_uname (uptr), (uint32)(lba + sects_written), (uint32)total_sectors, (int)((((float)lba)*100)/total_sectors));
@@ -3109,7 +3109,7 @@ if (sim_switches & SWMASK ('K')) {
         r = sim_disk_rdsect (uptr, lba, verify_buf, &sects_verify, sects);
         if (r == SCPE_OK) {
             if (sects != sects_verify)
-                sim_printf ("\n%s: Verification Error when reading lbn %d(0x%X) of %d(0x%X) Requested %u sectors, read %u sectors.\n", 
+                sim_printf ("\n%s: Verification Error when reading lbn %d(0x%X) of %d(0x%X) Requested %u sectors, read %u sectors.\n",
                             sim_uname (uptr), (int)lba, (int)lba, (int)total_sectors, (int)total_sectors, sects, sects_verify);
             for (sect = 0; sect < sects_verify; sect++) {
                 t_lba offset;
@@ -3181,7 +3181,7 @@ if (container_size && (container_size != (t_offset)-1)) {
                 uptr->capac = (t_addr)(filesystem_size/(ctx->capac_factor*((dptr->flags & DEV_SECTORS) ? ctx->sector_size : 1)));
                 capac1 = strdup (sprint_capac (dptr, uptr));
                 uptr->capac = saved_capac;
-                r = sim_messagef (r, "%s: The file system on the disk %s is larger than simulated device (%s > %s)\n", 
+                r = sim_messagef (r, "%s: The file system on the disk %s is larger than simulated device (%s > %s)\n",
                                     sim_uname (uptr), cptr, capac1, sprint_capac (dptr, uptr));
                 free (capac1);
                 sim_disk_detach (uptr);
@@ -3200,7 +3200,7 @@ if (container_size && (container_size != (t_offset)-1)) {
                         uptr->capac = (t_addr)(container_size/(ctx->capac_factor*((dptr->flags & DEV_SECTORS) ? ctx->sector_size : 1)));
                         capac1 = strdup (sprint_capac (dptr, uptr));
                         uptr->capac = saved_capac;
-                        r = sim_messagef (r, "%s: The disk container '%s' is larger than simulated device (%s > %s)\n", 
+                        r = sim_messagef (r, "%s: The disk container '%s' is larger than simulated device (%s > %s)\n",
                                             sim_uname (uptr), cptr, capac1, sprint_capac (dptr, uptr));
                         free (capac1);
                         sim_disk_detach (uptr);
@@ -3217,7 +3217,7 @@ if (container_size && (container_size != (t_offset)-1)) {
                 uptr->capac = (t_addr)(filesystem_size/(ctx->capac_factor*((dptr->flags & DEV_SECTORS) ? ctx->sector_size : 1)));
                 capac1 = strdup (sprint_capac (dptr, uptr));
                 uptr->capac = saved_capac;
-                r = sim_messagef (r, "%s: The file system on the %s disk container is larger than simulated device (%s > %s)\n", 
+                r = sim_messagef (r, "%s: The file system on the %s disk container is larger than simulated device (%s > %s)\n",
                                     sim_uname (uptr), cptr, capac1, sprint_capac (dptr, uptr));
                 free (capac1);
                 sim_disk_detach (uptr);
@@ -3236,7 +3236,7 @@ if (container_size && (container_size != (t_offset)-1)) {
                     uptr->capac = (t_addr)(container_size/(ctx->capac_factor*((dptr->flags & DEV_SECTORS) ? ctx->sector_size : 1)));
                     capac1 = strdup (sprint_capac (dptr, uptr));
                     uptr->capac = saved_capac;
-                    r = sim_messagef (r, "%s: non expandable %s%sdisk container '%s' is smaller than simulated device (%s < %s)\n", 
+                    r = sim_messagef (r, "%s: non expandable %s%sdisk container '%s' is smaller than simulated device (%s < %s)\n",
                                         sim_uname (uptr), container_dtype, (*container_dtype != '\0') ? " " : "", cptr, capac1, sprint_capac (dptr, uptr));
                     free (capac1);
                     sim_disk_detach (uptr);
@@ -3259,8 +3259,8 @@ if (container_size && (container_size != (t_offset)-1)) {
                     container_dtype = ctx->footer ? (const char *)ctx->footer->DriveType : "";
                     sim_switches = saved_switches;
                     if (r == SCPE_OK)
-                        r = sim_messagef (SCPE_OK, "%s: %s%sdisk container '%s' is larger than simulated device (%s > %s) Read Only Forced\n", 
-                                sim_uname (uptr), container_dtype, (*container_dtype != '\0') ? " " : "", cptr, 
+                        r = sim_messagef (SCPE_OK, "%s: %s%sdisk container '%s' is larger than simulated device (%s > %s) Read Only Forced\n",
+                                sim_uname (uptr), container_dtype, (*container_dtype != '\0') ? " " : "", cptr,
                                 capac1, sprint_capac (dptr, uptr));
                     free (capac1);
                     return r;
@@ -3317,9 +3317,9 @@ if (uptr->flags & UNIT_BUFABLE) {                       /* buffer in memory? */
     t_stat r = SCPE_OK;
 
     if (uptr->flags & UNIT_MUSTBUF) {                   /* dyn alloc? */
-        uptr->filebuf = calloc ((size_t)(ctx->container_size / ctx->xfer_element_size), 
+        uptr->filebuf = calloc ((size_t)(ctx->container_size / ctx->xfer_element_size),
                                     ctx->xfer_element_size);       /* allocate */
-        uptr->filebuf2 = calloc ((size_t)(ctx->container_size / ctx->xfer_element_size), 
+        uptr->filebuf2 = calloc ((size_t)(ctx->container_size / ctx->xfer_element_size),
                                     ctx->xfer_element_size);       /* allocate copy */
         if ((uptr->filebuf == NULL) ||                  /* either failed? */
             (uptr->filebuf2 == NULL)) {
@@ -3379,7 +3379,7 @@ if (NULL == find_dev_from_unit (uptr))
 if ((uptr->flags & UNIT_BUF) && (uptr->filebuf)) {
     uint32 cap = (uptr->hwmark + uptr->dptr->aincr - 1) / uptr->dptr->aincr;
 
-    if (((uptr->flags & UNIT_RO) == 0) && 
+    if (((uptr->flags & UNIT_RO) == 0) &&
         (memcmp (uptr->filebuf, uptr->filebuf2, (size_t)ctx->container_size) != 0)) {
         sim_messagef (SCPE_OK, "%s: writing buffer to file: %s\n", sim_uname (uptr), uptr->filename);
         sim_disk_wrsect (uptr, 0, (uint8 *)uptr->filebuf, NULL, (cap + ctx->sector_size - 1) / ctx->sector_size);
@@ -3667,9 +3667,9 @@ return SCPE_OK;
 /* Factory bad block table creation routine
 
    This routine writes a DEC standard 144 compliant bad block table on the
-   last track of the specified unit as described in: 
+   last track of the specified unit as described in:
       EL-00144_B_DEC_STD_144_Disk_Standard_for_Recording_and_Handling_Bad_Sectors_Nov76.pdf
-   The bad block table consists of 10 repetitions of the same table, 
+   The bad block table consists of 10 repetitions of the same table,
    formatted as follows:
 
         words 0-1       pack id number
@@ -3948,9 +3948,9 @@ if (strchr (openmode, 'r'))
     DesiredAccess |= GENERIC_READ;
 if (strchr (openmode, 'w') || strchr (openmode, '+'))
     DesiredAccess |= GENERIC_WRITE;
-/* SCP Command Line parsing replaces \\ with \ presuming this is an 
-   escape sequence.  This only affecdts RAW device names and UNC paths.
-   We handle the RAW device name case here by prepending paths beginning 
+/* SCP Command Line parsing replaces \\ with \ presuming this is an
+   escape sequence.  This only affects RAW device names and UNC paths.
+   We handle the RAW device name case here by prepending paths beginning
    with \.\ with an extra \. */
 if ((!memcmp ("\\.\\", rawdevicename, 3)) ||
     (!memcmp ("/./", rawdevicename, 3))) {
@@ -3962,7 +3962,7 @@ else
 Handle = CreateFileA (tmpname, DesiredAccess, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS|FILE_FLAG_WRITE_THROUGH, NULL);
 free (tmpname);
 if (Handle != INVALID_HANDLE_VALUE) {
-    if ((sim_os_disk_info_raw ((FILE *)Handle, NULL, NULL, &is_cdrom)) || 
+    if ((sim_os_disk_info_raw ((FILE *)Handle, NULL, NULL, &is_cdrom)) ||
         ((DesiredAccess & GENERIC_WRITE) && is_cdrom)) {
         CloseHandle (Handle);
         errno = EACCES;
@@ -5411,7 +5411,7 @@ static FILE *sim_vhd_disk_open (const char *szVHDPath, const char *DesiredAccess
                                0);
         if (Status)
             goto Cleanup_Return;
-        if ((0 != memcmp (hVHD->Dynamic.ParentUniqueID, ParentFooter.UniqueID, sizeof (ParentFooter.UniqueID))) || 
+        if ((0 != memcmp (hVHD->Dynamic.ParentUniqueID, ParentFooter.UniqueID, sizeof (ParentFooter.UniqueID))) ||
             (ParentModifiedTimeStamp != hVHD->Dynamic.ParentTimeStamp)) {
             if (sim_switches & SWMASK ('O')) {                      /* OVERRIDE consistency checks? */
                 if ((sim_switches & SWMASK ('U')) &&                /* FIX (UPDATE) consistency checks AND */
@@ -6161,7 +6161,7 @@ if (NtoHl (hVHD->Footer.DiskType) == VHD_DT_Fixed) {
     }
 /* We are now dealing with a Dynamically expanding or differencing disk */
 DynamicBlockSize = NtoHl (hVHD->Dynamic.BlockSize);
-if ((DynamicBlockSize == 0) || 
+if ((DynamicBlockSize == 0) ||
     ((DynamicBlockSize & (DynamicBlockSize - 1)) != 0)) {
     errno = ERANGE;
     return SCPE_IOERR;
@@ -6292,7 +6292,7 @@ if (NtoHl(hVHD->Footer.DiskType) == VHD_DT_Fixed) {
     }
 /* We are now dealing with a Dynamically expanding or differencing disk */
 DynamicBlockSize = NtoHl (hVHD->Dynamic.BlockSize);
-if ((DynamicBlockSize == 0) || 
+if ((DynamicBlockSize == 0) ||
     ((DynamicBlockSize & (DynamicBlockSize - 1)) != 0)) {
     errno = ERANGE;
     return SCPE_IOERR;
@@ -6381,9 +6381,9 @@ while (BytesToWrite && (r == SCPE_OK)) {
             goto Fatal_IO_Error;
         /* Since a large VHD can have a pretty large BAT, and we've only changed one longword bat entry
            in the current BAT, we write just the aligned sector which contains the updated BAT entry */
-        BATUpdateBufferAddress = (uint8 *)hVHD->BAT - (size_t)NtoHll(hVHD->Dynamic.TableOffset) + 
+        BATUpdateBufferAddress = (uint8 *)hVHD->BAT - (size_t)NtoHll(hVHD->Dynamic.TableOffset) +
             (size_t)((((size_t)&hVHD->BAT[BlockNumber]) - (size_t)hVHD->BAT + (size_t)NtoHll(hVHD->Dynamic.TableOffset)) & ~(VHD_DATA_BLOCK_ALIGNMENT-1));
-        /* If the starting of the BAT isn't on a VHD_DATA_BLOCK_ALIGNMENT boundary and we've just updated 
+        /* If the starting of the BAT isn't on a VHD_DATA_BLOCK_ALIGNMENT boundary and we've just updated
            a BAT entry early in the array, the buffer computed address might be before the start of the
            BAT table.  If so, only write the BAT data needed */
         if (BATUpdateBufferAddress < (uint8 *)hVHD->BAT) {
@@ -6537,7 +6537,7 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* loop thru dev */
                 return TRUE;                            /* can't stat assume attached */
                 }
             free (fullpath);
-            if ((statb.st_dev   != filestat.st_dev)   || 
+            if ((statb.st_dev   != filestat.st_dev)   ||
                 (statb.st_ino   != filestat.st_ino)   ||
                 (statb.st_mode  != filestat.st_mode)  ||
                 (statb.st_nlink != filestat.st_nlink) ||
@@ -6556,7 +6556,7 @@ free (fullname);
 return FALSE;                                           /* Not attached */
 }
 
-static void sim_disk_info_entry (const char *directory, 
+static void sim_disk_info_entry (const char *directory,
                                  const char *filename,
                                  t_offset FileSize,
                                  const struct stat *filestat,
@@ -6597,14 +6597,14 @@ if (info->flag) {        /* zap type */
     if ((container_size != (t_offset)-1) && (container_size > (t_offset)sizeof (*f)) &&
         (sim_fseeko (container, container_size - sizeof (*f), SEEK_SET) == 0) &&
         (sizeof (*f) == sim_fread (f, 1, sizeof (*f), container))) {
-        if ((memcmp (f->Signature, "simh", 4) == 0) && 
+        if ((memcmp (f->Signature, "simh", 4) == 0) &&
             (f->Checksum == NtoHl (eth_crc32 (0, f, sizeof (*f) - sizeof (f->Checksum))))) {
             uint8 *sector_data;
             uint8 *zero_sector;
             size_t sector_size = NtoHl (f->SectorSize);
             t_offset highwater = (((t_offset)NtoHl (f->Highwater[0])) << 32) | ((t_offset)NtoHl (f->Highwater[1]));
 
-            if (sector_size > 16384)        /* arbitray upper limit */
+            if (sector_size > 16384)        /* arbitrary upper limit */
                 sector_size = 16384;
             /* determine whole sectors in original container size */
             /* By default we chop off the disk footer and trailing */
@@ -6686,7 +6686,7 @@ if (info->flag == 0) {
                         "   AccessFormat:        %s\n"
                         "   CreationTime:        %s",
                         uptr->filename,
-                        f->CreatingSimulator, f->DriveType, NtoHl(f->SectorSize), NtoHl (f->SectorCount), 
+                        f->CreatingSimulator, f->DriveType, NtoHl(f->SectorSize), NtoHl (f->SectorCount),
                         NtoHl (f->TransferElementSize), fmts[f->AccessFormat].name, f->CreationTime);
             if (f->DeviceName[0] != '\0')
                 sim_printf ("   DeviceName:          %s\n", (char *)f->DeviceName);
@@ -6824,7 +6824,7 @@ if (!(uptr->flags & UNIT_RO)) { /* Only test drives open Read/Write - Read Only 
 
                 for (i = 0; i < uint32s_per_sector; i++)
                     if (c->data[i + sector_to_check * uint32s_per_sector] != (lba + sector_to_check)) {
-                        sim_printf ("Sector %u(0x%X) has unexpected data at offset 0x%X: 0x%08X\n", 
+                        sim_printf ("Sector %u(0x%X) has unexpected data at offset 0x%X: 0x%08X\n",
                                     lba + sector_to_check, lba + sector_to_check, i, c->data[i + sector_to_check * uint32s_per_sector]);
                         unexpected_data = TRUE;
                         break;

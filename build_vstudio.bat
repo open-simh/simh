@@ -4,7 +4,7 @@
 :: If this procedure is not invoked from a Developer command prompt
 :: then the VS2008 tools are preferred if VS2008 is installed, 
 :: otherwise the installed Visual Studio tools will be used 
-:: prefering newer Visual Studio versions over older ones.
+:: preferring newer Visual Studio versions over older ones.
 ::
 :: If this procedure is invoked from a Developer command prompt
 :: then the tool chain provided with the command prompt is used

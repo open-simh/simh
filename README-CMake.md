@@ -5,7 +5,7 @@
   - [Why CMake?](#why-cmake)
   - [Before You Begin Building...](#before-you-begin-building)
     - [Toolchains and Tools](#toolchains-and-tools)
-      - [Ninja: "failed recompaction: Permission denied"](#ninja-file-recompation-permission-denied)
+      - [Ninja: "failed recompaction: Permission denied"](#ninja-file-recompaction-permission-denied)
       - [Windows XP-compatible/Server 2003 binaries](#windows-xp-compatibleserver-2003-binaries)
     - [Feature Libraries](#feature-libraries)
       - [Linux, macOS and MinGW-w64](#linux-macos-and-mingw-w64)
@@ -43,7 +43,7 @@ framework. A sample of the supported build environments include:
   - Unix Makefiles
   - [MinGW Makefiles][mingw64]
   - [Ninja][ninja]
-  - macOS XCode
+  - macOS Xcode
   - MS Visual Studio solutions (2015, 2017, 2019, 2022)
   - IDE build wrappers ([Sublime Text][sublime] and [CodeBlocks][codeblocks])
 
@@ -189,7 +189,7 @@ to select a 32-bit target architecture and the `v141_xp` toolkit.
 
 _VS2022_: Install the `v141_xp` tools
 
-Start the Visual Studio Installler, whether this is a new VS2022 install or
+Start the Visual Studio Installer, whether this is a new VS2022 install or
 modifying an existing installation.
 
 - New install
@@ -219,7 +219,7 @@ the [command line](#cmake-command-line) or [via the IDE](#xp-compatible-build-vi
 
 _VS2019_: Install the `v141_xp` tools.
 
-Start the Visual Studio Installler, whether this is a new VS2019 install or
+Start the Visual Studio Installer, whether this is a new VS2019 install or
 modifying an existing installation.
 
 - New installation: Follow the VS 2022 "New install" instructions. The steps are
@@ -373,7 +373,7 @@ Setup and Usage:
         PS C:\...\vcpkg> cd ..\open-simh
         PS C:\...\open-simh>
         ```
-  Then set the `VCPKG_ROOT` environment variable to the `vcpkg` installaton directory.
+  Then set the `VCPKG_ROOT` environment variable to the `vcpkg` installation directory.
 
 [^1]: `vcpkg` does not support the `v141_xp` toolkit required to compile Windows
 XP binaries. Windows XP is a target platform that SIMH can hopefully deprecate
@@ -1033,11 +1033,11 @@ within the IDE. The walkthrough provides directions for VS 2022 and VS 2019.
        `x64-Release` configuration. And wait for reconfiguration to finish (again.)
 
 5. Select `Build All` from the `Build` menu, or equivalently chord `Ctrl-Shift-B`
-   on the keyboard, to start the dependecy feature library superbuild.
+   on the keyboard, to start the dependency feature library superbuild.
 
      - When all dependency feature libraries have been built, the build process
        __will__ unexpectedly terminate with a _"failed recompaction: Permission
-       denied"_ error (see [this `ninja` note](#ninja-file-recompation-permission-denied).)
+       denied"_ error (see [this `ninja` note](#ninja-file-recompaction-permission-denied).)
 
        Choose `Delete Cache and Reconfigure` from the `Project` menu. This will
        cause CMake to reconfigure the project and detect the dependency feature
@@ -1141,7 +1141,7 @@ add_simulator(3b2
     TEST 3b2)
 ```
 
-`add_simulator` is relatively self explanitory:
+`add_simulator` is relatively self explanatory:
 
 - The first argument is the simulator's executable name: `3b2`. This generates
   an executable named `3b2` on Unix platforms or `3b2.exe` on Windows.

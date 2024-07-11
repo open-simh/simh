@@ -136,7 +136,7 @@ unsigned char by, *sptr, *dptr;
 if (sim_end || (count == 0) || (size == sizeof (char)))
     return;
 for (j = 0, dptr = sptr = (unsigned char *) bptr;       /* loop on items */
-     j < count; j++) { 
+     j < count; j++) {
     for (k = (int32)(size - 1); k >= (((int32) size + 1) / 2); k--) {
         by = *sptr;                                     /* swap end-for-end */
         *sptr++ = *(dptr + k);
@@ -359,7 +359,7 @@ if (NULL == _sim_expand_homedir (path, pathbuf, sizeof (pathbuf)))
 return rmdir (pathbuf);
 }
 
-static void _sim_filelist_entry (const char *directory, 
+static void _sim_filelist_entry (const char *directory,
                                  const char *filename,
                                  t_offset FileSize,
                                  const struct stat *filestat,
@@ -503,9 +503,9 @@ return (t_offset)(ftello64 (st));
 
 /* Apple OS/X */
 
-#if defined (__APPLE__) || defined (__FreeBSD__) || defined(__NetBSD__) || defined (__OpenBSD__) || defined (__CYGWIN__) 
+#if defined (__APPLE__) || defined (__FreeBSD__) || defined(__NetBSD__) || defined (__OpenBSD__) || defined (__CYGWIN__)
 #define S_SIM_IO_FSEEK_EXT_ 1
-int sim_fseeko (FILE *st, t_offset xpos, int origin) 
+int sim_fseeko (FILE *st, t_offset xpos, int origin)
 {
 return fseeko (st, (off_t)xpos, origin);
 }
@@ -576,7 +576,7 @@ static void _time_t_to_filetime (time_t ttime, FILETIME *filetime)
 {
 t_uint64 time64;
 
-time64 = 134774;                /* Days betwen Jan 1, 1601 and Jan 1, 1970 */
+time64 = 134774;                /* Days between Jan 1, 1601 and Jan 1, 1970 */
 time64 *= 24;                   /* Hours */
 time64 *= 3600;                 /* Seconds */
 time64 += (t_uint64)ttime;      /* include time_t seconds */
@@ -674,7 +674,7 @@ if (AlreadyExists) {
 else
     *((DWORD *)((*shmem)->shm_base)) = (DWORD)size;     /* Save Size in first page */
 
-*addr = ((char *)(*shmem)->shm_base + SysInfo.dwPageSize);      /* Point to the second paget for data */
+*addr = ((char *)(*shmem)->shm_base + SysInfo.dwPageSize);      /* Point to the second page for data */
 return SCPE_OK;
 }
 
@@ -936,8 +936,8 @@ return FALSE;
 #endif /* defined (_WIN32) */
 
 #if defined(__VAX)
-/* 
- * We privide a 'basic' snprintf, which 'might' overrun a buffer, but
+/*
+ * We provide a 'basic' snprintf, which 'might' overrun a buffer, but
  * the actual use cases don't on other platforms and none of the callers
  * care about the function return value.
  */
@@ -977,7 +977,7 @@ return getcwd (buf, buf_size);
  *    %~pnI%      - expands filepath value to a path and name only
  *    %~nxI%      - expands filepath value to a file name and extension only
  *
- * In the above example above %I% can be replaced by other 
+ * In the above example above %I% can be replaced by other
  * environment variables or numeric parameters to a DO command
  * invocation.
  */
@@ -1001,7 +1001,7 @@ filepath = namebuf;
 
 /* Check for full or current directory relative path */
 if ((filepath[1] == ':')  ||
-    (filepath[0] == '/')  || 
+    (filepath[0] == '/')  ||
     (filepath[0] == '\\')){
         tot_len = 1 + strlen (filepath);
         fullpath = (char *)malloc (tot_len);
@@ -1155,7 +1155,7 @@ if ((hFind =  FindFirstFileA (cptr, &File)) != INVALID_HANDLE_VALUE) {
     c = strrchr (DirName, '\\');
     *c = '\0';                                  /* Truncate to just directory path */
     if (!pathsep ||                             /* Separator wasn't mentioned? */
-        (slash && (0 == strcmp (slash, "/*")))) 
+        (slash && (0 == strcmp (slash, "/*"))))
         pathsep = "\\";                         /* Default to Windows backslash */
     if (*pathsep == '/') {                      /* If slash separator? */
         while ((c = strchr (DirName, '\\')))
