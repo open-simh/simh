@@ -1841,7 +1841,6 @@ sim_cancel (&sim_throttle_unit);
 */
 t_stat sim_throt_svc (UNIT *uptr)
 {
-int32 tmr;
 uint32 delta_ms;
 double a_cps, d_cps, delta_inst;
 RTC *rtc = NULL;
