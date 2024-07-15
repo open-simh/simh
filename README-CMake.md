@@ -285,6 +285,12 @@ binaries.
     $ sudo sh .travis/deps.sh osx
     ```
 
+  - macOS MacPorts:
+
+    ```bash
+    $ sudo sh .travis/deps.sh macports
+    ```
+
   - MinGW-w64 Win64 console:
 
     ```bash
@@ -462,7 +468,7 @@ the [appveyor] CI/CD pipelines execute these scripts.
     $ git clone https://github.com/open-simh/simh.git
     $ cd simh
 
-    # Install feature dependency libraries (use "osx" instead of "linux"
+    # Install feature dependency libraries (use "osx", for HomeBrew or "macports" for MacPorts)
     # on macOS with HomeBrew.)
     $ sh .travis/deps.sh linux
 
