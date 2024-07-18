@@ -1,6 +1,6 @@
 /* sim_tape.c: simulator tape support library
 
-   Copyright (c) 1993-2021, Robert M Supnik
+   Copyright (c) 1993-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
    Ultimately, this will be a place to hide processing of various tape formats,
    as well as OS-specific direct hardware access.
 
+   07-Feb-23    RMS     Silenced Mac compiler warnings (Ken Rector)
    15-Dec-21    JDB     Added extended SIMH format support
    10-Oct-21    JDB     Improved tape_erase_fwd corrupt image error checking
    06-Oct-21    JDB     Added sim_tape_erase global, tape_erase internal functions
@@ -505,8 +506,8 @@ else switch (f) {                                       /* otherwise the read me
 
         if (sizeof_gap > 0                              /* if gap detection is enabled */
           && (runaway_counter <= 0                      /*   and a tape runaway occurred */
-          || status == MTSE_EOM                         /*   or EOM/EOF was seen */
-          && runaway_counter < max_gap))                /*     while a gap was being skipped */
+          || (status == MTSE_EOM                         /*   or EOM/EOF was seen */
+          && runaway_counter < max_gap)))                /*     while a gap was being skipped */
             status = MTSE_RUNAWAY;                      /*       then report it */
 
         break;                                          /* end of case */
@@ -2224,7 +2225,7 @@ if (uptr == NULL)                                               /* if the unit p
 
 else if (desc == NULL)                                          /* otherwise if a validation set was not supplied */
     if (val > 0 && val < (int32) BPI_COUNT)                     /*   then if a valid density code was supplied */
-        uptr->dynflags = uptr->dynflags & ~MTVF_DENS_MASK       /*     then insert the code */
+        uptr->dynflags = (uptr->dynflags & ~MTVF_DENS_MASK)     /*     then insert the code */
                            | val << UNIT_V_DF_TAPE;             /*       in the unit flags */
     else                                                        /*   otherwise the code is invalid */
         return SCPE_ARG;                                        /*     so report a bad argument */
@@ -2241,7 +2242,7 @@ else {                                                          /* otherwise a v
     else for (density = 0; density < BPI_COUNT; density++)      /* otherwise validate the density */
         if (new_bpi == bpi [density]                            /* if it matches a value in the list */
           && ((1 << density) & *(int32 *) desc)) {              /*   and it's an allowed value */
-            uptr->dynflags = uptr->dynflags & ~MTVF_DENS_MASK   /*     then store the index of the value */
+            uptr->dynflags = (uptr->dynflags & ~MTVF_DENS_MASK) /*     then store the index of the value */
                                | density << UNIT_V_DF_TAPE;     /*       in the unit flags */
             return SCPE_OK;                                     /*         and return success */
             }

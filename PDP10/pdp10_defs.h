@@ -1,6 +1,6 @@
 /* pdp10_defs.h: PDP-10 simulator definitions
 
-   Copyright (c) 1993-2017, Robert M Supnik
+   Copyright (c) 1993-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   05-May-24    RMS     Merged CH11 (Lars Brinkhoff)
    19-Jan-17    RMS     Fixed CD11 definition (Mark Pizzolatto)
    30-Jun-13    RMS     Fixed IPL4 mask definition (Tim Litt)
    22-May-10    RMS     Added check for 64b addresses
@@ -683,6 +684,8 @@ typedef struct pdp_dib DIB;
 #define IOLN_PTR        004
 #define IOBA_PTP        (IO_UBA3 + 017554)              /* PC11 punch */
 #define IOLN_PTP        004
+#define IOBA_CH         (IO_UBA3 + 0764140)             /* CH11 Chaosnet */
+#define IOLN_CH         020
 
 /* Common Unibus CSR flags */
 
@@ -721,6 +724,7 @@ typedef struct pdp_dib DIB;
 #define INT_V_CR        27                              /* CD20 (CD11) */
 #define INT_V_DUPRX     28                              /* DUP11 */
 #define INT_V_DUPTX     29
+#define INT_V_CH        30
 
 #define INT_RP          (1u << INT_V_RP)
 #define INT_TU          (1u << INT_V_TU)
@@ -738,6 +742,7 @@ typedef struct pdp_dib DIB;
 #define INT_CR          (1u << INT_V_CD)
 #define INT_DUPRX       (1u << INT_V_DUPRX)
 #define INT_DUPTX       (1u << INT_V_DUPTX)
+#define INT_CH          (1u << INT_V_CH)
 
 #define IPL_RP          6                               /* int levels */
 #define IPL_TU          6
@@ -750,6 +755,7 @@ typedef struct pdp_dib DIB;
 #define IPL_RY          5
 #define IPL_DUPRX       5
 #define IPL_DUPTX       5
+#define IPL_CH          5
 #define IPL_PTR         4
 #define IPL_PTP         4
 #define IPL_LP20        4
@@ -771,6 +777,7 @@ typedef struct pdp_dib DIB;
 #define VEC_CR          0230
 #define VEC_RP          0254
 #define VEC_RY          0264
+#define VEC_CH          0270
 #define VEC_DZRX        0340
 #define VEC_DZTX        0344
 #define VEC_LP20        0754

@@ -1,6 +1,6 @@
 /* sim_tmxr.h: terminal multiplexor definitions
 
-   Copyright (c) 2001-2020, Robert M Supnik
+   Copyright (c) 2001-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,9 @@
    Based on the original DZ11 simulator by Thord Nilson, as updated by
    Arthur Krewat.
 
+   19-Apr-24    RMS     Merged changes for CH11 (Lars Brinkhoff)
+   04-Apr-24    JDB     Added "sim_con_tmxr" and "sim_con_ldsc" global declarations
+   12-Aug-23    JDB     Added extension pointer to TMXR structure
    23-Oct-20    JDB     Added tmxr_post_logs global routine
    19-Dec-19    JDB     Added tmxr_is_extended global hook
    19-Mar-19    JDB     Added extension pointer to TMLN structure;
@@ -55,7 +58,7 @@
 
 #define TMXR_V_VALID    15
 #define TMXR_VALID      (1 << TMXR_V_VALID)
-#define TMXR_MAXBUF     256                             /* buffer size */
+#define TMXR_MAXBUF     512                             /* buffer size */
 #define TMXR_GUARD      12                              /* buffer guard */
 
 /* Modem Control Bits */
@@ -100,6 +103,7 @@ struct tmxr {
     TMLN                *ldsc;                          /* line descriptors */
     int32               *lnorder;                       /* line connection order */
     DEVICE              *dptr;                          /* multiplexer device */
+    void                *exptr;                         /* extension pointer */
     };
 
 typedef struct tmxr TMXR;
@@ -107,10 +111,13 @@ typedef struct tmxr TMXR;
 int32 tmxr_poll_conn (TMXR *mp);
 void tmxr_reset_ln (TMLN *lp);
 int32 tmxr_getc_ln (TMLN *lp);
+t_stat tmxr_get_packet_ln (TMLN *lp, const uint8 **pbuf, size_t *psize);
 void tmxr_poll_rx (TMXR *mp);
 t_stat tmxr_putc_ln (TMLN *lp, int32 chr);
+t_stat tmxr_put_packet_ln (TMLN *lp, const uint8 *buf, size_t size);
 void tmxr_poll_tx (TMXR *mp);
 t_stat tmxr_open_master (TMXR *mp, char *cptr);
+t_stat tmxr_open_master_xtnd (TMXR *mp, char *cptr);
 t_stat tmxr_close_master (TMXR *mp);
 t_stat tmxr_attach (TMXR *mp, UNIT *uptr, char *cptr);
 t_stat tmxr_detach (TMXR *mp, UNIT *uptr);
@@ -148,9 +155,13 @@ extern void   (*tmxr_show)        (TMLN *lp, FILE *stream);
 extern void   (*tmxr_close)       (TMLN *lp);
 extern t_bool (*tmxr_is_extended) (TMLN *lp);
 
+/* Console Telnet support structures */
+
+extern TMXR sim_con_tmxr;                       /* console multiplexer descriptor */
+extern TMLN sim_con_ldsc;                       /* console line descriptor */
+
 /* V4.X shims */
 
 #define tmxr_set_console_units(rxuptr, txuptr)
 
 #endif
-

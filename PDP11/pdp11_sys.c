@@ -1,6 +1,6 @@
 /* pdp11_sys.c: PDP-11 simulator interface
 
-   Copyright (c) 1993-2022, Robert M Supnik
+   Copyright (c) 1993-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,9 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   05-May-24    RMS     Merged CH11 (Lars Brinkhoff)
+   18-Dec-23    RMS     Fixed disassembly of ASH,ASHC,MUL,DIV (Paul Koning)
+   12-May-23    RMS     Added RPB support
    31-Dec-22    RMS     Floating loads are src,dst (nickd4)
    25-Jul-22    RMS     Re-enabled VH11 after fixes (Mark Pizzolato)
    17-Feb-20    RMS     Disabled VH11
@@ -98,6 +101,7 @@ extern DEVICE rx_dev;
 extern DEVICE ry_dev;
 extern DEVICE mba_dev[];
 extern DEVICE rp_dev;
+extern DEVICE rpb_dev;
 extern DEVICE rs_dev;
 extern DEVICE rq_dev, rqb_dev, rqc_dev, rqd_dev;
 extern DEVICE tm_dev;
@@ -110,6 +114,7 @@ extern DEVICE xu_dev, xub_dev;
 extern DEVICE ke_dev;
 extern DEVICE kg_dev;
 extern DEVICE uca_dev, ucb_dev;
+extern DEVICE ch_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
 extern uint16 *M;
@@ -142,6 +147,7 @@ DEVICE *sim_devices[] = {
     &mba_dev[0],
     &mba_dev[1],
     &mba_dev[2],
+    &mba_dev[3],
     &clk_dev,
     &pclk_dev,
     &ptr_dev,
@@ -164,6 +170,7 @@ DEVICE *sim_devices[] = {
     &rx_dev,
     &ry_dev,
     &rp_dev,
+//    &rpb_dev,
     &rs_dev,
     &rq_dev,
     &rqb_dev,
@@ -181,6 +188,7 @@ DEVICE *sim_devices[] = {
     &xub_dev,
     &kg_dev,
     &ke_dev,
+    &ch_dev,
 #else
     &clk_dev,
     &tti_dev,
@@ -339,8 +347,7 @@ static const int32 masks[] = {
 0177700+I_D, 0177400+I_D, 0177700, 0177400,
 0177400, 0177000, 0177000, 0177400,
 0177400+I_D+I_L, 0170000, 0177777, 0177777,
-0177700+I_D, 0177400+I_D, 0177700, 0177400,
-0177000, 0177700+I_D, 0177400, 0177400+I_D+I_L
+0177000, 0177400+I_D, 0177400, 0177400+I_D+I_L
 };
 
 static const char *opcode[] = {

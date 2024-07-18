@@ -1,6 +1,6 @@
 /* sim_rev.h: simulator revisions and current rev level
 
-   Copyright (c) 1993-2021, Robert M Supnik
+   Copyright (c) 1993-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #define SIM_MAJOR       3
 #define SIM_MINOR       12
-#define SIM_PATCH       3
+#define SIM_PATCH       5
 #define SIM_DELTA       0
 
 /* V3.12 revision history
@@ -38,6 +38,12 @@
    logic by Dave Bryan.
 
 patch   date            module(s) and fix(es)
+
+  5     16-July-2024    H316, Nova, PDP8, Sigma, SDS: bug fixes
+                        PDP10, PDP11: bug fixes, Chaosnet support
+
+  4     28-May-2023     PDP8, PDP11, Sigma, SDS: bug fixes
+                        SCP and libraries: silenced Mac compiler warnings
 
   3     12-Dec-2022     Mac "Classic" and OS/2 support has been removed
                         PDP11: numerous 11/70 compatibility fixes

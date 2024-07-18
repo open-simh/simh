@@ -1,6 +1,6 @@
 /* pdp8_mt.c: PDP-8 magnetic tape simulator
 
-   Copyright (c) 1993-2022, Robert M Supnik
+   Copyright (c) 1993-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    mt           TM8E/TU10 magtape
 
+   01-Nov-23    RMS     Fixed illegal op test to use BOT flag
    26-Mar-22    RMS     Added extra case points for new MTSE definitions
    23-Mar-20    RMS     Unload should call sim_tape_detach (Mark Pizzolato)
    16-Feb-06    RMS     Added tape capacity checking
@@ -267,7 +268,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
         if (((uptr->flags & UNIT_ATT) == 0) ||
               sim_is_active (uptr) ||
            (((f == FN_WRITE) || (f == FN_WREOF)) && sim_tape_wrp (uptr))
-           || (((f == FN_SPACER) || (f == FN_REWIND)) && sim_tape_bot (uptr))) {
+           || (((f == FN_SPACER) || (f == FN_REWIND)) && (uptr->USTAT & STA_BOT))) {
             mt_sta = mt_sta | STA_ILL | STA_ERR;        /* illegal op error */
             mt_set_done ();                             /* set done */
             mt_updcsta (uptr);                          /* update status */
@@ -607,7 +608,7 @@ for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
     uptr = mt_dev.units + u;
     sim_cancel (uptr);                                  /* cancel activity */
     sim_tape_reset (uptr);                              /* reset tape */
-    if (uptr->flags & UNIT_ATT) uptr->USTAT =
+     if (uptr->flags & UNIT_ATT) uptr->USTAT =
         (sim_tape_bot (uptr)? STA_BOT: 0) |
         (sim_tape_wrp (uptr)? STA_WLK: 0);
     else uptr->USTAT = STA_REM;

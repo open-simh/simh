@@ -1,6 +1,6 @@
 /* sigma_tt.c: Sigma 7012 console teletype
 
-   Copyright (c) 2007-2018, Robert M. Supnik
+   Copyright (c) 2007-2024, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
    ^H           input, mapped to EOM and not echoed
    HT           input or output, simulates tabbing with fixed 8 character stops
 
+   18-Feb-2024  RMS     Zero delay from SIO to INIT state (Ken Rector)
+   15-Dec-2922  RMS     Moved SIO int pending test to devices
    02-Jun-2018  RMS     Defanged clang signed/unsigned whining (Mark Pizzolato)
 */
 
@@ -134,9 +136,11 @@ switch (op) {                                           /* case on op */
 
     case OP_SIO:                                        /* start I/O */
         *dvst = tt_tio_status ();                       /* get status */
-        if ((*dvst & DVS_DST) == 0) {                   /* idle? */
+        if (chan_chk_dvi (dva))                         /* int pending? */
+            *dvst |= (CC2 << DVT_V_CC);                 /* SIO fails */
+        else if ((*dvst & DVS_DST) == 0) {              /* idle? */
             tt_cmd = TTS_INIT;                          /* start dev thread */
-            sim_activate (&tt_unit[TTO], chan_ctl_time);
+            sim_activate (&tt_unit[TTO], 0);
             }
         break;
 

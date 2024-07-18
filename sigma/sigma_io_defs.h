@@ -1,6 +1,6 @@
 /* sigma_io_defs.h: XDS Sigma I/O device simulator definitions
 
-   Copyright (c) 2007-2008, Robert M Supnik
+   Copyright (c) 2007-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,9 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   19-Mar-24    RMS     Added chaining modifier flag (Ken Rector)
+   01-Feb-24    RMS     Fixed DVT_NODEV definition (Ken Rector)
+   15-Dec-22    RMS     Added chan_chk_dvi definition
    21-Jul-22    RMS     Channel UEND flag in wrong bit position (Ken Rector)
 */
 
@@ -126,6 +129,7 @@ typedef struct {
 
 #define CHSF_ACT        0x0001                          /* channel active */
 #define CHSF_MU         0x0002                          /* multi-unit dev */
+#define CHSF_CM         0x0004                          /* chaining modifier */
 
 /* Dispatch routine status return value */
 
@@ -149,7 +153,7 @@ typedef struct {
 #define DVT_GETCC(x)    (((x) >> DVT_V_CC) & DVT_M_CC)
 #define DVT_GETDVS(x)   (((x) >> DVT_V_DVS) & DVT_M_DVS)
 #define DVT_NOST        (CC1 << DVT_V_CC)               /* no status */
-#define DVT_NODEV       ((CC1|CC2) < DVT_V_CC)          /* no device */
+#define DVT_NODEV       ((CC1|CC2) << DVT_V_CC)         /* no device */
 
 /* Read and write direct address format */
 
@@ -252,6 +256,8 @@ void chan_set_chi (uint32 dva, uint32 fl);
 void chan_set_dvi (uint32 dva);
 int32 chan_clr_chi (uint32 dva);
 int32 chan_chk_chi (uint32 dva);
+t_bool chan_chk_dvi (uint32 dva);
+uint32 chan_set_cm (uint32 dva);
 uint32 chan_end (uint32 dva);
 uint32 chan_uen (uint32 dva);
 uint32 chan_RdMemB (uint32 dva, uint32 *dat);

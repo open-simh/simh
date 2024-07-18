@@ -1123,12 +1123,12 @@ for (i = 0; i < RP_NUMDR; i++) {
     if (uptr->flags & UNIT_ATT)
         if (uptr->flags & UNIT_UTS) {
             sim_cancel (uptr);
-        rpds[i] = (rpds[i] & DS_VV) | DS_DPR | DS_RDY | DS_MOL |
+            rpds[i] = (rpds[i] & DS_VV) | DS_DPR | DS_RDY | DS_MOL |
                 ((uptr->flags & UNIT_WPRT)? DS_WRL: 0);
             } else {
             if (!sim_is_active (uptr))
                 sim_activate (uptr, SPINUP_DLY);
-            rpds[i] = DS_DPR | ((uptr->flags & UNIT_WPRT)? DS_WRL: 0);
+                rpds[i] = DS_DPR | ((uptr->flags & UNIT_WPRT)? DS_WRL: 0);
             }
     else {
         sim_cancel (uptr);
@@ -1194,10 +1194,10 @@ rpds[drv] = (rpds[drv] & ~(DS_MOL | DS_RDY | DS_WRL | DS_VV | DS_OF)) |
 if (sim_is_active (uptr)) {                             /* unit active? */
     sim_cancel (uptr);                                  /* cancel operation */
     if (uptr->flags & UNIT_UTS) {
-    rper1[drv] = rper1[drv] | ER1_OPI;                  /* set drive error */
-    if (uptr->FUNC >= FNC_WCHK)                         /* data transfer? */
-        rpcs1 = rpcs1 | CS1_DONE | CS1_TRE;             /* set done, err */
-    }
+        rper1[drv] = rper1[drv] | ER1_OPI;              /* set drive error */
+        if (uptr->FUNC >= FNC_WCHK)                     /* data transfer? */
+            rpcs1 = rpcs1 | CS1_DONE | CS1_TRE;         /* set done, err */
+        }
     }
 uptr->flags &= ~UNIT_UTS;
 update_rpcs (0, drv);                                  /* request intr */

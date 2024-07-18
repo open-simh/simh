@@ -1,6 +1,6 @@
 /* sds_cr.c: SDS-930 card reader simulator
 
-   Copyright (c) 2020-2021, Ken Rector
+   Copyright (c) 2020-2023, Ken Rector
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Ken Rector.
 
+   24-Jan-23    kenr    Disconnect does not reset status
    17-Feb-21    kenr    Initial Version
    17-Feb-21    kenr    Added C register support to CDR boot
    */
@@ -220,6 +221,8 @@ t_stat cr_devio (uint32 fnc, uint32 inst, uint32 *dat) {
         case IO_DISC:                                   /* disconnect */
             xfr_req = xfr_req & ~XFR_CR;                /* clr xfr flag */
             sim_cancel (uptr);                          /* deactivate unit */
+            cr_eor = 0;                                 /* clr status */
+            uptr->STATUS = 0;
             break;
         case IO_SKS:                                    /* SKS */
             new_ch = I_GETSKCH (inst);                  /* get chan # */

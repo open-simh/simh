@@ -1,6 +1,6 @@
 /* pdp11_rh.c: PDP-11 Massbus adapter simulator
 
-   Copyright (c) 2005-2022, Robert M Supnik
+   Copyright (c) 2005-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,9 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
-   rha, rhb             RH11/RH70 Massbus adapter
+   rha, rhb, rhc, rhd   RH11/RH70 Massbus adapter
 
+   12-May-23    RMS     Added fourth adapter
    25-Jul-22    RMS     Removed OPT_RH11, changed adapter type test
    02-Sep-13    RMS     Added third Massbus adapter, debug printouts
    19-Mar-12    RMS     Fixed declaration of cpu_opt (Mark Pizzolato)
@@ -174,6 +175,7 @@ t_stat mba_show_type (FILE *st, UNIT *uptr, int32 val, void *desc);
 int32 mba0_inta (void);
 int32 mba1_inta (void);
 int32 mba2_inta (void);
+int32 mba3_inta (void);
 void mba_set_int (uint32 mb);
 void mba_clr_int (uint32 mb);
 void mba_upd_cs1 (uint32 set, uint32 clr, uint32 mb);
@@ -309,6 +311,41 @@ MTAB mba2_mod[] = {
     { 0 }
     };
 
+DIB mba3_dib = {
+    IOBA_RPB, IOLN_RPB, &mba_rd, &mba_wr,
+    1, IVCL (RPB), VEC_RPB, { &mba3_inta }
+    };
+
+UNIT mba3_unit = { UDATA (NULL, 0, 0) };
+
+REG mba3_reg[] = {
+    { ORDATA (CS1, massbus[3].cs1, 16) },
+    { ORDATA (WC, massbus[3].wc, 16) },
+    { ORDATA (BA, massbus[3].ba, 16) },
+    { ORDATA (CS2, massbus[3].cs2, 16) },
+    { ORDATA (DB, massbus[3].db, 16) },
+    { ORDATA (BAE, massbus[3].bae, 6) },
+    { ORDATA (CS3, massbus[3].cs3, 16) },
+    { FLDATA (IFF, massbus[3].iff, 0) },
+    { FLDATA (INT, IREQ (RPB), INT_V_RPB) },
+    { FLDATA (SC, massbus[3].cs1, CSR_V_ERR) },
+    { FLDATA (DONE, massbus[3].cs1, CSR_V_DONE) },
+    { FLDATA (IE, massbus[3].cs1, CSR_V_IE) },
+    { ORDATA (DEVADDR, mba3_dib.ba, 32), REG_HRO },
+    { ORDATA (DEVVEC, mba3_dib.vec, 16), REG_HRO },
+    { NULL }
+    };
+
+MTAB mba3_mod[] = {
+    { MTAB_XTD|MTAB_VDV, 0040, "ADDRESS", "ADDRESS",
+      &set_addr, &show_addr, NULL },
+    { MTAB_XTD|MTAB_VDV, 0, "VECTOR", "VECTOR",
+      &set_vec, &show_vec, NULL },
+    { MTAB_XTD|MTAB_VDV, 0, "TYPE", NULL,
+      NULL, &mba_show_type, NULL },
+    { 0 }
+    };
+
 DEVICE mba_dev[] = {
     {
     "RHA", &mba0_unit, mba0_reg, mba0_mod,
@@ -330,6 +367,13 @@ DEVICE mba_dev[] = {
     NULL, NULL, &mba_reset,
     NULL, NULL, NULL,
     &mba2_dib, DEV_DEBUG | DEV_DISABLE | DEV_DIS | DEV_UBUS | DEV_QBUS
+    },
+    {
+    "RHD", &mba3_unit, mba3_reg, mba3_mod,
+    1, 0, 0, 0, 0, 0,
+    NULL, NULL, &mba_reset,
+    NULL, NULL, NULL,
+    &mba3_dib, DEV_DEBUG | DEV_DIS | DEV_UBUS | DEV_QBUS
     }
     };
 
@@ -781,6 +825,14 @@ int32 mba2_inta (void)
 massbus[2].cs1 &= ~CS1_IE;                              /* clear int enable */
 massbus[2].cs3 &= ~CS1_IE;                              /* in both registers */
 massbus[2].iff = 0;                                     /* clear CSTB INTR */
+return mba2_dib.vec;                                    /* acknowledge */
+}
+
+int32 mba3_inta (void)
+{
+massbus[3].cs1 &= ~CS1_IE;                              /* clear int enable */
+massbus[3].cs3 &= ~CS1_IE;                              /* in both registers */
+massbus[3].iff = 0;                                     /* clear CSTB INTR */
 return mba2_dib.vec;                                    /* acknowledge */
 }
 
