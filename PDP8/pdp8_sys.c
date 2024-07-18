@@ -1,6 +1,6 @@
 /* pdp8_sys.c: PDP-8 simulator interface
 
-   Copyright (c) 1993-2021, Robert M Supnik
+   Copyright (c) 1993-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
    
+   04-Apr-23    RMS     Fixed decoding of DVI (Reindert Voorhorst)
    11-May-21    RMS     Fixed RF/DF and LP decoding
    13-Mar-21    RMS     Fixed bug in binary loader (Mark Pizzolato)
    15-Dec-16    RMS     Added PKLF (Dave Gesswein)
@@ -411,7 +412,7 @@ static const int32 opc_val[] = {
  07411+I_OP3, 07413+I_OP3, 07415+I_OP3, 07417+I_OP3,
  07441+I_OP3, 07443+I_OP3, 07445+I_OP3, 07447+I_OP3,
  07451+I_OP3, 07453+I_OP3, 07455+I_OP3, 07457+I_OP3,
- 017403+I_OP3, 017405+I_OP3, 0174017+I_OP3,
+ 017403+I_OP3, 017405+I_OP3, 017407+I_OP3,
  017411+I_OP3, 017413+I_OP3, 017415+I_OP3, 017417+I_OP3,
  017441+I_OP3, 017443+I_OP3, 017445+I_OP3, 017447+I_OP3,
  017451+I_OP3, 017453+I_OP3, 017455+I_OP3, 017457+I_OP3,

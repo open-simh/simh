@@ -1,6 +1,6 @@
 /* sigma_pt.c: Sigma 7060 paper tape reader/punch
 
-   Copyright (c) 2007-2018, Robert M. Supnik
+   Copyright (c) 2007-2024, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,8 @@
 
    pt           7060 paper-tape reader/punch
 
+   17-Feb-24    RMS     Zero delay from SIO to INIT state (Ken Rector)
+   15-Dec-2022  RMS     Moved SIO interrupt test to devices
    02-Jun-2018  RMS     Defanged clang signed/unsigned whining (Mark Pizzolato)
 */
 
@@ -119,9 +121,11 @@ switch (op) {                                           /* case on op */
 
     case OP_SIO:                                        /* start I/O */
         *dvst = pt_tio_status ();                       /* get status */
-        if ((*dvst & DVS_DST) == 0) {                   /* idle? */
+        if (chan_chk_dvi (dva))                         /* int pending? */
+            *dvst |= (CC2 << DVT_V_CC);                 /* SIO fails */
+        else if ((*dvst & DVS_DST) == 0) {              /* idle? */
             pt_cmd = PTS_INIT;                          /* start dev thread */
-            sim_activate (&pt_unit[PTR], chan_ctl_time);
+            sim_activate (&pt_unit[PTR], 0);
             }
         break;
 

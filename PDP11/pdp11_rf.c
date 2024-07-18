@@ -1,6 +1,6 @@
 /* pdp11_rf.c: RF11 fixed head disk simulator
 
-   Copyright (c) 2006-2017, Robert M Supnik
+   Copyright (c) 2006-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    rf           RF11 fixed head disk
 
+   18-Jun-23    RMS     Fixed bug in DAE update (Tony Lawrence)
    13-Feb-17    RMS     Fixed CSR address in boot code (Paul Koning)
    23-Oct-13    RMS     Revised for new boot setup routine
    03-Sep-13    RMS     Added explicit void * cast
@@ -380,7 +381,7 @@ do {
     } while ((rf_wc != 0) && (rf_burst != 0));          /* brk if wc, no brst */
 
 rf_da = da & DMASK;                                     /* split da */
-rf_dae = (rf_dae & ~RFDAE_DAE) | ((rf_da >> 16) & RFDAE_DAE);
+rf_dae = (rf_dae & ~RFDAE_DAE) | ((da >> 16) & RFDAE_DAE);
 rf_cma = ma & DMASK;                                    /* split ma */
 rf_cs = (rf_cs & ~RFCS_MEX) | ((ma >> (16 - RFCS_V_MEX)) & RFCS_MEX); 
 if ((rf_wc != 0) && ((rf_cs & RFCS_ERR) == 0))          /* more to do? */

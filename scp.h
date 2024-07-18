@@ -1,6 +1,6 @@
 /* scp.h: simulator control program headers
 
-   Copyright (c) 1993-2020, Robert M Supnik
+   Copyright (c) 1993-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    be used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   04-Apr-24    JDB     Added "get_aval" and "show_break" global declarations
    04-Jun-20    JDB     Declaration of "sim_vm_init" is now conditional on USE_VM_INIT
    08-Dec-19    JDB     Added "sim_vm_unit_name" extension hook
    09-Oct-19    JDB     Added "detach_all" global declaration
@@ -187,6 +188,8 @@ t_stat sim_brk_clr (t_addr loc, int32 sw);
 void sim_brk_clract (void);
 char *sim_brk_getact (char *buf, int32 size);
 char *read_line (char *ptr, int32 size, FILE *stream);
+t_stat get_aval (t_addr addr, DEVICE *dptr, UNIT *uptr);
+t_stat show_break (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, char *cptr);
 
 /* Global data */
 

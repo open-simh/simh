@@ -1,6 +1,6 @@
 /* pdp10_sys.c: PDP-10 simulator interface
 
-   Copyright (c) 1993-2017, Robert M Supnik
+   Copyright (c) 1993-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   05-May-24    RMS     Merged CH11 (Lars Brinkhoff)
    09-Mar-17    RMS     Added mask on EXE repeat count (COVERITY)
                         Fixed word count test in EXE loader (COVERITY)
    20-Jan-17    RMS     Fixed RIM loader to handle ITS and RIM10B formats
@@ -58,6 +59,7 @@ extern DEVICE dz_dev;
 extern DEVICE ry_dev;
 extern DEVICE cr_dev;
 extern DEVICE lp20_dev;
+extern DEVICE ch_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
 extern d10 *M;
@@ -93,6 +95,7 @@ DEVICE *sim_devices[] = {
     &rp_dev,
     &tu_dev,
     &dz_dev,
+    &ch_dev,
     NULL
     };
 

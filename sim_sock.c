@@ -1,6 +1,6 @@
 /* sim_sock.c: OS-dependent socket routines
 
-   Copyright (c) 2001-2010, Robert M Supnik
+   Copyright (c) 2001-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   23-Jan-24    RMS     Cleaned up SD_BOTH guard for FreeBSD 15 (from Dave Bryan)
    15-Oct-12    MP      Added definitions needed to detect possible tcp 
                         connect failures
    25-Sep-12    MP      Reworked for RFC3493 interfaces supporting IPv6 and IPv4
@@ -63,7 +64,7 @@ extern "C" {
 #define WSAAPI
 #endif
 
-#if defined(SHUT_RDWR) && !defined(SD_BOTH)
+#if !defined(SD_BOTH)
 #define SD_BOTH SHUT_RDWR
 #endif
 

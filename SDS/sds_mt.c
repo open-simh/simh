@@ -1,6 +1,6 @@
 /* sds_mt.c: SDS 940 magnetic tape simulator
 
-   Copyright (c) 2001-2021, Robert M. Supnik
+   Copyright (c) 2001-2023, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    mt           7 track magnetic tape
 
+   01-Nov-23    RMS     Fixed to set botf on reverse into BOT
    03-Mar-21    kenr    Added C register support to MT boot
    09-Oct-16    RMS     Added precise gap erase
    19-Mar-12    RMS     Fixed bug in scan function decode (Peter Schorn)
@@ -381,6 +382,8 @@ if (st != MTSE_OK) {                                    /* other error? */
         return SCPE_MTRLNT;
     if (st == MTSE_EOM)                                 /* eom? set eot */
         uptr->eotf = 1;
+    if (st == MTSE_BOT)                                 /* bot? set bot */
+        uptr->botf = 1;
     return SCPE_OK;
     }
 mt_blnt = tbc;                                          /* set buf lnt */
@@ -471,7 +474,9 @@ xfr_req = xfr_req & ~XFR_MT0;                           /* clr xfr flag */
 for (i = 0; i < MT_NUMDR; i++) {                        /* deactivate */
     sim_cancel (&mt_unit[i]);
     sim_tape_reset (&mt_unit[i]);
-    mt_unit[i].eotf = 0;
+    mt_unit[i].eotf = 0;                                /* clear eotf */
+    if ((mt_unit[i].flags & UNIT_ATT) == 0)             /* not attached? */
+        mt_unit[i].botf = 0;                            /* clear botf */
     }
 return SCPE_OK;
 }

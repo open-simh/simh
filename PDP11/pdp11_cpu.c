@@ -1,6 +1,6 @@
 /* pdp11_cpu.c: PDP-11 CPU simulator
 
-   Copyright (c) 1993-2022, Robert M Supnik
+   Copyright (c) 1993-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,11 @@
 
    cpu          PDP-11 CPU
 
-   30-Nov022    RMS     More 11/45,11/70 trap hackery (Walter Mueller)
+   04-Feb-23    RMS     WRTLCK reads and tosses destination data
+                        Writes must test for aborts before changing CCs
+   27-Dec-22    RMS     Vector with T set traps immediately (Walter Mueller)
+   22-Dec-22    RMS     RTT clears pending trace trap (Walter Mueller)
+   30-Nov-22    RMS     More 11/45,11/70 trap hackery (Walter Mueller)
    29-Nov-22    RMS     Trap stack abort must clear other traps/aborts (Walter Mueller)
    23-Oct-22    RMS     Fixed priority of MME traps (Walter Mueller)
    02-Sep-22    RMS     Fixed handling of PDR<A> (Walter Mueller)
@@ -350,6 +354,8 @@ int32 ReadW (int32 addr);
 int32 ReadB (int32 addr);
 int32 ReadMW (int32 addr);
 int32 ReadMB (int32 addr);
+static int32 TestMW (int32 va);
+static int32 TestMB (int32 va);
 void WriteW (int32 data, int32 addr);
 void WriteB (int32 data, int32 addr);
 void PWriteW (int32 data, int32 addr);
@@ -753,7 +759,7 @@ if (abortval != 0) {
 while (reason == 0)  {
 
     int32 IR, srcspec, srcreg, dstspec, dstreg;
-    int32 src, src2, dst, ea;
+    int32 src, src2, dst, pa;
     int32 i, t, sign, oldrs, trapnum;
 
     if (cpu_astop) {
@@ -837,6 +843,8 @@ while (reason == 0)  {
         if ((cm == MD_KER) && (SP < (STKLIM + STKL_Y)) &&
             (trapnum != TRAP_V_RED) && (trapnum != TRAP_V_YEL))
             set_stack_trap (SP);
+        if (tbit)                                       /* tbit now set? */
+            setTRAP (TRAP_TRC);                         /* immediate trap */
         continue;                                       /* end if traps */
         }
 
@@ -957,6 +965,7 @@ while (reason == 0)  {
                 if (CPUT (HAS_RTT) && tbit &&           /* RTT impl? */
                     (IR == 000002))
                     setTRAP (TRAP_TRC);                 /* RTI immed trap */
+                else trap_req = trap_req & ~TRAP_TRC;   /* no trace trap */
                 break;
             case 7:                                     /* MFPT */
                 if (CPUT (HAS_MFPT))                    /* implemented? */
@@ -1134,11 +1143,13 @@ while (reason == 0)  {
             break;                                      /* end JSR */
 
         case 050:                                       /* CLR */
-            N = V = C = 0;
+            if (!dstreg)                                /* not reg? */
+                pa = TestMW (GeteaW (dstspec));         /* relocate */
+            N = V = C = 0;                              /* now set CC's */
             Z = 1;
             if (dstreg)
                 R[dstspec] = 0;
-            else WriteW (0, GeteaW (dstspec));
+            else PWriteW (0, pa);
             break;
 
         case 051:                                       /* COM */
@@ -1292,15 +1303,16 @@ while (reason == 0)  {
                     i = ((cm == pm) && (cm == MD_USR))? (int32)calc_ds (pm): (int32)calc_is (pm);
                     dst = ReadW ((GeteaW (dstspec) & 0177777) | i);
                     }
-                N = GET_SIGN_W (dst);
-                Z = GET_Z (dst);
-                V = 0;
                 SP = (SP - 2) & 0177777;
                 if (update_MM)
                     MMR1 = calc_MMR1 (0366);
                 if ((cm == MD_KER) && (SP < (STKLIM + STKL_Y)))
                     set_stack_trap (SP);
-                WriteW (dst, SP | dsenable);
+                pa = TestMW (SP | dsenable);        /* relocate SP */
+                N = GET_SIGN_W (dst);               /* now update CC's */
+                Z = GET_Z (dst);
+                V = 0;
+                PWriteW (dst, pa);
                 }
             else setTRAP (TRAP_ILL);
             break;
@@ -1308,29 +1320,34 @@ while (reason == 0)  {
         case 066:                                       /* MTPI */
             if (CPUT (HAS_MXPY)) {
                 dst = ReadW (SP | dsenable);
-                N = GET_SIGN_W (dst);
+                SP = (SP + 2) & 0177777;
+                if (update_MM)
+                    MMR1 = 026;
+                if (!dstreg)
+                    pa = TestMW ((GeteaW (dstspec) & 0177777) | calc_is (pm));
+                N = GET_SIGN_W (dst);                   /* now update CCs */
                 Z = GET_Z (dst);
                 V = 0;
-                SP = (SP + 2) & 0177777;
-                if (update_MM) MMR1 = 026;
                 if (dstreg) {
                     if ((dstspec == 6) && (cm != pm))
                         STACKFILE[pm] = dst;
                     else R[dstspec] = dst;
                     }
-                else WriteW (dst, (GeteaW (dstspec) & 0177777) | calc_is (pm));
+                else PWriteW (dst, pa);
                 }
             else setTRAP (TRAP_ILL);
             break;
 
         case 067:                                       /* SXT */
             if (CPUT (HAS_SXS)) {
-                dst = N? 0177777: 0;
+                if (!dstreg)
+                    pa = TestMW (GeteaW (dstspec));
+                dst = N? 0177777: 0;                    /* now update CCs */
                 Z = N ^ 1;
                 V = 0;
                 if (dstreg)
                     R[dstspec] = dst;
-                else WriteW (dst, GeteaW (dstspec));
+                else PWriteW (dst, pa);
                 }
             else setTRAP (TRAP_ILL);
             break;
@@ -1369,10 +1386,11 @@ while (reason == 0)  {
 
         case 073:                                       /* WRTLCK */
             if (CPUT (HAS_TSWLK) && !dstreg) {
+                dst = ReadMW (GeteaW (dstspec));        /* data thrown away */
                 N = GET_SIGN_W (R[0]);
                 Z = GET_Z (R[0]);
                 V = 0;
-                WriteW (R[0], GeteaW (dstspec));
+                PWriteW (R[0], last_pa);                /* dst <- R[0] */
                 }
             else setTRAP (TRAP_ILL);
             break;
@@ -1396,20 +1414,20 @@ while (reason == 0)  {
 
     case 001:                                           /* MOV */
         if (CPUT (IS_SDSD) && srcreg && !dstreg) {      /* R,not R */
-            ea = GeteaW (dstspec);
+            pa = TestMW (GeteaW (dstspec));             /* reloc dest */
             dst = R[srcspec];
             }
         else {
             dst = srcreg? R[srcspec]: ReadW (GeteaW (srcspec));
             if (!dstreg)
-                ea = GeteaW (dstspec);
+                pa = TestMW (GeteaW (dstspec));
             }
-        N = GET_SIGN_W (dst);
+        N = GET_SIGN_W (dst);                           /* now update CCs */
         Z = GET_Z (dst);
         V = 0;
         if (dstreg)
             R[dstspec] = dst;
-        else WriteW (dst, ea);
+        else PWriteW (dst, pa);
         break;
 
     case 002:                                           /* CMP */
@@ -1807,11 +1825,13 @@ while (reason == 0)  {
             break;
 
         case 050:                                       /* CLRB */
-            N = V = C = 0;
+            if (!dstreg)
+                pa = TestMB (GeteaB (dstspec));
+            N = V = C = 0;                              /* now update CCs */
             Z = 1;
             if (dstreg)
                 R[dstspec] = R[dstspec] & 0177400;
-            else WriteB (0, GeteaB (dstspec));
+            else PWriteB (0, pa);
             break;
 
         case 051:                                       /* COMB */
@@ -1968,15 +1988,16 @@ while (reason == 0)  {
                     else dst = R[dstspec];
                     }
                 else dst = ReadW ((GeteaW (dstspec) & 0177777) | calc_ds (pm));
-                N = GET_SIGN_W (dst);
-                Z = GET_Z (dst);
-                V = 0;
                 SP = (SP - 2) & 0177777;
                 if (update_MM)
                     MMR1 = calc_MMR1 (0366);
                 if ((cm == MD_KER) && (SP < (STKLIM + STKL_Y)))
                     set_stack_trap (SP);
-                WriteW (dst, SP | dsenable);
+                pa = TestMW (SP | dsenable);
+                N = GET_SIGN_W (dst);                   /* now update CCs */
+                Z = GET_Z (dst);
+                V = 0;
+                PWriteW (dst, pa);
                 }
             else setTRAP (TRAP_ILL);
             break;
@@ -1984,18 +2005,20 @@ while (reason == 0)  {
         case 066:                                       /* MTPD */
             if (CPUT (HAS_MXPY)) {
                 dst = ReadW (SP | dsenable);
-                N = GET_SIGN_W (dst);
-                Z = GET_Z (dst);
-                V = 0;
                 SP = (SP + 2) & 0177777;
                 if (update_MM)
                     MMR1 = 026;
-                if (dstreg) {
+                if (!dstreg)
+                    pa = TestMW ((GeteaW (dstspec) & 0177777) | calc_ds (pm));
+                N = GET_SIGN_W (dst);                   /* now set CCs */
+                Z = GET_Z (dst);
+                V = 0;
+               if (dstreg) {
                     if ((dstspec == 6) && (cm != pm))
                         STACKFILE[pm] = dst;
                     else R[dstspec] = dst;
                     }
-                else WriteW (dst, (GeteaW (dstspec) & 0177777) | calc_ds (pm));
+               else PWriteW (dst, pa);
                 }
             else setTRAP (TRAP_ILL);
             break;
@@ -2003,12 +2026,14 @@ while (reason == 0)  {
         case 067:                                       /* MFPS */
             if (CPUT (HAS_MXPS)) {
                 dst = get_PSW () & 0377;
+                if (!dstreg)
+                    pa = TestMB (GeteaB (dstspec));
                 N = GET_SIGN_B (dst);
                 Z = GET_Z (dst);
                 V = 0;
                 if (dstreg)
                     R[dstspec] = (dst & 0200)? 0177400 | dst: dst;
-                else WriteB (dst, GeteaB (dstspec));
+                else PWriteB (dst, pa);
                 }
             else setTRAP (TRAP_ILL);
             break;
@@ -2027,20 +2052,20 @@ while (reason == 0)  {
 
     case 011:                                           /* MOVB */
         if (CPUT (IS_SDSD) && srcreg && !dstreg) {      /* R,not R */
-            ea = GeteaB (dstspec);
+            pa = TestMB (GeteaB (dstspec));
             dst = R[srcspec] & 0377;
             }
         else {
             dst = srcreg? R[srcspec] & 0377: ReadB (GeteaB (srcspec));
             if (!dstreg)
-                ea = GeteaB (dstspec);
+                pa = TestMB (GeteaB (dstspec));
             }
         N = GET_SIGN_B (dst);
         Z = GET_Z (dst);
         V = 0;
         if (dstreg)
             R[dstspec] = (dst & 0200)? 0177400 | dst: dst;
-        else WriteB (dst, ea);
+        else PWriteB (dst, pa);
         break;
 
     case 012:                                           /* CMPB */
@@ -2423,6 +2448,28 @@ if (iopageR (&data, last_pa, READ) != SCPE_OK) {        /* invalid I/O addr? */
     ABORT (TRAP_NXM);
     }
 return ((va & 1)? data >> 8: data) & 0377;
+}
+
+/* Test write byte and word routines
+
+   Inputs:
+        va      =       virtual address, <18:16> = mode, I/D space
+   Outputs:
+        pa      =       physical address
+*/
+
+int32 TestMW (int32 va)
+{
+if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
+    setCPUERR (CPUE_ODD);
+    ABORT (TRAP_ODD);
+    }
+return relocW (va);                                     /* relocate */
+}
+
+int32 TestMB (int32 va)
+{
+return relocW (va);                                     /* relocate */
 }
 
 /* Write byte and word routines

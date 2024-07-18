@@ -1,6 +1,6 @@
 /* pdp11_dz.c: DZ11 terminal multiplexor simulator
 
-   Copyright (c) 2001-2008, Robert M Supnik
+   Copyright (c) 2001-2023, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    dz           DZ11 terminal multiplexor
 
+   23-Feb-23    RMS     Fixed line number calculation in connect (Walter Mueller)
    29-Dec-08    RMS     Added MTAB_NC to SET LOG command (Walter Mueller)
    19-Nov-08    RMS     Revised for common TMXR show routines
    18-Jun-07    RMS     Added UNIT_IDLE flag
@@ -394,7 +395,7 @@ return SCPE_OK;
 
 t_stat dz_svc (UNIT *uptr)
 {
-int32 dz, t, newln;
+int32 dz, t, newln, muxln;
 
 for (dz = t = 0; dz < DZ_MUXES; dz++)                   /* check enabled */
     t = t | (dz_csr[dz] & CSR_MSE);
@@ -402,9 +403,10 @@ if (t) {                                                /* any enabled? */
     newln = tmxr_poll_conn (&dz_desc);                  /* poll connect */
     if ((newln >= 0) && dz_mctl) {                      /* got a live one? */
         dz = newln / DZ_LINES;                          /* get mux num */
-        if (dz_tcr[dz] & (1 << (newln + TCR_V_DTR)))    /* DTR set? */
-            dz_msr[dz] |= (1 << (newln + MSR_V_CD));    /* set cdet */
-        else dz_msr[dz] |= (1 << newln);                /* set ring */
+        muxln = newln % DZ_LINES;                       /* line # within mux */
+        if (dz_tcr[dz] & (1 << (muxln + TCR_V_DTR)))    /* DTR set? */
+            dz_msr[dz] |= (1 << (muxln + MSR_V_CD));    /* set cdet */
+        else dz_msr[dz] |= (1 << (muxln + MSR_V_RI));   /* set ring */
         }
     tmxr_poll_rx (&dz_desc);                            /* poll input */
     dz_update_rcvi ();                                  /* upd rcv intr */

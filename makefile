@@ -96,18 +96,15 @@ ifneq (,${GREP_OPTIONS})
   $(error 1)
 endif
 ifneq ($(findstring Windows,${OS}),)
-  # Cygwin can return SHELL := C:/cygwin/bin/sh.exe  cygwin is OK & NOT WIN32
-  ifeq ($(findstring /cygwin/,$(SHELL)),)
-    ifeq ($(findstring .exe,${SHELL}),.exe)
-      # MinGW
-      WIN32 := 1
-      # Tests don't run under MinGW
-      TESTS := 0
-    else # Msys or cygwin
-      ifeq (MINGW,$(findstring MINGW,$(shell uname)))
-        $(info *** This makefile can not be used with the Msys bash shell)
-        $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
-      endif
+  ifeq ($(findstring .exe,${SHELL}),.exe)
+    # MinGW
+    WIN32 := 1
+    # Tests don't run under MinGW
+    TESTS := 0
+  else # Msys or cygwin
+    ifeq (MINGW,$(findstring MINGW,$(shell uname)))
+      $(info *** This makefile can not be used with the Msys bash shell)
+      $(error Use build_mingw.bat ${MAKECMDGOALS} from a Windows command prompt)
     endif
   endif
 endif
@@ -204,7 +201,7 @@ endif
 ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   ifeq (${GCC},)
     ifeq (,$(shell which gcc 2>/dev/null))
-      $(info *** Warning *** Using local cc since gcc is not available locally.)
+      $(info *** Warning *** Using local cc since gcc isn't available locally.)
       $(info *** Warning *** You may need to install gcc to build working simulators.)
       GCC = cc
     else
@@ -512,7 +509,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
     # Some gcc versions don't support LTO, so only use LTO when the compiler is known to support it
     ifeq (,$(NO_LTO))
       ifneq (,$(GCC_VERSION))
-        ifeq (,$(shell ${GCC} -v /dev/null 2>&1 | grep -- '--enable-lto'))
+        ifeq (,$(shell ${GCC} -v /dev/null 2>&1 | grep '\--enable-lto'))
           LTO_EXCLUDE_VERSIONS += $(GCC_VERSION)
         endif
       endif
@@ -1372,7 +1369,7 @@ PDP11 = ${PDP11D}/pdp11_fp.c ${PDP11D}/pdp11_cpu.c ${PDP11D}/pdp11_dz.c \
 	${PDP11D}/pdp11_cr.c ${PDP11D}/pdp11_rf.c ${PDP11D}/pdp11_dl.c \
 	${PDP11D}/pdp11_ta.c ${PDP11D}/pdp11_rc.c ${PDP11D}/pdp11_kg.c \
 	${PDP11D}/pdp11_ke.c ${PDP11D}/pdp11_dc.c ${PDP11D}/pdp11_rs.c \
-	${PDP11D}/pdp11_io_lib.c
+	${PDP11D}/pdp11_io_lib.c $(PDP11D)/pdp11_ch.c
 PDP11_OPT = -DVM_PDP11 -I ${PDP11D} ${NETWORK_OPT}
 
 
@@ -1419,7 +1416,7 @@ PDP10 = ${PDP10D}/pdp10_fe.c ${PDP11D}/pdp11_dz.c ${PDP10D}/pdp10_cpu.c \
 	${PDP10D}/pdp10_pag.c ${PDP10D}/pdp10_rp.c ${PDP10D}/pdp10_sys.c \
 	${PDP10D}/pdp10_tim.c ${PDP10D}/pdp10_tu.c ${PDP10D}/pdp10_xtnd.c \
 	${PDP11D}/pdp11_pt.c ${PDP11D}/pdp11_ry.c \
-	${PDP11D}/pdp11_cr.c
+	${PDP11D}/pdp11_cr.c $(PDP11D)/pdp11_ch.c
 PDP10_OPT = -DVM_PDP10 -DUSE_INT64 -I ${PDP10D} -I ${PDP11D}
 
 
@@ -1506,7 +1503,8 @@ SIGMA = ${SIGMAD}/sigma_cpu.c ${SIGMAD}/sigma_sys.c ${SIGMAD}/sigma_cis.c \
 	${SIGMAD}/sigma_coc.c ${SIGMAD}/sigma_dk.c ${SIGMAD}/sigma_dp.c \
 	${SIGMAD}/sigma_fp.c ${SIGMAD}/sigma_io.c ${SIGMAD}/sigma_lp.c \
 	${SIGMAD}/sigma_map.c ${SIGMAD}/sigma_mt.c ${SIGMAD}/sigma_pt.c \
-    ${SIGMAD}/sigma_rad.c ${SIGMAD}/sigma_rtc.c ${SIGMAD}/sigma_tt.c
+	${SIGMAD}/sigma_rad.c ${SIGMAD}/sigma_rtc.c ${SIGMAD}/sigma_tt.c \
+	$(SIGMAD)/sigma_cr.c $(SIGMAD)/sigma_cp.c
 SIGMA_OPT = -I ${SIGMAD}
 
 ###

@@ -140,7 +140,6 @@ static int32 fir;                                       /* instruction */
 static int32 jea;                                       /* exc address */
 static int32 fguard;                                    /* guard bit */
 static int32 stop_fpp = STOP_RSRV;                      /* stop if fp dis */
-#define fma fma_X   /* Avoid name conflict with math.h defined fma() routine */
 static UFP fma;                                         /* FMA */
 static UFP fmb;                                         /* FMB */
 static UFP fmq;                                         /* FMQ - hi,lo only */
@@ -379,7 +378,7 @@ return SCPE_OK;
 
 t_stat fp15_opnd (int32 ir, int32 addr, UFP *fpn)
 {
-int32 i, numwd, wd[3] = { 0,0,0 };
+int32 i, numwd, wd[3];
 
 fguard = 0;                                             /* clear guard */
 if (ir & FI_NOLOAD)                                     /* no load? */
@@ -426,7 +425,7 @@ return FP_OK;
 
 t_stat fp15_store (int32 ir, int32 addr, UFP *a)
 {
-int32 i, numwd, wd[3]={ 0,0,0 };
+int32 i, numwd, wd[3];
 t_stat sta;
 
 fguard = 0;                                             /* clear guard */
