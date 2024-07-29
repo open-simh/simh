@@ -240,7 +240,9 @@
     <ClCompile Include="..\scp.c" />
     <ClCompile Include="..\sigma\sigma_cis.c" />
     <ClCompile Include="..\sigma\sigma_coc.c" />
+    <ClCompile Include="..\sigma\sigma_cp.c" />
     <ClCompile Include="..\sigma\sigma_cpu.c" />
+    <ClCompile Include="..\sigma\sigma_cr.c" />
     <ClCompile Include="..\sigma\sigma_dk.c" />
     <ClCompile Include="..\sigma\sigma_dp.c" />
     <ClCompile Include="..\sigma\sigma_fp.c" />
