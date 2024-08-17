@@ -619,6 +619,7 @@ int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
 int32 i;
 uint32 ma, dat;
 
+ba &= 0x003FFFFF;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
@@ -651,6 +652,7 @@ int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
 int32 i;
 uint32 ma,dat;
 
+ba &= 0x003FFFFF;
 ba = ba & ~01;
 bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
@@ -683,6 +685,7 @@ int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
 int32 i;
 uint32 ma, dat;
 
+ba &= 0x003FFFFF;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
@@ -715,6 +718,7 @@ int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
 int32 i;
 uint32 ma, dat;
 
+ba &= 0x003FFFFF;
 ba = ba & ~01;
 bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
