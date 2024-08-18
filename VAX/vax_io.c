@@ -106,6 +106,12 @@
 
 #define QB_VEC_MASK     0x1FC                           /* Interrupt Vector value mask */
 
+/* Qbus memory space */
+
+#define QBMAWIDTH       22                              /* Qmem addr width */
+#define QBMSIZE         (1u << QBMAWIDTH)               /* Qmem length */
+#define QBMAMASK        (QBMSIZE - 1)                   /* Qmem addr mask */
+
 int32 int_req[IPL_HLVL] = { 0 };                        /* intr, IPL 14-17 */
 int32 int_vec_set[IPL_HLVL][32] = { 0 };                /* bits to set in vector */
 int32 cq_scr = 0;                                       /* SCR */
@@ -765,6 +771,7 @@ int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
 int32 i;
 uint32 ma, dat;
 
+ba = ba & QBMAMASK;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
@@ -797,7 +804,7 @@ int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
 int32 i;
 uint32 ma,dat;
 
-ba = ba & ~01;
+ba = ba & QBMAMASK & ~01;
 bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i = i + 2, buf++) {        /* by words */
@@ -829,6 +836,7 @@ int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
 int32 i;
 uint32 ma, dat;
 
+ba = ba & QBMAMASK;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
@@ -861,7 +869,7 @@ int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
 int32 i;
 uint32 ma, dat;
 
-ba = ba & ~01;
+ba = ba & QBMAMASK & ~01;
 bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i = i + 2, buf++) {        /* by words */
