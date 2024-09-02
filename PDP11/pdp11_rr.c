@@ -1,4 +1,4 @@
-/* pdp11_rr.c: RP11/-C/-E/RP02/RP03 disk pack device
+/* pdp11_rr.c: RP11/-C/-E/RP02/RPR02/RP03 disk pack device
 
    Copyright (c) 2022 Tony Lawrence
 
@@ -48,7 +48,7 @@
 #define MAP_RDW(a,c,b)  (Map_ReadW (a, (c) << 1, b) >> 1)
 #define MAP_WRW(a,c,b)  (Map_WriteW(a, (c) << 1, b) >> 1)
 
-/* RP02 parameters; RP03 doubles # of cylinders (both total and spare) */
+/* RP02/RPR02 parameters; RP03 doubles # of cylinders (both total and spare) */
 #define RP_NUMWD        256                             /* words/sector */
 #define RP_NUMCY        203                             /* cylinders/drive */
 #define RP_SPARE        3                               /* of those, spare */
@@ -63,14 +63,21 @@
 #define RP_SIZE_RP03    RP_SIZE(RP_NUMBL*2)             /* RP03 capacity, words */
 #define RP_ROT_12       125                             /* Half rotation, 0.1ms */
 
+#define GET_DA(c,h,s)   (((c) * RP_NUMSF + (h)) * RP_NUMSC + (s))  /* disk addr */
+
 /* Flags in the unit flags word */
 #define UNIT_NOAUTO     DKUF_NOAUTOSIZE                 /* autosize disabled */
 #define UNIT_V_RP03     (DKUF_V_UF + 0)
 #define UNIT_RP03       (1 << UNIT_V_RP03)              /* RP03 vs RP02 (0) */
 #define GET_DTYPE(x)    (((x) & UNIT_RP03) >> UNIT_V_RP03)
 
+/* Flags in the device flags word */
+#define DEV_V_RP11CE    (DEV_V_FFUF + 0)
+#define DEV_RP11CE      (1 << DEV_V_RP11CE)             /* RP11-C/-E vs RP11(0) */
+
 /* Controller / drive types */
-#define RP_RP11         "RP11-C"
+#define RP_RP11         "RP11"
+#define RP_RP11CE       "RP11-C/-E"
 #define RP_RP02         "RP02"
 #define RP_RP03         "RP03"
 
@@ -86,7 +93,7 @@
 /* 12 real UNIBUS registers, so 16 registers total: 32 addresses */
 #define RP_IOLN         040
 
-/* RP02/RP03 particulars */
+/* RP(R)02/RP03 particulars (all disks rotated at 2400rpm) */
 static struct drv_typ {
     const char*         name;                           /* device type name */
     int32               cyl;                            /* cylinders */
@@ -176,7 +183,6 @@ static BITFIELD rp_er_bits[] = {
 static const char* rp_funcs[] = {
     "RESET", "WRITE", "READ", "WCHK", "SEEK", "WRNOSEEK", "HOME", "RDNOSEEK"
 };
-
 static BITFIELD rp_cs_bits[] = {
 /* CSR_GO */                                            /* the GO! bit */
     BIT(GO),
@@ -238,14 +244,24 @@ static BITFIELD rp_ba_bits[] = {
 
 /* RPCA 776722, cylinder address */
 static BITFIELD rp_ca_bits[] = {
-#define RPCA_IMP        0000777                         /* implemented */
+#define RPCA_IMP        0177777                         /* implemented */
+#define RPCA_RW         0000777                         /* RP11: 0377 */
     BITFFMT(CYL,9,%u),
+    ENDBITS
+};
+static BITFIELD rp_ca11_bits[] = {                      /* RP11 version */
+#define RPCA_M_CYL      0000377
+    BITFFMT(CYL,8,%u),
+#define RPCA_V_SUCA     8
+#define RPCA_M_SUCA     0000377
+#define RPCA_SUCA       (RPCA_M_SUCA << RPCA_V_SUCA)
+    BITFFMT(SUCA,8,%u),
     ENDBITS
 };
 
 /* RPDA 776724, disk address (track/sector) */
 static BITFIELD rp_da_bits[] = {
-#define RPDA_IMPL       0017777                         /* implemented */
+#define RPDA_IMP        0017777                         /* implemented */
 #define RPDA_RW         0017417                         /* bits here */
 #define RPDA_M_SECT     017
 #define RPDA_SECT       RPDA_M_SECT                     /* sector */
@@ -259,7 +275,6 @@ static BITFIELD rp_da_bits[] = {
     BITFFMT(SURF,5,%u),
 #define GET_SECT(x)     ((x) & RPDA_SECT)
 #define GET_TRACK(x)    (((x) & RPDA_TRACK) >> RPDA_V_TRACK)
-#define GET_DA(c,h,s)   (((c) * RP_NUMSF + (h)) * RP_NUMSC + (s))
     ENDBITS
 };
 
@@ -271,7 +286,8 @@ static BITFIELD rp_da_bits[] = {
 
 /* SUCA 776734 selected unit cylinder address, read-only */
 static BITFIELD rp_suca_bits[] = {
-    BITFFMT(CYL,9,%u),
+#define SUCA_IMP        0000777                         /* RP11: 0377 */
+    BITFFMT(CYL,9,%u),                                  /* RP11: RPCA<15:08> */
     ENDBITS
 };
 
@@ -280,14 +296,16 @@ static BITFIELD rp_suca_bits[] = {
 /* Maintenance Write Lockout Address (LOA) (the switches on the maint. panel) */
 static const char* offon[] = { "OFF", "ON" };
 static BITFIELD rp_wloa_bits[] = {
-#define RPWLOA_IMPL     03777
-#define RPWLOA_CYL2     0377                            /* cyls locked (x2+1) */
-    BITFFMT(CYL2,8,%u),
+#define RPWLOA_IMP      03777
+#define RPWLOA_CYL      0377                            /* cyls locked */
+    BITFFMT(CYL,8,%u),
 #define RPWLOA_V_DRV    8
 #define RPWLOA_M_DRV    7
-#define RPWLOA_DRV      (RPWLOA_M_DRV << RPWLOA_V_DRV)  /* drive(s) locked */
+#define RPWLOA_DRV      (RPWLOA_M_DRV << RPWLOA_V_DRV)  /* drives locked */
     BITFFMT(DRV,3,%u),
-#define GET_WLOACYL(x)  ((((x) & RPWLOA_CYL2) << 1) | 1)
+#define GET_WLOACYL(x)  (rr_dev.flags & DEV_RP11CE                          \
+                         ? (((x) & RPWLOA_CYL) << 1) | 1 /* x2 + 1 */       \
+                         :  ((x) & RPWLOA_CYL))
 #define GET_WLOADRV(x)  (((x) & RPWLOA_DRV) >> RPWLOA_V_DRV)
     BITNCF(4),
 #define RPWLOA_ON       0100000
@@ -364,6 +382,7 @@ static t_stat rr_detach (UNIT *uptr);
 static t_stat rr_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat rr_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static t_stat rr_set_wloa (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+static t_stat rr_set_ctrl (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 static t_stat rr_show_ctrl (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 static const char *rr_description (DEVICE *dptr);
 
@@ -392,7 +411,7 @@ static REG rr_reg[] = {
     { ORDATADF(RPBA, rpba, 16, "memory address",        rp_ba_bits) },
     { ORDATADF(RPCA, rpca, 16, "cylinder address",      rp_ca_bits) },
     { ORDATADF(RPDA, rpda, 16, "disk address",          rp_da_bits) },
-    { ORDATADF(SUCA, suca, 16, "current cylinder",      rp_suca_bits) },
+    { ORDATADF(SUCA, suca, 16, "current cylinder",      rp_suca_bits), REG_RO },
     { ORDATADF(WLOA, wloa, 16, "write lockout address", rp_wloa_bits) },
 
     /* standard stuff */
@@ -437,6 +456,14 @@ static MTAB rr_mod[] = {
         "TYPE",         NULL, 
         NULL,           rr_show_ctrl,   NULL,
         "Display controller type" },
+    { MTAB_VDV, 0/*RP11*/,
+        NULL,           RP_RP11, 
+        rr_set_ctrl,    NULL,           NULL,
+        "Set " RP_RP11 " controller type" },
+    { MTAB_VDV, DEV_RP11CE,
+        NULL,           "RP11CE", 
+        rr_set_ctrl,    NULL,           NULL,
+        "Set " RP_RP11CE " controller type" },
     { MTAB_VDV | MTAB_VALR, 0,
         NULL,           "PROTECT",
         rr_set_wloa,    NULL,           NULL,
@@ -460,7 +487,7 @@ static MTAB rr_mod[] = {
     { MTAB_VUN, UNIT_RP03,
         NULL,           RP_RP03,
         rr_set_type,    NULL,   NULL,
-        "Set " RP_RP03 " disk type"},
+        "Set " RP_RP03 " disk type (only " RP_RP11CE ")"},
     { UNIT_NOAUTO, 0,
         "autosize",     "AUTOSIZE", 
         NULL,           NULL,           NULL,
@@ -473,7 +500,7 @@ static MTAB rr_mod[] = {
         "FORMAT",       "FORMAT={AUTO|SIMH|VHD|RAW}",
         sim_disk_set_fmt, sim_disk_show_fmt, NULL,
         "Set/Display disk format" },
-    { MTAB_VDV | MTAB_VALR, 010,
+    { MTAB_VDV | MTAB_VALR, RP_IOLN/*modulus*/,
         "ADDRESS",      "ADDRESS",
         set_addr,       show_addr,      NULL,
         "Bus address" },
@@ -491,11 +518,11 @@ DEVICE rr_dev = {
     NULL/*examine()*/, NULL/*deposit()*/,
     rr_reset, rr_boot, rr_attach, rr_detach,
     &rr_dib,
-    DEV_DIS | DEV_DISABLE | DEV_UBUS | DEV_Q18 | DEV_DEBUG | DEV_DISK,
+    DEV_DIS | DEV_DISABLE | DEV_UBUS | DEV_Q18 | DEV_DEBUG | DEV_DISK | DEV_RP11CE,
     0/*debug control*/, rr_deb,
     NULL/*msize()*/, NULL/*logical name*/,
     rr_help, NULL/*attach_help()*/, NULL/*help_ctx*/,
-    rr_description,
+    rr_description
 };
 
 /* I/O dispatch routine, I/O addresses 17776710 - 17776736
@@ -513,25 +540,30 @@ DEVICE rr_dev = {
    17776734     SUCA    read-only
    17776736     SILO    read/write, unimplemented
 
+http://www.bitsavers.org/pdf/dec/unibus/RP11-C_schemMay1973.pdf
+http://www.bitsavers.org/pdf/dec/unibus/DEC-11-HRPCA-C-D_RP11-C_Maint_Aug74.pdf
+
 RP11-C actually responds to the range 17776700 - 17776736 with the first 4 word
 locations unused.
 
 Some operating systems want you to specify the latter range (RSTS/E), but some
 just want to know where the CSR is located, so they auto-calculate the range.
 
-The original RP11 had the following differences:  it responded to the address
-range 17776710 - 17776746:  RPM3 was followed by 3 buffer registers RPB1-RPB3,
+The _original_ RP11 had the following differences:  it responded to the address
+range 17776710 - 17776746:  RPM3 was followed by 3 buffer registers RPB1 - RPB3,
 then 3 locations (42-46) were unused.  RPCA was both the cylinder address in the
-lower 8 bits <00:07> (read-write), and the Selected Unit current cylinder address
-(a la SUCA in RP11-C) in the higher 8 bits <08:15> (read-only).  Since only the
+lower 8 bits <07:00> (read-write), and the Selected Unit current cylinder address
+(a la SUCA in RP11-C) in the higher 8 bits <15:08> (read-only).  Since only the
 RP02 disk drives were supported, it only required 8 bits for cylinder addresses.
-There was no separate SUCA register (the location was occupied by RPB1).  The
-RP03 bit in RPDS was always 0.  But programmatically it was mostly compatible
-with the -C revision (except for the SU current cylinder address location, which
-was not used by and/or important to the major part of software, anyways).
+There were no separate SUCA/SILO registers (the locations were occupied by RPBs).
+The RP03 bit in RPDS was always 0.  But programmatically RP11 was mostly compatible
+with the -C revision (except for the SU current cylinder address, which was not
+widely used by major software, anyways).
 
-RP11-E was just a newer version of RP11-C and supported both RP02 and RP03 disk
-drives on the same controller.
+http://www.bitsavers.org/pdf/dec/unibus/RP11_schem_Sep74.pdf
+
+RP11-E was just a newer version of RP11-C and supported both RP02(or RPR02) and
+RP03 disk drives on the same controller.
 
 */
 
@@ -539,6 +571,7 @@ static t_stat rr_rd (int32 *data, int32 PA, int32 access)
 {
     /* offset by base then decode <4:1> */
     int32 rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
+    BITFIELD* bits = 0;
     UNIT* uptr;
 
     switch (rn) {
@@ -585,24 +618,33 @@ static t_stat rr_rd (int32 *data, int32 PA, int32 access)
 
     case 5:                                             /* RPCA */
         *data = rpca;
+        if (!(rr_dev.flags & DEV_RP11CE)) {
+            assert(!(suca & ~RPCA_M_SUCA));
+            *data |= suca << RPCA_V_SUCA;
+            bits = rp_ca11_bits;
+        }
         break;
 
     case 6:                                             /* RPDA */
         rpda &= RPDA_RW;
-        rpda |= (rand() % RP_NUMSC) << RPDA_V_SOT;      /* inject a random sect */
+        uptr = rr_dev.units + GET_DRIVE(rpcs);
+        if (uptr->flags & UNIT_ATT)
+            rpda |= (rand() % RP_NUMSC) << RPDA_V_SOT;  /* inject a random sect */
         *data = rpda;                
         break;
 
     case 10:                                            /* SUCA */
-        *data = suca;
-        break;
-
+        if (rr_dev.flags & DEV_RP11CE) {
+            *data = suca;
+            break;
+        }
+        /* FALLTHRU */
     default:                                            /* not implemented */
         *data = 0;
         return SCPE_OK;
     }
     sim_debug(RRDEB_RRD, &rr_dev, ">>RR  read: %s=%#o\n", rr_regs[rn].name, *data);
-    sim_debug_bits(RRDEB_RRD, &rr_dev, rr_regs[rn].bits, *data, *data, 1);
+    sim_debug_bits(RRDEB_RRD, &rr_dev, bits ? bits : rr_regs[rn].bits, *data, *data, 1);
     return SCPE_OK;
 }
 
@@ -671,7 +713,8 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access)
         break;
 
     case 5:                                             /* RPCA */
-        rpca = data & RPCA_IMP;
+        const_assert(RPCA_M_CYL == (RPCA_RW >> 1));
+        rpca = data & (rr_dev.flags & DEV_RP11CE ? RPCA_RW : RPCA_M_CYL);
         break;
 
     case 6:                                             /* RPDA */
@@ -680,8 +723,9 @@ static t_stat rr_wr (int32 data, int32 PA, int32 access)
         break;
 
     case 10:                                            /* SUCA: read-only */
-        break;
-
+        if (rr_dev.flags & DEV_RP11CE)
+            break;
+        /*FALLTHRU*/
     default:
         return SCPE_OK;
     }
@@ -706,7 +750,7 @@ static t_stat rr_seek_init (UNIT *uptr)
 
 static void rr_go (int16 func)
 {
-    int32 i, type, cyl, head;
+    int32 i, n, type, cyl, head;
     t_bool rd, wr;
     UNIT* uptr;
 
@@ -808,9 +852,10 @@ static void rr_go (int16 func)
     }
 
     /* seek time */
+    n = cyl - uptr->CYL;                                /* cyl departure */
     if (func == RPCS_HOME)
         i  = drv_tab[type].seek_ave / 2;
-    else if (!(i = abs(cyl - uptr->CYL)))
+    else if (!(i = abs(n)))
         i  = drv_tab[type].seek_1 / 2;
     else if (i <= 2)
         i *= drv_tab[type].seek_1;
@@ -821,6 +866,7 @@ static void rr_go (int16 func)
     if (func == RPCS_HOME  ||  func == RPCS_SEEK) {     /* seek? */
         uptr->action = rr_seek_init;
         uptr->SEEKING = i;                              /* drive is seeking */
+        assert(i);
         i = 10;                                         /* enough for 16us */
         /* XXDP ZRPF-B, Test 0 (cylinder positioning) fails because, even though
          * it initializes INTFLG late (_after_ initiating the SEEK), the delayed
@@ -842,6 +888,7 @@ static void rr_go (int16 func)
             uptr->STATUS |= RPDS_SEEK;                  /* drive is seeking */
         }
         i += RP_ROT_12;                                 /* I/O takes longer */
+        assert(i);
         /* XXDP ZRPB-E / ZRPF-B have two data race conditions in Test 5 (data
          * reliability), which in ZRPB-E can be worked around with the following
          * multiplier for all 15 steady patterns, but it does not help eliminate
@@ -854,9 +901,11 @@ static void rr_go (int16 func)
     }
     sim_activate(uptr, i);                              /* schedule */
 
+    assert(suca == uptr->CYL);                          /* actually */
     uptr->FUNC = func;                                  /* save new func */
     uptr->HEAD = head;                                  /* save head too */
     uptr->CYL  = cyl;                                   /* put on cylinder */
+    suca += n >> 2;                                     /* show motion */
     return;
 }
 
@@ -906,6 +955,7 @@ static t_stat rr_svc (UNIT *uptr)
     uptr->FUNC = 0;                                     /* idle */
 
     rr_seek_done(uptr, 0);                              /* complete seek, if any */
+    assert(0 < func  &&  func < sizeof(rp_funcs)/sizeof(rp_funcs[0]));
     assert(!uptr->SEEKING  &&  !(uptr->STATUS & RPDS_SEEK));
     if (func == RPCS_HOME  ||  func == RPCS_SEEK)
         return SCPE_OK;                                 /* all done */
@@ -936,8 +986,8 @@ static t_stat rr_svc (UNIT *uptr)
             &&  (n <= GET_WLOADRV(wloa)  ||  cyl <= GET_WLOACYL(wloa))) {
             uptr->STATUS |= RPDS_WLK;                   /* DA write-locked */
             rper |= RPER_WPV;
-        } else if (uptr->flags & UNIT_WPRT)             /* write and locked? */
-            rper |= RPER_WPV;
+        } else if (uptr->flags & UNIT_WPRT)
+            rper |= RPER_WPV;                           /* unit write-locked */
     }
 
     if (rper) {                                         /* control in error? */
@@ -1121,14 +1171,13 @@ static t_stat rr_svc (UNIT *uptr)
     todo = head / RP_NUMSF;                             /* new cyl (tentative) */
     if (todo == drv_tab[n].cyl) {                       /* at the end? */
         cyl   = drv_tab[n].cyl - 1;                     /* keep on last cyl */
-        todo  = 0;                                      /* wrap cyl for rpda */
+        todo  = 0;                                      /* wrap cyl for rpda... */
         head  = 0;                                      /* ...and head, too */
         assert(!sect);
     } else {
         cyl   = todo;                                   /* new cyl */
         head %= RP_NUMSF;                               /* isolate head */
     }
-    uptr->HEAD = head;                                  /* update head */
     if ((func == RPCS_RD_NOSEEK  ||  func == RPCS_WR_NOSEEK) /* no SEEK I/O... */
         &&  (uptr->CYL != cyl                           /* ...and: arm moved or... */
              ||  (rper & RPER_EOP))) {                  /* ...boundary exceeded? */
@@ -1140,6 +1189,7 @@ static t_stat rr_svc (UNIT *uptr)
             SET_INT(RR);                                /* request interrupt */
         }
     }
+    uptr->HEAD = head;                                  /* update head */
     uptr->CYL = cyl;                                    /* update cyl */
     rpda = (head << RPDA_V_TRACK) | sect;               /* updated head / sect */
     rpca = todo;                                        /* wrapped up cyl */
@@ -1151,10 +1201,10 @@ static t_stat rr_svc (UNIT *uptr)
         const char* name = uptr->uname;
         const char* file = uptr->filename;
         const char* errstr = errno ? strerror(errno) : "";
-        sim_printf("RR%u %s [%s:%s] FUNC=%o(%c) RPER=%06o I/O error (%s)%s%s",
+        sim_printf("RR%u %s [%s:%s] FUNC=%s(%c) RPER=%06o I/O error (%s)%s%s",
                    (int) GET_DRIVE(rpcs), GET_DTYPE(uptr->flags) ? RP_RP03 : RP_RP02,
                    name ? name : "???", file ? file : "<NULL>",
-                   (int) func, "WR"[!wr], (int) rper, sim_error_text(ioerr),
+                   rp_funcs[func], "WR"[!wr], (int) rper, sim_error_text(ioerr),
                    errstr  &&  *errstr ? ": " : "", errstr ? errstr : "");
         return SCPE_IOERR;
     }
@@ -1209,6 +1259,8 @@ static t_stat rr_reset (DEVICE *dptr)
     /* compile-time sanity check first */
     const_assert(sizeof(rr_regs)/sizeof(rr_regs[0]) == RP_IOLN/2 - RP_IOFF);
 
+    assert(dptr == &rr_dev);
+
     /* clear everything now */
     rpds = 0;
     rper = 0;
@@ -1247,7 +1299,9 @@ static t_stat rr_attach (UNIT *uptr, CONST char *cptr)
     t_stat err = sim_disk_attach_ex2(uptr, cptr,
                                      RP_SIZE(sizeof(*rpxb)), sizeof(*rpxb),
                                      TRUE, 0, drv_tab[type].name,
-                                     0, 0, rr_types, 0);
+                                     0, 0,
+                                     rr_dev.flags & DEV_RP11CE ? rr_types : NULL,
+                                     0);
     if (err == SCPE_OK  &&  !(uptr->STATUS & RPDS_DKER))
         uptr->STATUS &= ~RPDS_UNSAFE;
     return err;
@@ -1280,10 +1334,14 @@ static t_stat rr_detach (UNIT *uptr)
 
 static t_stat rr_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
+    assert(find_dev_from_unit(uptr) == &rr_dev);
     if ((val & ~UNIT_RP03)  ||  cptr)
         return SCPE_ARG;
     if (uptr->flags & UNIT_ATT)
         return SCPE_ALATT;
+    if (val  &&  !(rr_dev.flags & DEV_RP11CE))
+        return SCPE_ARG;
+    assert(!(uptr->CYL | uptr->HEAD));
     uptr->capac  = RP_SIZE(drv_tab[GET_DTYPE(val)].size);
     uptr->flags &= ~UNIT_RP03;
     uptr->flags |= val;
@@ -1300,7 +1358,7 @@ static t_stat rr_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 
 static t_stat rr_set_wloa (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-    DEVICE* dptr = find_dev_from_unit(uptr);
+    assert(find_dev_from_unit(uptr) == &rr_dev);
     if (!cptr  ||  !*cptr)
         return SCPE_2FARG;
     if (strncasecmp(cptr, "OFF", 3) == 0) {
@@ -1322,9 +1380,9 @@ static t_stat rr_set_wloa (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
             return SCPE_MISVAL;
         errno = 0;
         val = strtol(cptr, &end, 0);
-        if (errno  ||  !end  ||  *end  ||  end == cptr  ||  (val & ~RPWLOA_IMPL))
+        if (errno  ||  !end  ||  *end  ||  end == cptr  ||  (val & ~RPWLOA_IMP))
             return SCPE_ARG;
-        wloa &= ~RPWLOA_IMPL;
+        wloa &= ~RPWLOA_IMP;
         wloa |= val;
     } else if (*cptr)
         return SCPE_ARG;
@@ -1390,14 +1448,13 @@ static t_stat rr_boot (int32 unitno, DEVICE *dptr)
 
 /* Misc */
 
-#define RP_DESCRIPTION  RP_RP11 "/" RP_RP02 "/" RP_RP03 " disk pack device"
-
 static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 {
-    size_t i;
+    size_t i, n;
+    assert(dptr == &rr_dev);
     fputs(
     /*567901234567890123456789012345678901234567890123456789012345678901234567890*/
-    RP_DESCRIPTION "\n\n"
+    RP_RP11 "/" RP_RP11CE "/" RP_RP02 "/" RP_RP03 " disk pack device\n\n"
     "A detailed description of this device can be found in the\n"
     "\"PDP-11 Peripherals Handbook\" (1973 - 1976) and in the technical manual\n"
     "\"RP11-C Disk Pack Drive Controller Maintenance Manual\" (1974)\n"
@@ -1409,9 +1466,10 @@ static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
     "(17776710 - 17776736), yet some just want to know where the CSR is located\n"
     "(17776714 by default), so they can auto-calculate the range on their own.\n\n"
     "Disk drive parameters (all decimal):\n\n"
-    "        Cylinders    Heads  Sects/Trk     Capacity    Average access\n"
+    "Type    Cylinders    Heads  Sects/Trk     Capacity    Average access\n"
     "      Total   Spare                   Nominal  Usable    time, ms\n", st);
-    for (i = 0;  i < sizeof(drv_tab)/sizeof(drv_tab[0]);  ++i) {
+    n = dptr->flags & DEV_RP11CE ? sizeof(drv_tab)/sizeof(drv_tab[0]) : 1;
+    for (i = 0;  i < n;  ++i) {
         uint32 spare = GET_DA(drv_tab[i].spare, RP_NUMSF, RP_NUMSC);
         uint32 total = drv_tab[i].size;
         fprintf(st, "%.6s: %5u   %5u  %5u  %5u"
@@ -1426,16 +1484,18 @@ static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
     "formatting operations yet supports the Write Lockout Address (LOA) register,\n"
     "which can be set with a PROTECT command:\n\n"
     "    sim> set RR PROTECT=ON;0407\n\n"
-    "to turn the protection on (in this case, the entire units 0 and 1, and\n"
-    "7 x 2 + 1 = 15(10) first cylinders of unit 2 will become write-locked).\n"
+    "to turn the protection on (in this case, the entire units 0 and 1, and\n", st);
+    fprintf(st, "cylinders 0 thru 7%s in unit 2 will become write-locked).\n",
+            dptr->flags & DEV_RP11CE ? " x 2 + 1 = 15(10)" : "");
+    fputs(
     "The current setting can be obtained by examining the WLOA register in\n"
     "the device (the sign bit not present in hardware controls the feature):\n\n"
     "    sim> examine RR WLOA\n"
-    "    WLOA:   100407  PROTECT=ON DRV=1 CYL2=7\n\n"
+    "    WLOA:   100407  PROTECT=ON DRV=1 CYL=7\n\n"
     "To remove the lockout:\n\n"
     "    sim> set RR PROTECT=OFF\n"
     "    sim> examine RR WLOA\n"
-    "    WLOA:   000407  PROTECT=OFF DRV=1 CYL2=7\n\n"
+    "    WLOA:   000407  PROTECT=OFF DRV=1 CYL=7\n\n"
     "Note that it does not clear the address but turns the feature off.  Also,\n"
     "the WLOA register is unaffected by the device RESET.\n", st);
     fprint_set_help (st, dptr);
@@ -1448,14 +1508,43 @@ static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
 
 static const char *rr_description (DEVICE *dptr)
 {
-    return RP_DESCRIPTION;
+    assert(dptr == &rr_dev);
+    return dptr->flags & DEV_RP11CE
+        ? RP_RP11CE "/" RP_RP02 "/" RP_RP03 " disk pack device"
+        : RP_RP11 "/" RP_RP02 " disk pack device";
 }
 
-/* Show / switch controller type */
+/* Set / show controller type */
+
+static t_stat rr_set_ctrl (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+    size_t i;
+    assert(find_dev_from_unit(uptr) == &rr_dev);
+    if ((val & ~DEV_RP11CE)  ||  cptr)
+        return SCPE_ARG;
+    if (!val) {                                         /* going RP11? */
+        for (i = 0;  i < RP_NUMDR;  ++i) {
+            uptr = rr_dev.units + i;
+            if ((uptr->flags & UNIT_ATT)  &&  (uptr->flags & UNIT_RP03))
+                return SCPE_ALATT;                      /* no RP03 allowed */
+        }
+    }
+    rr_dev.flags &= ~DEV_RP11CE;
+    rr_dev.flags |= val;
+    for (i = 0;  i < RP_NUMDR;  ++i) {
+        uptr = rr_dev.units + i;
+        if (uptr->flags & UNIT_ATT)
+            continue;
+        if (rr_set_type(uptr, val ? UNIT_RP03 : 0, 0, 0) != SCPE_OK)
+            return SCPE_IERR;
+    }
+    return SCPE_OK;
+}
 
 static t_stat rr_show_ctrl (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-    fputs(RP_RP11, st);
+    assert(find_dev_from_unit(uptr) == &rr_dev);
+    fputs(rr_dev.flags & DEV_RP11CE ? RP_RP11CE : RP_RP11, st);
     return SCPE_OK;
 }
 
