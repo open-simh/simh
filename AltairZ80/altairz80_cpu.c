@@ -209,6 +209,7 @@ uint32 getCommon(void);
 uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
                         int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
 
+static void PutBYTEasROMorRAM(register uint32 Addr, const register uint32 Value, const register uint32 makeROM);
 void PutBYTEExtended(register uint32 Addr, const register uint32 Value);
 uint32 GetBYTEExtended(register uint32 Addr);
 void cpu_raise_interrupt(uint32 irq);
@@ -1935,6 +1936,15 @@ static void PutBYTE(register uint32 Addr, const register uint32 Value) {
         else
             sim_printf("CPU: " ADDRESS_FORMAT " Attempt to write to ROM " ADDRESS_FORMAT ".\n", PCX, Addr);
     }
+}
+
+static void PutBYTEasROMorRAM(register uint32 Addr, const register uint32 Value, const register uint32 makeROM) {
+    Addr &= ADDRMASK;   /* registers are NOT guaranteed to be always 16-bit values */
+    if ((cpu_unit.flags & UNIT_CPU_BANKED) && (((common_low == 0) && (Addr < common)) || ((common_low == 1) && (Addr >= common))))
+        Addr |= bankSelect << MAXBANKSIZELOG2;
+
+    mmu_table[Addr >> LOG2PAGESIZE] = makeROM ? ROM_PAGE : RAM_PAGE;
+    M[Addr] = Value;
 }
 
 void PutBYTEExtended(register uint32 Addr, const register uint32 Value) {
@@ -7507,9 +7517,16 @@ t_stat sim_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag) {
    https://deramp.com/downloads/misc_software/hex-binary utilities for the PC/
 */
 static t_stat cpu_hex_load(FILE *fileref, CONST char *cptr, CONST char *fnam, int flag) {
+    char gbuf[CBUFSIZE];
     char linebuf[1024], datastr[1024], *bufptr;
     int32 bytecnt, rectype, databyte, chksum, line = 0, cnt = 0;
+    uint32 makeROM = FALSE;
     t_addr addr, org = 0;
+
+    get_glyph(cptr, gbuf, 0);
+    if (strcmp(gbuf, "ROM") == 0) {
+        makeROM = TRUE;
+    }
 
     while (!feof(fileref)) {
         if (fgets(linebuf, sizeof(linebuf), fileref) == NULL)
@@ -7548,7 +7565,7 @@ static t_stat cpu_hex_load(FILE *fileref, CONST char *cptr, CONST char *fnam, in
                 }
                 bufptr += 2;
 
-                PutBYTE(addr++, databyte);
+                PutBYTEasROMorRAM(addr++, databyte, makeROM);
 
                 chksum += databyte;
                 cnt++;
@@ -7564,7 +7581,7 @@ static t_stat cpu_hex_load(FILE *fileref, CONST char *cptr, CONST char *fnam, in
         }
     }
 
-    return sim_messagef(SCPE_OK, "%d byte%s loaded at %x.\n", PLURAL(cnt), org);
+    return sim_messagef(SCPE_OK, "%d byte%s loaded at %x%s.\n", PLURAL(cnt), org, (makeROM) ? " [ROM]" : "");
 }
 
 void cpu_raise_interrupt(uint32 irq) {
