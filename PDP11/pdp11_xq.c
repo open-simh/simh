@@ -2886,7 +2886,7 @@ t_stat xq_attach(UNIT* uptr, CONST char* cptr)
     return SCPE_MEM;
     }
 
-  status = eth_open(xq->var->etherface, cptr, xq->dev, DBG_ETH);
+  status = eth_open(xq->var->etherface, cptr, xq->dev, xq->dev->dctrl & DBG_ETH);
   if (status != SCPE_OK) {
     free(tptr);
     free(xq->var->etherface);
