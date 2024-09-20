@@ -740,7 +740,7 @@ if (!xs->var->etherface) {
     return SCPE_MEM;
     }
 
-status = eth_open(xs->var->etherface, cptr, xs->dev, DBG_ETH);
+status = eth_open(xs->var->etherface, cptr, xs->dev, xs->dev->dctrl & DBG_ETH);
 if (status != SCPE_OK) {
     free(tptr);
     free(xs->var->etherface);
