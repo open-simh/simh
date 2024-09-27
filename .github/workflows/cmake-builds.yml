@@ -17,7 +17,7 @@ jobs:
       # (*) "artefact" for the rest of the Anglosphere
       #-
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -58,7 +58,7 @@ jobs:
       #
       # (*) "artefact" for the rest of the Anglosphere -
       matrix:
-        os: [macos-12, macos-13, macos-14]
+        os: [macos-12, macos-13, macos-latest]
 
     env:
       CPACK_SUFFIX: ${{matrix.os != 'macos-14' && 'x86_64' || 'm1'}}.${{matrix.os}}
@@ -71,12 +71,15 @@ jobs:
     ##
     ## Future: Will have to keep an eye on SDL_ttf's Python dependency
     ## so that the correct/appropriate Python version is removed.
+    ##
+    ## Redirect stderr to /dev/null so that GH doesn't emit useless failure
+    ## messages.
     - name: Remnant symlink cleanup
       run: |
-        brew unlink python@3 || true
-        brew uninstall --ignore-dependencies python@3 || true
-        brew unlink python@3.12 || true
-        brew uninstall --ignore-dependencies python@3.12 || true
+        brew unlink python@3 2> /dev/null || true
+        brew uninstall --ignore-dependencies python@3 2> /dev/null || true
+        brew unlink python@3.12 2> /dev/null || true
+        brew uninstall --ignore-dependencies python@3.12 2> /dev/null || true
         for f in $(find /usr/local/bin -type l -print); do \
           (readlink $f | grep -q -s "/Library") && echo Removing "$f" && rm -f "$f"; \
         done || exit 0
