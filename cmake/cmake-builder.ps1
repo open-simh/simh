@@ -162,6 +162,10 @@ param (
     [Parameter(Mandatory=$false)]
     [switch] $lto            = $false,
 
+    ## Enable sanitizers
+    [Parameter(Mandatory=$false)]
+    [string] $sanitizer      = "",
+
     ## Turn on maximal compiler warnings for Debug builds (e.g. "-Wall" or "/W3")
     [Parameter(Mandatory=$false)]
     [switch] $debugWall      = $false,
@@ -449,6 +453,19 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
     if (![String]::IsNullOrEmpty($cpack_suffix))
     {
         $generateArgs += @("-DSIMH_PACKAGE_SUFFIX:Bool=${cpack_suffix}")
+    }
+
+    ## Add sanitizer(s)
+    foreach ($santhing in $sanitizer.Split(',')) {
+        switch -exact ($santhing)
+        {
+            "address" {
+                $generateArgs += @("-DSANITIZE_ADDRESS:Bool=On")
+            }
+            default {
+                Write-Host "** Unknown sanitizer option: ${santhing}, ignoring"
+            }
+        }
     }
 
     $buildArgs     =  @("--build", "${buildDir}", "--config", "${config}")

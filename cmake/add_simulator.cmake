@@ -67,6 +67,9 @@ function(build_simcore _targ)
         # Make sure that the top-level directory is part of the libary's include path:
         target_include_directories("${lib}" PUBLIC "${CMAKE_SOURCE_DIR}")
 
+        # And optional sanitizers...
+        add_sanitizers(${_targ})
+
         if (SIMH_INT64)
             target_compile_definitions(${lib} PUBLIC USE_INT64)
         endif (SIMH_INT64)
@@ -200,6 +203,7 @@ function (simh_executable_template _targ)
     )
     target_compile_options(${_targ} PRIVATE ${EXTRA_TARGET_CFLAGS})
     target_link_options(${_targ} PRIVATE ${EXTRA_TARGET_LFLAGS})
+    add_sanitizers(${_targ})
 
     if (MINGW)
         ## target_compile_options(${_targ} PUBLIC "-fms-extensions")

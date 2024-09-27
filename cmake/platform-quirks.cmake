@@ -32,6 +32,10 @@
 set(EXTRA_TARGET_CFLAGS)
 set(EXTRA_TARGET_CFLAGS)
 
+
+## Sanitizer-specific processing: 
+set(HAVE_SANITIZERS (SANITIZE_ADDRESS || SANITIZE_MEMORY || SANITIZE_THREAD || SANITIZE_UNDEFINED))
+
 # For 64-bit builds (and this is especially true for MSVC), set the library
 # architecture.
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -148,8 +152,10 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
 
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set(update_o2 TRUE)
+        set(add_werror ${WARNINGS_FATAL})
+
         if (NOT MINGW)
-            if (RELEASE_LTO AND (NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release"))
+            if (RELEASE_LTO AND NOT HAVE_SANITIZERS AND (NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release"))
                 check_c_compiler_flag("-flto" GCC_LTO_FLAG)
                 if (GCC_LTO_FLAG)
                     message(STATUS "Adding LTO to Release compiler and linker flags")
@@ -157,6 +163,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
                     list(APPEND EXTRA_TARGET_CFLAGS "${lto_flag}")
                     list(APPEND EXTRA_TARGET_LFLAGS "${lto_flag}")
                     set(update_o2 FALSE)
+                    set(add_werror TRUE)
                 else ()
                     message(STATUS "Compiler does not support Link Time Optimization.")
                 endif ()
@@ -173,7 +180,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
             string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         endif ()
 
-        if (WARNINGS_FATAL` OR RELEASE_LTO)
+        if (add_werror)
             check_c_compiler_flag("-Werror" GCC_W_ERROR_FLAG)
             if (GCC_W_ERROR_FLAG)
                 if (WARNINGS_FATAL)
