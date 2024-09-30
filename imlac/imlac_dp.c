@@ -469,9 +469,8 @@ dp_svc(UNIT * uptr)
   } else
     dp_insn (insn);
 
-  if (ON) {
+  if (ON)
     sim_activate_after (&dp_unit, 2);
-  }
 
   return SCPE_OK;
 }
