@@ -605,13 +605,13 @@ flag_check (uint16 flag)
 }
 
 static uint16
-irq_iot (uint16 insn, uint16 CUR_AC)
+irq_iot (uint16 insn, uint16 AC)
 {
   if ((insn & 0771) == 0101) { /* RDI */
-    CUR_AC |= FLAGS;
+    AC |= FLAGS;
   }
   if ((insn & 0771) == 0141) { /* ARM */
-    ARM = CUR_AC;
+    ARM = AC;
   }
   if ((insn & 0771) == 0161) { /* IOF */
     sim_debug (DBG_IRQ, &irq_dev, "Interrupts off\n");
@@ -621,7 +621,7 @@ irq_iot (uint16 insn, uint16 CUR_AC)
     /* Delay the action until next instruction has executed. */
     ion_delay = 2;
   }
-  return CUR_AC;
+  return AC;
 }
 
 void
