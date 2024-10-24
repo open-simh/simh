@@ -69,6 +69,7 @@
 #define ID_STAT_CEL     0x20
 #define ID_STAT_CEH     0x40
 #define ID_STAT_CB      0x80
+#define ID_IRQ_MASK     (ID_STAT_CEL|ID_STAT_CEH|ID_STAT_SRQ)
 
 #define ID_IST_SEN      0x80    /* Seek End        */
 #define ID_IST_RC       0x40    /* Ready Change    */
@@ -105,7 +106,7 @@
 #define ID_CYL_SIZE        ID_SEC_SIZE * ID_SEC_CNT
 
 /* Specific to each drive type */
-#define ID_MAX_DTYPE       3
+#define ID_MAX_DTYPE       4
 
 #define ID_HD30_DTYPE      0
 #define ID_HD30_CYL        697
@@ -122,24 +123,19 @@
 #define ID_HD72C_HEADS     11
 #define ID_HD72C_LBN       149292
 
-/* The HD135 is actually just an HD161 with only 1024 cylinders
- * formatted. This is a software limitation, not hardware. */
-
 #define ID_HD135_DTYPE     3
-#define ID_HD135_CYL       1224
+#define ID_HD135_CYL       1024
 #define ID_HD135_HEADS     15
-#define ID_HD135_LBN       330480
+#define ID_HD135_LBN       276480
 
-#define ID_HD161_DTYPE     3
+#define ID_HD161_DTYPE     4
 #define ID_HD161_CYL       1224
 #define ID_HD161_HEADS     15
 #define ID_HD161_LBN       330480
 
 #define ID_V_DTYPE         (DKUF_V_UF + 0)
-#define ID_M_DTYPE         3
+#define ID_M_DTYPE         7
 #define ID_DTYPE           (ID_M_DTYPE << ID_V_DTYPE)
-#define ID_V_AUTOSIZE      (ID_V_DTYPE + 2)
-#define ID_AUTOSIZE        (1 << ID_V_AUTOSIZE)
 #define ID_GET_DTYPE(x)    (((x) >> ID_V_DTYPE) & ID_M_DTYPE)
 #define ID_DRV(d)          { ID_##d##_HEADS, ID_##d##_LBN, #d }
 
@@ -156,11 +152,22 @@
 
 #define CMD_NUM       ((id_cmd >> 4) & 0xf)
 
+struct id_state {
+    uint16 cyl;       /* Cylinder the drive is positioned on   */
+    uint8  phn;       /* Physical head number                  */
+    uint8  lhn;       /* Logical head number                   */
+    uint8  lsn;       /* Logical sector number                 */
+    uint8  scnt;      /* Sector count                          */
+    uint8  lcnh;      /* Logical Cylinder Number, high byte    */
+    uint8  lcnl;      /* Logical Cylinder Number, low byte     */
+};
+
 /* Function prototypes */
 
 t_stat id_ctlr_svc(UNIT *uptr);
 t_stat id_unit_svc(UNIT *uptr);
 t_stat id_reset(DEVICE *dptr);
+t_stat id_set_large(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat id_set_type(UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat id_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat id_attach(UNIT *uptr, CONST char *cptr);

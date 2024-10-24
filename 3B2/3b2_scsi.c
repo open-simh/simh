@@ -37,9 +37,6 @@
 #include "3b2_io.h"
 #include "3b2_mem.h"
 
-#define DIAG_CRC_1 0x271b114c
-#define PUMP_CRC   0x201b3617
-
 #define HA_SCSI_ID      0
 #define HA_MAXFR        (1u << 16)
 
@@ -48,6 +45,16 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr,
 static void ha_build_req(uint8 tc, uint8 subdev, t_bool express);
 static void ha_ctrl(uint8 tc);
 
+static uint32 diag_crc[] = {
+    0x271b114c,          /* BOOT DIAG CRC under SVR 3.2.3 */
+    0x4bf2592f,          /* BOOT DIAG CRC under SVR 3.2 (SCSI HA Utilities 1.0) */
+    0x23fc023c           /* dgmon phase 1 DIAG CRC under Maintenance Utilities 4.0 */
+};
+
+static uint32 pump_crc[] = {
+    0x6ec6932d,          /* SCSI HA Utilities 1.0 pump CRC */
+    0x201b3617           /* SVR 3.2.3 pump CRC */
+};
 
 HA_STATE ha_state;
 SCSI_BUS ha_bus;
@@ -136,7 +143,11 @@ DEVICE ha_dev = {
     &ha_attach,                             /* attach routine */
     &ha_detach,                             /* detach routine */
     NULL,                                   /* context */
+#if defined(REV3)
     DEV_DEBUG|DEV_DISK|DEV_SECTORS,         /* flags */
+#else
+    DEV_DISABLE|DEV_DIS|DEV_DEBUG|DEV_DISK|DEV_SECTORS, /* flags */
+#endif
     0,                                      /* debug control flags */
     ha_debug,                               /* debug flag names */
     NULL,                                   /* memory size change */
@@ -163,31 +174,7 @@ t_stat ha_reset(DEVICE *dptr)
     t_stat r;
 
     ha_state.pump_state = PUMP_NONE;
-
-    if (ha_buf == NULL) {
-        ha_buf = (uint8 *)calloc(HA_MAXFR, sizeof(uint8));
-    }
-
-    r = scsi_init(&ha_bus, HA_MAXFR);
-
-    if (r != SCPE_OK) {
-        return r;
-    }
-
-    ha_bus.dptr = dptr;
-
-    scsi_reset(&ha_bus);
-
-    for (t = 0; t < 8; t++) {
-        uptr = dptr->units + t;
-        if (t == HA_SCSI_ID) {
-            uptr->flags = UNIT_DIS;
-        }
-        scsi_add_unit(&ha_bus, t, uptr);
-        dtyp = GET_DTYPE(uptr->flags);
-        scsi_set_unit(&ha_bus, uptr, &ha_tab[dtyp]);
-        scsi_reset_unit(uptr);
-    }
+    ha_crc = 0;
 
     if (dptr->flags & DEV_DIS) {
         cio_remove_all(HA_ID);
@@ -195,13 +182,46 @@ t_stat ha_reset(DEVICE *dptr)
         return SCPE_OK;
     }
 
+    if (ha_buf == NULL) {
+        ha_buf = (uint8 *)calloc(HA_MAXFR, sizeof(uint8));
+    }
+
     if (!ha_conf) {
-        r = cio_install(HA_ID, "SCSI", HA_IPL,
-                        &ha_express, &ha_full, &ha_sysgen, &ha_cio_reset,
-                        &slot);
+        r = scsi_init(&ha_bus, HA_MAXFR);
+
         if (r != SCPE_OK) {
             return r;
         }
+
+        ha_bus.dptr = dptr;
+
+        scsi_reset(&ha_bus);
+
+        for (t = 0; t < 8; t++) {
+            uptr = dptr->units + t;
+            if (t == HA_SCSI_ID) {
+                uptr->flags = UNIT_DIS;
+            }
+            scsi_add_unit(&ha_bus, t, uptr);
+            dtyp = GET_DTYPE(uptr->flags);
+            scsi_set_unit(&ha_bus, uptr, &ha_tab[dtyp]);
+            scsi_reset_unit(uptr);
+        }
+
+        if (dptr->flags & DEV_DIS) {
+            cio_remove_all(HA_ID);
+            ha_conf = FALSE;
+            return SCPE_OK;
+        }
+
+        r = cio_install(HA_ID, "SCSI", HA_IPL,
+                        &ha_express, &ha_full, &ha_sysgen, &ha_cio_reset,
+                        &slot);
+
+        if (r != SCPE_OK) {
+            return r;
+        }
+
         ha_state.slot = slot;
         ha_conf = TRUE;
     }
@@ -331,6 +351,7 @@ void ha_sysgen(uint8 slot)
 {
     uint32 sysgen_p;
     uint32 alert_buf_p;
+    uint32 i;
 
     cq_offset = 0;
 
@@ -355,14 +376,17 @@ void ha_sysgen(uint8 slot)
     ha_state.ts[HA_SCSI_ID].rep.op = 0;
     ha_state.ts[HA_SCSI_ID].pending = TRUE;
 
-    if (ha_crc == PUMP_CRC) {
-        sim_debug(HA_TRACE, &ha_dev,
-                  "[ha_sysgen] PUMP: NEW STATE = PUMP_SYSGEN\n");
-        ha_state.pump_state = PUMP_SYSGEN;
-    } else {
-        sim_debug(HA_TRACE, &ha_dev,
-                  "[ha_sysgen] PUMP: NEW STATE = PUMP_NONE\n");
-        ha_state.pump_state = PUMP_NONE;
+    ha_state.pump_state = PUMP_NONE;
+
+    for (i = 0; i < sizeof(pump_crc) / sizeof(pump_crc[0]); i++) {
+        if (ha_crc == pump_crc[i]) {
+            sim_debug(HA_TRACE, &ha_dev,
+                    "[ha_sysgen] PUMP: NEW STATE = PUMP_SYSGEN\n");
+
+            ha_state.pump_state = PUMP_SYSGEN;
+
+            break;
+        }
     }
 
     sim_activate_abs(cio_unit, 1000);
@@ -396,15 +420,21 @@ void ha_express(uint8 slot)
     cio_entry rqe;
     uint8 rapp_data[RAPP_LEN] = {0};
 
+    sim_debug(HA_TRACE, &ha_dev,
+              "[ha_express] Handling Express Request. pump_state=%d, ha_state.frq=%d, subdev=%02x\n",
+              ha_state.pump_state, ha_state.frq, rqe.subdevice);
+
+    if (ha_state.pump_state == PUMP_SYSGEN) {
+        sim_debug(HA_TRACE, &ha_dev,
+                  "[ha_full] PUMP: NEW STATE = PUMP_COMPLETE\n");
+
+        ha_state.pump_state = PUMP_COMPLETE;
+    }
+
     if (ha_state.frq) {
         ha_fast_queue_check();
     } else {
         cio_rexpress(slot, SCQRESIZE, &rqe, rapp_data);
-
-        sim_debug(HA_TRACE, &ha_dev,
-                  "[ha_express] Handling Express Request. subdev=%02x\n",
-                  rqe.subdevice);
-
         ha_cmd(rqe.opcode, rqe.subdevice, rqe.address, rqe.byte_count, TRUE);
     }
 }
@@ -815,12 +845,18 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool expres
         sim_debug(HA_TRACE, &ha_dev,
                   "[ha_cmd] SCSI Force Function Call. (CRC=%08x)\n",
                   ha_crc);
-        if (ha_crc == DIAG_CRC_1) {
-            pwrite_h(0x200f000, 0x1, BUS_PER);   /* Test success */
-            pwrite_h(0x200f002, 0x0, BUS_PER);   /* Test Number */
-            pwrite_h(0x200f004, 0x0, BUS_PER);   /* Actual */
-            pwrite_h(0x200f006, 0x0, BUS_PER);   /* Expected */
-            pwrite_b(0x200f008, 0x1, BUS_PER);   /* Success flag again */
+        for (i = 0; i < sizeof(diag_crc) / sizeof(diag_crc[0]); i++) {
+            if (ha_crc == diag_crc[i]) {
+                sim_debug(HA_TRACE, &ha_dev,
+                          "[ha_cmd] Found matching diagnostics CRC at position %d (%08x==%08x).\n",
+                          i, ha_crc, diag_crc[i]);
+                pwrite_h(0x200f000, 0x1, BUS_PER);   /* Test success */
+                pwrite_h(0x200f002, 0x0, BUS_PER);   /* Test Number */
+                pwrite_h(0x200f004, 0x0, BUS_PER);   /* Actual */
+                pwrite_h(0x200f006, 0x0, BUS_PER);   /* Expected */
+                pwrite_b(0x200f008, 0x1, BUS_PER);   /* Success flag again */
+                break;
+            }
         }
 
         cio[ha_state.slot].sysgen_s = 0;
@@ -1077,12 +1113,21 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool expres
         tc = HA_SCSI_ID;
         ha_cmd_prep(tc, op, subdev, express);
 
+        if (len > HA_EDT_LEN) {
+            sim_debug(HA_TRACE, &ha_dev,
+                      "[ha_cmd] SCSI DOWNLOAD EDT: Requested to download %d bytes; downloading only %d byte\n",
+                      len, HA_EDT_LEN);
+            len = HA_EDT_LEN;
+        }
+
         sim_debug(HA_TRACE, &ha_dev,
                   "[ha_cmd] SCSI DOWNLOAD EDT (%d bytes to address %08x)\n",
                   len, addr);
 
         for (i = 0; i < len; i++) {
             pwrite_b(addr + i, ha_state.edt[i], BUS_PER);
+            sim_debug(HA_TRACE, &ha_dev,
+                      "[ha_cmd] SCSI DOWNLOAD EDT: edt[%i] = %02x\n", i, ha_state.edt[i]);
         }
 
         ha_state.ts[tc].rep.status = CIO_SUCCESS;
@@ -1099,12 +1144,21 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool expres
         tc = HA_SCSI_ID;
         ha_cmd_prep(tc, op, subdev, express);
 
+        if (len > HA_EDT_LEN) {
+            sim_debug(HA_TRACE, &ha_dev,
+                      "[ha_cmd] SCSI UPLOAD EDT: Requested to upload %d bytes; uploading only %d byte\n",
+                      len, HA_EDT_LEN);
+            len = HA_EDT_LEN;
+        }
+
         sim_debug(HA_TRACE, &ha_dev,
                   "[ha_cmd] SCSI UPLOAD EDT (%d bytes from address %08x)\n",
                   len, addr);
 
         for (i = 0; i < len; i++) {
             ha_state.edt[i] = pread_b(addr + i, BUS_PER);
+            sim_debug(HA_TRACE, &ha_dev,
+                      "[ha_cmd] SCSI UPLOAD EDT: edt[%i] = %02x\n", i, ha_state.edt[i]);
         }
 
         ha_state.ts[tc].rep.status = CIO_SUCCESS;

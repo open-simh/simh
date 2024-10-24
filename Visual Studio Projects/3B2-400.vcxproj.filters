@@ -60,6 +60,9 @@
     <ClCompile Include="..\3B2\3b2_rev2_sys.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\3B2\3b2_scsi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\3B2\3b2_stddev.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -85,6 +88,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sim_fio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sim_scsi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sim_serial.c">

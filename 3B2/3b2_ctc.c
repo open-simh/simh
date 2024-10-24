@@ -52,14 +52,17 @@
 #define DELAY_UNK     1000
 #define DELAY_CATCHUP 10000
 
-#define CTC_DIAG_CRC1 0xa4a5752f
-#define CTC_DIAG_CRC2 0xd3d20eb3
-#define CTC_DIAG_CRC3 0x0f387ce3  /* Used by SVR 2.0.5 */
-
 #define TAPE_DEV      0    /* CTAPE device */
 #define XMF_DEV       1    /* XM Floppy device */
 
 #define VTOC_BLOCK    0
+
+static uint32 diag_crc[] = {
+    0xa4a5752f,
+    0xd3d20eb3,
+    0x668e4b3e, /* Used by SVR 3.1 */
+    0x0f387ce3  /* Used by SVR 2.0.5 */
+};
 
 static uint8   int_slot;            /* Interrupting card ID   */
 static uint8   int_subdev;          /* Interrupting subdevice */
@@ -299,14 +302,17 @@ static void ctc_cmd(uint8 slot,
         /* If the currently running program is a diagnostic program,
          * we are expected to write results into memory at address
          * 0x200f000 */
-        if (ctc_crc == CTC_DIAG_CRC1 ||
-            ctc_crc == CTC_DIAG_CRC2 ||
-            ctc_crc == CTC_DIAG_CRC3) {
-            pwrite_h(0x200f000, 0x1, BUS_PER);   /* Test success */
-            pwrite_h(0x200f002, 0x0, BUS_PER);   /* Test Number */
-            pwrite_h(0x200f004, 0x0, BUS_PER);   /* Actual */
-            pwrite_h(0x200f006, 0x0, BUS_PER);   /* Expected */
-            pwrite_b(0x200f008, 0x1, BUS_PER);   /* Success flag again */
+        for (i = 0; i < (sizeof(diag_crc) / sizeof(diag_crc[0])); i++) {
+            if (ctc_crc == diag_crc[i]) {
+                sim_debug(TRACE_DBG, &ctc_dev,
+                         "[ctc_cmd] CIO_FCF found CRC==%08x\n", ctc_crc);
+                pwrite_h(0x200f000, 0x1, BUS_PER);   /* Test success */
+                pwrite_h(0x200f002, 0x0, BUS_PER);   /* Test Number */
+                pwrite_h(0x200f004, 0x0, BUS_PER);   /* Actual */
+                pwrite_h(0x200f006, 0x0, BUS_PER);   /* Expected */
+                pwrite_b(0x200f008, 0x1, BUS_PER);   /* Success flag again */
+                break;
+            }
         }
 
         /* An interesting (?) side-effect of FORCE FUNCTION CALL is
