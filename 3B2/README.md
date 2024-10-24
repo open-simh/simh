@@ -8,7 +8,7 @@ This module contains the source for two simulators:
 
 Full documentation for the 3B2 simulator is available here:
 
-  - https://loomcom.com/3b2/emulator.html
+  - https://loomcom.com/3b2/emulator/
 
 3B2/400 Simulator Devices
 -------------------------
@@ -31,6 +31,7 @@ devices are given in parentheses:
   - CM195A Ethernet Network Interface (NI)
   - CM195B 4-port Serial MUX (PORTS)
   - CM195H Cartridge Tape Controller (CTC)
+  - CM195W SCSI Host Adapter (SCSI)
 
 3B2/700 Simulator Devices
 -------------------------
@@ -49,6 +50,6 @@ devices are given in parentheses:
   - TMS2793 Integrated Floppy Controller (IFLOPPY)
   - Non-Volatile Memory (NVRAM)
   - MM58274C Time Of Day Clock (TOD)
-  - CM195W SCSI Host Adapter (SCSI)
   - CM195A Ethernet Network Interface (NI)
   - CM195B 4-port Serial MUX (PORTS)
+  - CM195W SCSI Host Adapter (SCSI)

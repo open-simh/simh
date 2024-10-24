@@ -91,16 +91,24 @@
 #define DELAY_DEVICE  25
 #define DELAY_STD     100
 
-#define PORTS_DIAG_CRC1 0x7ceec900
-#define PORTS_DIAG_CRC2 0x77a1ea56
-#define PORTS_DIAG_CRC3 0x84cf938b
-#define PORTS_DIAG_CRC4 0x31b32383  /* Used by SVR 2.0.5 */
-#define PORTS_DIAG_CRC5 0x4be7bccc  /* Used by SVR 2.0.5 */
-#define PORTS_DIAG_CRC6 0x3197f6dd  /* Used by SVR 2.0.5 */
-
 #define LN(slot,port)   (ports_slot_ln[(slot)] + (port))
 #define LSLOT(ln)       (ports_ln_slot[ln])
 #define LPORT(ln)       ((ln) % PORTS_LINES)
+
+static uint32 diag_crc[] = {
+    0x7ceec900,  /* Used by SVR 3.2 and up */
+    0x77a1ea56,  /* Used by SVR 3.2 and up */
+    0x84cf938b,  /* Used by SVR 3.2 and up */
+    0xd9d56d23,  /* Used by SVR 3.1 */
+    0x17c6c722,  /* Used by SVR 3.1 */
+    0xeaf367fa,  /* Used by SVR 3.1 */
+    0x5805145e,  /* Used by SVR 3.1 */
+    0x18d72e94,  /* Used by SVR 3.1 */
+    0x3b8706b1,  /* Used by SVR 2.0.5 */
+    0x31b32383,  /* Used by SVR 2.0.5 */
+    0x4be7bccc,  /* Used by SVR 2.0.5 */
+    0x3197f6dd   /* Used by SVR 2.0.5 */
+};
 
 int8    ports_base_slot;          /* First slot in our contiguous block */
 uint8   ports_int_slot;           /* Interrupting card ID   */
@@ -367,17 +375,18 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
         /* If the currently running program is a diagnostics program,
          * we are expected to write results into memory at address
          * 0x200f000 */
-        if (ports_crc == PORTS_DIAG_CRC1 ||
-            ports_crc == PORTS_DIAG_CRC2 ||
-            ports_crc == PORTS_DIAG_CRC3 ||
-            ports_crc == PORTS_DIAG_CRC4 ||
-            ports_crc == PORTS_DIAG_CRC5 ||
-            ports_crc == PORTS_DIAG_CRC6) {
-            pwrite_h(0x200f000, 0x1, BUS_PER);   /* Test success */
-            pwrite_h(0x200f002, 0x0, BUS_PER);   /* Test Number */
-            pwrite_h(0x200f004, 0x0, BUS_PER);   /* Actual */
-            pwrite_h(0x200f006, 0x0, BUS_PER);   /* Expected */
-            pwrite_b(0x200f008, 0x1, BUS_PER);   /* Success flag again */
+        for (i = 0 ; i < (sizeof(diag_crc) / sizeof(diag_crc[0])); i++) {
+            if (ports_crc == diag_crc[i]) {
+                sim_debug(TRACE_DBG, &ports_dev,
+                          "[ports_cmd] CIO_FCF found CRC==%08x\n",
+                          ports_crc);
+                pwrite_h(0x200f000, 0x1, BUS_PER);   /* Test success */
+                pwrite_h(0x200f002, 0x0, BUS_PER);   /* Test Number */
+                pwrite_h(0x200f004, 0x0, BUS_PER);   /* Actual */
+                pwrite_h(0x200f006, 0x0, BUS_PER);   /* Expected */
+                pwrite_b(0x200f008, 0x1, BUS_PER);   /* Success flag again */
+                break;
+            }
         }
 
         /* An interesting (?) side-effect of FORCE FUNCTION CALL is

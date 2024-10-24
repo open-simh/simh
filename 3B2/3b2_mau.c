@@ -305,7 +305,7 @@ DEVICE mau_dev = {
     NULL,                           /* attach routine */
     NULL,                           /* detach routine */
     NULL,                           /* context */
-#ifdef REV3
+#if defined(REV3)
     DEV_DEBUG,                      /* Rev 3 flags: Always required */
 #else
     DEV_DISABLE|DEV_DEBUG,          /* Rev 2 flags: Can be disabled */
