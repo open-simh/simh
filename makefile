@@ -613,11 +613,14 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
     PCRE2_LIB=pcre2-8
     ifneq (,$(call find_lib,${PCRE2_LIB}))
       OS_CCDEFS += -DHAVE_PCRE2_H
+      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,${PCRE2_LIB}))
+	PCRE2_LIBPATH = $(dir $(call find_lib,${PCRE2_LIB}))
+	ifneq (,${PCRE2_LIBPATH})
+	  OS_LDFLAGS += -L${PCRE2_LIBPATH}
+	endif
+      endif
       OS_LDFLAGS += -l${PCRE2_LIB}
       $(info using libpcre2-8: $(call find_lib,${PCRE2_LIB}) $(call find_include,pcre2))
-      ifeq ($(LD_SEARCH_NEEDED),$(call need_search,${PCRE2_LIB}))
-	OS_LDFLAGS += -L$(dir $(call find_lib,${{PCRE2_LIB}}))
-      endif
       FALLBACK_PCRE=
     endif
   endif
