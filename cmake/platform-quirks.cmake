@@ -132,6 +132,37 @@ if (WIN32)
         message(STATUS "Target Windows version set to ${TARGET_WINVER}")
         add_compile_definitions(WINVER=${TARGET_WINVER} _WIN32_WINNT=${TARGET_WINVER})
         list(APPEND CMAKE_REQUIRED_DEFINITIONS "-DWINVER=${TARGET_WINVER}" "-D_WIN32_WINNT=${TARGET_WINVER}")
+        set(WINVER ${TARGET_WINVER})
+    else ()
+        file(WRITE
+            ${CMAKE_BINARY_DIR}/CMakeTmp/testWinVer.c
+            "#define WINDOWS_LEAN_AND_MEAN\n"
+            "#include <windows.h>\n"
+            "#include <stdio.h>\n"
+            "int main(void) {\n"
+            "#if defined(WINVER) && WINVER >= 0x0601\n"
+            "   return 0;\n"
+            "#else\n"
+            "   return 1;\n"
+            "#endif\n"
+            "}\n"
+        )
+
+        try_run(RUN_WINVER COMPILE_WINVER
+            SOURCES ${CMAKE_BINARY_DIR}/CMakeTmp/testWinVer.c
+            RUN_OUTPUT_VARIABLE THE_WINVER
+        )
+
+        if (RUN_WINVER EQUAL 0)
+            message(STATUS "Windows Vista or later.")
+            set(WINDOWS_VISTA_PLUS TRUE)
+        else ()
+            message(STATUS "Windows version not detected: run status ${RUN_WINVER}, compile status ${COMPILE_WINVER}")
+            set(WINDOWS_VISTA_PLUS FALSE)
+            endif ()
+
+        unset(RUN_WINVER)
+        unset(COMPILE_WINVER)
     endif ()
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # The MSVC solution builds as 32-bit, but none of the *nix platforms do.
@@ -223,8 +254,6 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         string(APPEND CMAKE_C_FLAGS_MINSIZEREL " ${opt_flag}")
     endforeach ()
-else ()
-    message(STATUS "Not changing CMAKE_C_FLAGS_RELEASE on ${CMAKE_C_COMPILER_ID}")
 endif ()
 
 

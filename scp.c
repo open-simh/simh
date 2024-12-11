@@ -13621,14 +13621,32 @@ static void _debug_fwrite_all (const char *buf, size_t len, FILE *f)
 {
 size_t len_written;
 
+AIO_DEBUG_LOCK;
+
 while (len > 0) {
     errno = 0;
     len_written = fwrite (buf, 1, len, f);
-    len -= len_written;
-    buf += len_written;
-    if (errno == EAGAIN)    /* Non blocking file descriptor buffer full? */
-        sim_os_ms_sleep(10);/* wait a bit to retry */
+    if (len_written > 0) {
+      len -= len_written;
+      buf += len_written;
+    } else {
+      if (errno == EAGAIN)    /* Non blocking file descriptor buffer full? */
+          sim_os_ms_sleep(10);/* wait a bit to retry */
+      else
+          break;
     }
+  }
+
+/* errno was not EAGAIN. Highly possible that sim_deb is now NULL */
+if (len > 0) {
+    fputs("Unable to write debug log, buf reminaing:\n", stdout);
+    fputs(buf, stdout);
+    fputs("\r\n", stdout);
+    printf("errno %d (%s)\r\n", errno, strerror(errno));
+    fflush(stdout);
+    }
+
+AIO_DEBUG_UNLOCK;
 }
 
 static void _debug_fwrite (const char *buf, size_t len)
@@ -13670,7 +13688,6 @@ if (sim_deb_switches & SWMASK ('F')) {              /* filtering disabled? */
         _debug_fwrite (buf, len);                   /* output now. */
     return;                                         /* done */
     }
-AIO_DEBUG_LOCK;
 if (debug_line_offset + len + 1 > debug_line_bufsize) {
     /* realloc(NULL, size) == malloc(size). Initialize the malloc()-ed space. Only
        need to test debug_line_buf since SIMH allocates both buffers at the same
@@ -13755,7 +13772,6 @@ while (NULL != (eol = strchr (debug_line_buf, '\n')) || flush) {
         memmove (debug_line_buf, eol + 1, debug_line_offset);
     debug_line_buf[debug_line_offset] = '\0';
     }
-AIO_DEBUG_UNLOCK;
 }
 
 static void _sim_debug_write (const char *buf, size_t len)
@@ -13765,33 +13781,11 @@ _sim_debug_write_flush (buf, len, FALSE);
 
 static t_stat _sim_debug_flush (void)
 {
-int32 saved_quiet = sim_quiet;
-int32 saved_sim_switches = sim_switches;
-int32 saved_deb_switches = sim_deb_switches;
-struct timespec saved_deb_basetime = sim_deb_basetime;
-char saved_debug_filename[CBUFSIZE];
-
-if (sim_deb == NULL)                                    /* no debug? */
-    return SCPE_OK;
-
-_sim_debug_write_flush ("", 0, TRUE);
-
-if (sim_deb == sim_log) {                               /* debug is log */
-    fflush (sim_deb);                                   /* fflush is the best we can do */
-    return SCPE_OK;
+if (sim_deb != NULL) {                                  /* no debug? */
+    _sim_debug_write_flush ("", 0, TRUE);
+    fflush(sim_deb);
     }
 
-if (!(saved_deb_switches & SWMASK ('B'))) {
-    strcpy (saved_debug_filename, sim_logfile_name (sim_deb, sim_deb_ref));
-
-    sim_quiet = 1;
-    sim_set_deboff (0, NULL);
-    sim_switches = saved_deb_switches;
-    sim_set_debon (0, saved_debug_filename);
-    sim_deb_basetime = saved_deb_basetime;
-    sim_switches = saved_sim_switches;
-    sim_quiet = saved_quiet;
-    }
 return SCPE_OK;
 }
 
@@ -13830,8 +13824,7 @@ char tim_t[32] = "";
 char tim_a[32] = "";
 char pc_s[MAX_WIDTH + 1] = "";
 struct timespec time_now;
-
-AIO_DEBUG_LOCK;
+const size_t n_dbg_prefix = sizeof(debug_line_prefix) / sizeof(char);
 
 if (sim_deb_switches & (SWMASK ('T') | SWMASK ('R') | SWMASK ('A'))) {
     sim_rtcn_get_time(&time_now, 0);
@@ -13844,7 +13837,10 @@ if (sim_deb_switches & (SWMASK ('T') | SWMASK ('R') | SWMASK ('A'))) {
         sprintf(tim_t, "%02d:%02d:%02d.%03d ", now->tm_hour, now->tm_min, now->tm_sec, (int)(time_now.tv_nsec/1000000));
         }
     if (sim_deb_switches & SWMASK ('A')) {
-        sprintf(tim_t, "%" LL_FMT "d.%03d ", (LL_TYPE)(time_now.tv_sec), (int)(time_now.tv_nsec/1000000));
+        const size_t n_tim_t = sizeof(tim_t) / sizeof(char);
+
+        snprintf(tim_t, n_tim_t, "%" LL_FMT "d.%03d ", (LL_TYPE) time_now.tv_sec, (int) (time_now.tv_nsec/1000000));
+        tim_t[n_tim_t - 1] = '\0';
         }
     }
 if (sim_deb_switches & SWMASK ('P')) {
@@ -13864,8 +13860,9 @@ if (sim_deb_switches & SWMASK ('P')) {
     sprint_val (&pc_s[strlen(pc_s)], val, sim_PC->radix, sim_PC->width, sim_PC->flags & REG_FMT);
     }
 
-sprintf(debug_line_prefix, "DBG(%s%s%.0f%s)%s> %s %s: ", tim_t, tim_a, sim_gtime(), pc_s, AIO_MAIN_THREAD ? "" : "+", dev_name, debug_type);
-AIO_DEBUG_UNLOCK;
+snprintf(debug_line_prefix, n_dbg_prefix, "DBG(%s%s%.0f%s)%s> %s %s: ",
+         tim_t, tim_a, sim_gtime(), pc_s, AIO_MAIN_THREAD ? "" : "+", dev_name, debug_type);
+debug_line_prefix[n_dbg_prefix - 1] = '\0';
 
 return debug_line_prefix;
 }
@@ -14217,7 +14214,10 @@ if (sim_deb && dptr && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & dbits)) {
 void sim_misc_debug (const char *debug_thing, const char *debug_type, const char* msg)
 {
 if (sim_deb != NULL) {
-    char *buf = strdup(msg);
+    const size_t msg_len = strlen(msg);
+    char *buf = (char *) calloc(msg_len + 4, sizeof(char));
+
+    memcpy(buf, msg, msg_len);
 
     AIO_DEBUG_LOCK;
     sim_debug_expand_newlines(buf, strlen(buf), sim_debug_prefix(debug_thing, debug_type));

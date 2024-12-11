@@ -99,8 +99,8 @@ function(build_simcore _targ)
                     ${CMAKE_SOURCE_DIR}/libslirp/src
                     ${CMAKE_BINARY_DIR}/libslirp/build-include
             )
-        endif ()
-        
+        endif ()    
+
         target_link_options(${lib} PRIVATE ${EXTRA_TARGET_LFLAGS})
 
         # Make sure that the top-level directory is part of the libary's include path:

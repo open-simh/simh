@@ -369,7 +369,7 @@ static SHTAB show_con_tab[] = {
     { "WRU", &sim_show_kmap, KMAP_WRU },
     { "BRK", &sim_show_kmap, KMAP_BRK },
     { "DEL", &sim_show_kmap, KMAP_DEL },
-#if (defined(__GNUC__) && !defined(__OPTIMIZE__) && !defined(_WIN32))       /* Debug build? */
+#if (defined(__GNUC__) /*&& !defined(__OPTIMIZE__)*/ && !defined(_WIN32))       /* Debug build? */
     { "DBGINT", &sim_show_kmap, KMAP_DBGINT },
 #endif
     { "PCHAR", &sim_show_pchar, 0 },
@@ -3801,7 +3801,7 @@ static t_stat sim_os_ttrun (void)
 {
 sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_ttrun() - BSDTTY\n");
 
-#if (defined(__GNUC__) && !defined(__OPTIMIZE__))       /* Debug build? */
+#if (defined(__GNUC__) /*&& !defined(__OPTIMIZE__))*/       /* Debug build? */
 if (sim_dbg_int_char == 0)
     sim_dbg_int_char = sim_int_char + 1;
 runtchars.t_intrc = sim_dbg_int_char;                   /* let debugger get SIGINT with next highest char */
@@ -3984,7 +3984,7 @@ runtty.c_cc[VINTR] = 0;                                 /* OS X doesn't deliver 
 #else
 runtty.c_cc[VINTR] = sim_int_char;                      /* in case changed */
 #endif
-#if (defined(__GNUC__) && !defined(__OPTIMIZE__))       /* Debug build? */
+#if (defined(__GNUC__) /*&& !defined(__OPTIMIZE__)*/)       /* Debug build? */
 if (sim_dbg_int_char == 0)
     sim_dbg_int_char = sim_int_char + 1;
 runtty.c_cc[VINTR] = sim_dbg_int_char;                  /* let debugger get SIGINT with next highest char */

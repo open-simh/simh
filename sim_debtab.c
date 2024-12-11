@@ -70,7 +70,8 @@ void sim_fill_debtab_flags(DEBTAB *debtab)
 {
     uint32_t dbg_bitmask = 0, new_flag;
     DEBTAB *p;
-    int i;
+    const unsigned int n_bits = sizeof(dbg_bitmask) * 8;
+    unsigned int i;
 
     /* Augment the device's debugging table with the poll and socket flags,
      * so that debugging looks correct in the output (see _get_dbg_verb() in
@@ -79,14 +80,11 @@ void sim_fill_debtab_flags(DEBTAB *debtab)
     for (p = debtab; p->name != NULL; ++p)
         dbg_bitmask |= p->mask;
 
-    for (p = debtab, new_flag = 1, i = sizeof(dbg_bitmask) * 8; p->name != NULL && i > 0; /* empty */) {
-        while (i > 0 && (new_flag & dbg_bitmask) != 0) {
-            new_flag <<= 1;
-            --i;
-        }
-
-        /* Found a hole in the existing debugging flags */
-        if (i > 0) {
+    p = debtab;
+    new_flag = 1;
+    i = 0;
+    while (p->name != NULL && i < n_bits) {
+        if ((new_flag & dbg_bitmask) == 0) {
             /* Find a need for the new flag */
             while (p->mask != 0 && p->name != NULL)
                 ++p;
@@ -94,5 +92,8 @@ void sim_fill_debtab_flags(DEBTAB *debtab)
                 p->mask = new_flag;
             }
         }
+
+        new_flag <<= 1;
+        ++i;
     }
 }

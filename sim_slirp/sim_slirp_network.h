@@ -36,17 +36,15 @@
 #  error "sim_slirp.c: Configuration error: set one of SIM_USE_SELECT, SIM_USE_POLL to 1."
 #endif
 
-/* Abstract the poll structure as sim_pollfd_t */
 #if SIM_USE_POLL
-#  if (defined(_WIN32) || defined(_WIN64))
-   typedef WSAPOLLFD sim_pollfd_t;
-#  else
+/* Abstract the poll structure as sim_pollfd_t */
+#  if !defined(_WIN32) && !defined(_WIN64)
 #    include <poll.h>
      typedef struct pollfd sim_pollfd_t;
+#  else
+     typedef WSAPOLLFD sim_pollfd_t;
 #  endif
-#endif
-
-#if SIM_USE_SELECT
+#elif SIM_USE_SELECT
 #define SIM_INVALID_MAX_FD ((slirp_os_socket) -1)
 #endif
 
@@ -95,15 +93,13 @@ struct sim_slirp {
     /* Lookup table: */
     slirp_os_socket *lut;
     size_t lut_alloc;
-#else
-    /* More generally, this is for poll(). */
-
-    /* Poll file descriptor array */
-    sim_pollfd_t *fds;
+#elif SIM_USE_POLL
     /* Next descriptor to use */
     size_t fd_idx;
     /* Total allocated descriptors */
     size_t n_fds;
+    /* Poll file descriptor array */
+    sim_pollfd_t *fds;
 #endif
 
     /* SIMH debug info: */

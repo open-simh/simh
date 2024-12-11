@@ -41,6 +41,10 @@ Configure and build simh simulators on Linux and *nix-like platforms.
                     memory  [MSan  -- memory sanitizer]
                     thread  [TSan  -- thread sanitizer]
                     undef   [UBSan -- undefined behavior sanitizer]
+--use-select      Use select() as the NAT(libslirp) socket polling
+                  function
+--use-poll        Use poll() as the NAT(libslirp) socket polling
+                  function, if available.
 
 --cpack_suffix    Specify CPack's packaging suffix, e.g., "ubuntu-22.04"
                   to produce the "simh-4.1.0-ubuntu-22.04.deb" Debian
@@ -169,7 +173,7 @@ fi
 
 longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly
 longopts=${longopts},noinstall,installonly,verbose,target:,lto,debugWall,cppcheck,cpack_suffix:
-longopts=${longopts},cache,no-aio,no-aio-intrinsics,sanitizer:
+longopts=${longopts},cache,no-aio,no-aio-intrinsics,sanitizer:,use-select,use-poll
 
 ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:c:pg -- "$@")
 if [ $? -ne 0 ] ; then
@@ -312,6 +316,14 @@ while true; do
                 ;;
             esac
             shift 2
+            ;;
+        --use-select)
+            generateArgs="${generateArgs} -DUSE_SELECT:Bool=True"
+            shift
+            ;;
+        --use-poll)
+            generateArgs="${generateArgs} -DUSE_POLL:Bool=True"
+            shift
             ;;
         --)
             ## End of options. we'll ignore.

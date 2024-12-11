@@ -54,7 +54,7 @@
 #  if defined(PRIu32)
 #    define SIM_PRIsocket PRIu32
 #  else
-#    define SIM_PRIsocket "lu"
+#    define SIM_PRIsocket "u"
 #  endif
 #else
 #  define SIM_PRIsocket "u"
@@ -70,26 +70,27 @@ static void initialize_poll(SimSlirpNetwork *slirp, uint32 tmo, struct timeval *
 static int do_poll(SimSlirpNetwork *slirp, int ms_timeout, struct timeval *timeout);
 static void report_error(SimSlirpNetwork *slirp);
 
+/* Retrieve the debug mask for an element in the augmented debug table: */
 static inline uint32_t slirp_dbg_mask(const SimSlirpNetwork *slirp, size_t flag)
 {
   return (slirp != NULL && slirp->dptr != NULL) ?  slirp->dptr->debflags[slirp->flag_offset + flag].mask : 0;
 }
 
-#if SIM_USE_SELECT
-/* Socket identifier pretty-printer: */
-static const char *print_socket(slirp_os_socket s)
+/* Socket error check */
+static inline int have_valid_socket(slirp_os_socket s)
 {
-    static char retbuf[64];
-
-#if defined(_WIN64)
-    sprintf(retbuf, "%llu", s);
-#elif defined(_WIN32)
-    sprintf(retbuf, "%u", s);
+#if !defined(_WIN32) && !defined(_WIN64)
+    return (s >= 0);
 #else
-    sprintf(retbuf, "%d", s);
+    return (s != SLIRP_INVALID_SOCKET);
 #endif
+}
 
-    return retbuf;
+#if (defined(_WIN32) || defined(_WIN64)) && SIM_USE_POLL
+/* poll() wrapper for Windows: */
+static inline int poll(WSAPOLLFD *fds, size_t n_fds, int timeout)
+{
+  return WSAPoll(fds, (ULONG) n_fds, timeout);
 }
 #endif
 
@@ -145,13 +146,6 @@ int sim_slirp_select(SimSlirpNetwork *slirp, int ms_timeout)
  * "Protocol" functions. These functions abide by the one function definition rule.
  *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*/
 
-#if (defined(_WIN32) || defined(_WIN64)) && SIM_USE_POLL
-static inline int poll(WSAPOLLFD *fds, size_t n_fds, int timeout)
-{
-  return WSAPoll(fds, (ULONG) n_fds, timeout);
-}
-#endif
-
 static void initialize_poll(SimSlirpNetwork *slirp, uint32 tmo, struct timeval *tv)
 {
 #if SIM_USE_SELECT
@@ -164,9 +158,7 @@ static void initialize_poll(SimSlirpNetwork *slirp, uint32 tmo, struct timeval *
 
     slirp->max_fd = SIM_INVALID_MAX_FD;
 #elif SIM_USE_POLL
-    /* Reinitialize and reset */
-    memset(slirp->fds, 0, slirp->fd_idx * sizeof(sim_pollfd_t));
-    slirp->fd_idx = 0;
+    /* Nothing to do. */
 #endif
 }
 
@@ -202,10 +194,34 @@ static int do_poll(SimSlirpNetwork *slirp, int ms_timeout, struct timeval *timeo
                   "poll()-ing for %" SIZE_T_FMT "u sockets\n", slirp->fd_idx);
 
         retval = poll(slirp->fds, slirp->fd_idx, ms_timeout);
-        if (retval > 0)
-            sim_debug(slirp_dbg_mask(slirp, DBG_POLL), slirp->dptr, "do_poll(): poll() returned %d\n", retval);
+        if (retval > 0) {
+            uint32_t dbg_mask = slirp_dbg_mask(slirp, DBG_POLL);
+
+            if (sim_deb != NULL && slirp->dptr != NULL && (slirp->dptr->dctrl & dbg_mask)) {
+                size_t i;
+
+                AIO_DEBUG_LOCK;
+                fprintf(sim_deb, "do_poll(): poll() returns %d\n", retval);
+                for (i = 0; i < (size_t) slirp->fd_idx; ++i) {
+                    fprintf(sim_deb, "[%3" SIZE_T_FMT "u] fd: %04" SIM_PRIsocket ", events: %04x\n",
+                            i, slirp->fds[i].fd, slirp->fds[i].events);
+                }
+
+                fflush(sim_deb);
+                AIO_DEBUG_UNLOCK;
+            }
+        }
     }
 #endif
+
+    if (retval < 0) {
+      switch (errno) {
+      case EINTR:
+      case EAGAIN:
+        /* Interrupted? Do it again. */
+        return do_poll(slirp, ms_timeout, timeout);
+      }
+    }
 
     return retval;
 }
@@ -238,10 +254,10 @@ static void report_error(SimSlirpNetwork *slirp)
 /* Add new socket file descriptors to the Slirp I/O event tracking state. */
 void register_poll_socket(slirp_os_socket fd, void *opaque)
 {
-#if SIM_USE_SELECT
     SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque;
     size_t i;
 
+#if SIM_USE_SELECT
     for (i = 0; i < slirp->lut_alloc; ++i) {
         if (slirp->lut[i] == INVALID_SOCKET) {
             slirp->lut[i] = fd;
@@ -263,35 +279,69 @@ void register_poll_socket(slirp_os_socket fd, void *opaque)
         slirp->lut = new_lut;
         slirp->lut[i] = fd;
     }
-
-    sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr, "register_poll_socket(%s) index %" SIZE_T_FMT "d\n",
-              print_socket(fd), i);
 #elif SIM_USE_POLL
-    /* Not necessary for poll(). */
-    (void) opaque;
+    for (i = 0; i < slirp->fd_idx && have_valid_socket(slirp->fds[i].fd); ++i)
+        /* NOP */;
+
+    if (i >= slirp->n_fds) {
+        /* Resize the array... */
+        size_t j = slirp->n_fds;
+        sim_pollfd_t *new_fds;
+
+        slirp->n_fds += FDS_ALLOC_INCR;
+        new_fds = (sim_pollfd_t *) realloc(slirp->fds, slirp->n_fds * sizeof(sim_pollfd_t));
+        ASSURE(new_fds != NULL);
+        memset(new_fds + j, 0, (slirp->n_fds - j) * sizeof(sim_pollfd_t));
+        slirp->fds = new_fds;
+    }
+
+    slirp->fds[i].fd = fd;
+    slirp->fds[i].events = slirp->fds[i].revents = 0;
+
+    if (i == slirp->fd_idx)
+        ++slirp->fd_idx;
 #endif
+
+    sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr,
+              "register_poll_socket(%" SIM_PRIsocket ") index %" SIZE_T_FMT "u\n", fd, i);
 }
 
 /* Reap a disused socket. */
 void unregister_poll_socket(slirp_os_socket fd, void *opaque)
 {
-    GLIB_UNUSED_PARAM(opaque);
-
-#if SIM_USE_SELECT
     SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque;
     size_t i;
 
+#if SIM_USE_SELECT
     for (i = 0; i < slirp->lut_alloc; ++i) {
         if (slirp->lut[i] == fd) {
             slirp->lut[i] = INVALID_SOCKET;
             sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr,
-                      "unregister_poll_socket(%s) index %" SIZE_T_FMT "d\n", print_socket(fd), i);
+                      "unregister_poll_socket(%" SIM_PRIsocket ") index %" SIZE_T_FMT "d\n", fd, i);
             break;
         }
     }
+
+    if (i >= slirp->lut_alloc) {
+        sim_messagef(SCPE_OK, "unregister_poll_socket(select %" SIM_PRIsocket ") not invalidated.\n", fd);
+    }
 #elif SIM_USE_POLL
-    /* Not necessary for poll(). */
-    (void) opaque;
+    for (i = 0; i < slirp->fd_idx && slirp->fds[i].fd != fd; ++i)
+        /* NOP */;
+
+    if (i < slirp->fd_idx) {
+        slirp->fds[i].fd = INVALID_SOCKET;
+        slirp->fds[i].events = slirp->fds[i].revents = 0;
+        sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr,
+                  "unregister_poll_socket(%" SIM_PRIsocket ") index %" SIZE_T_FMT "d\n", fd, i);
+
+        /* Trim fd_idx? */
+        while (!have_valid_socket(slirp->fds[slirp->fd_idx - 1].fd)) {
+            --slirp->fd_idx;
+        }
+    } else {
+        sim_messagef(SCPE_OK, "unregister_poll_socket(poll %" SIM_PRIsocket ") not invalidated.\n", fd);
+    }
 #endif
 }
 
@@ -308,7 +358,7 @@ static void poll_debugging(uint32_t dbits, DEVICE *dev, const char *prefix, int 
         { SLIRP_POLL_ERR, " SLIRP_POLL_ERR" },
         { SLIRP_POLL_HUP, " SLIRP_POLL_HUP" }
     };
-    static const size_t n_translations = sizeof(translations) / sizeof(translations[0]);
+    const size_t n_translations = sizeof(translations) / sizeof(translations[0]);
     char *msg = calloc(96 + strlen(prefix) + 1, sizeof(char));
 
     strcpy(msg, prefix);
@@ -325,7 +375,6 @@ static void poll_debugging(uint32_t dbits, DEVICE *dev, const char *prefix, int 
     }
     strcat(msg, "\n");
 
-    /* Don't need to escape "%"-s in msg, since there aren't any. */
     sim_debug(dbits, dev, "%s", msg);
     if (sim_deb != NULL)
         fflush(sim_deb);
@@ -339,9 +388,9 @@ static int add_poll_callback(slirp_os_socket fd, int events, void *opaque)
     SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque;
     int retval = -1;
     char prefix[128];
+    size_t i;
 
 #if SIM_USE_SELECT
-    size_t i;
     const int event_mask = (SLIRP_POLL_IN | SLIRP_POLL_OUT | SLIRP_POLL_PRI);
 
     for (i = 0; i < slirp->lut_alloc; ++i) {
@@ -364,50 +413,38 @@ static int add_poll_callback(slirp_os_socket fd, int events, void *opaque)
             break;
         }
 
-        sprintf(prefix, "add_poll_callback(%s)/select (0x%04x)", print_socket(fd), events & event_mask);
+        sprintf(prefix, "add_poll_callback(%" SIM_PRIsocket ")/select (0x%04x)", fd, events & event_mask);
         poll_debugging(slirp_dbg_mask(slirp, DBG_POLL), slirp->dptr, prefix, events & event_mask);
     }
 #elif SIM_USE_POLL
-    if (slirp->fd_idx == slirp->n_fds) {
-        size_t j = slirp->n_fds;
-        sim_pollfd_t *new_fds;
+    short poll_events =
+      ((events & SLIRP_POLL_IN) != 0) * POLLIN +
+      ((events & SLIRP_POLL_OUT) != 0) * POLLOUT;
 
-        slirp->n_fds += FDS_ALLOC_INCR;
-        new_fds = (sim_pollfd_t *) realloc(slirp->fds, slirp->n_fds * sizeof(sim_pollfd_t));
-        ASSURE(new_fds != NULL);
-        memset(new_fds + j, 0, (slirp->n_fds - j) * sizeof(sim_pollfd_t));
-        slirp->fds = new_fds;
-    }
-
-    short poll_events = 0;
-
-    if (events & SLIRP_POLL_IN) {
-        poll_events |= POLLIN;
-    }
-    if (events & SLIRP_POLL_OUT) {
-        poll_events |= POLLOUT;
-    }
-#if !defined(_WIN32) && !defined(_WIN64)
+#  if !defined(_WIN32) && !defined(_WIN64)
     /* Not supported on Windows. Unless you like EINVAL. :-) */
-    if (events & SLIRP_POLL_PRI) {
-        poll_events |= POLLPRI;
+    poll_events +=
+      ((events & SLIRP_POLL_PRI) != 0) * POLLPRI +
+      ((events & SLIRP_POLL_ERR) != 0) * POLLERR +
+      ((events & SLIRP_POLL_HUP) != 0) * POLLHUP;
+#  endif
+
+    for (i = 0; i < slirp->fd_idx && slirp->fds[i].fd != fd; ++i)
+        /* NOP */ ;
+    
+    if (i >= slirp->fd_idx) {
+        sim_messagef(SCPE_IOERR, "add_poll_callback: Unregistered/unknown fd %" SIM_PRIsocket "\n", fd);
+        return -1;
     }
-    if (events & SLIRP_POLL_ERR) {
-        poll_events |= POLLERR;
-    }
-    if (events & SLIRP_POLL_HUP) {
-        poll_events |= POLLHUP;
-    }
-#endif
 
     sprintf(prefix, "add_poll_callback(%" SIM_PRIsocket ")/poll (0x%04x)", fd, events);
     poll_debugging(slirp_dbg_mask(slirp, DBG_POLL), slirp->dptr, prefix, events);
 
-    slirp->fds[slirp->fd_idx].fd = fd;
-    slirp->fds[slirp->fd_idx].events = poll_events;
-    slirp->fds[slirp->fd_idx].revents = 0;
+    slirp->fds[i].fd = fd;
+    slirp->fds[i].events = poll_events;
+    slirp->fds[i].revents = 0;
 
-    retval = (int) slirp->fd_idx++;
+    retval = (int) i;
 #endif
 
     return retval;
@@ -435,28 +472,17 @@ static int get_events_callback(int idx, void *opaque)
             event |= SLIRP_POLL_PRI;
         }
 
-        sprintf(prefix, "get_events_callback(%s)/select (0x%04x)", print_socket(fd), event & event_mask);
+        sprintf(prefix, "get_events_callback(%" SIM_PRIsocket ")/select (0x%04x)", fd, event & event_mask);
         poll_debugging(slirp_dbg_mask(slirp, DBG_POLL), slirp->dptr, prefix, event & event_mask);
     }
 #elif SIM_USE_POLL
     if (idx < slirp->fd_idx) {
-        short poll_events = slirp->fds[idx].revents;
-
-        if (poll_events & POLLIN) {
-            event |= SLIRP_POLL_IN;
-        }
-        if (poll_events & POLLOUT) {
-            event |= SLIRP_POLL_OUT;
-        }
-        if (poll_events & POLLPRI) {
-            event |= SLIRP_POLL_PRI;
-        }
-        if (poll_events & POLLERR) {
-            event |= SLIRP_POLL_ERR;
-        }
-        if (poll_events & POLLHUP) {
-            event |= SLIRP_POLL_HUP;
-        }
+        event =
+            ((slirp->fds[idx].revents & POLLIN) != 0) * SLIRP_POLL_IN +
+            ((slirp->fds[idx].revents & POLLOUT) != 0) * SLIRP_POLL_OUT +
+            ((slirp->fds[idx].revents & POLLPRI) != 0) * SLIRP_POLL_PRI +
+            ((slirp->fds[idx].revents & POLLERR) != 0) * SLIRP_POLL_ERR +
+            ((slirp->fds[idx].revents & POLLHUP) != 0) * SLIRP_POLL_HUP;
 
         sprintf(prefix, "get_events_callback(%" SIM_PRIsocket ")/poll (0x%04x)", slirp->fds[idx].fd, event);
         poll_debugging(slirp_dbg_mask(slirp, DBG_POLL), slirp->dptr, prefix, event);

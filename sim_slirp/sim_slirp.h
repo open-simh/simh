@@ -14,7 +14,6 @@ SimSlirpNetwork *sim_slirp_open (const char *args, void *pkt_opaque, packet_call
 void sim_slirp_close (SimSlirpNetwork *slirp);
 int sim_slirp_send (SimSlirpNetwork *slirp, const char *msg, size_t len, int flags);
 int sim_slirp_select (SimSlirpNetwork *slirp, int ms_timeout);
-void sim_slirp_dispatch (SimSlirpNetwork *slirp);
 t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 void sim_slirp_show (SimSlirpNetwork *slirp, FILE *st);
 

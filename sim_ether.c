@@ -2077,7 +2077,6 @@ while (dev->handle) {
 #endif /* HAVE_VDE_NETWORK */
 #ifdef HAVE_SLIRP_NETWORK
       case ETH_API_NAT:
-        sim_slirp_dispatch ((SimSlirpNetwork *) dev->handle);
         status = 1;
         break;
 #endif /* HAVE_SLIRP_NETWORK */

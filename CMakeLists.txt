@@ -226,6 +226,12 @@ option(SIMH_PACKAGE_SUFFIX
 option(MAC_UNIVERSAL
        "macOS universal binary flag: TRUE -> build universal binaries, FALSE -> don't."
        ${MAC_UNIVERSAL_OPTVAL})
+option(USE_SELECT
+       "NAT(libslirp): Use select() as the socket polling function"
+       FALSE)
+option(USE_POLL
+       "NAT(libslirp): Use poll() as the socket polling function"
+       FALSE)
 
 # Places where CMake should look for dependent package configuration fragments and artifacts:
 set(SIMH_PREFIX_PATH_LIST)

@@ -518,8 +518,10 @@ void sim_slirp_close(SimSlirpNetwork *slirp)
 
 #if SIM_USE_SELECT
     free(slirp->lut);
-#else
+    slirp->lut = NULL;
+#elif SIM_USE_POLL
     free(slirp->fds);
+    slirp->fds = NULL;
 #endif
 
     pthread_mutex_destroy(&slirp->libslirp_access);
@@ -584,9 +586,9 @@ t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, con
 /* Initialize the select/poll file descriptor arrays. */
 static int initialize_poll_fds(SimSlirpNetwork *slirp)
 {
-#if SIM_USE_SELECT
     size_t i;
 
+#if SIM_USE_SELECT
     FD_ZERO(&slirp->readfds);
     FD_ZERO(&slirp->writefds);
     FD_ZERO(&slirp->exceptfds);
@@ -597,11 +599,16 @@ static int initialize_poll_fds(SimSlirpNetwork *slirp)
 
     for (i = 0; i < slirp->lut_alloc; ++i)
         slirp->lut[i] = INVALID_SOCKET;
-#else
+#elif SIM_USE_POLL
     /* poll()-based file descriptor polling. */
+    static const sim_pollfd_t poll_initializer = { INVALID_SOCKET, 0, 0};
+
     slirp->n_fds = FDS_ALLOC_INIT;
     slirp->fd_idx = 0;
-    slirp->fds = (sim_pollfd_t *) calloc(slirp->n_fds, sizeof(sim_pollfd_t));
+    slirp->fds = (sim_pollfd_t *) malloc(slirp->n_fds * sizeof(sim_pollfd_t));
+    for (i = 0; i < slirp->n_fds; ++i) {
+        slirp->fds[i] = poll_initializer;
+    }
 #endif
 
     return 0;
@@ -696,18 +703,6 @@ static void notify_callback(void *opaque)
 {
     /* SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque; */
     GLIB_UNUSED_PARAM(opaque);
-}
-
-void sim_slirp_dispatch(SimSlirpNetwork *slirp)
-{
-    /* Outbound packets directly to slirp_input() and packets going to the
-     * simulator are handled in sim_slirp_select().
-     *
-     * Packet traffic between the simulator and libslirp is handled in
-     * sim_slirp_select().
-     */
-
-    GLIB_UNUSED_PARAM(slirp);
 }
 
 int64_t sim_clock_get_ns(void *opaque)
