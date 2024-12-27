@@ -2674,6 +2674,11 @@ dev->fd_handle = 0;
 dev->have_host_nic_phy_addr = 0;
 
 #if defined (USE_READER_THREAD)
+/* Close the ethernet device first. */
+_eth_close_port (dev->eth_api, pcap, pcap_fd);
+
+/* Then continue to clean up the sync primitives that are no longer
+ * needed. */
 pthread_join (dev->reader_thread, NULL);
 pthread_mutex_destroy (&dev->lock);
 pthread_cond_signal (&dev->writer_cond);
@@ -2681,6 +2686,7 @@ pthread_join (dev->writer_thread, NULL);
 pthread_mutex_destroy (&dev->self_lock);
 pthread_mutex_destroy (&dev->writer_lock);
 pthread_cond_destroy (&dev->writer_cond);
+
 if (1) {
   ETH_WRITE_REQUEST *buffer;
    while (NULL != (buffer = dev->write_buffers)) {
@@ -2695,7 +2701,6 @@ if (1) {
 ethq_destroy (&dev->read_queue);         /* release FIFO queue */
 #endif
 
-_eth_close_port (dev->eth_api, pcap, pcap_fd);
 sim_messagef (SCPE_OK, "Eth: closed %s\n", dev->name);
 
 /* clean up the mess */

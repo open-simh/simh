@@ -106,37 +106,59 @@ int sim_slirp_select(SimSlirpNetwork *slirp, int ms_timeout)
     int    retval = 0;
     uint32 slirp_timeout = ms_timeout;
     struct timeval tv;
+    sim_atomic_type_t n_sockets;
 
     if (slirp == NULL)
         /* Will cause the reader thread to exit! */
         return -1;
 
-    /* Note: It's a generally good practice to acquire a mutex and hold it until an operation
-     * completes. In this case, though, poll()/select() will block and prevent outbound writes
-     * via sim_slirp_send(), which itself blocks waiting for the mutex.
-     *
-     * Hold the mutex only when calling libslirp functions, reacquire when needed.
-     */
-    pthread_mutex_lock(&slirp->libslirp_access);
+    n_sockets = sim_atomic_get(&slirp->n_sockets);
+    if (n_sockets > 0) {
+        /* Note: It's a generally good practice to acquire a mutex and hold it until an operation
+        * completes. In this case, though, poll()/select() will block and prevent outbound writes
+        * via sim_slirp_send(), which itself blocks waiting for the mutex.
+        *
+        * Hold the mutex only when calling libslirp functions, reacquire when needed.
+        */
+        pthread_mutex_lock(&slirp->libslirp_lock);
 
-    /* Check on expiring libslirp timers. */
-    simh_timer_check(slirp->slirp_cxn);
+        /* Check on expiring libslirp timers. */
+        simh_timer_check(slirp->slirp_cxn);
 
-    /* Ask libslirp to poll for I/O events. */
-    initialize_poll(slirp, slirp_timeout, &tv);
-    slirp_pollfds_fill_socket(slirp->slirp_cxn, &slirp_timeout, add_poll_callback, slirp);
+        /* Ask libslirp to poll for I/O events. */
+        initialize_poll(slirp, slirp_timeout, &tv);
+        slirp_pollfds_fill_socket(slirp->slirp_cxn, &slirp_timeout, add_poll_callback, slirp);
 
-    pthread_mutex_unlock(&slirp->libslirp_access);
+        pthread_mutex_unlock(&slirp->libslirp_lock);
 
-    retval = do_poll(slirp, ms_timeout, &tv);
+        retval = do_poll(slirp, ms_timeout, &tv);
 
-    if (retval > 0) {
-        /* The libslirp idiom invokes slirp_pollfds_poll within the same function as slirp_pollfds_fill(). */
-        pthread_mutex_lock(&slirp->libslirp_access);
-        slirp_pollfds_poll(slirp->slirp_cxn, 0, get_events_callback, slirp);
-        pthread_mutex_unlock(&slirp->libslirp_access);
-    } else if (retval < 0) {
-        report_error(slirp);
+        if (retval > 0) {
+            /* The libslirp idiom invokes slirp_pollfds_poll within the same function as slirp_pollfds_fill(). */
+            pthread_mutex_lock(&slirp->libslirp_lock);
+            slirp_pollfds_poll(slirp->slirp_cxn, 0, get_events_callback, slirp);
+            pthread_mutex_unlock(&slirp->libslirp_lock);
+        } else if (retval < 0) {
+            report_error(slirp);
+        }
+    } else if (n_sockets == 0) {
+#if defined(USE_READER_THREAD)
+        /* Block on the condvar until there's at least one socket registered by libslirp. */
+        pthread_mutex_lock(&slirp->no_sockets_lock);
+        pthread_cond_wait(&slirp->no_sockets_cv, &slirp->no_sockets_lock);
+        pthread_mutex_unlock(&slirp->no_sockets_lock);
+
+        return sim_slirp_select(slirp, ms_timeout);
+#else
+        /* This is weird: Should never actually be called because we're not inside of
+         * the reader thread. Punt by sleeping. Not guaranteed to actually have any
+         * sockets where SIMH needs to poll, so avoid infinite recursion as well. */
+        sim_os_sleep(5 /* ms */);
+        retval = 0;
+#endif
+    } else {
+        /* Error or shutting down... make the reader thread exit. */
+        retval = -1;
     }
 
     return retval;
@@ -201,8 +223,9 @@ static int do_poll(SimSlirpNetwork *slirp, int ms_timeout, struct timeval *timeo
                 size_t i;
 
                 AIO_DEBUG_LOCK;
-                fprintf(sim_deb, "do_poll(): poll() returns %d\n", retval);
-                for (i = 0; i < (size_t) slirp->fd_idx; ++i) {
+                if (sim_deb != NULL)
+                    fprintf(sim_deb, "do_poll(): poll() returns %d\n", retval);
+                for (i = 0; i < (size_t) slirp->fd_idx && sim_deb != NULL; ++i) {
                     fprintf(sim_deb, "[%3" SIZE_T_FMT "u] fd: %04" SIM_PRIsocket ", events: %04x\n",
                             i, slirp->fds[i].fd, slirp->fds[i].events);
                 }
@@ -304,6 +327,19 @@ void register_poll_socket(slirp_os_socket fd, void *opaque)
 
     sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr,
               "register_poll_socket(%" SIM_PRIsocket ") index %" SIZE_T_FMT "u\n", fd, i);
+
+    if (sim_atomic_inc(&slirp->n_sockets) == 1) {
+#if defined(USE_READER_THREAD)
+        /* Wake up the reader thread. */
+        pthread_cond_broadcast(&slirp->no_sockets_cv);
+
+        sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr,
+                  "register_poll_socket(%" SIM_PRIsocket ") waking up reader thread.\n", fd);
+#endif
+    }
+
+    sim_debug(slirp_dbg_mask(slirp, DBG_SOCKET), slirp->dptr,
+              "register_poll_socket(%" SIM_PRIsocket ") n_sockets = %ld.\n", fd, sim_atomic_get(&slirp->n_sockets));
 }
 
 /* Reap a disused socket. */
@@ -343,6 +379,12 @@ void unregister_poll_socket(slirp_os_socket fd, void *opaque)
         sim_messagef(SCPE_OK, "unregister_poll_socket(poll %" SIM_PRIsocket ") not invalidated.\n", fd);
     }
 #endif
+
+    /* Keep track of the socket count so that sim_slirp_select() blocks if there are no sockets to
+     * poll() or select(). */
+    if (sim_atomic_get(&slirp->n_sockets) > 0) {
+        sim_atomic_dec(&slirp->n_sockets);
+    }
 }
 
 /* Debugging output for add/get event callbacks. */

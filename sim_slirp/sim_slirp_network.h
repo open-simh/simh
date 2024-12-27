@@ -7,6 +7,7 @@
 
 #include "sim_sock.h"
 #include "sim_slirp.h"
+#include "sim_atomic.h"
 #include "libslirp.h"
 
 #if !defined(SLIRP_NETWORK_STATE_H)
@@ -63,8 +64,14 @@ struct sim_slirp {
 
 #if defined(USE_READER_THREAD)
     /* Access lock to libslirp. libslirp is not threaded or protected. */
-    pthread_mutex_t libslirp_access;
+    pthread_mutex_t libslirp_lock;
+
+    /* Condvar, mutex when there are no sockets to poll or select. */
+    pthread_cond_t  no_sockets_cv;
+    pthread_mutex_t no_sockets_lock;
 #endif
+
+    sim_atomic_value_t n_sockets;
 
     /* DNS search domains (argument copy) */
     char *dns_search;

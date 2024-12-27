@@ -287,7 +287,12 @@ SimSlirpNetwork *sim_slirp_open(const char *args, void *pkt_opaque, packet_callb
     /* SIMH state/config */
     slirp->args = (char *) calloc(1 + strlen(args), sizeof(char));
     strcpy(slirp->args, args);
-    pthread_mutex_init(&slirp->libslirp_access, NULL);
+#if defined(USE_READER_THREAD)
+    pthread_mutex_init(&slirp->libslirp_lock, NULL);
+    pthread_cond_init(&slirp->no_sockets_cv, NULL);
+    pthread_mutex_init(&slirp->no_sockets_lock, NULL);
+#endif
+    sim_atomic_init(&slirp->n_sockets);
 
     slirp->original_debflags = dptr->debflags;
     dptr->debflags = sim_combine_debtabs(dptr->debflags, slirp_dbgtable);
@@ -524,7 +529,17 @@ void sim_slirp_close(SimSlirpNetwork *slirp)
     slirp->fds = NULL;
 #endif
 
-    pthread_mutex_destroy(&slirp->libslirp_access);
+#if defined(USE_READER_THREAD)
+    sim_atomic_put(&slirp->n_sockets, -1);
+    pthread_cond_broadcast(&slirp->no_sockets_cv);
+
+    pthread_mutex_destroy(&slirp->libslirp_lock);
+    sim_atomic_destroy(&slirp->n_sockets);
+    pthread_cond_destroy(&slirp->no_sockets_cv);
+    pthread_mutex_destroy(&slirp->no_sockets_lock);
+    sim_atomic_destroy(&slirp->n_sockets);
+#endif
+
     free(slirp);
 }
 
@@ -690,9 +705,9 @@ int sim_slirp_send(SimSlirpNetwork *slirp, const char *msg, size_t len, int flag
     GLIB_UNUSED_PARAM(flags);
 
     /* Just send the packet up to libslirp. */
-    pthread_mutex_lock(&slirp->libslirp_access);
+    pthread_mutex_lock(&slirp->libslirp_lock);
     slirp_input(slirp->slirp_cxn, (const uint8_t *) msg, (int) len);
-    pthread_mutex_unlock(&slirp->libslirp_access);
+    pthread_mutex_unlock(&slirp->libslirp_lock);
 
     return (int) len;
 }
