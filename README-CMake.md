@@ -932,6 +932,9 @@ following the table.
 | `WARNINGS_FATAL`     | disabled           | Compiler warnings are fatal errors, e.g. set "-Werror" on `gcc`, "/WX" for MSVC |
 | `RELEASE_LTO`        | disabled           | Use Link-Time Optimization in Release builds, where supported. Normally disabled; the CI/CD builds turn this on to catch additional warnings emitted with higher optimization and LTO. |
 | `DEBUG_WALL`         | disabled           | Turn on maximal warnings for Debug builds, e.g., `-Wall` for GCC/Clang and `/W4` for MSVC. |
+| `USE_SELECT`         | disabled           | Force network code to invoke `select()` when polling sockets. |
+| `USE_POLL`           | disabled           | Force network code to invoke `poll()` when polling sockets. |
+| `USE_GLIB`           | disabled           | Build the NAT (`libslirp`) library with glib-2.0 instead of the minimalist glib implementation. Primarily used for debugging. |
 
 The following table summarizes "enabled" and "disabled" option values on the command line:
 

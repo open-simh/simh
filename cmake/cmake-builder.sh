@@ -173,7 +173,7 @@ fi
 
 longopts=clean,help,flavor:,config:,nonetwork,novideo,notest,parallel,generate,testonly
 longopts=${longopts},noinstall,installonly,verbose,target:,lto,debugWall,cppcheck,cpack_suffix:
-longopts=${longopts},cache,no-aio,no-aio-intrinsics,sanitizer:,use-select,use-poll
+longopts=${longopts},cache,no-aio,no-aio-intrinsics,sanitizer:,use-select,use-poll,use-glib
 
 ARGS=$(${getopt_prog} --longoptions $longopts --options xhf:c:pg -- "$@")
 if [ $? -ne 0 ] ; then
@@ -323,6 +323,11 @@ while true; do
             ;;
         --use-poll)
             generateArgs="${generateArgs} -DUSE_POLL:Bool=True"
+            shift
+            ;;
+        --use-glib)
+            ## Passes through to libslirp.
+            generateArgs="${generateArgs} -DNOGLIB:Bool=False -DUSE_GLIB:Bool=True"
             shift
             ;;
         --)

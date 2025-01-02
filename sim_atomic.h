@@ -41,8 +41,6 @@
 
 #if !defined(SIM_ATOMIC_H)
 
-#include <pthread.h>
-
 /* TODO:  defined(__DECC_VER) && defined(_IA64) -- DEC C on Itanium looks like it
  * might be the same as Windows' interlocked API. Contribtion/correction needed. */
 
@@ -52,13 +50,20 @@
 #if (defined(_WIN32) || defined(_WIN64)) || \
      (defined(__ATOMIC_ACQ_REL) && defined(__ATOMIC_SEQ_CST) && defined(__ATOMIC_ACQUIRE))
 /* Atomic operations available! */
+#include <stdbool.h>
+
+#if (defined(_WIN32) || defined(_WIN64))
+#include <winnt.h>
+#endif
+
 #define HAVE_ATOMIC_PRIMS 1
 #else
+#include <pthread.h>
 #define HAVE_ATOMIC_PRIMS 0
 #endif
 
 /*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
- * Value type and wrapper for atomics:
+ * Value type and wrapper for integral (numeric) atomics:
  *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*/
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -86,7 +91,7 @@ static SIM_INLINE void sim_atomic_init(sim_atomic_value_t *p)
 #if !HAVE_ATOMIC_PRIMS
     pthread_mutex_init(&p->value_lock, NULL);
 #endif
-    p-> value = 0;
+    p->value = 0;
 }
 
 static SIM_INLINE void sim_atomic_destroy(sim_atomic_value_t *p)
@@ -94,7 +99,7 @@ static SIM_INLINE void sim_atomic_destroy(sim_atomic_value_t *p)
 #if !HAVE_ATOMIC_PRIMS
     pthread_mutex_destroy(&p->value_lock);
 #endif
-    p-> value = -1;
+    p->value = -1;
 }
 
 /*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
@@ -140,12 +145,7 @@ static SIM_INLINE void sim_atomic_put(sim_atomic_value_t *p, sim_atomic_type_t n
         /* Intel Total Store Ordering optimization. */
         p->value = newval;
 #    else
-        sim_atomic_type_t retval, cmp;
-
-        do {
-            cmp = sim_atomic_int_get(p);
-            retval = InterlockedCompareExchange(&p->value, newval, cmp);
-        } while (retval != cmp);
+        InterlockedExchange(&p->value, newval);
 #    endif
 #  else
 #    error "sim_atomic_put: No intrinsic?"
@@ -172,12 +172,18 @@ static SIM_INLINE sim_atomic_type_t sim_atomic_add(sim_atomic_value_t *p, sim_at
             (void) __atomic_fetch_add_8(&p->value, x, __ATOMIC_ACQ_REL);
 #      endif
             /* Return the updated value. */
-            retval = sim_atomic_get(p);
+            retval = p->value;
 #    else
 #      error "sim_atomic_add: No __ATOMIC_ACQ_REL intrinsic?"
 #    endif
 #  elif defined(_WIN32) || defined(_WIN64)
+#    if defined(InterlockedAdd)
         retval = InterlockedAdd(&p->value, x);
+#    else
+        /* Older Windows InterlockedExchangeAdd, which returns the original value in p->value. */
+        InterlockedExchangeAdd(&p->value, x);
+        retval = p->value;
+#    endif
 #  else
 #    error "sim_atomic_add: No intrinsic?"
 #  endif
@@ -206,13 +212,19 @@ static SIM_INLINE sim_atomic_type_t sim_atomic_sub(sim_atomic_value_t *p, sim_at
             __atomic_fetch_sub_8(&p->value, x, __ATOMIC_ACQ_REL);
 #      endif
             /* Return the updated value. */
-            retval = sim_atomic_get(p);
+            retval = p->value;
 #    else
 #      error "sim_atomic_sub: No __ATOMIC_ACQ_REL intrinsic?"
 #    endif
 #  elif defined(_WIN32) || defined(_WIN64)
-        /* No InterlockedSub() -- use the math identity. */
-        retval = sim_atomic_add(p, -x);
+    /* There isn't a InterlockedSub function. Revert to basic math(s). */
+#    if defined(InterlockedAdd)
+        retval = InterlockedAdd(&p->value, -x);
+#    else
+        /* Older Windows InterlockedExchangeAdd, which returns the original value in p->value. */
+        InterlockedExchangeAdd(&p->value, -x);
+        retval = p->value;
+#    endif
 #  else
 #    error "sim_atomic_sub: No intrinsic?"
 #  endif
@@ -268,6 +280,143 @@ static SIM_INLINE sim_atomic_type_t sim_atomic_dec(sim_atomic_value_t *p)
     return retval;
 }
 
+/*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
+ * Wrapper for pointer atomics:
+ *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*/
+
+typedef struct {
+#if !HAVE_ATOMIC_PRIMS
+    /* If the compiler doesn't support atomic intrinsics, the backup plan is
+     * a mutex. */
+    pthread_mutex_t ptr_lock;
+#endif
+
+    void *ptr;
+} sim_atomic_ptr_t;
+
+/*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
+ * Initialization, destruction:
+ *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*/
+
+static SIM_INLINE void sim_atomic_ptr_init(sim_atomic_ptr_t *p)
+{
+#if !HAVE_ATOMIC_PRIMS
+    pthread_mutex_init(&p->ptr_lock, NULL);
+#endif
+    p->ptr = NULL;
+}
+
+static SIM_INLINE void sim_atomic_ptr_destroy(sim_atomic_ptr_t *p)
+{
+#if !HAVE_ATOMIC_PRIMS
+    pthread_mutex_destroy(&p->ptr_lock);
+#endif
+    p->ptr = NULL;
+}
+
+/*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
+ * Primitives:
+ *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*/
+
+/* Atomically get the pointer's value, which can subsequently be dereferenced. */
+static SIM_INLINE void *sim_atomic_ptr_get(sim_atomic_ptr_t *p)
+{
+    void *retval;
+
+#if HAVE_ATOMIC_PRIMS
+#  if defined(__ATOMIC_ACQUIRE) && (defined(__GNUC__) || defined(__clang__))
+        __atomic_load(&p->ptr, &retval, __ATOMIC_ACQUIRE);
+#  elif defined(_WIN32) || defined(_WIN64)
+#    if defined(_M_IX86) || defined(_M_X64)
+        /* Intel Total Store Ordering optimization. */
+        retval = p->ptr;
+#    else
+        /* MS doesn't have interlocked loads and stores. Punt by exchanging the
+         * pointer with its own value. */
+        retval = InterlockedExchangePointer(&p->ptr, p->ptr);
+#    endif
+#  else
+#    error "sim_atomic_ptr_get: No intrinsic?"
+        retval = -1;
+#  endif
+#else
+    pthread_mutex_lock(&p->ptr_lock);
+    retval = p->ptr;
+    pthread_mutex_unlock(&p->ptr_lock);
+#endif
+
+    return retval;
+}
+
+/* Get the wrapped pointer's address (pointer-to-pointer). Useful when the wrapped pointer
+ * is a list head and using the address-of-next insertion hack. */
+static SIM_INLINE void **sim_atomic_ptr_ptr(sim_atomic_ptr_t *p)
+{
+    return &p->ptr;
+}
+
+/* Forcibly store a new pointer value in the wrapped pointer. */
+static SIM_INLINE void sim_atomic_ptr_put(sim_atomic_ptr_t *p, void *newval)
+{
+#if HAVE_ATOMIC_PRIMS
+#  if defined(__ATOMIC_SEQ_CST) && (defined(__GNUC__) || defined(__clang__))
+    /* Clang doesn't like __ATOMIC_ACQ_REL for atomic stores. And for good reason: sequential
+     * consistency is the appropriate memory ordering for storing values. */
+    __atomic_store(&p->ptr, &newval, __ATOMIC_SEQ_CST);
+#  elif defined(_WIN32) || defined(_WIN64)
+#    if defined(_M_IX86) || defined(_M_X64)
+        /* Intel Total Store Ordering optimization. */
+        p->ptr = newval;
+#    else
+        void *retval, *cmp;
+
+        do {
+            cmp = sim_atomic_ptr_get(p);
+            retval = InterlockedCompareExchangePointer(&p->value, newval, cmp);
+        } while (retval != cmp);
+#    endif
+#  else
+#    error "sim_atomic_ptr_put: No intrinsic?"
+#  endif
+#else
+    pthread_mutex_lock(&p->ptr_lock);
+    p->ptr = newval;
+    pthread_mutex_unlock(&p->ptr_lock);
+#endif
+}
+
+/* Compare and exchange a new pointer value with generic (void) pointer. Returns 1 if successful,
+ * 0 if the caller needs to retry. */
+static SIM_INLINE int sim_atomic_generic_cmpxchg(void **p, void *newval)
+{
+    int retval;
+    void *oldval = *p;
+
+#if HAVE_ATOMIC_PRIMS
+#  if defined(__ATOMIC_SEQ_CST) && (defined(__GNUC__) || defined(__clang__))
+    retval = __atomic_compare_exchange(p, &oldval, &newval, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+#  elif defined(_WIN32) || defined(_WIN64)
+    retval = (InterlockedCompareExchangePointer(p, newval, oldval) == oldval);
+#  else
+#    error "sim_atomic_put: No intrinsic?"
+#  endif
+#else
+    pthread_mutex_lock(&p->ptr_lock);
+    if (p->ptr == oldval) {
+        p->ptr = newval;
+        retval = 1;
+    } else
+        retval = 0;
+    pthread_mutex_unlock(&p->ptr_lock);
+#endif
+
+    return retval;
+}
+
+static SIM_INLINE int sim_atomic_ptr_cmpxchg(sim_atomic_ptr_t *p, void *newval)
+{
+    return sim_atomic_generic_cmpxchg(&p->ptr, newval);
+}
 
 #define SIM_ATOMIC_H
 #endif

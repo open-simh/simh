@@ -176,6 +176,7 @@ static unsigned int collect_slirp_debug(const char *dbg_tokens, int *err)
     return slirp_dbg;
 }
 
+#if defined(GLIB_H_MINIMAL)
 /* SIMH uses a custom logger to output libslirp messages. */
 
 static void output_stderr_noexit(const char *fmt, va_list args)
@@ -216,10 +217,20 @@ static void output_stderr_exit(const char *fmt, va_list args)
     g_assert_not_reached();
 }
 
+static GLibLogger simh_logger = {
+    .logging_enabled = 1,
+    .output_warning = output_stderr_noexit,
+    .output_debug = output_stderr_noexit,
+    .output_error = output_stderr_exit,
+    .output_critical = output_stderr_exit
+};
+#endif
+
 static void libslirp_guest_error(const char *msg, void *opaque)
 {
     /* SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque; */
-    GLIB_UNUSED_PARAM(opaque);
+    /* Avoid unused parameter warning */
+    SIM_UNUSED_ARG(opaque);
 
     if (sim_deb != NULL) {
         fprintf(sim_deb, "libslirp guest error: %s\n", msg);
@@ -229,14 +240,6 @@ static void libslirp_guest_error(const char *msg, void *opaque)
     fprintf(stderr, "libslirp guest error: %s\n", msg);
     fflush(stderr);
 }
-
-static GLibLogger simh_logger = {
-    .logging_enabled = 1,
-    .output_warning = output_stderr_noexit,
-    .output_debug = output_stderr_noexit,
-    .output_error = output_stderr_exit,
-    .output_critical = output_stderr_exit
-};
 
 /* Forward decl's... */
 static int initialize_poll_fds(SimSlirpNetwork *slirp);
@@ -458,7 +461,9 @@ SimSlirpNetwork *sim_slirp_open(const char *args, void *pkt_opaque, packet_callb
     /* Initialize the callbacks: */
     slirp->pkt_callback = pkt_callback;
     slirp->pkt_opaque = pkt_opaque;
+#if defined(GLIB_H_MINIMAL)
     glib_set_logging_hooks(&simh_logger);
+#endif
 
     cbs->send_packet = invoke_sim_packet_callback;
     cbs->guest_error = libslirp_guest_error;
@@ -493,10 +498,24 @@ SimSlirpNetwork *sim_slirp_open(const char *args, void *pkt_opaque, packet_callb
     return slirp;
 }
 
+void sim_slirp_shutdown(void *opaque)
+{
+#if defined(USE_READER_THREAD)
+    SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque;
+    volatile sim_atomic_type_t n_sockets = sim_atomic_get(&slirp->n_sockets);
+
+    /* Set the reader thread's exit condition. If the reader thread is waiting
+     * on the condvar, signal the condition. */
+    sim_atomic_put(&slirp->n_sockets, -1);
+    if (n_sockets == 0)
+        pthread_cond_broadcast(&slirp->no_sockets_cv);
+#else
+    SIM_UNUSED_ARG(opaque);
+#endif
+}
+
 void sim_slirp_close(SimSlirpNetwork *slirp)
 {
-    struct redir_tcp_udp *rtmp;
-
     if (slirp == NULL)
         return;
 
@@ -507,13 +526,17 @@ void sim_slirp_close(SimSlirpNetwork *slirp)
     free(slirp->dns_search_domains);
 
     if (slirp->slirp_cxn != NULL) {
-        while ((rtmp = slirp->rtcp) != NULL) {
+        struct redir_tcp_udp *rtmp, *rnext;
+
+        for (rtmp = rnext = slirp->rtcp; rtmp != NULL; rtmp = rnext) {
             slirp_remove_hostfwd(slirp->slirp_cxn, rtmp->is_udp, rtmp->sim_local_inaddr, rtmp->sim_local_port);
-            slirp->rtcp = rtmp->next;
+            rnext = rtmp->next;
             free(rtmp);
         }
 
+        slirp->rtcp = NULL;
         slirp_cleanup(slirp->slirp_cxn);
+        slirp->slirp_cxn = NULL;
     }
 
     if (slirp->dptr != NULL) {
@@ -530,9 +553,6 @@ void sim_slirp_close(SimSlirpNetwork *slirp)
 #endif
 
 #if defined(USE_READER_THREAD)
-    sim_atomic_put(&slirp->n_sockets, -1);
-    pthread_cond_broadcast(&slirp->no_sockets_cv);
-
     pthread_mutex_destroy(&slirp->libslirp_lock);
     sim_atomic_destroy(&slirp->n_sockets);
     pthread_cond_destroy(&slirp->no_sockets_cv);
@@ -545,10 +565,10 @@ void sim_slirp_close(SimSlirpNetwork *slirp)
 
 t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 {
-    GLIB_UNUSED_PARAM(dptr);
-    GLIB_UNUSED_PARAM(uptr);
-    GLIB_UNUSED_PARAM(flag);
-    GLIB_UNUSED_PARAM(cptr);
+    SIM_UNUSED_ARG(dptr);
+    SIM_UNUSED_ARG(uptr);
+    SIM_UNUSED_ARG(flag);
+    SIM_UNUSED_ARG(cptr);
 
     fprintf(st, "%s",
             "NAT options:\n"
@@ -702,7 +722,7 @@ static slirp_ssize_t invoke_sim_packet_callback(const void *buf, size_t len, voi
 
 int sim_slirp_send(SimSlirpNetwork *slirp, const char *msg, size_t len, int flags)
 {
-    GLIB_UNUSED_PARAM(flags);
+    SIM_UNUSED_ARG(flags);
 
     /* Just send the packet up to libslirp. */
     pthread_mutex_lock(&slirp->libslirp_lock);
@@ -717,12 +737,12 @@ int sim_slirp_send(SimSlirpNetwork *slirp, const char *msg, size_t len, int flag
 static void notify_callback(void *opaque)
 {
     /* SimSlirpNetwork *slirp = (SimSlirpNetwork *) opaque; */
-    GLIB_UNUSED_PARAM(opaque);
+    SIM_UNUSED_ARG(opaque);
 }
 
 int64_t sim_clock_get_ns(void *opaque)
 {
-    GLIB_UNUSED_PARAM(opaque);
+    SIM_UNUSED_ARG(opaque);
 
     /* Internally, libslirp cuts the nanoseconds down to milliseconds. */
     return ((uint64_t) sim_os_msec()) * 10000000ull;

@@ -85,11 +85,12 @@ void sim_fill_debtab_flags(DEBTAB *debtab)
     i = 0;
     while (p->name != NULL && i < n_bits) {
         if ((new_flag & dbg_bitmask) == 0) {
-            /* Find a need for the new flag */
-            while (p->mask != 0 && p->name != NULL)
-                ++p;
-            if (p->name != NULL) {
-                p->mask = new_flag;
+            /* Find a home for the new flag */
+            for (/* empty */; p->name != NULL; ++p) {
+                if (p->mask == 0) {
+                  p->mask = new_flag;
+                  break;
+                }
             }
         }
 

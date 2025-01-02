@@ -82,7 +82,6 @@ endif()
 
 project(simh VERSION "${SIMH_VERSION}" LANGUAGES C CXX)
 
-include(vcpkg-setup)
 include(GNUInstallDirs)
 
 ## Provide a default CMAKE_BUILD_TYPE if CMAKE_CONFIGURATION_TYPES is empty or not defined.
@@ -232,6 +231,9 @@ option(USE_SELECT
 option(USE_POLL
        "NAT(libslirp): Use poll() as the socket polling function"
        FALSE)
+option(USE_GLIB
+        "Use glib-2.0 instead of a minimal glib implementation with libslirp"
+        FALSE)
 
 # Places where CMake should look for dependent package configuration fragments and artifacts:
 set(SIMH_PREFIX_PATH_LIST)
@@ -240,6 +242,13 @@ if (NOT (USING_VCPKG OR NO_DEP_BUILD))
     list(APPEND SIMH_PREFIX_PATH_LIST ${SIMH_DEP_TOPDIR})
     list(APPEND CMAKE_PREFIX_PATH ${SIMH_PREFIX_PATH_LIST})
 endif ()
+
+## Windows: Use vcpkg to install dependency packages
+if (USE_GLIB AND (WITH_NETWORK AND WITH_SLIRP))
+    set( VCPKG_MANIFEST_FEATURES "libslirp-glib")
+endif ()
+
+include(vcpkg-setup)
 
 ## libpcap, if not found, will put its headers in $CMAKE_BINARY_DIR/include.
 ## Make sure we can find them.
@@ -302,6 +311,17 @@ include(CheckSymbolExists)
 include(CheckTypeSize)
 include(CheckCCompilerFlag)
 include(FindPackageHandleStandardArgs)
+
+## NOGLIB is actually set inside of the libslirp subdirectory. However, it
+## still needs a default for platform-quirks.
+
+if (USE_GLIB)
+    ## Just in case...
+    set(NOGLIB OFF CACHE BOOL "libslirp minimal glib implementation flag" FORCE)
+elseif (NOT DEFINED NOGLIB)
+    ## Assume that SIMH should build with the minimal glib implementation.
+    set(NOGLIB ON CACHE BOOL "libslirp minimal glib implementation flag" FORCE)
+endif ()
 
 ## Deal with platform quirkiness
 include(platform-quirks)
@@ -414,8 +434,6 @@ endif ()
 if (NOT DO_DEPENDENCY_BUILD)
     include (add_simulator)
     if (WITH_NETWORK AND WITH_SLIRP)
-      ## Set the "Don't use GLIB" option here so that the libslirp subdirectory sees it.
-      set(NOGLIB TRUE CACHE BOOL "" FORCE)
       add_subdirectory(libslirp)
     endif ()
 

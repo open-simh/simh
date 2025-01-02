@@ -347,6 +347,11 @@ if (WITH_NETWORK)
     endif (WITH_TAP)
 
     if (WITH_NETWORK AND WITH_SLIRP)
+        target_include_directories(simh_network
+            INTERFACE
+                ${CMAKE_SOURCE_DIR}/sim_slirp
+                ${CMAKE_SOURCE_DIR}/libslirp/src
+        )
         target_link_libraries(simh_network INTERFACE slirp_static)
         list(APPEND NETWORK_PKG_STATUS "NAT(SLiRP)")
     endif ()

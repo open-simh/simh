@@ -174,6 +174,10 @@ param (
     [Parameter(Mandatory=$false)]
     [switch] $use_poll      = $false,
 
+    ## Use glib-2.0 instead of the minimalist implementation (primarily for debugging)
+    [Parameter(Mandatory=$false)]
+    [switch] $use_glib      = $false,
+
     ## Turn on maximal compiler warnings for Debug builds (e.g. "-Wall" or "/W3")
     [Parameter(Mandatory=$false)]
     [switch] $debugWall      = $false,
@@ -481,6 +485,11 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
     if ($use_poll)
     {
         $generateArgs += @("-DUSE_POLL:Bool=True")
+    }
+    if ($use_glib)
+    {
+        ## Passes through to libslirp.
+        $generateArgs += @("-DNOGLIB:Bool=False", "-DUSE_GLIB:Bool=True")
     }
 
     ## Add sanitizer(s)

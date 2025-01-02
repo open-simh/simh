@@ -11,6 +11,7 @@ typedef struct sim_slirp SimSlirpNetwork;
 typedef void (*packet_callback)(void *opaque, const unsigned char *buf, int len);
 
 SimSlirpNetwork *sim_slirp_open (const char *args, void *pkt_opaque, packet_callback pkt_callback, DEVICE *dptr, uint32 dbit, char *errbuf, size_t errbuf_size);
+void sim_slirp_shutdown(void *opaque);
 void sim_slirp_close (SimSlirpNetwork *slirp);
 int sim_slirp_send (SimSlirpNetwork *slirp, const char *msg, size_t len, int flags);
 int sim_slirp_select (SimSlirpNetwork *slirp, int ms_timeout);

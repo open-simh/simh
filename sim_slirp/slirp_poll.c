@@ -550,7 +550,7 @@ void *simh_timer_new_opaque(SlirpTimerId id, void *cb_opaque, void *opaque)
 {
     struct slirp_timer_s *retval = (struct slirp_timer_s *) calloc(1, sizeof(struct slirp_timer_s));
 
-    GLIB_UNUSED_PARAM(opaque);
+    SIM_UNUSED_ARG(opaque);
 
     retval->id = id;
     retval->cb_opaque = cb_opaque;
@@ -566,7 +566,7 @@ void simh_timer_free(void *the_timer, void *opaque)
     struct slirp_timer_s  *timer = the_timer;
     struct slirp_timer_s **t;
 
-    GLIB_UNUSED_PARAM(opaque);
+    SIM_UNUSED_ARG(opaque);
 
     for (t =  &slirp_timer_list; *t != NULL && *t != timer; t = &((*t) ->next))
                 /* empty */;
@@ -582,7 +582,7 @@ void simh_timer_mod(void *the_timer, int64_t expire_time, void *opaque)
     struct slirp_timer_s  *timer = the_timer;
     struct slirp_timer_s **t;
 
-    GLIB_UNUSED_PARAM(opaque);
+    SIM_UNUSED_ARG(opaque);
 
     /* Upconvert to nanoseconds, unexpire. */
     timer->expire_time_ns = expire_time * 1000ll * 1000ll;
@@ -607,7 +607,7 @@ void simh_timer_check(Slirp *slirp)
     int64_t time_now = sim_clock_get_ns(NULL);
     struct slirp_timer_s *t;
 
-    GLIB_UNUSED_PARAM(slirp);
+    SIM_UNUSED_ARG(slirp);
 
     for (t= slirp_timer_list; t != NULL && t->expire_time_ns <= time_now; /* empty */) {
         /* libslirp's timer function that invoked us might call simh_timer_mod(), which

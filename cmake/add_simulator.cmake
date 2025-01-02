@@ -89,16 +89,6 @@ function(build_simcore _targ)
                 ## libslirp detects HAVE_INET_PTON for us.
                 target_compile_definitions(${lib} PUBLIC HAVE_INET_PTON)
             endif()
-            
-            target_include_directories(
-                ${lib} 
-                PUBLIC
-                    ${CMAKE_SOURCE_DIR}/sim_slirp
-                PRIVATE
-                    ${CMAKE_SOURCE_DIR}/libslirp/minimal
-                    ${CMAKE_SOURCE_DIR}/libslirp/src
-                    ${CMAKE_BINARY_DIR}/libslirp/build-include
-            )
         endif ()    
 
         target_link_options(${lib} PRIVATE ${EXTRA_TARGET_LFLAGS})

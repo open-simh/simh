@@ -164,6 +164,18 @@ if (WIN32)
         unset(RUN_WINVER)
         unset(COMPILE_WINVER)
     endif ()
+
+    if (NOT NOGLIB AND NOT PKG_CONFIG_FOUND)
+        find_package(PkgConfig REQUIRED)
+        if (PKG_CONFIG_FOUND)
+            pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+            if (NOT TARGET PkgConfig::GLIB)
+              pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib)
+            endif ()
+        else ()
+            message(FATAL_ERROR "NOGLIB is False but pkg-config was not found and is needed for glib-2.0.")
+        endif ()
+    endif ()
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # The MSVC solution builds as 32-bit, but none of the *nix platforms do.
     #
@@ -176,6 +188,7 @@ endif ()
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
     # include(fpintrin)
+
 
     LIST(APPEND EXTRA_TARGET_CFLAGS
         "-U__STRICT_ANSI__"
@@ -191,6 +204,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
     # the VAX simulators. Reduce optimization and ensure strict overflow is turned off.
 
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        set(update_o2 TRUE)
         set(add_werror ${WARNINGS_FATAL})
 
         if (NOT MINGW)
@@ -201,6 +215,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
                     set(lto_flag "$<$<CONFIG:Release>:-flto>")
                     list(APPEND EXTRA_TARGET_CFLAGS "${lto_flag}")
                     list(APPEND EXTRA_TARGET_LFLAGS "${lto_flag}")
+                    set(update_o2 FALSE)
                     set(add_werror TRUE)
                 else ()
                     message(STATUS "Compiler does not support Link Time Optimization.")
@@ -210,6 +225,12 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
             endif ()
         elseif (MINGW)
             message(STATUS "MinGW: Link Time Optimization BROKEN, not added to Release flags")
+        endif ()
+
+        if (update_o2)
+            message(STATUS "Replacing '-O3' with '-O2'")
+            string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+            string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         endif ()
 
         if (add_werror)
@@ -228,7 +249,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
 
         message(STATUS "Adding GNU-specific optimizations to CMAKE_C_FLAGS_RELEASE")
         list(APPEND opt_flags "-finline-functions" "-fgcse-after-reload" "-fpredictive-commoning"
-                            "-fipa-cp-clone" "-fno-unsafe-loop-optimizations" "-fno-strict-overflow")
+                              "-fipa-cp-clone" "-fno-unsafe-loop-optimizations" "-fno-strict-overflow")
     elseif (CMAKE_C_COMPILER_ID MATCHES ".*Clang")
         message(STATUS "Adding Clang-specific optimizations to CMAKE_C_FLAGS_RELEASE")
         list(APPEND opt_flags "-fno-strict-overflow")
