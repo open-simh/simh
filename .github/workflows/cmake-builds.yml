@@ -25,13 +25,6 @@ jobs:
         sh -ex .travis/deps.sh linux
         sudo apt install -ym ninja-build
 
-    - name: libslirp module
-      run: |
-        git submodule sync
-        git submodule set-url -- libslirp https://gitlab.freedesktop.org/bscottmichel/libslirp-minimal.git
-        git submodule set-branch --branch incr-minimal libslirp
-        git submodule update --init --recursive --remote
-
     - name: cmake-builder.sh
       run: |
         cmake/cmake-builder.sh --config Release --flavor ninja --lto --notest --parallel --verbose --cpack_suffix x86_64-${{matrix.os}}
@@ -88,13 +81,6 @@ jobs:
       run: |
         sh -ex .travis/deps.sh osx
 
-    - name: libslirp module
-      run: |
-        git submodule sync
-        git submodule set-url -- libslirp https://gitlab.freedesktop.org/bscottmichel/libslirp-minimal.git
-        git submodule set-branch --branch incr-minimal libslirp
-        git submodule update --init --recursive --remote
-
     - name: cmake-builder.sh
       run: |
         cmake/cmake-builder.sh --config Release --flavor xcode --notest --cpack_suffix ${{env.CPACK_SUFFIX}}
@@ -134,12 +120,6 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
-    - name: libslirp module
-      run: |
-        git submodule sync
-        git submodule set-url -- libslirp https://gitlab.freedesktop.org/bscottmichel/libslirp-minimal.git
-        git submodule set-branch --branch incr-minimal libslirp
-        git submodule update --init --recursive --remote
     - name: Install v141_xp (XP toolkit) and build SIMH
       shell: pwsh
       run: |
@@ -219,12 +199,6 @@ jobs:
         build: [vs2022, vs2022-x64]
     steps:
     - uses: actions/checkout@v4
-    - name: libslirp module
-      run: |
-        git submodule sync
-        git submodule set-url -- libslirp https://gitlab.freedesktop.org/bscottmichel/libslirp-minimal.git
-        git submodule set-branch --branch incr-minimal libslirp
-        git submodule update --init --recursive --remote
     - name: vs2022 build
       shell: pwsh
       run: |

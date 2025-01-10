@@ -60,13 +60,6 @@ jobs:
         if: ${{runner.os == 'Linux'}}
         run: sh -ex .travis/deps.sh linux
 
-      - name: libslirp module
-        run: |
-          git submodule sync
-          git submodule set-url -- libslirp https://gitlab.freedesktop.org/bscottmichel/libslirp-minimal.git
-          git submodule set-branch --branch incr-minimal libslirp
-          git submodule update --init --recursive --remote
-
       - name: makefile build
         env:
           SIM: ${{matrix.simulators}}
