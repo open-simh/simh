@@ -3,9 +3,13 @@
 
 - [Build `simh` using CMake](#build-simh-using-cmake)
   - [Why CMake?](#why-cmake)
+  - [Quickstart for the Impatient](#quickstart-for-the-impatient)
+    - [Unix and macOS](#unix-and-macos)
+    - [Windows](#windows)
+    - [MinGW64](#mingw64)
   - [Before You Begin Building...](#before-you-begin-building)
     - [Toolchains and Tools](#toolchains-and-tools)
-      - [Ninja: "failed recompaction: Permission denied"](#ninja-file-recompaction-permission-denied)
+      - [Ninja: "failed recompaction: Permission denied"](#ninja-failed-recompaction-permission-denied)
       - [Windows XP-compatible/Server 2003 binaries](#windows-xp-compatibleserver-2003-binaries)
     - [Feature Libraries](#feature-libraries)
       - [Linux, macOS and MinGW-w64](#linux-macos-and-mingw-w64)
@@ -47,12 +51,84 @@ framework. A sample of the supported build environments include:
   - MS Visual Studio solutions (2015, 2017, 2019, 2022)
   - IDE build wrappers ([Sublime Text][sublime] and [CodeBlocks][codeblocks])
 
-Making the Windows build process less complex by automatically downloading,
-building and installing dependency feature libraries, and consistent cross
-platform support were the initial motivations behind a [CMake][cmake]-based
-build infrastructure. Since then, that motivation expanded to supporting a wider
-variety of platforms and compiler combinations, streamlining the overall compile
-process, enhanced IDE integration and SIMH packaging.
+In addition to enabling choices across a diverse set of development
+environments, [CMake][cmake] also handles packaging artifacts (artefacts) for
+installers and archives.
+
+## Quickstart for the Impatient
+
+### Unix and macOS
+
+```shell
+$ git clone https://github.com/open-simh/simh.git
+$ cd simh
+$ sh .travis/deps.sh linux
+$ cmake/cmake-builder.sh --flavor ninja --config Release --target pdp10-kl
+$ BIN/pdp10-kl
+```
+
+- Replace `linux` in `sh .travis/deps.sh linux` with `arch_linux` (Arch Linux),
+  `osx` (macOS Brew system), or `macports` (macOS MacPorts system).
+
+- Replace `pdp10-kl` with your preferred or desired simulator, e.g., `vax`,
+  `pdp11`, etc.
+
+- You can find the resulting simulator binaries in the BIN/ subdirectory.
+
+### Windows
+
+`cmd`-based console:
+
+```cmd
+C:\...> git clone https://github.com/microsoft/vcpkg.git
+C:\...> cd vcpkg
+C:\...> .\bootstrap-vcpkg.bat
+C:\...> set VCPKG_ROOT=%cd%
+C:\...> cd ..
+C:\...> git clone https://github.com/open-simh/simh.git
+C:\...> cd simh
+C:\...> cmake\cmake-builder.ps1 vs2022-x64 Release -target pdp10-kl
+C:\...> BIN\Win32\Release\pdp10-kl
+```
+
+PowerShell-based console:
+
+```powershell
+PS> git clone https://github.com/microsoft/vcpkg.git
+PS> cd vcpkg; .\bootstrap-vcpkg.bat
+PS> $env:VCPKG_ROOT=$(get-location)
+PS> cd ..
+PS> git clone https://github.com/open-simh/simh.git
+PS> cd simh
+PS> cmake\cmake-builder.ps1 vs2022-x64 Release -target pdp10-kl
+PS> BIN\Win32\Release\pdp10-kl
+```
+
+Replace `pdp10-kl` with your preferred or desired simulator, e.g., `vax`,
+`pdp11`, etc.
+
+You can find the resulting simulator binaries in the BIN/Win32/_config_
+subdirectory, where _config_ is "Release", "Debug" or "RelWithDebInfo". In the
+above examples, _config_ is "Release", i.e., BIN/Win32/Release.
+
+### MinGW64
+
+```shell
+$ git clone https://github.com/open-simh/simh.git
+$ cd simh
+$ sh .travis/deps.sh mingw64
+$ cmake/cmake-builder.sh --flavor ninja --config Release --target pdp10-kl
+$ BIN/Win32/pdp10-kl
+```
+
+- Replace `mingw64` in `sh .travis/deps.sh mingw64` with `clang64`, `ucrt64` or
+  `mingw32`, consistent with the MinGW64 environment in which you are compiling.
+
+- Replace `pdp10-kl` with your preferred or desired simulator, e.g., `vax`,
+  `pdp11`, etc.
+
+- You can find the resulting simulator binaries in the BIN/`$MSYSTEM`
+  subdirectory, where `$MSYSTEM` is one of MINGW64, MINGW32, CLANG64 or UCRT64.
 
 ## Before You Begin Building...
 
@@ -67,8 +143,7 @@ Before you begin building the simulators, you need the following:
     builds on Windows.
 
   - _Microsoft Visual C/C++_: Visual Studio 2022, 2019, 2017 and 2015 are
-    supported. The [appveyor CI/CD][appveyor] pipeline builds using these four
-    Microsoft toolchains in _Release_ and _Debug_ configurations.
+    supported.
 
     - _VS 2022_: The Community Edition can be downloaded from the
       [Microsoft Visual Studio Community][vs_community] page.
@@ -105,12 +180,12 @@ Before you begin building the simulators, you need the following:
     - _Visual Studio IDE, Developer command or PowerShell console windows_: No
       additional software installation needed. Microsoft provides `cmake` that
       can be invoked from the command prompt or from within the VS IDE.
-      Microsoft has bundled various version of `cmake` into Visual Studio since
+      Microsoft has bundled various versions of `cmake` into Visual Studio since
       VS 2015.
 
     - Otherwise, install `cmake` using your preferred Windows software package
       manager, such as [Chocolatey][chocolatey] or [Scoop][scoop]. You can also
-      [download and install the `cmake` binary distribution][cmake_downloads]
+      download and install [the `cmake` binary distribution][cmake_downloads]
       directly.
 
 - The [Git source control system][gitscm].
@@ -144,7 +219,7 @@ Before you begin building the simulators, you need the following:
 
     -  Otherwise, install `git` using your preferred Windows software package
        manager, such as [Chocolatey][chocolatey] or [Scoop][scoop]. You can also
-       [download and install the `git` client][gitscm_downloads] directly.
+       download and install [the `git` client][gitscm_downloads] directly.
 
 - GNU Make:
 
@@ -156,8 +231,8 @@ Before you begin building the simulators, you need the following:
 
 - Ninja:
 
-  [Ninja][ninja] is an optional, but useful/faster parallel build alternative to
-  Unix Makefiles and Visual Studio's `msbuild`.
+  [Ninja][ninja] is an optional parallel build alternative to Unix Makefiles and
+  Visual Studio's `msbuild`.
 
 
 #### Ninja: "failed recompaction: Permission denied"
@@ -279,6 +354,12 @@ binaries.
     $ sudo sh .travis/deps.sh linux
     ```
 
+  - Linux Arch:
+
+    ```bash
+    $ sudo sh .travis/deps.sh arch-linux
+    ```
+
   - macOS Homebrew:
 
     ```bash
@@ -299,12 +380,20 @@ binaries.
     $ .travis/deps.sh mingw64
     ```
 
-  - MinGW-w64 UCRT console:
+  - MinGW-w64 UCRT64 console:
 
     ```bash
     $ echo $MSYSTEM
     UCRT64
     $ .travis/deps.sh ucrt64
+    ```
+
+  - MinGW-w64 CLANG64 console:
+
+    ```bash
+    $ echo $MSYSTEM
+    CLANG64
+    $ .travis/deps.sh clang64
     ```
 
 #### Windows: "Legacy" superbuild or `vcpkg`
@@ -376,10 +465,10 @@ Setup and Usage:
         PS C:\...> git clone https://github.com/Microsoft/vcpkg.git
         PS C:\...> cd vcpkg
         PS C:\...\vcpkg> .\vcpkg\bootstrap-vcpkg.bat
+        PS C:\...\vcpkg> $env:VCPKG_ROOT=$(get-location)
         PS C:\...\vcpkg> cd ..\open-simh
         PS C:\...\open-simh>
         ```
-  Then set the `VCPKG_ROOT` environment variable to the `vcpkg` installation directory.
 
 [^1]: `vcpkg` does not support the `v141_xp` toolkit required to compile Windows
 XP binaries. Windows XP is a target platform that SIMH can hopefully deprecate
@@ -843,6 +932,9 @@ following the table.
 | `WARNINGS_FATAL`     | disabled           | Compiler warnings are fatal errors, e.g. set "-Werror" on `gcc`, "/WX" for MSVC |
 | `RELEASE_LTO`        | disabled           | Use Link-Time Optimization in Release builds, where supported. Normally disabled; the CI/CD builds turn this on to catch additional warnings emitted with higher optimization and LTO. |
 | `DEBUG_WALL`         | disabled           | Turn on maximal warnings for Debug builds, e.g., `-Wall` for GCC/Clang and `/W4` for MSVC. |
+| `USE_SELECT`         | disabled           | Force network code to invoke `select()` when polling sockets. |
+| `USE_POLL`           | disabled           | Force network code to invoke `poll()` when polling sockets. |
+| `USE_GLIB`           | disabled           | Build the NAT (`libslirp`) library with glib-2.0 instead of the minimalist glib implementation. Primarily used for debugging. |
 
 The following table summarizes "enabled" and "disabled" option values on the command line:
 

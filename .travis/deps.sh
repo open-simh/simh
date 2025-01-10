@@ -30,6 +30,19 @@ install_linux() {
     sudo apt-get install -ym cmake cmake-data
 }
 
+install_mingw32() {
+    ## Doesn't have libpcap or cmake's extra modules. Not that this
+    ## makes much of a difference.
+    pacman -S --needed mingw-w64-i686-ninja \
+	mingw-w64-i686-cmake \
+        mingw-w64-i686-gcc \
+	mingw-w64-i686-make \
+        mingw-w64-i686-pcre \
+	mingw-w64-i686-freetype \
+        mingw-w64-i686-SDL2 \
+	mingw-w64-i686-SDL2_ttf
+}
+
 install_mingw64() {
     pacman -S --needed mingw-w64-x86_64-ninja \
 	mingw-w64-x86_64-cmake \
@@ -71,7 +84,7 @@ install_clang64() {
 
 
 case "$1" in
-  osx|macports|linux|mingw64|ucrt64|clang64)
+  osx|macports|linux|mingw32|mingw64|ucrt64|clang64)
     install_"$1"
     ;;
   arch-linux)

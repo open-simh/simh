@@ -32,6 +32,10 @@
 set(EXTRA_TARGET_CFLAGS)
 set(EXTRA_TARGET_CFLAGS)
 
+
+## Sanitizer-specific processing: 
+set(HAVE_SANITIZERS (SANITIZE_ADDRESS || SANITIZE_MEMORY || SANITIZE_THREAD || SANITIZE_UNDEFINED))
+
 # For 64-bit builds (and this is especially true for MSVC), set the library
 # architecture.
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -75,11 +79,13 @@ if (WIN32)
         ## /Ot: Favor fast code
         ## /Oy: Suppress generating a stack frame (??? why?)
         add_compile_options("$<$<CONFIG:Release>:/EHsc;/GF;/Gy;/Oi;/Ot;/Oy;/Zi>")
+        add_compile_options("$<$<CONFIG:RelWithDebInfo>:/EHsc;/GF;/Gy;/Oi;/Ot;/Oy;/Zi>")
         add_compile_options("$<$<CONFIG:Debug>:/EHsc;/FC>")
 
         if (RELEASE_LTO)
             ## /LTCG: Link-Time Code Generation. Pair with /GL at compile time.
             add_compile_options("$<$<CONFIG:Release>:/GL>")
+            add_compile_options("$<$<CONFIG:RelWithDebInfo>:/GL>")
             add_link_options("$<$<CONFIG:Release>:/LTCG>")
             message(STATUS "Adding LTO to Release compiler and linker flags")
         endif ()
@@ -95,7 +101,7 @@ if (WIN32)
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>${use_rtll}")
 
         ## Disable automagic add for _MBCS:
-        add_definitions(-D_SBCS)
+        add_compile_definitions(_SBCS)
 
         if (CMAKE_VERSION VERSION_LESS "3.23")
             ## -5 Evil hack to ensure that find_package() can match against an empty
@@ -105,6 +111,7 @@ if (WIN32)
 
         list(APPEND EXTRA_TARGET_CFLAGS
              "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:/W4>>"
+             "$<$<CONFIG:RelWithDebInfo>:$<$<BOOL:${DEBUG_WALL}>:/W4>>"
              "$<$<CONFIG:Release>:/W3>"
         )
 
@@ -117,6 +124,56 @@ if (WIN32)
         if (WARNINGS_FATAL)
             message(STATUS "WARNINGS_FATAL: Compiler warnings are errors!! (/WX)")
             list(APPEND EXTRA_TARGET_CFLAGS "/WX")
+        endif ()
+    endif ()
+
+    ## And there's a target Windows version?
+    if (TARGET_WINVER)
+        message(STATUS "Target Windows version set to ${TARGET_WINVER}")
+        add_compile_definitions(WINVER=${TARGET_WINVER} _WIN32_WINNT=${TARGET_WINVER})
+        list(APPEND CMAKE_REQUIRED_DEFINITIONS "-DWINVER=${TARGET_WINVER}" "-D_WIN32_WINNT=${TARGET_WINVER}")
+        set(WINVER ${TARGET_WINVER})
+    else ()
+        file(WRITE
+            ${CMAKE_BINARY_DIR}/CMakeTmp/testWinVer.c
+            "#define WINDOWS_LEAN_AND_MEAN\n"
+            "#include <windows.h>\n"
+            "#include <stdio.h>\n"
+            "int main(void) {\n"
+            "#if defined(WINVER) && WINVER >= 0x0601\n"
+            "   return 0;\n"
+            "#else\n"
+            "   return 1;\n"
+            "#endif\n"
+            "}\n"
+        )
+
+        try_run(RUN_WINVER COMPILE_WINVER
+            SOURCES ${CMAKE_BINARY_DIR}/CMakeTmp/testWinVer.c
+            RUN_OUTPUT_VARIABLE THE_WINVER
+        )
+
+        if (RUN_WINVER EQUAL 0)
+            message(STATUS "Windows Vista or later.")
+            set(WINDOWS_VISTA_PLUS TRUE)
+        else ()
+            message(STATUS "Windows version not detected: run status ${RUN_WINVER}, compile status ${COMPILE_WINVER}")
+            set(WINDOWS_VISTA_PLUS FALSE)
+            endif ()
+
+        unset(RUN_WINVER)
+        unset(COMPILE_WINVER)
+    endif ()
+
+    if (NOT NOGLIB AND NOT PKG_CONFIG_FOUND)
+        find_package(PkgConfig REQUIRED)
+        if (PKG_CONFIG_FOUND)
+            pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+            if (NOT TARGET PkgConfig::GLIB)
+              pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib)
+            endif ()
+        else ()
+            message(FATAL_ERROR "NOGLIB is False but pkg-config was not found and is needed for glib-2.0.")
         endif ()
     endif ()
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -132,11 +189,11 @@ endif ()
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
     # include(fpintrin)
 
-    # Turn on warnings about strict overflow/potential overflows.
-    ## LIST(APPEND EXTRA_TARGET_CFLAGS "-Wall" "-fno-inline" "-fstrict-overflow" "-Wstrict-overflow=3")
+
     LIST(APPEND EXTRA_TARGET_CFLAGS
         "-U__STRICT_ANSI__"
         "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:-Wall>>"
+        "$<$<CONFIG:RelWithDebInfo>:$<$<BOOL:${DEBUG_WALL}>:-Wall>>"
         ## Only add if WARNINGS_FATAL set; has undesirable consequences with LTO.
         "$<$<CONFIG:Release>:-Wall>"
     )
@@ -148,8 +205,10 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
 
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set(update_o2 TRUE)
+        set(add_werror ${WARNINGS_FATAL})
+
         if (NOT MINGW)
-            if (RELEASE_LTO AND (NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release"))
+            if (RELEASE_LTO AND NOT HAVE_SANITIZERS AND (NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release"))
                 check_c_compiler_flag("-flto" GCC_LTO_FLAG)
                 if (GCC_LTO_FLAG)
                     message(STATUS "Adding LTO to Release compiler and linker flags")
@@ -157,6 +216,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
                     list(APPEND EXTRA_TARGET_CFLAGS "${lto_flag}")
                     list(APPEND EXTRA_TARGET_LFLAGS "${lto_flag}")
                     set(update_o2 FALSE)
+                    set(add_werror TRUE)
                 else ()
                     message(STATUS "Compiler does not support Link Time Optimization.")
                 endif ()
@@ -173,7 +233,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
             string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         endif ()
 
-        if (WARNINGS_FATAL` OR RELEASE_LTO)
+        if (add_werror)
             check_c_compiler_flag("-Werror" GCC_W_ERROR_FLAG)
             if (GCC_W_ERROR_FLAG)
                 if (WARNINGS_FATAL)
@@ -189,21 +249,32 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
 
         message(STATUS "Adding GNU-specific optimizations to CMAKE_C_FLAGS_RELEASE")
         list(APPEND opt_flags "-finline-functions" "-fgcse-after-reload" "-fpredictive-commoning"
-                            "-fipa-cp-clone" "-fno-unsafe-loop-optimizations" "-fno-strict-overflow")
+                              "-fipa-cp-clone" "-fno-unsafe-loop-optimizations" "-fno-strict-overflow")
     elseif (CMAKE_C_COMPILER_ID MATCHES ".*Clang")
         message(STATUS "Adding Clang-specific optimizations to CMAKE_C_FLAGS_RELEASE")
         list(APPEND opt_flags "-fno-strict-overflow")
+
+        if (WIN32)
+            list(APPEND EXTRA_TARGET_CFLAGS "-Wmicrosoft")
+            ## IBM1130 has a copyright symbol (8-bit character), so need to specify the code
+            ## page to the llvm-rc resource compiler. <sigh>
+            if (CMAKE_RC_COMPILER MATCHES ".*windres.exe")
+                string(APPEND CMAKE_RC_FLAGS " -c 1252")
+            else ()
+                string(APPEND CMAKE_RC_FLAGS " /C 1252")
+            endif ()
+        endif ()
     endif()
 
     foreach (opt_flag ${opt_flags})
         message(STATUS "    ${opt_flag}")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
         string(APPEND CMAKE_C_FLAGS_RELEASE " ${opt_flag}")
+        string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+        string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " ${opt_flag}")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         string(APPEND CMAKE_C_FLAGS_MINSIZEREL " ${opt_flag}")
     endforeach ()
-else ()
-    message(STATUS "Not changing CMAKE_C_FLAGS_RELEASE on ${CMAKE_C_COMPILER_ID}")
 endif ()
 
 

@@ -153,10 +153,16 @@ extern int sim_vax_snprintf(char *buf, size_t buf_size, const char *fmt, ...);
 #include <winsock2.h>
 #include <windows.h>
 #include <winerror.h>
+#include <ws2tcpip.h>
 #undef PACKED                       /* avoid macro name collision */
 #undef ERROR                        /* avoid macro name collision */
 #undef MEM_MAPPED                   /* avoid macro name collision */
 #include <process.h>
+
+#if defined(_MSC_VER)
+/* Disable unreferenced formal parameter warnings (4100) */
+#pragma warning(disable: 4100)
+#endif
 #endif
 
 #ifdef USE_REGEX
@@ -338,7 +344,11 @@ typedef uint32          t_addr;
 #else
 # define PACKED_BEGIN
 #if defined(_WIN32)
-# define PACKED_END __attribute__((gcc_struct, packed))
+#  if !defined(__clang__)
+#    define PACKED_END __attribute__((gcc_struct, packed))
+#  else
+#    define PACKED_END __attribute__((packed))
+#  endif
 #else
 # define PACKED_END __attribute__((packed))
 #endif
@@ -1166,6 +1176,7 @@ extern int32 sim_tmxr_poll_count;
 extern pthread_cond_t sim_tmxr_poll_cond;
 extern pthread_mutex_t sim_tmxr_poll_lock;
 extern pthread_t sim_asynch_main_threadid;
+extern pthread_mutex_t sim_debug_lock;
 extern UNIT * volatile sim_asynch_queue;
 extern volatile t_bool sim_idle_wait;
 extern int32 sim_asynch_check;
@@ -1209,8 +1220,9 @@ extern int32 sim_asynch_inst_latency;
 #define AIO_MAIN_THREAD (pthread_equal ( pthread_self(), sim_asynch_main_threadid ))
 #define AIO_LOCK                                                  \
     pthread_mutex_lock(&sim_asynch_lock)
-#define AIO_UNLOCK                                                \
-    pthread_mutex_unlock(&sim_asynch_lock)
+#define AIO_UNLOCK pthread_mutex_unlock(&sim_asynch_lock)
+#define AIO_DEBUG_LOCK   pthread_mutex_lock(&sim_debug_lock)
+#define AIO_DEBUG_UNLOCK pthread_mutex_unlock(&sim_debug_lock)
 #define AIO_IS_ACTIVE(uptr) (((uptr)->a_is_active ? (uptr)->a_is_active (uptr) : FALSE) || ((uptr)->a_next))
 #if defined(SIM_ASYNCH_MUX)
 #define AIO_CANCEL(uptr)                                      \
@@ -1263,6 +1275,13 @@ extern int32 sim_asynch_inst_latency;
 #define AIO_QUEUE_MODE "Lock free asynchronous event queue"
 #define AIO_INIT                                                  \
     do {                                                          \
+      pthread_mutexattr_t attr;                                   \
+                                                                  \
+      pthread_mutexattr_init (&attr);                             \
+      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);  \
+      pthread_mutex_init (&sim_debug_lock, &attr);                \
+      pthread_mutexattr_destroy (&attr);                          \
+                                                                  \
       sim_asynch_main_threadid = pthread_self();                  \
       /* Empty list/list end uses the point value (void *)1.      \
          This allows NULL in an entry's a_next pointer to         \
@@ -1277,6 +1296,7 @@ extern int32 sim_asynch_inst_latency;
       pthread_cond_destroy(&sim_timer_wake);                      \
       pthread_mutex_destroy(&sim_tmxr_poll_lock);                 \
       pthread_cond_destroy(&sim_tmxr_poll_cond);                  \
+      pthread_mutex_destroy(&sim_debug_lock);                     \
       } while (0)
 #ifdef _WIN32
 #elif defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8)
@@ -1308,6 +1328,7 @@ extern int32 sim_asynch_inst_latency;
       pthread_mutexattr_init (&attr);                             \
       pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);  \
       pthread_mutex_init (&sim_asynch_lock, &attr);               \
+      pthread_mutex_init (&sim_debug_lock, &attr);                \
       pthread_mutexattr_destroy (&attr);                          \
       sim_asynch_main_threadid = pthread_self();                  \
       /* Empty list/list end uses the point value (void *)1.      \
@@ -1323,6 +1344,7 @@ extern int32 sim_asynch_inst_latency;
       pthread_cond_destroy(&sim_timer_wake);                      \
       pthread_mutex_destroy(&sim_tmxr_poll_lock);                 \
       pthread_cond_destroy(&sim_tmxr_poll_cond);                  \
+      pthread_mutex_destroy(&sim_debug_lock);                     \
       } while (0)
 #define AIO_ILOCK AIO_LOCK
 #define AIO_IUNLOCK AIO_UNLOCK
@@ -1381,6 +1403,8 @@ extern int32 sim_asynch_inst_latency;
 #define AIO_MAIN_THREAD TRUE
 #define AIO_LOCK
 #define AIO_UNLOCK
+#define AIO_DEBUG_LOCK
+#define AIO_DEBUG_UNLOCK
 #define AIO_CLEANUP
 #define AIO_EVENT_BEGIN(uptr)
 #define AIO_EVENT_COMPLETE(uptr, reason)
@@ -1389,6 +1413,9 @@ extern int32 sim_asynch_inst_latency;
 #define AIO_SET_INTERRUPT_LATENCY(instpersec)
 #define AIO_TLS
 #endif /* SIM_ASYNCH_IO */
+
+/* Unused argument macro */
+#define SIM_UNUSED_ARG(arg) (void ) (arg);
 
 #ifdef  __cplusplus
 }

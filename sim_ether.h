@@ -109,6 +109,7 @@ extern "C" {
 
 /* set related values to have correct relationships */
 #if defined (USE_READER_THREAD)
+#include "sim_atomic.h"
 #include <pthread.h>
 #if defined (USE_SETNONBLOCK)
 #undef USE_SETNONBLOCK
@@ -118,6 +119,14 @@ extern "C" {
 #if (!defined (xBSD) && !defined(_WIN32) && !defined(VMS) && !defined(__CYGWIN__)) || defined (HAVE_TAP_NETWORK) || defined (HAVE_VDE_NETWORK)
 #define MUST_DO_SELECT 1
 #endif
+
+/* Reader, writer thread states */
+typedef enum {
+  ETH_THREAD_IDLE,
+  ETH_THREAD_RUNNING,
+  ETH_THREAD_SHUTDOWN,
+  ETH_THREAD_EXITED
+} sim_eththread_state_t;
 #endif /* USE_READER_THREAD */
 
 /* give priority to USE_NETWORK over USE_SHARED */
@@ -147,10 +156,6 @@ extern "C" {
 #endif
 #else
 #define DONT_USE_PCAP_FINDALLDEVS 1
-#endif
-
-#if defined (USE_READER_THREAD)
-#include <pthread.h>
 #endif
 
 /* structure declarations */
@@ -253,6 +258,10 @@ struct eth_write_request {
   };
 typedef struct eth_write_request ETH_WRITE_REQUEST;
 
+/* The Ethernet device: */
+
+typedef struct eth_device  ETH_DEV;
+
 struct eth_device {
   char*         name;                                   /* name of ethernet device */
   void*         handle;                                 /* handle of implementation-specific device */
@@ -311,23 +320,42 @@ struct eth_device {
   uint32        throttle_packet_time;                   /* time last packet was transmitted */
   uint32        throttle_count;                         /* Total Throttle Delays */
 #if defined (USE_READER_THREAD)
-  int           asynch_io;                              /* Asynchronous Interrupt scheduling enabled */
-  int           asynch_io_latency;                      /* instructions to delay pending interrupt */
-  ETH_QUE       read_queue;
+  int                 asynch_io;                        /* Asynchronous Interrupt scheduling enabled */
+  int                 asynch_io_latency;                /* instructions to delay pending interrupt */
+
+  ETH_QUE             read_queue;
   pthread_mutex_t     lock;
-  pthread_t     reader_thread;                          /* Reader Thread Id */
-  pthread_t     writer_thread;                          /* Writer Thread Id */
+  pthread_t           reader_thread;                    /* Reader Thread Id */
+  pthread_t           writer_thread;                    /* Writer Thread Id */
   pthread_mutex_t     writer_lock;
   pthread_mutex_t     self_lock;
   pthread_cond_t      writer_cond;
-  ETH_WRITE_REQUEST *write_requests;
-  int write_queue_peak;
-  ETH_WRITE_REQUEST *write_buffers;
-  t_stat write_status;
+  /* ETH_WRITE_REQUEST list of pending outbound packets. Head of the list is an
+   * atomic pointer (atomics used when available, fine-grained mutex locking if
+   * necessary.) */
+  sim_atomic_ptr_t    write_requests;
+  int                 write_queue_peak;
+  /* ETH_WRITE_REQUEST list of free buffers. Head of the list is an atomic
+   * pointer (see note for write_requests, above.)*/
+  sim_atomic_ptr_t    write_buffers;
+  t_stat              write_status;
+
+  /* Thread states */
+  sim_atomic_value_t reader_state;
+  sim_atomic_value_t writer_state;
+
+  /* API functions */
+  /* reader(): Ethernet receiver-specific read function. Does the
+   * poll()/select(), and dispatches a packet if data is available from the
+   * underlying socket. */
+  int (*reader)(ETH_DEV *eth_dev, int ms_timeout);
+  /* reader_shutdown(), writer_shutdown(): Ethernet device-specific shutdown
+   * function. Used by libslirp support to signal the condition variable if
+   * waiting for sockets. Otherwise, a NOP for other Ethernet devices. */
+  void (*reader_shutdown)(void *opaque);
+  void (*writer_shutdown)(void *opaque);
 #endif
 };
-
-typedef struct eth_device  ETH_DEV;
 
 /* prototype declarations*/
 

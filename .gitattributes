@@ -1,3 +1,4 @@
+*.sh  text eol="lf"
 *.jpg binary
 *.png binary
 *.sln binary

@@ -3155,7 +3155,7 @@ t_stat imp_attach(UNIT* uptr, CONST char* cptr)
     strcpy(tptr, cptr);
 
     memset(&imp_data.ReadQ, 0, sizeof(ETH_QUE));
-    status = eth_open(&imp_data.etherface, cptr, &imp_dev, DEBUG_ETHER);
+    status = eth_open(&imp_data.etherface, cptr, &imp_dev, imp_dev.dctrl & DEBUG_ETHER);
     if (status != SCPE_OK) {
       free(tptr);
       return status;

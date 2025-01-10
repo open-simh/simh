@@ -10,5 +10,11 @@
         "libpng",
         "sdl2",
         "sdl2-ttf"
-    ]
+    ],
+    "features": {
+        "libslirp-glib": {
+          "description": "client game executable",
+          "dependencies": [ "glib", "pkgconf" ]
+        }
+    }
 }

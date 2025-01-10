@@ -72,9 +72,9 @@ param (
     ## 
     ## Supported flavors:
     ## ------------------
-    ## vs2022          Visual Studio 2022 (default)
+    ## vs2022          Visual Studio 2022
     ## vs2022-xp       Visual Studio 2022 XP compat
-    ## vs2022-x64      Visual Studio 2022 64-bit
+    ## vs2022-x64      Visual Studio 2022 64-bit (default)
     ## vs2019          Visual Studio 2019
     ## vs2019-xp       Visual Studio 2019 XP compat
     ## vs2019-x64      Visual Studio 2019 64-bit
@@ -85,7 +85,7 @@ param (
     ## mingw-make      MinGW GCC/mingw32-make
     ## mingw-ninja     MinGW GCC/ninja
     [Parameter(Mandatory=$false)]
-    [string] $flavor         = "vs2022",
+    [string] $flavor         = "vs2022-x64",
 
     ## The target build configuration. Valid values: "Release" and "Debug"
     [Parameter(Mandatory=$false)]
@@ -162,6 +162,22 @@ param (
     [Parameter(Mandatory=$false)]
     [switch] $lto            = $false,
 
+    ## Enable sanitizers
+    [Parameter(Mandatory=$false)]
+    [string] $sanitizer      = "",
+
+    ## Use select() as the NAT(libslirp) socket polling function
+    [Parameter(Mandatory=$false)]
+    [switch] $use_select     = $false,
+
+    ## Use WSAPoll() as the NAT(libslirp) socket polling function
+    [Parameter(Mandatory=$false)]
+    [switch] $use_poll      = $false,
+
+    ## Use glib-2.0 instead of the minimalist implementation (primarily for debugging)
+    [Parameter(Mandatory=$false)]
+    [switch] $use_glib      = $false,
+
     ## Turn on maximal compiler warnings for Debug builds (e.g. "-Wall" or "/W3")
     [Parameter(Mandatory=$false)]
     [switch] $debugWall      = $false,
@@ -203,21 +219,24 @@ class GeneratorInfo
 ## Multiple build configurations selected at compile time
 $multiConfig = $false
 ## Single configuration selected at configuration time
-$singleConfig = $true
+$singleConfig = $True
 
 $cmakeGenMap = @{
-    "vs2022"      = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32"));
-    "vs2022-xp"   = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
-    "vs2022-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
-    "vs2019"      = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",     @("-A", "Win32"));
-    "vs2019-xp"   = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
-    "vs2019-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
-    "vs2017"      = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",     @("-A", "Win32"));
-    "vs2017-xp"   = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
-    "vs2017-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
-    "vs2015"      = [GeneratorInfo]::new("Visual Studio 14 2015", $multiConfig,  $false, "",     @());
-    "mingw-make"  = [GeneratorInfo]::new("MinGW Makefiles",       $singleConfig, $false, "",     @());
-    "mingw-ninja" = [GeneratorInfo]::new("Ninja",                 $singleConfig, $false, "",     @())
+    "vs2022"      = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "", @("-A", "Win32"));
+    "vs2022-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "", @("-A", "x64", "-T", "host=x64"));
+    "vs2022-xp"   = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",
+                                         @("-A", "Win32", "-T", "v141_xp", "-DTARGET_WINVER=0x0501"));
+    "vs2019"      = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "", @("-A", "Win32"));
+    "vs2019-x64"  = [GeneratorInfo]::new("Visual Studio 17 2019", $multiConfig,  $false, "", @("-A", "x64", "-T", "host=x64"));
+    "vs2019-xp"   = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",
+                                         @("-A", "Win32", "-T", "v141_xp", "-DTARGET_WINVER=0x0501"));
+    "vs2017"      = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "", @("-A", "Win32"));
+    "vs2017-x64"  = [GeneratorInfo]::new("Visual Studio 17 2017", $multiConfig,  $false, "", @("-A", "x64", "-T", "host=x64"));
+    "vs2017-xp"   = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",
+                                         @("-A", "Win32", "-T", "v141_xp", "-DTARGET_WINVER=0x0501"));
+    "vs2015"      = [GeneratorInfo]::new("Visual Studio 14 2015", $multiConfig,  $false, "", @());
+    "mingw-make"  = [GeneratorInfo]::new("MinGW Makefiles",       $singleConfig, $false, "", @());
+    "mingw-ninja" = [GeneratorInfo]::new("Ninja",                 $singleConfig, $false, "", @())
 }
 
 
@@ -297,7 +316,7 @@ if (!$testonly)
 }
 
 ## Validate the requested configuration.
-if (!@("Release", "Debug").Contains($config))
+if (!@("Release", "Debug", "RelWithDebInfo").Contains($config))
 {
     @"
 ${scriptName}: Invalid configuration: "${config}".
@@ -384,6 +403,15 @@ else
   }
 }
 
+## Can only have one of use_select or use_poll
+if ($use_select -and $use_poll)
+{
+    Write-Host ""
+    Write-Host "!! ${scriptName}: Can only set one of -use_select, -use_poll"
+    Write-Host ""
+    exit 0
+}
+
 if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
 {
     ## Clean out the build subdirectory
@@ -449,6 +477,34 @@ if (($scriptPhases -contains "generate") -or ($scriptPhases -contains "build"))
     if (![String]::IsNullOrEmpty($cpack_suffix))
     {
         $generateArgs += @("-DSIMH_PACKAGE_SUFFIX:Bool=${cpack_suffix}")
+    }
+    if ($use_select)
+    {
+        $generateArgs += @("-DUSE_SELECT:Bool=True")
+    }
+    if ($use_poll)
+    {
+        $generateArgs += @("-DUSE_POLL:Bool=True")
+    }
+    if ($use_glib)
+    {
+        ## Passes through to libslirp.
+        $generateArgs += @("-DNOGLIB:Bool=False", "-DUSE_GLIB:Bool=True")
+    }
+
+    ## Add sanitizer(s)
+    if (![String]::IsNullOrEmpty($sanitizer)) {
+        foreach ($santhing in $sanitizer.Split(',')) {
+            switch -exact ($santhing)
+            {
+                "address" {
+                    $generateArgs += @("-DSANITIZE_ADDRESS:Bool=On")
+                }
+                default {
+                    Write-Host "** Unknown sanitizer option: ${santhing}, ignoring"
+                }
+            }
+        }
     }
 
     $buildArgs     =  @("--build", "${buildDir}", "--config", "${config}")

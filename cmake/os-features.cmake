@@ -182,21 +182,6 @@ if (WITH_NETWORK)
     endif (WITH_TAP)
 endif (WITH_NETWORK)
 
-## Windows: winmm (for ms timer functions), socket functions (even when networking is
-## disabled. Also squelch the deprecation warnings (these warnings can be enabled
-## via the -DWINAPI_DEPRECATION:Bool=On flag at configure time.)
-if (WIN32)
-    target_link_libraries(os_features INTERFACE ws2_32 wsock32 winmm)
-    target_compile_definitions(os_features INTERFACE HAVE_WINMM)
-    if (NOT WINAPI_DEPRECATION)
-        target_compile_definitions(os_features INTERFACE
-            _WINSOCK_DEPRECATED_NO_WARNINGS
-            _CRT_NONSTDC_NO_WARNINGS
-            _CRT_SECURE_NO_WARNINGS
-        )
-    endif ()
-endif ()
-
 ## Cygwin also wants winmm. Note: Untested but should work.
 if (CYGWIN)
   check_library_exists(winmm timeGetTime "" HAS_WINMM)
@@ -205,3 +190,64 @@ if (CYGWIN)
     target_compile_definitions(os_features INTERFACE HAVE_WINMM)
   endif ()
 endif ()
+
+## inttypes.h for print formats:
+check_include_file(inttypes.h have_inttypes_h)
+if (have_inttypes_h)
+    target_compile_definitions(os_features INTERFACE HAVE_INTTYPES_H)
+endif ()
+
+# libslirp poll/select/etc. detection
+set(sim_use_select 0)
+set(sim_use_poll   0)
+
+set(check_poll     0)
+
+if (USE_SELECT)
+    set(sim_use_select 1)
+else ()
+    if (NOT WIN32)
+        check_symbol_exists(poll "poll.h" have_poll_h)
+        if (have_poll_h)
+            set(sim_use_poll   1)
+        elseif (USE_POLL)
+            message(FATAL_ERROR "USE_POLL set, poll.h not detected. Select a different socket polling mechansim.")
+        else ()
+            set(sim_use_select 1)
+        endif()
+    else ()
+        cmake_push_check_state()
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "ws2_32" "wsock32")
+
+        check_symbol_exists(WSAPoll "winsock2.h;windows.h" have_wsa_poll)
+        if (have_wsa_poll)
+            set(sim_use_poll  1)
+        else ()
+            set(sim_use_select 1)
+        endif ()
+
+        cmake_pop_check_state()
+    endif()
+endif ()
+
+target_compile_definitions(os_features INTERFACE
+    SIM_USE_POLL=${sim_use_poll}
+    SIM_USE_SELECT=${sim_use_select}
+)
+
+## Windows: winmm (for ms timer functions), socket functions (even when networking is
+## disabled. Also squelch the deprecation warnings (these warnings can be enabled
+## via the -DWINAPI_DEPRECATION:Bool=On flag at configure time.)
+if (WIN32)
+    target_link_libraries(os_features INTERFACE ws2_32 wsock32 winmm)
+    target_compile_definitions(os_features INTERFACE HAVE_WINMM)
+    if (NOT WINAPI_DEPRECATION)
+        target_compile_definitions(os_features INTERFACE
+            _CRT_NONSTDC_NO_WARNINGS
+            _CRT_SECURE_NO_WARNINGS
+        )
+    endif ()
+endif ()
+
+## Sanitizer support
+find_package(Sanitizers)

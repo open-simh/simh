@@ -939,7 +939,7 @@ t_stat ni_attach(UNIT *uptr, CONST char *cptr)
         return SCPE_MEM;
     }
 
-    status = eth_open(ni.eth, cptr, &ni_dev, DBG_ETH);
+    status = eth_open(ni.eth, cptr, &ni_dev, ni_dev.dctrl & DBG_ETH);
     if (status != SCPE_OK) {
         sim_debug(DBG_ERR, &ni_dev, "ni_attach failure: open\n");
         free(tptr);

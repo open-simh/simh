@@ -102,6 +102,18 @@
 OS_CCDEFS=
 AIO_CCDEFS=
 
+# Need to set these early:
+BIN = BIN/
+SIMHD = .
+
+# libslirp locations:
+LIBSLIRP_DIR=${SIMHD}/libslirp
+LIBSLIRP_SRC=${LIBSLIRP_DIR}/src
+
+# SYS_LDFLAGS: System libraries, e.g., -lm and -lpthread, that should appear
+# at the end of the compiler's command line.
+SYS_LDFLAGS =
+
 ifneq (,${GREP_OPTIONS})
   $(info GREP_OPTIONS is defined in your environment.)
   $(info )
@@ -367,7 +379,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   ifeq (agcc,$(findstring agcc,${GCC})) # Android target build?
     OS_CCDEFS += -D_GNU_SOURCE
     AIO_CCDEFS += -DSIM_ASYNCH_IO
-    OS_LDFLAGS = -lm
+    SYS_LDFLAGS = -lm
   else # Non-Android (or Native Android) Builds
     ifeq (,$(INCLUDES)$(LIBRARIES))
       INCPATH:=$(shell LANG=C; ${GCC} -x c -v -E /dev/null 2>&1 | grep -A 10 '> search starts here' | grep '^ ' | tr -d '\n')
@@ -452,7 +464,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
             LIBPATH := $(shell LANG=C; crle | grep 'Default Library Path' | awk '{ print $$5 }' | sed 's/:/ /g')
           endif
           LIBEXT = so
-          OS_LDFLAGS += -lsocket -lnsl
+          SYS_LDFLAGS += -lsocket -lnsl
           ifeq (incsfw,$(shell if ${TEST} -d /opt/sfw/include; then echo incsfw; fi))
             INCPATH += /opt/sfw/include
             OS_CCDEFS += -I/opt/sfw/include
@@ -471,7 +483,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
             LIBEXT = a
           else
             ifneq (,$(findstring AIX,$(OSTYPE)))
-              OS_LDFLAGS += -lm -lrt
+              SYS_LDFLAGS += -lm -lrt
               ifeq (incopt,$(shell if ${TEST} -d /opt/freeware/include; then echo incopt; fi))
                 INCPATH += /opt/freeware/include
                 OS_CCDEFS += -I/opt/freeware/include
@@ -492,7 +504,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
                 INCPATH := $(shell findpaths -e -a $(HAIKU_ARCH) B_FIND_PATH_HEADERS_DIRECTORY)
                 INCPATH += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY posix)
                 LIBPATH := $(shell findpaths -e -a $(HAIKU_ARCH) B_FIND_PATH_DEVELOP_LIB_DIRECTORY)
-                OS_LDFLAGS += -lnetwork
+                SYS_LDFLAGS += -lnetwork
               else
                 ifeq (,$(findstring NetBSD,$(OSTYPE)))
                   ifneq (no ldconfig,$(findstring no ldconfig,$(shell which ldconfig 2>&1)))
@@ -569,24 +581,24 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   need_search = $(strip $(shell ld -l$(1) /dev/null 2>&1 | grep $(1) | sed s/$(1)//))
   LD_SEARCH_NEEDED := $(call need_search,ZzzzzzzZ)
   ifneq (,$(call find_lib,m))
-    OS_LDFLAGS += -lm
+    SYS_LDFLAGS += -lm
     $(info using libm: $(call find_lib,m))
   endif
   ifneq (,$(call find_lib,rt))
-    OS_LDFLAGS += -lrt
+    SYS_LDFLAGS += -lrt
     $(info using librt: $(call find_lib,rt))
   endif
   ifneq (,$(call find_include,pthread))
     ifneq (,$(call find_lib,pthread))
       AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
-      OS_LDFLAGS += -lpthread
+      SYS_LDFLAGS += -lpthread
       $(info using libpthread: $(call find_lib,pthread) $(call find_include,pthread))
     else
       LIBEXTSAVE := ${LIBEXT}
       LIBEXT = a
       ifneq (,$(call find_lib,pthread))
         AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
-        OS_LDFLAGS += -lpthread
+        SYS_LDFLAGS += -lpthread
         $(info using libpthread: $(call find_lib,pthread) $(call find_include,pthread))
       else
         ifneq (,$(findstring Haiku,$(OSTYPE)))
@@ -595,7 +607,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         else
           ifeq (Darwin,$(OSTYPE))
             AIO_CCDEFS += -DUSE_READER_THREAD -DSIM_ASYNCH_IO
-            OS_LDFLAGS += -lpthread
+            SYS_LDFLAGS += -lpthread
             $(info using macOS libpthread: $(call find_include,pthread))
           endif
         endif
@@ -635,7 +647,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
   ifneq (,$(call find_include,dlfcn))
     ifneq (,$(call find_lib,dl))
       OS_CCDEFS += -DSIM_HAVE_DLOPEN=$(LIBSOEXT)
-      OS_LDFLAGS += -ldl
+      SYS_LDFLAGS += -ldl
       $(info using libdl: $(call find_lib,dl) $(call find_include,dlfcn))
     else
       ifneq (,$(findstring BSD,$(OSTYPE))$(findstring AIX,$(OSTYPE))$(findstring Haiku,$(OSTYPE)))
@@ -644,7 +656,7 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       else
         ifneq (,$(call find_lib,dld))
           OS_CCDEFS += -DSIM_HAVE_DLOPEN=$(LIBSOEXT)
-          OS_LDFLAGS += -ldld
+          SYS_LDFLAGS += -ldld
           $(info using libdld: $(call find_lib,dld) $(call find_include,dlfcn))
         else
           ifeq (Darwin,$(OSTYPE))
@@ -713,75 +725,87 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
           SDLX_CONFIG = sdl2-config
         endif
         ifneq (,$(SDLX_CONFIG))
-          VIDEO_CCDEFS += -DHAVE_LIBSDL -DUSE_SIM_VIDEO `$(SDLX_CONFIG) --cflags`
-          VIDEO_LDFLAGS += `$(SDLX_CONFIG) --libs`
+          VIDEO_CCDEFS += -DHAVE_LIBSDL -DUSE_SIM_VIDEO $(shell $(SDLX_CONFIG) --cflags)
+          VIDEO_LDFLAGS += $(shell $(SDLX_CONFIG) --libs)
           VIDEO_FEATURES = - video capabilities provided by libSDL2 (Simple Directmedia Layer)
           DISPLAYL = ${DISPLAYD}/display.c $(DISPLAYD)/sim_ws.c
           DISPLAYVT = ${DISPLAYD}/vt11.c
           DISPLAY340 = ${DISPLAYD}/type340.c
           DISPLAYNG = ${DISPLAYD}/ng.c
           DISPLAYIII = ${DISPLAYD}/iii.c
-          DISPLAY_OPT += -DUSE_DISPLAY $(VIDEO_CCDEFS) $(VIDEO_LDFLAGS)
+          DISPLAY_OPT += -DUSE_DISPLAY $(VIDEO_CCDEFS)
           $(info using libSDL2: $(call find_include,SDL2/SDL))
           ifeq (Darwin,$(OSTYPE))
             VIDEO_CCDEFS += -DSDL_MAIN_AVAILABLE
           endif
-          ifneq (,$(and $(BESM6_BUILD), $(or $(and $(call find_include,SDL2/SDL_ttf),$(call find_lib,SDL2_ttf)), $(and $(call find_include,SDL/SDL_ttf),$(call find_lib,SDL_ttf)))))
-            FONTPATH += /usr/share/fonts /Library/Fonts /usr/lib/jvm /System/Library/Frameworks/JavaVM.framework/Versions /System/Library/Fonts C:/Windows/Fonts
-            FONTPATH := $(dir $(foreach dir,$(strip $(FONTPATH)),$(wildcard $(dir)/.)))
-            FONTNAME += DejaVuSans.ttf LucidaSansRegular.ttf FreeSans.ttf AppleGothic.ttf tahoma.ttf
-            $(info font paths are: $(FONTPATH))
-            $(info font names are: $(FONTNAME))
-            find_fontfile = $(strip $(firstword $(foreach dir,$(strip $(FONTPATH)),$(wildcard $(dir)/$(1))$(wildcard $(dir)/*/$(1))$(wildcard $(dir)/*/*/$(1))$(wildcard $(dir)/*/*/*/$(1)))))
-            find_font = $(abspath $(strip $(firstword $(foreach font,$(strip $(FONTNAME)),$(call find_fontfile,$(font))))))
-            ifneq (,$(call find_font))
-              FONTFILE=$(call find_font)
-            else
-              $(info ***)
-              $(info *** No font file available, BESM-6 video panel disabled.)
-              $(info ***)
-              $(info *** To enable the panel display please specify one of:)
-              $(info ***          a font path with FONTPATH=path)
-              $(info ***          a font name with FONTNAME=fontname.ttf)
-              $(info ***          a font file with FONTFILE=path/fontname.ttf)
-              $(info ***)
+          ## Don't search for SDL2_ttf unless BESM6 is actually being built!
+          ifneq (,$(BESM6_BUILD))
+            BESM6_PANEL_OPT = $(filter-out -DSDL_MAIN_AVAILABLE,${VIDEO_CCDEFS})
+            SDL2_TTF_CFLAGS = $(call find_include,SDL2/SDL_ttf)
+            SDL2_TTF_LDFLAGS = -lSDL2_ttf
+            ifeq (,$(and ${SDL2_TTF_CFLAGS},${SDL2_TTF_LDFLAGS}))
+              SDL2_TTF_CFLAGS = $(call find_include,SDL/SDL_ttf)
+              SDL2_TTF_LDFLAGS = -lSDL2_ttf
             endif
-          endif
-          ifeq (,$(and ${VIDEO_LDFLAGS}, ${FONTFILE}, $(BESM6_BUILD)))
-            $(info *** No SDL ttf support available.  BESM-6 video panel disabled.)
-            $(info ***)
-            ifeq (Darwin,$(OSTYPE))
-              ifeq (/opt/local/bin/port,$(shell which port))
-                $(info *** Info *** Install the MacPorts libSDL2-ttf development package to provide this)
-                $(info *** Info *** functionality for your OS X system:)
-                $(info *** Info ***       # port install libsdl2-ttf-dev)
-              endif
-              ifeq (/usr/local/bin/brew,$(shell which brew))
-                ifeq (/opt/local/bin/port,$(shell which port))
-                  $(info *** Info ***)
-                  $(info *** Info *** OR)
-                  $(info *** Info ***)
-                endif
-                $(info *** Info *** Install the HomeBrew sdl2_ttf package to provide this)
-                $(info *** Info *** functionality for your OS X system:)
-                $(info *** Info ***       $$ brew install sdl2_ttf)
-              endif
-            else
-              ifneq (,$(and $(findstring Linux,$(OSTYPE)),$(call find_exe,apt-get)))
-                $(info *** Info *** Install the development components of libSDL2-ttf)
-                $(info *** Info *** packaged for your Linux operating system distribution:)
-                $(info *** Info ***        $$ sudo apt-get install libsdl2-ttf-dev)
+            ifneq (,$(and ${SDL2_TTF_CFLAGS},${SDL2_TTF_LDFLAGS}))
+              $(info using libSDL2_ttf: ${SDL2_TTF_LDFLAGS}, ${SDL2_TTF_CFLAGS})
+              FONTPATH += /usr/share/fonts /Library/Fonts /usr/lib/jvm /System/Library/Frameworks/JavaVM.framework/Versions \
+                          /System/Library/Fonts C:/Windows/Fonts
+              FONTPATH := $(dir $(foreach dir,$(strip $(FONTPATH)),$(wildcard $(dir)/.)))
+              FONTNAME += DejaVuSans.ttf LucidaSansRegular.ttf FreeSans.ttf AppleGothic.ttf tahoma.ttf
+              $(info font paths are: $(FONTPATH))
+              $(info font names are: $(FONTNAME))
+              find_fontfile = $(strip $(firstword $(foreach dir,$(strip $(FONTPATH)),$(wildcard $(dir)/$(1))$(wildcard $(dir)/*/$(1))$(wildcard $(dir)/*/*/$(1))$(wildcard $(dir)/*/*/*/$(1)))))
+              find_font = $(abspath $(strip $(firstword $(foreach font,$(strip $(FONTNAME)),$(call find_fontfile,$(font))))))
+              ifneq (,$(call find_font))
+                FONTFILE=$(call find_font)
+                $(info Font file: ${FONTFILE})
+		## Presumably, searching for SDL2 already added the correct include path,
+		## this is just insurance.
+                BESM6_PANEL_OPT += -DFONTFILE=${FONTFILE} -I $(subst SDL_ttf.h,,${SDL2_TTF_CFLAGS})
+                BESM6_PANEL_LDFLAGS = ${SDL2_TTF_LDFLAGS}
               else
-                $(info *** Info *** Install the development components of libSDL2-ttf packaged by your)
-                $(info *** Info *** operating system distribution and rebuild your simulator to)
-                $(info *** Info *** enable this extra functionality.)
+                $(info ***)
+                $(info *** No font file available, BESM-6 video panel disabled.)
+                $(info ***)
+                $(info *** To enable the panel display please specify one of:)
+                $(info ***          a font path with FONTPATH=path)
+                $(info ***          a font name with FONTNAME=fontname.ttf)
+                $(info ***          a font file with FONTFILE=path/fontname.ttf)
+                $(info ***)
               endif
             endif
-          else
-            ifneq (,$(call find_include,SDL2/SDL_ttf),$(call find_lib,SDL2_ttf))
-              $(info using libSDL2_ttf: $(call find_lib,SDL2_ttf) $(call find_include,SDL2/SDL_ttf))
+            ifeq (,$(and ${SDL2_TTF_LDFLAGS}, ${FONTFILE}))
               $(info ***)
-              BESM6_PANEL_OPT = -DFONTFILE=${FONTFILE} $(filter-out -DSDL_MAIN_AVAILABLE,${VIDEO_CCDEFS}) ${VIDEO_LDFLAGS} -lSDL2_ttf
+              $(info *** No SDL ttf support available.  BESM-6 video panel disabled.)
+              $(info ***)
+              ifeq (Darwin,$(OSTYPE))
+                ifeq (/opt/local/bin/port,$(shell which port))
+                  $(info *** Info *** Install the MacPorts libSDL2-ttf development package to provide this)
+                  $(info *** Info *** functionality for your OS X system:)
+                  $(info *** Info ***       # port install libsdl2-ttf-dev)
+                endif
+                ifeq (/usr/local/bin/brew,$(shell which brew))
+                  ifeq (/opt/local/bin/port,$(shell which port))
+                    $(info *** Info ***)
+                    $(info *** Info *** OR)
+                    $(info *** Info ***)
+                  endif
+                  $(info *** Info *** Install the HomeBrew sdl2_ttf package to provide this)
+                  $(info *** Info *** functionality for your OS X system:)
+                  $(info *** Info ***       $$ brew install sdl2_ttf)
+                endif
+              else
+                ifneq (,$(and $(findstring Linux,$(OSTYPE)),$(call find_exe,apt-get)))
+                  $(info *** Info *** Install the development components of libSDL2-ttf)
+                  $(info *** Info *** packaged for your Linux operating system distribution:)
+                  $(info *** Info ***        $$ sudo apt-get install libsdl2-ttf-dev)
+                else
+                  $(info *** Info *** Install the development components of libSDL2-ttf packaged by your)
+                  $(info *** Info *** operating system distribution and rebuild your simulator to)
+                  $(info *** Info *** enable this extra functionality.)
+                endif
+              endif
             endif
           endif
         endif
@@ -970,6 +994,17 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         $(info *** Warning ***)
       endif
     endif
+    # poll() vs. select():
+    sim_use_select=0
+    sim_use_poll=0
+    ifneq (,$(call find_include,poll))
+        $(info poll()-ing for sockets)
+        sim_use_poll=1
+    else
+        $(info select()-ing for sockets)
+        sim_use_select=1
+    endif
+    OS_CCDEFS += -DSIM_USE_SELECT=${sim_use_select} -DSIM_USE_POLL=${sim_use_poll}
     # Consider other network connections
     ifneq (,$(call find_lib,vdeplug))
       # libvdeplug requires the use of the OS provided libpcap
@@ -1059,9 +1094,16 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         NETWORK_CCDEFS += -DUSE_NETWORK
       endif
     endif
-    ifeq (slirp,$(shell if ${TEST} -e slirp_glue/sim_slirp.c; then echo slirp; fi))
-      NETWORK_CCDEFS += -Islirp -Islirp_glue -Islirp_glue/qemu -DHAVE_SLIRP_NETWORK -DUSE_SIMH_SLIRP_DEBUG slirp/*.c slirp_glue/*.c
+    ifeq (libslirp,$(shell if ${TEST} -e ${LIBSLIRP_DIR}; then echo libslirp; fi))
+      SLIRP_DEP=${BIN}libslirp.dir/libslirp.a
+      NETWORK_CCDEFS += -I${LIBSLIRP_SRC} -I${SIMHD}/libslirp/minimal -I${SIMHD}/sim_slirp -I${SIMHD}/sim_slirp/config \
+		      -DHAVE_SLIRP_NETWORK
+      NETWORK_CCDEFS += sim_slirp/sim_slirp.c sim_slirp/slirp_poll.c
+      NETWORK_LDFLAGS += ${BIN}libslirp.dir/libslirp.a
       NETWORK_LAN_FEATURES += NAT(SLiRP)
+      ifeq (Darwin,$(OSTYPE))
+	OS_LDFLAGS += -lresolv
+      endif
     endif
     ifeq (,$(findstring USE_NETWORK,$(NETWORK_CCDEFS))$(findstring USE_SHARED,$(NETWORK_CCDEFS))$(findstring HAVE_VDE_NETWORK,$(NETWORK_CCDEFS)))
       NETWORK_CCDEFS += -DUSE_NETWORK
@@ -1189,7 +1231,7 @@ else
     endif
   endif
   OS_CCDEFS += -fms-extensions $(PTHREADS_CCDEFS)
-  OS_LDFLAGS += -lm -lwsock32 -lwinmm $(PTHREADS_LDFLAGS)
+  SYS_LDFLAGS += -lm -lwsock32 -lwinmm $(PTHREADS_LDFLAGS)
   EXE = .exe
   ifneq (clean,${MAKECMDGOALS})
     ifneq (buildtoolsexists,$(shell if exist BIN\buildtools (echo buildtoolsexists) else (mkdir BIN\buildtools)))
@@ -1301,8 +1343,12 @@ else
       OS_LDFLAGS += -lpcre -L../windows-build/PCRE/lib/
       $(info using libpcre: $(abspath ../windows-build/PCRE/lib/pcre.a) $(abspath ../windows-build/PCRE/include/pcre.h))
     endif
-    ifeq (slirp,slirp)
-      NETWORK_OPT += -Islirp -Islirp_glue -Islirp_glue/qemu -DHAVE_SLIRP_NETWORK -DUSE_SIMH_SLIRP_DEBUG slirp/*.c slirp_glue/*.c -lIphlpapi
+    ifeq (libslirp,$(shell if ${TEST} -e ${LIBSLIRP_DIR}; then echo libslirp; fi))
+      SLIRP_DEP=libslirp-dep
+      NETWORK_CCDEFS += -I${LIBSLIRP_SRC} -I${SIMHD}/libslirp/minimal -I${SIMHD}/sim_slirp -I${SIMHD}/sim_slirp/config \
+		      -DHAVE_SLIRP_NETWORK
+      NETWORK_CCDEFS += sim_slirp/sim_slirp.c sim_slirp/slirp_poll.c
+      NETWORK_LDFLAGS += ${BIN}libslirp.dir/libslirp.a
       NETWORK_LAN_FEATURES += NAT(SLiRP)
     endif
   endif
@@ -1418,22 +1464,36 @@ CC := ${GCC} ${CC_STD} -U__STRICT_ANSI__ ${CFLAGS_G} ${CFLAGS_O} ${CFLAGS_GIT} $
 ifneq (,${SIM_VERSION_MODE})
   CC += -DSIM_VERSION_MODE="${SIM_VERSION_MODE}"
 endif
-LDFLAGS := ${OS_LDFLAGS} ${NETWORK_LDFLAGS} ${LDFLAGS_O}
+LDFLAGS := $(strip ${OS_LDFLAGS} ${LDFLAGS_O} ${SYS_LDFLAGS})
 
 #
 # Common Libraries
 #
-BIN = BIN/
-SIMHD = .
 SIM = ${SIMHD}/scp.c ${SIMHD}/sim_console.c ${SIMHD}/sim_fio.c \
 	${SIMHD}/sim_timer.c ${SIMHD}/sim_sock.c ${SIMHD}/sim_tmxr.c \
 	${SIMHD}/sim_ether.c ${SIMHD}/sim_tape.c ${SIMHD}/sim_disk.c \
 	${SIMHD}/sim_serial.c ${SIMHD}/sim_video.c ${SIMHD}/sim_imd.c \
-	${SIMHD}/sim_card.c
+	${SIMHD}/sim_card.c ${SIMHD}/sim_debtab.c
 
 DISPLAYD = ${SIMHD}/display
 
 SCSI = ${SIMHD}/sim_scsi.c
+
+## libslirp sources for libslirp.a
+LIBSLIRP_SOURCES=${LIBSLIRP_SRC}/arp_table.c ${LIBSLIRP_SRC}/bootp.c ${LIBSLIRP_SRC}/cksum.c \
+	${LIBSLIRP_SRC}/dhcpv6.c ${LIBSLIRP_SRC}/dnssearch.c ${LIBSLIRP_SRC}/if.c \
+	${LIBSLIRP_SRC}/ip6_icmp.c ${LIBSLIRP_SRC}/ip6_input.c ${LIBSLIRP_SRC}/ip6_output.c \
+	${LIBSLIRP_SRC}/ip_icmp.c ${LIBSLIRP_SRC}/ip_input.c ${LIBSLIRP_SRC}/ip_output.c \
+	${LIBSLIRP_SRC}/mbuf.c ${LIBSLIRP_SRC}/misc.c ${LIBSLIRP_SRC}/ncsi.c ${LIBSLIRP_SRC}/ndp_table.c \
+	${LIBSLIRP_SRC}/sbuf.c ${LIBSLIRP_SRC}/slirp.c ${LIBSLIRP_SRC}/socket.c ${LIBSLIRP_SRC}/state.c \
+	${LIBSLIRP_SRC}/stream.c ${LIBSLIRP_SRC}/tcp_input.c ${LIBSLIRP_SRC}/tcp_output.c \
+	${LIBSLIRP_SRC}/tcp_subr.c ${LIBSLIRP_SRC}/tcp_timer.c ${LIBSLIRP_SRC}/tftp.c ${LIBSLIRP_SRC}/udp.c \
+	${LIBSLIRP_SRC}/udp6.c ${LIBSLIRP_SRC}/util.c ${LIBSLIRP_SRC}/version.c ${LIBSLIRP_SRC}/vmstate.c \
+
+LIBSLIRP_STUB_SRC=${LIBSLIRP_DIR}/minimal/glib-stubs.c
+
+LIBSLIRP_OBJS=${subst ${LIBSLIRP_SRC},${BIN}libslirp.dir,${LIBSLIRP_SOURCES:.c=.o}} \
+              ${subst ${LIBSLIRP_DIR}/minimal,${BIN}libslirp.dir,${LIBSLIRP_STUB_SRC:.c=.o}}
 
 #
 # Emulator source files and compile time options
@@ -1444,6 +1504,7 @@ PDP1 = ${PDP1D}/pdp1_lp.c ${PDP1D}/pdp1_cpu.c ${PDP1D}/pdp1_stddev.c \
 	${PDP1D}/pdp1_sys.c ${PDP1D}/pdp1_dt.c ${PDP1D}/pdp1_drm.c \
 	${PDP1D}/pdp1_clk.c ${PDP1D}/pdp1_dcs.c ${PDP1D}/pdp1_dpy.c ${DISPLAYL}
 PDP1_OPT = -I ${PDP1D} ${DISPLAY_OPT} $(PDP1_DISPLAY_OPT)
+PDP1_LDFLAGS = ${VIDEO_LDFLAGS}
 
 
 ND100D = ${SIMHD}/ND100
@@ -1475,10 +1536,12 @@ PDP18B = ${PDP18BD}/pdp18b_dt.c ${PDP18BD}/pdp18b_drm.c ${PDP18BD}/pdp18b_cpu.c 
 
 ifneq (,${DISPLAY_OPT})
   PDP7_DISPLAY_OPT = -DDISPLAY_TYPE=DIS_TYPE30 -DPIX_SCALE=RES_HALF
+  PDP7_DISPLAY_LDFLAGS = ${VIDEO_LDFLAGS}
 endif
 
 PDP4_OPT = -DPDP4 -I ${PDP18BD}
 PDP7_OPT = -DPDP7 -I ${PDP18BD} ${DISPLAY_OPT} $(PDP7_DISPLAY_OPT)
+PDP7_LDFLAGS = ${PDP7_DISPLAY_LDFLAGS}
 PDP9_OPT = -DPDP9 -I ${PDP18BD}
 PDP15_OPT = -DPDP15 -I ${PDP18BD}
 
@@ -1503,6 +1566,7 @@ PDP11 = ${PDP11D}/pdp11_fp.c ${PDP11D}/pdp11_cpu.c ${PDP11D}/pdp11_dz.c \
 	${PDP11D}/pdp11_mb.c ${PDP11D}/pdp11_rr.c \
 	${DISPLAYL} ${DISPLAYNG} ${DISPLAYVT}
 PDP11_OPT = -DVM_PDP11 -I ${PDP11D} ${NETWORK_OPT} ${DISPLAY_OPT} ${AIO_CCDEFS}
+PDP11_LDFLAGS = ${VIDEO_LDFLAGS} ${NETWORK_LDFLAGS} 
 
 
 UC15D = ${SIMHD}/PDP11
@@ -1527,6 +1591,7 @@ VAX = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c ${VAXD}/vax_io.c \
 	${PDP11D}/pdp11_xq.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_dup.c
 VAX_OPT = -DVM_VAX -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
+VAX_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX410 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1538,6 +1603,7 @@ VAX410 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax4xx_va.c ${VAXD}/vax4xx_vc.c ${VAXD}/vax_lk.c \
 	${VAXD}/vax_vs.c ${VAXD}/vax_gpx.c
 VAX410_OPT = -DVM_VAX -DVAX_410 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
+VAX410_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX420 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1548,8 +1614,9 @@ VAX420 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax4xx_rd.c ${VAXD}/vax4xx_rz80.c ${VAXD}/vax_xs.c \
 	${VAXD}/vax4xx_va.c ${VAXD}/vax4xx_vc.c ${VAXD}/vax4xx_ve.c \
 	${VAXD}/vax_lk.c ${VAXD}/vax_vs.c ${VAXD}/vax_gpx.c
-VAX420_OPT = -DVM_VAX -DVAX_420 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} \
-	     ${AIO_CCDEFS}
+VAX420_OPT = -DVM_VAX -DVAX_420 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} \
+             ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
+VAX420_LDFLAGS = ${NETWORK_LDFLAGS}
 VAX411_OPT = ${VAX420_OPT} -DVAX_411
 VAX412_OPT = ${VAX420_OPT} -DVAX_412
 VAX41A_OPT = ${VAX420_OPT} -DVAX_41A
@@ -1566,6 +1633,7 @@ VAX43 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax4xx_rz80.c ${VAXD}/vax_xs.c ${VAXD}/vax4xx_vc.c \
 	${VAXD}/vax4xx_ve.c ${VAXD}/vax_lk.c ${VAXD}/vax_vs.c
 VAX43_OPT = -DVM_VAX -DVAX_43 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
+VAX43_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX440 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1575,6 +1643,7 @@ VAX440 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax440_sysdev.c ${VAXD}/vax440_syslist.c ${VAXD}/vax4xx_dz.c \
 	${VAXD}/vax_xs.c ${VAXD}/vax_lk.c ${VAXD}/vax_vs.c ${VAXD}/vax4xx_rz94.c
 VAX440_OPT = -DVM_VAX -DVAX_440 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} ${NETWORK_OPT} ${AIO_CCDEFS}
+VAX440_LDFLAGS = ${NETWORK_LDFLAGS}
 VAX46_OPT = ${VAX440_OPT} -DVAX_46
 VAX47_OPT = ${VAX440_OPT} -DVAX_47
 VAX48_OPT = ${VAX440_OPT} -DVAX_48
@@ -1587,6 +1656,7 @@ IS1000 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax4xx_rz94.c ${VAXD}/vax4nn_stddev.c \
 	${VAXD}/is1000_sysdev.c ${VAXD}/is1000_syslist.c
 IS1000_OPT = -DVM_VAX -DIS_1000 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} ${NETWORK_OPT} ${AIO_CCDEFS}
+IS1000_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX610 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1599,8 +1669,9 @@ VAX610 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_dz.c ${PDP11D}/pdp11_lp.c ${PDP11D}/pdp11_tq.c \
 	${PDP11D}/pdp11_xq.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c
-VAX610_OPT = -DVM_VAX -DVAX_610 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} \
-	     ${AIO_CCDEFS}
+VAX610_OPT = -DVM_VAX -DVAX_610 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} \
+             ${NETWORK_OPT} ${VIDEO_CCDEFS} ${AIO_CCDEFS}
+VAX610_LDFLAGS = ${VIDEO_LDFLAGS} ${NETWORK_LDFLAGS}
 
 
 VAX630 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1615,8 +1686,10 @@ VAX630 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_xq.c ${PDP11D}/pdp11_vh.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_dup.c
 VAX620_OPT = -DVM_VAX -DVAX_620 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT}
-VAX630_OPT = -DVM_VAX -DVAX_630 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} \
-	     ${AIO_CCDEFS}
+VAX620_LDFLAGS = ${NETWORK_LDFLAGS}
+VAX630_OPT = -DVM_VAX -DVAX_630 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} -I ${PDP11D} \
+             ${NETWORK_OPT} ${VIDEO_CCDEFS} ${AIO_CCDEFS}
+VAX630_LDFLAGS = ${VIDEO_LDFLAGS} ${NETWORK_LDFLAGS}
 
 
 VAX730 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1632,6 +1705,7 @@ VAX730 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c ${PDP11D}/pdp11_dup.c
 VAX730_OPT = -DVM_VAX -DVAX_730 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
+VAX730_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX750 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1648,6 +1722,7 @@ VAX750 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c
 VAX750_OPT = -DVM_VAX -DVAX_750 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
+VAX750_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX780 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1664,6 +1739,7 @@ VAX780 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c
 VAX780_OPT = -DVM_VAX -DVAX_780 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
+VAX780_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX8200 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1679,6 +1755,7 @@ VAX8200 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c ${PDP11D}/pdp11_dup.c
 VAX8200_OPT = -DVM_VAX -DVAX_820 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
+VAX8200_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 VAX8600 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
@@ -1695,6 +1772,7 @@ VAX8600 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${PDP11D}/pdp11_td.c ${PDP11D}/pdp11_tc.c ${PDP11D}/pdp11_rk.c \
 	${PDP11D}/pdp11_io_lib.c ${PDP11D}/pdp11_ch.c
 VAX8600_OPT = -DVM_VAX -DVAX_860 -DUSE_INT64 -DUSE_ADDR64 -I ${VAXD} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
+VAX8600_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 PDP10D = ${SIMHD}/PDP10
@@ -1705,7 +1783,8 @@ PDP10 = ${PDP10D}/pdp10_fe.c ${PDP11D}/pdp11_dz.c ${PDP10D}/pdp10_cpu.c \
 	${PDP11D}/pdp11_pt.c ${PDP11D}/pdp11_ry.c ${PDP11D}/pdp11_cr.c \
 	${PDP11D}/pdp11_dup.c ${PDP11D}/pdp11_dmc.c ${PDP11D}/pdp11_kmc.c \
 	${PDP11D}/pdp11_xu.c ${PDP11D}/pdp11_ch.c
-PDP10_OPT = -DVM_PDP10 -DUSE_INT64 -I ${PDP10D} -I ${PDP11D} ${NETWORK_OPT}
+PDP10_OPT = -DVM_PDP10 -DUSE_INT64 -I ${PDP10D} -I ${PDP11D} ${NETWORK_OPT} ${AIO_CCDEFS}
+PDP10_LDFLAGS = ${NETWORK_LDFLAGS}
 
 
 IMLACD = ${SIMHD}/imlac
@@ -1714,6 +1793,7 @@ IMLAC = ${IMLACD}/imlac_sys.c ${IMLACD}/imlac_cpu.c \
 	${IMLACD}/imlac_tty.c ${IMLACD}/imlac_pt.c ${IMLACD}/imlac_bel.c \
 	${DISPLAYL}
 IMLAC_OPT = -I ${IMLACD} ${DISPLAY_OPT} ${AIO_CCDEFS}
+IMLAC_LDFLAGS = ${VIDEO_LDFLAGS}
 
 
 STUBD = ${SIMHD}/stub
@@ -1727,6 +1807,7 @@ TT2500 = ${TT2500D}/tt2500_sys.c ${TT2500D}/tt2500_cpu.c \
 	${TT2500D}/tt2500_key.c ${TT2500D}/tt2500_uart.c ${TT2500D}/tt2500_rom.c \
 	${DISPLAYL}
 TT2500_OPT = -I ${TT2500D} ${DISPLAY_OPT} ${AIO_CCDEFS}
+TT2500_LDFLAGS = ${VIDEO_LDFLAGS}
 
 
 PDP8D = ${SIMHD}/PDP8
@@ -2022,6 +2103,7 @@ TX0D = ${SIMHD}/TX-0
 TX0 = ${TX0D}/tx0_cpu.c ${TX0D}/tx0_dpy.c ${TX0D}/tx0_stddev.c \
 	${TX0D}/tx0_sys.c ${TX0D}/tx0_sys_orig.c ${DISPLAYL}
 TX0_OPT = -I ${TX0D} ${DISPLAY_OPT}
+TX0_LDFLAGS = ${VIDEO_LDFLAGS}
 
 
 SSEMD = ${SIMHD}/SSEM
@@ -2041,6 +2123,7 @@ BESM6 = ${BESM6D}/besm6_cpu.c ${BESM6D}/besm6_sys.c ${BESM6D}/besm6_mmu.c \
         ${BESM6D}/besm6_pl.c ${BESM6D}/besm6_mg.c \
         ${BESM6D}/besm6_punch.c ${BESM6D}/besm6_punchcard.c ${BESM6D}/besm6_vu.c
 BESM6_OPT = -I ${BESM6D} -DUSE_INT64 $(BESM6_PANEL_OPT)
+BESM6_LDFLAGS = ${BESM6_PANEL_LDFLAGS} ${VIDEO_LDFLAGS}
 
 PDP6D = ${SIMHD}/PDP10
 ifneq (,${DISPLAY_OPT})
@@ -2054,6 +2137,7 @@ PDP6 = ${PDP6D}/kx10_cpu.c ${PDP6D}/kx10_sys.c ${PDP6D}/kx10_cty.c \
     ${DISPLAYL} ${DISPLAY340}
 PDP6_OPT = -DPDP6=1 -DUSE_INT64 -I ${PDP6D} -DUSE_SIM_CARD ${DISPLAY_OPT} ${PDP6_DISPLAY_OPT} \
 	   ${AIO_CCDEFS}
+PDP6_LDFLAGS = ${VIDEO_LDFLAGS}
 
 KA10D = ${SIMHD}/PDP10
 ifneq (,${DISPLAY_OPT})
@@ -2075,6 +2159,7 @@ KA10 = ${KA10D}/kx10_cpu.c ${KA10D}/kx10_sys.c ${KA10D}/kx10_df.c \
 	${KA10D}/ka10_pclk.c ${KA10D}/ka10_tv.c ${KA10D}/ka10_dd.c \
     ${KA10D}/kx10_ddc.c ${DISPLAYL} ${DISPLAY340} ${DISPLAYIII}
 KA10_OPT = -DKA=1 -DUSE_INT64 -I ${KA10D} -DUSE_SIM_CARD ${NETWORK_OPT} ${DISPLAY_OPT} ${KA10_DISPLAY_OPT} ${AIO_CCDEFS}
+KA10_LDFLAGS = ${VIDEO_LDFLAGS} ${NETWORK_LDFLAGS}
 ifneq (${PANDA_LIGHTS},)
 # ONLY for Panda display.
 KA10_OPT += -DPANDA_LIGHTS
@@ -2095,6 +2180,7 @@ KI10 = ${KI10D}/kx10_cpu.c ${KI10D}/kx10_sys.c ${KI10D}/kx10_df.c \
 	${KI10D}/kx10_imp.c ${KI10D}/kx10_dpy.c ${KI10D}/kx10_disk.c \
     ${KI10D}/kx10_ddc.c ${KI10D}/kx10_tym.c ${DISPLAYL} ${DISPLAY340}
 KI10_OPT = -DKI=1 -DUSE_INT64 -I ${KI10D} -DUSE_SIM_CARD ${NETWORK_OPT} ${DISPLAY_OPT} ${KI10_DISPLAY_OPT} ${AIO_CCDEFS}
+KI10_LDFLAGS = ${VIDEO_LDFLAGS} ${NETWORK_LDFLAGS}
 ifneq (${PANDA_LIGHTS},)
 # ONLY for Panda display.
 KI10_OPT += -DPANDA_LIGHTS
@@ -2110,7 +2196,8 @@ KL10 =  ${KL10D}/kx10_cpu.c ${KL10D}/kx10_sys.c ${KL10D}/kx10_df.c \
     ${KL10D}/kx10_rp.c ${KL10D}/kx10_tu.c ${KL10D}/kx10_rs.c \
     ${KL10D}/kx10_imp.c ${KL10D}/kl10_fe.c ${KL10D}/ka10_pd.c \
     ${KL10D}/ka10_ch10.c ${KL10D}/kl10_nia.c ${KL10D}/kx10_disk.c
-KL10_OPT = -DKL=1 -DUSE_INT64 -I $(KL10D) -DUSE_SIM_CARD ${NETWORK_OPT}  ${AIO_CCDEFS}
+KL10_OPT = -DKL=1 -DUSE_INT64 -I $(KL10D) -DUSE_SIM_CARD ${NETWORK_OPT} ${AIO_CCDEFS}
+KL10_LDFLAGS = ${NETWORK_LDFLAGS}
 
 KS10D = ${SIMHD}/PDP10
 KS10 = ${KS10D}/kx10_cpu.c ${KS10D}/kx10_sys.c ${KS10D}/kx10_disk.c \
@@ -2119,6 +2206,7 @@ KS10 = ${KS10D}/kx10_cpu.c ${KS10D}/kx10_sys.c ${KS10D}/kx10_disk.c \
 	${KS10D}/ks10_tcu.c ${KS10D}/ks10_lp.c ${KS10D}/ks10_ch11.c \
 	${KS10D}/ks10_kmc.c ${KS10D}/ks10_dup.c ${KS10D}/kx10_imp.c
 KS10_OPT = -DKS=1 -DUSE_INT64 -I $(KS10D) -I $(PDP11D) ${NETWORK_OPT} ${AIO_CCDEFS}
+KS10_LDFLAGS = ${NETWORK_LDFLAGS}
 
 ATT3B2D = ${SIMHD}/3B2
 ATT3B2M400 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
@@ -2131,6 +2219,7 @@ ATT3B2M400 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_ports.c ${ATT3B2D}/3b2_ctc.c \
     ${ATT3B2D}/3b2_ni.c
 ATT3B2M400_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV2 -I ${ATT3B2D} ${NETWORK_OPT} ${AIO_CCDEFS}
+ATT3B2M400_LDFLAGS = ${NETWORK_LDFLAGS}
 
 ATT3B2M700 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_rev3_sys.c ${ATT3B2D}/3b2_rev3_mmu.c \
@@ -2141,6 +2230,7 @@ ATT3B2M700 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_io.c ${ATT3B2D}/3b2_ports.c \
     ${ATT3B2D}/3b2_scsi.c ${ATT3B2D}/3b2_ni.c
 ATT3B2M700_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV3 -I ${ATT3B2D} ${NETWORK_OPT} ${AIO_CCDEFS}
+ATT3B2M700_LDFLAGS = ${NETWORK_LDFLAGS}
 
 SIGMAD = ${SIMHD}/sigma
 SIGMA = ${SIGMAD}/sigma_cpu.c ${SIGMAD}/sigma_sys.c ${SIGMAD}/sigma_cis.c \
@@ -2159,6 +2249,7 @@ SEL32 = ${SEL32D}/sel32_cpu.c ${SEL32D}/sel32_sys.c ${SEL32D}/sel32_chan.c \
 	${SEL32D}/sel32_hsdp.c ${SEL32D}/sel32_mfp.c ${SEL32D}/sel32_scsi.c \
 	${SEL32D}/sel32_ec.c ${SEL32D}/sel32_ipu.c
 SEL32_OPT = -I $(SEL32D) -DUSE_INT32 -DSEL32  ${NETWORK_OPT}
+SEL32_LDFLAGS = ${NETWORK_LDFLAGS}
 
 ###
 ### Experimental simulators
@@ -2222,9 +2313,10 @@ EXPERIMENTAL = alpha pdq3 sage
 
 experimental : ${EXPERIMENTAL}
 
-clean :
+clean ::
 ifeq (${WIN32},)
-	${RM} -rf ${BIN}
+	${RM} -rf ${SIMHD}/sim_slirp/config/glib-endian.h ${SIMHD}/sim_slirp/config/libslirp-version.h \
+	    ${SIMHD}/sim_slirp/config/mk-glib-endian ${BIN}
 else
 	if exist BIN rmdir /s /q BIN
 endif
@@ -2245,7 +2337,7 @@ pdp1 : ${BIN}pdp1${EXE}
 
 ${BIN}pdp1${EXE} : ${PDP1} ${SIM}
 	${MKDIRBIN}
-	${CC} ${PDP1} ${SIM} ${PDP1_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${PDP1} ${SIM} ${PDP1_OPT} ${CC_OUTSPEC} ${PDP1_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP1D},pdp1))
 	$@ $(call find_test,${PDP1D},pdp1) ${TEST_ARG}
 endif
@@ -2263,7 +2355,7 @@ pdp7 : ${BIN}pdp7${EXE}
 
 ${BIN}pdp7${EXE} : ${PDP18B} ${PDP18BD}/pdp18b_dpy.c ${DISPLAYL} ${DISPLAY340} ${SIM}
 	${MKDIRBIN}
-	${CC} ${PDP18B} ${PDP18BD}/pdp18b_dpy.c ${DISPLAYL} ${DISPLAY340} ${SIM} ${PDP7_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${PDP18B} ${PDP18BD}/pdp18b_dpy.c ${DISPLAYL} ${DISPLAY340} ${SIM} ${PDP7_OPT} ${CC_OUTSPEC} ${PDP7_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP18BD},pdp7))
 	$@ $(call find_test,${PDP18BD},pdp7) ${TEST_ARG}
 endif
@@ -2297,9 +2389,9 @@ endif
 
 pdp10 : ${BIN}pdp10${EXE}
 
-${BIN}pdp10${EXE} : ${PDP10} ${SIM}
+${BIN}pdp10${EXE} : ${PDP10} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${PDP10} ${SIM} ${PDP10_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${PDP10} ${SIM} ${PDP10_OPT} ${CC_OUTSPEC} ${PDP10_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP10D},pdp10))
 	$@ $(call find_test,${PDP10D},pdp10) ${TEST_ARG}
 endif
@@ -2308,7 +2400,7 @@ imlac : ${BIN}imlac${EXE}
 
 ${BIN}imlac${EXE} : ${IMLAC} ${SIM}
 	${MKDIRBIN}
-	${CC} ${IMLAC} ${SIM} ${IMLAC_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${IMLAC} ${SIM} ${IMLAC_OPT} ${CC_OUTSPEC} ${IMLAC_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${IMLAC},imlac))
 	$@ $(call find_test,${IMLACD},imlac) ${TEST_ARG}
 endif
@@ -2323,16 +2415,16 @@ tt2500 : ${BIN}tt2500${EXE}
 
 ${BIN}tt2500${EXE} : ${TT2500} ${SIM}
 	${MKDIRBIN}
-	${CC} ${TT2500} ${SIM} ${TT2500_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${TT2500} ${SIM} ${TT2500_OPT} ${CC_OUTSPEC} ${TT2500_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${TT2500},tt2500))
 	$@ $(call find_test,${TT2500D},tt2500) ${TEST_ARG}
 endif
 
 pdp11 : ${BIN}pdp11${EXE}
 
-${BIN}pdp11${EXE} : ${PDP11} ${SIM} ${BUILD_ROMS}
+${BIN}pdp11${EXE} : ${PDP11} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${PDP11} ${SIM} ${PDP11_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${PDP11} ${SIM} ${PDP11_OPT} ${CC_OUTSPEC} ${PDP11_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP11D},pdp11))
 	$@ $(call find_test,${PDP11D},pdp11) ${TEST_ARG}
 endif
@@ -2350,9 +2442,9 @@ microvax3900 : vax
 
 vax : ${BIN}vax${EXE}
 
-${BIN}vax${EXE} : ${VAX} ${SIM} ${BUILD_ROMS}
+${BIN}vax${EXE} : ${VAX} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX} ${SIM} ${VAX_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${VAX} ${SIM} ${VAX_OPT} ${CC_OUTSPEC} ${VAX_LDFLAGS} ${LDFLAGS}
 ifeq (${WIN32},)
 	cp ${BIN}vax${EXE} ${BIN}microvax3900${EXE}
 else
@@ -2364,180 +2456,180 @@ endif
 
 microvax2000 : ${BIN}microvax2000${EXE}
 
-${BIN}microvax2000${EXE} : ${VAX410} ${SIM} ${BUILD_ROMS}
+${BIN}microvax2000${EXE} : ${VAX410} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX410} ${SCSI} ${SIM} ${VAX410_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX410} ${SCSI} ${SIM} ${VAX410_OPT} -o $@ ${VAX410_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 infoserver100 : ${BIN}infoserver100${EXE}
 
-${BIN}infoserver100${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}infoserver100${EXE} : ${VAX420} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX411_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX411_OPT} -o $@ ${VAX420_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 infoserver150vxt : ${BIN}infoserver150vxt${EXE}
 
-${BIN}infoserver150vxt${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}infoserver150vxt${EXE} : ${VAX420} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX412_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX412_OPT} -o $@ ${VAX420_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 microvax3100 : ${BIN}microvax3100${EXE}
 
-${BIN}microvax3100${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}microvax3100${EXE} : ${VAX420} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX41A_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX41A_OPT} -o $@ ${VAX420_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 microvax3100e : ${BIN}microvax3100e${EXE}
 
-${BIN}microvax3100e${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}microvax3100e${EXE} : ${VAX420} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX41D_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX41D_OPT} -o $@ ${VAX420_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vaxstation3100m30 : ${BIN}vaxstation3100m30${EXE}
 
-${BIN}vaxstation3100m30${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}vaxstation3100m30${EXE} : ${VAX420} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX42A_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX42A_OPT} -o $@ ${VAX420_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vaxstation3100m38 : ${BIN}vaxstation3100m38${EXE}
 
-${BIN}vaxstation3100m38${EXE} : ${VAX420} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}vaxstation3100m38${EXE} : ${VAX420} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX42B_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX420} ${SCSI} ${SIM} ${VAX42B_OPT} -o $@ ${VAX420_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vaxstation3100m76 : ${BIN}vaxstation3100m76${EXE}
 
-${BIN}vaxstation3100m76${EXE} : ${VAX43} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}vaxstation3100m76${EXE} : ${VAX43} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX43} ${SCSI} ${SIM} ${VAX43_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX43} ${SCSI} ${SIM} ${VAX43_OPT} -o $@ ${VAX43_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vaxstation4000m60 : ${BIN}vaxstation4000m60${EXE}
 
-${BIN}vaxstation4000m60${EXE} : ${VAX440} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}vaxstation4000m60${EXE} : ${VAX440} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX46_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX46_OPT} -o $@ ${VAX440_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 microvax3100m80 : ${BIN}microvax3100m80${EXE}
 
-${BIN}microvax3100m80${EXE} : ${VAX440} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}microvax3100m80${EXE} : ${VAX440} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX47_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX47_OPT} -o $@ ${VAX440_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vaxstation4000vlc : ${BIN}vaxstation4000vlc${EXE}
 
-${BIN}vaxstation4000vlc${EXE} : ${VAX440} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}vaxstation4000vlc${EXE} : ${VAX440} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX48_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX48_OPT} -o $@ ${VAX440_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 infoserver1000 : ${BIN}infoserver1000${EXE}
 
-${BIN}infoserver1000${EXE} : ${IS1000} ${SCSI} ${SIM} ${BUILD_ROMS}
+${BIN}infoserver1000${EXE} : ${IS1000} ${SCSI} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${IS1000} ${SCSI} ${SIM} ${IS1000_OPT} -o $@ ${LDFLAGS}
+	${CC} ${IS1000} ${SCSI} ${SIM} ${IS1000_OPT} -o $@ ${IS1000_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 microvax1 : ${BIN}microvax1${EXE}
 
-${BIN}microvax1${EXE} : ${VAX610} ${SIM} ${BUILD_ROMS}
+${BIN}microvax1${EXE} : ${VAX610} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX610} ${SIM} ${VAX610_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX610} ${SIM} ${VAX610_OPT} -o $@ ${VAX610_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 rtvax1000 : ${BIN}rtvax1000${EXE}
 
-${BIN}rtvax1000${EXE} : ${VAX630} ${SIM} ${BUILD_ROMS}
+${BIN}rtvax1000${EXE} : ${VAX630} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX630} ${SIM} ${VAX620_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX630} ${SIM} ${VAX620_OPT} -o $@ ${VAX620_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 microvax2 : ${BIN}microvax2${EXE}
 
-${BIN}microvax2${EXE} : ${VAX630} ${SIM} ${BUILD_ROMS}
+${BIN}microvax2${EXE} : ${VAX630} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX630} ${SIM} ${VAX630_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX630} ${SIM} ${VAX630_OPT} -o $@ ${VAX630_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vax730 : ${BIN}vax730${EXE}
 
-${BIN}vax730${EXE} : ${VAX730} ${SIM} ${BUILD_ROMS}
+${BIN}vax730${EXE} : ${VAX730} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX730} ${SIM} ${VAX730_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX730} ${SIM} ${VAX730_OPT} -o $@ ${VAX730_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vax750 : ${BIN}vax750${EXE}
 
-${BIN}vax750${EXE} : ${VAX750} ${SIM} ${BUILD_ROMS}
+${BIN}vax750${EXE} : ${VAX750} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX750} ${SIM} ${VAX750_OPT} -o $@ ${LDFLAGS}
+	${CC} ${VAX750} ${SIM} ${VAX750_OPT} -o $@ ${VAX750_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vax780 : ${BIN}vax780${EXE}
 
-${BIN}vax780${EXE} : ${VAX780} ${SIM} ${BUILD_ROMS}
+${BIN}vax780${EXE} : ${VAX780} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX780} ${SIM} ${VAX780_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${VAX780} ${SIM} ${VAX780_OPT} ${CC_OUTSPEC} ${VAX780_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vax8200 : ${BIN}vax8200${EXE}
 
-${BIN}vax8200${EXE} : ${VAX8200} ${SIM} ${BUILD_ROMS}
+${BIN}vax8200${EXE} : ${VAX8200} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX8200} ${SIM} ${VAX8200_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${VAX8200} ${SIM} ${VAX8200_OPT} ${CC_OUTSPEC} ${VAX780_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
 
 vax8600 : ${BIN}vax8600${EXE}
 
-${BIN}vax8600${EXE} : ${VAX8600} ${SIM} ${BUILD_ROMS}
+${BIN}vax8600${EXE} : ${VAX8600} ${SIM} ${SLIRP_DEP} ${BUILD_ROMS}
 	${MKDIRBIN}
-	${CC} ${VAX8600} ${SIM} ${VAX8600_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${VAX8600} ${SIM} ${VAX8600_OPT} ${CC_OUTSPEC} ${VAX8600_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
@@ -2661,9 +2753,9 @@ endif
 
 sel32: ${BIN}sel32${EXE}
 
-${BIN}sel32${EXE}: ${SEL32} ${SIM}
+${BIN}sel32${EXE}: ${SEL32} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${SEL32} ${SIM} ${SEL32_OPT} $(CC_OUTSPEC) ${LDFLAGS}
+	${CC} ${SEL32} ${SIM} ${SEL32_OPT} $(CC_OUTSPEC) ${SEL32_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${SEL32D},sel32))
 	$@ $(call find_test,${SEL32D},sel32) $(TEST_ARG)
 endif
@@ -2791,7 +2883,7 @@ tx-0 : ${BIN}tx-0${EXE}
 
 ${BIN}tx-0${EXE} : ${TX0} ${SIM}
 	${MKDIRBIN}
-	${CC} ${TX0} ${SIM} ${TX0_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${TX0} ${SIM} ${TX0_OPT} ${CC_OUTSPEC} ${TX0_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${TX0D},tx-0))
 	$@ $(call find_test,${TX0D},tx-0) ${TEST_ARG}
 endif
@@ -2819,7 +2911,7 @@ besm6 : ${BIN}besm6${EXE}
 ${BIN}besm6${EXE} : ${BESM6} ${SIM}
 ifneq (1,${CPP_BUILD}${CPP_FORCE})
 	${MKDIRBIN}
-	${CC} ${BESM6} ${SIM} ${BESM6_OPT} ${BESM6_PANEL_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${BESM6} ${SIM} ${BESM6_OPT} ${BESM6_PANEL_OPT} ${CC_OUTSPEC} ${BESM6_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${BESM6D},besm6))
 	$@ $(call find_test,${BESM6D},besm6) ${TEST_ARG}
 endif
@@ -2876,9 +2968,9 @@ endif
 
 3b2 : ${BIN}3b2${EXE}
 
-${BIN}3b2${EXE} : ${ATT3B2M400} ${SIM}
+${BIN}3b2${EXE} : ${ATT3B2M400} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${ATT3B2M400} ${SIM} ${ATT3B2M400_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${ATT3B2M400} ${SIM} ${ATT3B2M400_OPT} ${CC_OUTSPEC} ${ATT3B2M400_LDFLAGS} ${LDFLAGS}
 ifeq (${WIN32},)
 	cp ${BIN}3b2${EXE} ${BIN}3b2-400${EXE}
 else
@@ -2890,9 +2982,9 @@ endif
 
 3b2-700 : ${BIN}3b2-700${EXE}
 
-${BIN}3b2-700${EXE} : ${ATT3B2M700} ${SIM}
+${BIN}3b2-700${EXE} : ${ATT3B2M700} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${ATT3B2M700} ${SCSI} ${SIM} ${ATT3B2M700_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${ATT3B2M700} ${SCSI} ${SIM} ${ATT3B2M700_OPT} ${CC_OUTSPEC} ${ATT3B2M700_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${ATT3B2D},3b2-700))
 	$@ $(call find_test,${ATT3B2D},3b2-700) ${TEST_ARG}
 endif
@@ -2964,43 +3056,43 @@ pdp6 : ${BIN}pdp6${EXE}
 
 ${BIN}pdp6${EXE} : ${PDP6} ${SIM}
 	${MKDIRBIN}
-	${CC} ${PDP6} ${PDP6_DPY} ${SIM} ${PDP6_OPT} ${CC_OUTSPEC} ${LDFLAGS} ${PDP6_LDFLAGS}
+	${CC} ${PDP6} ${PDP6_DPY} ${SIM} ${PDP6_OPT} ${CC_OUTSPEC} ${PDP6_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP10D},pdp6))
 	$@ $(call find_test,${PDP10D},pdp6) ${TEST_ARG}
 endif
 
 pdp10-ka : ${BIN}pdp10-ka${EXE}
 
-${BIN}pdp10-ka${EXE} : ${KA10} ${SIM}
+${BIN}pdp10-ka${EXE} : ${KA10} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${KA10} ${KA10_DPY} ${SIM} ${KA10_OPT} ${CC_OUTSPEC} ${LDFLAGS} ${KA10_LDFLAGS}
+	${CC} ${KA10} ${KA10_DPY} ${SIM} ${KA10_OPT} ${CC_OUTSPEC} ${KA10_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP10D},ka10))
 	$@ $(call find_test,${PDP10D},ka10) ${TEST_ARG}
 endif
 
 pdp10-ki : ${BIN}pdp10-ki${EXE}
 
-${BIN}pdp10-ki${EXE} : ${KI10} ${SIM}
+${BIN}pdp10-ki${EXE} : ${KI10} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${KI10} ${KI10_DPY} ${SIM} ${KI10_OPT} ${CC_OUTSPEC} ${LDFLAGS} ${KI10_LDFLAGS}
+	${CC} ${KI10} ${KI10_DPY} ${SIM} ${KI10_OPT} ${CC_OUTSPEC} ${KI10_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP10D},ki10))
 	$@ $(call find_test,${PDP10D},ki10) ${TEST_ARG}
 endif
 
 pdp10-kl : ${BIN}pdp10-kl${EXE}
 
-${BIN}pdp10-kl${EXE} : ${KL10} ${SIM}
+${BIN}pdp10-kl${EXE} : ${KL10} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${KL10} ${SIM} ${KL10_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${KL10} ${SIM} ${KL10_OPT} ${CC_OUTSPEC} ${KL10_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP10D},kl10))
 	$@ $(call find_test,${PDP10D},kl10) ${TEST_ARG}
 endif
 
 pdp10-ks : ${BIN}pdp10-ks${EXE}
 
-${BIN}pdp10-ks${EXE} : ${KS10} ${SIM}
+${BIN}pdp10-ks${EXE} : ${KS10} ${SIM} ${SLIRP_DEP}
 	${MKDIRBIN}
-	${CC} ${KS10} ${SIM} ${KS10_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${KS10} ${SIM} ${KS10_OPT} ${CC_OUTSPEC} ${NETWORK_LDFLAGS} ${LDFLAGS}
 ifneq (,$(call find_test,${PDP10D},ks10))
 	$@ $(call find_test,${PDP10D},ks10) ${TEST_ARG}
 endif
@@ -3014,3 +3106,69 @@ ${BIN}frontpaneltest${EXE} : frontpanel/FrontPanelTest.c sim_sock.c sim_frontpan
 	${MKDIRBIN}
 	${CC} frontpanel/FrontPanelTest.c sim_sock.c sim_frontpanel.c ${CC_OUTSPEC} ${LDFLAGS} ${OS_CURSES_DEFS}
 
+## libslirp library and configuration:
+
+RANLIB=$(shell which ranlib)
+ifeq (,${RANLIB})
+RANLIB=:
+endif
+
+LIBSLIRP_CONFIG_SRC=${SIMHD}/sim_slirp/config/libslirp_config.c
+LIBSLIRP_CONFIG_TEST=${BIN}libslirp.dir/libslirp_config
+
+test_feature = \
+    $(strip $(shell mkdir -p ${BIN}libslirp.dir > /dev/null 2>&1 && \
+                    ${GCC} ${CC_STD} -o ${LIBSLIRP_CONFIG_TEST} -D$(1) ${LIBSLIRP_CONFIG_SRC} > /dev/null 2>&1 && \
+		    ${LIBSLIRP_CONFIG_TEST} > /dev/null 2>&1 && \
+		    echo "Detected feature: $(2)" 1>&2 && \
+		    echo "feature" ))
+
+LIBSLIRP_FEATURES = -DBUILDING_LIBSLIRP -DLIBSLIRP_STATIC
+
+ifneq ($(call test_feature,TEST_VASPRINTF,vasprintf),)
+  LIBSLIRP_FEATURES += -DHAVE_VASPRINTF
+else
+  ifneq ($(call test_feature,TEST_VASPRINTF_GNU_SOURCE,vasprintf with _GNU_SOURCE),)
+    LIBSLIRP_FEATURES += -DHAVE_VASPRINTF -D_GNU_SOURCE
+  endif
+endif
+
+ifneq ($(call test_feature,TEST_CLOCK_GETTIME,clock_gettime),)
+  LIBSLIRP_FEATURES += -DHAVE_CLOCK_GETTIME -DHAVE_TIME_H
+else
+  ifneq ($(call test_feature,TEST_GETTIMEOFDAY,gettimeofday),)
+    LIBSLIRP_FEATURES += -DHAVE_GETTIMEOFDAY -DHAVE_SYS_TIME_H
+  endif
+endif
+
+ifneq ($(call test_feature,TEST_INET_PTON,inet_pton),)
+  LIBSLIRP_FEATURES += -DHAVE_INET_PTON
+endif
+
+BUILD_LIBSLIRP_INCS=-I ${LIBSLIRP_SRC} -I ${LIBSLIRP_DIR}/minimal -I ${SIMHD}/sim_slirp/config
+
+${BIN}libslirp.dir/%.o: ${LIBSLIRP_SRC}/%.c
+	@mkdir -p ${BIN}libslirp.dir
+	${GCC} ${CC_STD} ${CFLAGS_G} ${CFLAGS_O} ${CFLAGS_I} $(strip ${LIBSLIRP_FEATURES}) ${BUILD_LIBSLIRP_INCS} -o $@ -c $<
+
+${BIN}libslirp.dir/%.o: ${LIBSLIRP_DIR}/minimal/%.c
+	@mkdir -p ${BIN}libslirp.dir
+	${GCC} ${CC_STD} ${CFLAGS_G} ${CFLAGS_O} ${CFLAGS_I} $(strip ${LIBSLIRP_FEATURES}) ${BUILD_LIBSLIRP_INCS} -o $@ -c $<
+
+${BIN}libslirp.dir/libslirp.a: \
+		${SIMHD}/sim_slirp/config/libslirp-version.h \
+		${SIMHD}/sim_slirp/config/glib-endian.h \
+		${LIBSLIRP_OBJS}
+	${AR} rv $@ ${LIBSLIRP_OBJS}
+	${RANLIB} $@
+
+${SIMHD}/sim_slirp/config/libslirp-version.h: ${SIMHD}/sim_slirp/config/libslirp-version.awk
+	@ echo "Updating ${SIMHD}/sim_slirp/config/libslirp-version.h"
+	@ awk -f ${SIMHD}/sim_slirp/config/libslirp-version.awk ${SIMHD}/libslirp/meson.build > ${SIMHD}/sim_slirp/config/libslirp-version.h
+
+${SIMHD}/sim_slirp/config/glib-endian.h: ${SIMHD}/sim_slirp/config/mk-glib-endian
+	@ echo "Updating ${SIMHD}/sim_slirp/config/glib-endian.h"
+	@ ${SIMHD}/sim_slirp/config/mk-glib-endian > ${SIMHD}/sim_slirp/config/glib-endian.h
+
+${SIMHD}/sim_slirp/config/mk-glib-endian: ${SIMHD}/sim_slirp/config/mk-glib-endian.c
+	${GCC} ${CC_STD} ${CFLAGS_G} ${CFLAGS_O} ${CFLAGS_I} -o $@ $<

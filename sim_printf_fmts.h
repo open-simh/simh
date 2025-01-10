@@ -29,17 +29,17 @@
  * POINTER_FMT: Format modifier for pointers, e.g. "%08" POINTER_FMT "X"
 */
 
-#if defined (_WIN32) || defined(_WIN64)
+#if defined (_WIN32) || defined(_WIN64) || defined(__MINGW64__) || defined(__MINGW32__)
 
-#  if defined(__MINGW64__)
-#    define LL_FMT     "I64"
-#    define SIZE_T_FMT "I64"
-#  elif defined(_MSC_VER) || defined(__MINGW32__)
+#  if defined(__USE_MINGW_ANSI_STDIO) && __USE_MINGW_ANSI_STDIO
 #    define LL_FMT     "ll"
-#    define SIZE_T_FMT "z"
 #  else
-     /* Graceful fail -- shouldn't ever default to this on a Windows platform. */
-#    define LL_FMT     "ll"
+#    define LL_FMT     "I64"
+#  endif
+
+#  if defined(__MINGW64__) || defined(_WIN64)
+#    define SIZE_T_FMT "I64"
+#  elif defined(__MINGW32__) || defined(_WIN32)
 #    define SIZE_T_FMT "I32"
 #  endif
 
@@ -74,7 +74,6 @@
 #  define T_INT64_FMT    ""
 #  define POINTER_FMT    ""
 #endif
-
 
 #if defined (USE_INT64) && defined (USE_ADDR64)
 #  define T_ADDR_FMT      T_UINT64_FMT
