@@ -19,6 +19,8 @@ if (WITH_REGEX)
             find_package(PCRE)
         endif ()
     else ()
+        ## There isn't a difference between the vcpkg and LEGACY strategy.
+        ## SIMH provides its own FindPCRE2.cmake module...
         find_package(PCRE2)
     endif ()
 endif ()
@@ -111,7 +113,7 @@ include (ExternalProject)
 
 # Source URLs (to make it easy to update versions):
 set(ZLIB_SOURCE_URL     "https://github.com/madler/zlib/archive/v1.2.13.zip")
-set(PCRE2_SOURCE_URL    "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.40/pcre2-10.40.zip")
+set(PCRE2_SOURCE_URL    "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.zip")
 ## PCRE needs multiple URLs to chase a working SF mirror:
 list(APPEND PCRE_SOURCE_URL
     "https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.zip/download?use_mirror=cytranet"
@@ -178,10 +180,17 @@ IF (WITH_REGEX AND NOT (PCRE_FOUND OR PCRE2_FOUND OR TARGET unofficial::pcre::pc
     if (NOT PREFER_PCRE)
         set(PCRE_URL ${PCRE2_SOURCE_URL})
         list(APPEND PCRE_CMAKE_ARGS 
-            -DPCRE2_BUILD_PCREGREP:Bool=Off
+            -DPCRE2_BUILD_PCRE2_8:Bool=On
+            -DPCRE2_BUILD_PCRE2GREP:Bool=Off
+            -DPCRE2_STATIC_RUNTIME:Bool=On
             -DPCRE2_SUPPORT_LIBEDIT:Bool=Off
             -DPCRE2_SUPPORT_LIBREADLINE:Bool=Off
         )
+        if (WIN32)
+            list(APPEND PCRE_CMAKE_ARGS
+                -DBUILD_STATIC_LIBS:Bool=On
+            )
+        endif ()
 
         # IF(MSVC)
         #   list(APPEND PCRE_CMAKE_ARGS -DINSTALL_MSVC_PDB=On)
