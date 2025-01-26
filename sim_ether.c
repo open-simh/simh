@@ -1006,6 +1006,9 @@ const char *eth_capabilities(void)
 #if defined (HAVE_SLIRP_NETWORK)
      ":NAT"
 #endif
+#if defined (HAVE_VMNET_NETWORK)
+     ":VMNET"
+#endif
      ":UDP";
  }
 
@@ -1196,6 +1199,14 @@ if (used < max) {
   ++used;
   }
 #endif
+#ifdef HAVE_VMNET_NETWORK
+if (used < max) {
+  sprintf(list[used].name, "%s", "vmnet:{optional-parameters}");
+  sprintf(list[used].desc, "%s", "Integrated vmnet.framework support");
+  list[used].eth_api = ETH_API_VMN;
+  ++used;
+}
+#endif
 
 if (used < max) {
   sprintf(list[used].name, "%s", "udp:sourceport:remotehost:remoteport");
@@ -1243,6 +1254,10 @@ extern "C" {
 
 #ifdef SIM_HAVE_DLOPEN
 #include <dlfcn.h>
+#endif
+
+#ifdef HAVE_VMNET_NETWORK
+#include <vmnet/vmnet.h>
 #endif
 
 #if defined(USE_SHARED) && (defined(_WIN32) || defined(SIM_HAVE_DLOPEN))
@@ -2060,6 +2075,37 @@ while (dev->handle) {
           }
         break;
 #endif /* HAVE_VDE_NETWORK */
+#ifdef HAVE_VMNET_NETWORK
+    case ETH_API_VMN:
+      {
+        vmnet_return_t ret;
+        int count = 1;
+        struct pcap_pkthdr header;
+        struct vmpktdesc pkt_desc;
+        struct iovec iov;
+
+        // XXX: Should be MTU returned from vmnet startup?
+        u_char buf[ETH_MAX_JUMBO_FRAME];
+
+        iov.iov_base = buf;
+        iov.iov_len = ETH_MAX_JUMBO_FRAME;
+
+        pkt_desc.vm_pkt_size = ETH_MAX_JUMBO_FRAME;
+        pkt_desc.vm_pkt_iov = &iov;
+        pkt_desc.vm_pkt_iovcnt = 1;
+        pkt_desc.vm_flags = 0;
+
+        ret = vmnet_read((interface_ref)dev->handle, &pkt_desc, &count);
+        if (ret == VMNET_SUCCESS && count > 0) {
+          status = 1;
+          header.caplen = header.len = pkt_desc.vm_pkt_size;
+          _eth_callback((u_char *)dev, &header, buf);
+        } else {
+          status = ret == VMNET_SUCCESS ? 0 : -1;
+        }
+      }
+      break;
+#endif
 #ifdef HAVE_SLIRP_NETWORK
       case ETH_API_NAT:
         sim_slirp_dispatch ((SLIRP*)dev->handle);
@@ -2244,6 +2290,47 @@ if (bufsz < ETH_MAX_JUMBO_FRAME)
 
 /* attempt to connect device */
 memset(errbuf, 0, PCAP_ERRBUF_SIZE);
+
+#if defined(HAVE_VMNET_NETWORK)
+  if (0 == strncmp("vmnet:", savname, 6)) {
+    xpc_object_t if_desc;
+    dispatch_queue_t vmn_queue;
+    interface_ref vmn_interface;
+    // __block is used so it can be captured in the callback
+    __block vmnet_return_t vmn_status;
+    // Because vmnet operates via callbacks, set up a semaphore to block on
+    dispatch_semaphore_t cb_finished;
+
+    if_desc = xpc_dictionary_create(NULL, NULL, 0);
+    // VMNET_HOST_MODE:    Host and other guests
+    // VMNET_SHARED_MODE:  NAT
+    // VMNET_BRIDGED_MODE: Requires macOS 10.15
+    // XXX: Support other modes.
+    xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_HOST_MODE);
+
+    vmn_queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+
+    cb_finished = dispatch_semaphore_create(0);
+
+    vmn_interface = vmnet_start_interface(if_desc, vmn_queue, ^(vmnet_return_t status, xpc_object_t params){
+      vmn_status = status;
+
+      dispatch_semaphore_signal(cb_finished);
+    });
+    dispatch_semaphore_wait(cb_finished, DISPATCH_TIME_FOREVER);
+    dispatch_release(cb_finished);
+    xpc_release(if_desc);
+
+    if (vmn_status != VMNET_SUCCESS) {
+      return sim_messagef (SCPE_OPENERR, "Eth: Failed to create vmnet (vmnet_return_t: %d)\n", vmn_status);
+    }
+
+    *eth_api = ETH_API_VMN;
+    *handle = (void *)vmn_interface;  /* Flag used to indicated open */
+    return SCPE_OK;
+  }
+#endif
+
 if (0 == strncmp("tap:", savname, 4)) {
   int  tun = -1;    /* TUN/TAP Socket */
   int  on = 1;
@@ -2647,6 +2734,15 @@ switch (eth_api) {
     sim_slirp_close((SLIRP*)pcap);
     break;
 #endif
+#ifdef HAVE_VMNET_NETWORK
+  case ETH_API_VMN:
+    {
+      dispatch_queue_t stop_queue;
+      stop_queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+      vmnet_stop_interface((interface_ref)pcap, stop_queue, ^(vmnet_return_t status){});
+    }
+    break;
+#endif
   case ETH_API_UDP:
     sim_close_sock(pcap_fd);
     break;
@@ -2960,12 +3056,21 @@ switch (dev->eth_api) {
   case ETH_API_NAT:
       netname = "nat";
       break;
+  case ETH_API_VMN:
+      netname = "vmnet";
+      break;
   }
 sprintf(msg, "%s(%s): ", where, netname);
 switch (dev->eth_api) {
 #if defined(HAVE_PCAP_NETWORK)
   case ETH_API_PCAP:
       sim_printf ("%s%s\n", msg, pcap_geterr ((pcap_t*)dev->handle));
+      break;
+#endif
+#if defined(HAVE_VMNET_NETWORK)
+  case ETH_API_VMN:
+      /* XXX: vmnet errors aren't global */
+      sim_printf ("%s\n", msg);
       break;
 #endif
   default:
@@ -3087,6 +3192,27 @@ if ((packet->len >= ETH_MIN_PACKET) && (packet->len <= ETH_MAX_PACKET)) {
         status = 0;
       else
         status = 1;
+      break;
+#endif
+#ifdef HAVE_VMNET_NETWORK
+    case ETH_API_VMN:
+      {
+        vmnet_return_t ret;
+        int count = 1;
+        struct vmpktdesc pkt_desc;
+        struct iovec iov;
+
+        iov.iov_base = packet->msg;
+        iov.iov_len = packet->len;
+
+        pkt_desc.vm_pkt_size = packet->len;
+        pkt_desc.vm_pkt_iov = &iov;
+        pkt_desc.vm_pkt_iovcnt = 1;
+        pkt_desc.vm_flags = 0;
+
+        ret = vmnet_write((interface_ref)dev->handle, &pkt_desc, &count);
+        status = (ret == VMNET_SUCCESS && count > 0) ? 0 : 1;
+      }
       break;
 #endif
     case ETH_API_UDP:
@@ -3712,6 +3838,7 @@ switch (dev->eth_api) {
   case ETH_API_VDE:
   case ETH_API_UDP:
   case ETH_API_NAT:
+  case ETH_API_VMN:
     bpf_used = 0;
     to_me = 0;
     eth_packet_trace (dev, data, header->len, "received");
@@ -3908,6 +4035,37 @@ do {
         }
       break;
 #endif /* HAVE_VDE_NETWORK */
+#ifdef HAVE_VMNET_NETWORK
+    case ETH_API_VMN:
+      {
+        vmnet_return_t ret;
+        int count = 1;
+        struct pcap_pkthdr header;
+        struct vmpktdesc pkt_desc;
+        struct iovec iov;
+
+        // XXX: Should be MTU returned from vmnet startup?
+        u_char buf[ETH_MAX_JUMBO_FRAME];
+
+        iov.iov_base = buf;
+        iov.iov_len = ETH_MAX_JUMBO_FRAME;
+
+        pkt_desc.vm_pkt_size = ETH_MAX_JUMBO_FRAME;
+        pkt_desc.vm_pkt_iov = &iov;
+        pkt_desc.vm_pkt_iovcnt = 1;
+        pkt_desc.vm_flags = 0;
+
+        ret = vmnet_read((interface_ref)dev->handle, &pkt_desc, &count);
+        if (ret == VMNET_SUCCESS && count > 0) {
+          status = 1;
+          header.caplen = header.len = pkt_desc.vm_pkt_size;
+          _eth_callback((u_char *)dev, &header, buf);
+        } else {
+          status = ret == VMNET_SUCCESS ? 0 : -1;
+        }
+      }
+      break;
+#endif
     case ETH_API_UDP:
       if (1) {
         struct pcap_pkthdr header;
