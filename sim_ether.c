@@ -1219,8 +1219,10 @@ if (used < max) {
 }
 // vmnet.framework has an allowed list of devices for bridging
 // handy for user if we list them since ifconfig is noisy
-__block int used_block;
-{
+#if (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500)
+if (__builtin_available(macOS 10.15, *)) {
+  // avoid putting a __block marker on used on other platforms
+  __block int used_block;
   xpc_object_t bridge_list = vmnet_copy_shared_interface_list();
 
   xpc_array_apply(bridge_list, ^bool(size_t index, xpc_object_t value) {
@@ -1236,6 +1238,7 @@ __block int used_block;
 
   xpc_release(bridge_list);
 }
+#endif
 #endif
 
 if (used < max) {
@@ -2317,8 +2320,8 @@ if (bufsz < ETH_MAX_JUMBO_FRAME)
 /* attempt to connect device */
 memset(errbuf, 0, PCAP_ERRBUF_SIZE);
 
-#if defined(HAVE_VMNET_NETWORK)
   if (0 == strncmp("vmnet:", savname, 6)) {
+#if defined(HAVE_VMNET_NETWORK)
     xpc_object_t if_desc;
     dispatch_queue_t vmn_queue;
     interface_ref vmn_interface;
@@ -2330,16 +2333,28 @@ memset(errbuf, 0, PCAP_ERRBUF_SIZE);
     const char *devname = savname + sizeof("vmnet:") - 1;
 
     if_desc = xpc_dictionary_create(NULL, NULL, 0);
-    // VMNET_HOST_MODE:    Host and other guests
-    // VMNET_SHARED_MODE:  NAT
-    // VMNET_BRIDGED_MODE: Requires macOS 10.15
     if (0 == strcmp(devname, "shared")) {
       xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_SHARED_MODE);
-    } else if (strlen(devname) == 0 || 0 == strcmp(devname, "host")) {
+    } else if (0 == strcmp(devname, "host")) {
       xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_HOST_MODE);
+#if (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500)
     } else if (strlen(devname) > 0) { // Bridged, this is the device name
-      xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_BRIDGED_MODE);
-      xpc_dictionary_set_string(if_desc, vmnet_shared_interface_name_key, devname);
+      if (__builtin_available(macOS 10.15, *)) {
+        xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_BRIDGED_MODE);
+        xpc_dictionary_set_string(if_desc, vmnet_shared_interface_name_key, devname);
+      } else {
+        xpc_release(if_desc);
+        return sim_messagef (SCPE_OPENERR, "Eth: You must be using macOS 10.15 or newer for bridged devices\n");
+      }
+#endif
+    } else {
+      if (__builtin_available(macOS 10.15, *)) {
+        xpc_release(if_desc);
+        return sim_messagef (SCPE_OPENERR, "Eth: You must pick either shared, host, or an allowed bridge device\n");
+      } else {
+        xpc_release(if_desc);
+        return sim_messagef (SCPE_OPENERR, "Eth: You must pick either shared or host\n");
+      }
     }
 
     vmn_queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
@@ -2362,8 +2377,10 @@ memset(errbuf, 0, PCAP_ERRBUF_SIZE);
     *eth_api = ETH_API_VMN;
     *handle = (void *)vmn_interface;  /* Flag used to indicated open */
     return SCPE_OK;
-  }
+#else
+    return sim_messagef (SCPE_OPENERR, "Eth: No support for vmnet devices\n");
 #endif
+  }
 
 if (0 == strncmp("tap:", savname, 4)) {
   int  tun = -1;    /* TUN/TAP Socket */
