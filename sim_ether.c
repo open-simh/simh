@@ -379,6 +379,11 @@
 #include <unistd.h>
 #endif
 
+// Declare earlier than other implementations
+#ifdef HAVE_VMNET_NETWORK
+#include <vmnet/vmnet.h>
+#endif
+
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 /* Internal routine - forward declaration */
@@ -1201,10 +1206,35 @@ if (used < max) {
 #endif
 #ifdef HAVE_VMNET_NETWORK
 if (used < max) {
-  sprintf(list[used].name, "%s", "vmnet:{optional-parameters}");
-  sprintf(list[used].desc, "%s", "Integrated vmnet.framework support");
+  sprintf(list[used].name, "%s", "vmnet:shared");
+  sprintf(list[used].desc, "%s", "Integrated NAT (vmnet.framework) support");
   list[used].eth_api = ETH_API_VMN;
   ++used;
+}
+if (used < max) {
+  sprintf(list[used].name, "%s", "vmnet:host");
+  sprintf(list[used].desc, "%s", "Integrated host-only network (vmnet.framework) support");
+  list[used].eth_api = ETH_API_VMN;
+  ++used;
+}
+// vmnet.framework has an allowed list of devices for bridging
+// handy for user if we list them since ifconfig is noisy
+__block int used_block;
+{
+  xpc_object_t bridge_list = vmnet_copy_shared_interface_list();
+
+  xpc_array_apply(bridge_list, ^bool(size_t index, xpc_object_t value) {
+    if (used_block < max) {
+      sprintf(list[used_block].name, "%s%s", "vmnet:", xpc_string_get_string_ptr(value));
+      sprintf(list[used_block].desc, "%s", "Integrated bridged network (vmnet.framework) support");
+      list[used_block].eth_api = ETH_API_VMN;
+      ++used_block;
+    }
+    return true;
+  });
+  used = used_block;
+
+  xpc_release(bridge_list);
 }
 #endif
 
@@ -1254,10 +1284,6 @@ extern "C" {
 
 #ifdef SIM_HAVE_DLOPEN
 #include <dlfcn.h>
-#endif
-
-#ifdef HAVE_VMNET_NETWORK
-#include <vmnet/vmnet.h>
 #endif
 
 #if defined(USE_SHARED) && (defined(_WIN32) || defined(SIM_HAVE_DLOPEN))
@@ -2301,12 +2327,20 @@ memset(errbuf, 0, PCAP_ERRBUF_SIZE);
     // Because vmnet operates via callbacks, set up a semaphore to block on
     dispatch_semaphore_t cb_finished;
 
+    const char *devname = savname + sizeof("vmnet:") - 1;
+
     if_desc = xpc_dictionary_create(NULL, NULL, 0);
     // VMNET_HOST_MODE:    Host and other guests
     // VMNET_SHARED_MODE:  NAT
     // VMNET_BRIDGED_MODE: Requires macOS 10.15
-    // XXX: Support other modes.
-    xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_HOST_MODE);
+    if (0 == strcmp(devname, "shared")) {
+      xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_SHARED_MODE);
+    } else if (strlen(devname) == 0 || 0 == strcmp(devname, "host")) {
+      xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_HOST_MODE);
+    } else if (strlen(devname) > 0) { // Bridged, this is the device name
+      xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_BRIDGED_MODE);
+      xpc_dictionary_set_string(if_desc, vmnet_shared_interface_name_key, devname);
+    }
 
     vmn_queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
 
@@ -2839,6 +2873,11 @@ fprintf (st, "    eth2   vde:device{:switch-port-number}      (Integrated VDE su
 fprintf (st, "    eth3   nat:{optional-nat-parameters}        (Integrated NAT (SLiRP) support)\n");
 #endif
 fprintf (st, "    eth4   udp:sourceport:remotehost:remoteport (Integrated UDP bridge support)\n");
+#if defined(HAVE_VMNET_NETWORK)
+fprintf (st, "    eth6   vmnet:shared                         (Integrated NAT (vmnet.framework) support)\n");
+fprintf (st, "    eth7   vmnet:host                           (Integrated host-only (vmnet.framework) support)\n");
+fprintf (st, "    eth8   vmnet:device-name                    (Integrated bridged (vmnet.framework) support)\n");
+#endif
 fprintf (st, "   sim> ATTACH %s eth0\n\n", dptr->name);
 fprintf (st, "or equivalently:\n\n");
 fprintf (st, "   sim> ATTACH %s en0\n\n", dptr->name);
