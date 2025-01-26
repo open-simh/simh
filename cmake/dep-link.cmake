@@ -351,6 +351,11 @@ if (WITH_NETWORK)
         list(APPEND NETWORK_PKG_STATUS "NAT(SLiRP)")
     endif (WITH_SLIRP)
 
+    if (WITH_VMNET AND APPLE)
+        target_link_libraries(simh_network INTERFACE "-framework vmnet")
+        target_compile_definitions(simh_network INTERFACE HAVE_VMNET_NETWORK)
+    endif(WITH_VMNET AND APPLE)
+
     ## Finally, set the network runtime
     if (NOT network_runtime)
         ## Default to USE_SHARED... USE_NETWORK is deprecated.
