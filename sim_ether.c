@@ -1805,6 +1805,10 @@ return tool;
 
 static void eth_get_nic_hw_addr(ETH_DEV* dev, const char *devname, int set_on)
 {
+  // we set this at interface creation time in open_port for vmnet 
+  if (dev->eth_api == ETH_API_VMN) {
+    return;
+  }
   memset(&dev->host_nic_phy_hw_addr, 0, sizeof(dev->host_nic_phy_hw_addr));
   dev->have_host_nic_phy_addr = 0;
   if (dev->eth_api != ETH_API_PCAP)
@@ -2361,8 +2365,26 @@ memset(errbuf, 0, PCAP_ERRBUF_SIZE);
 
     cb_finished = dispatch_semaphore_create(0);
 
+    // Set the MAC address
+    __block ETH_DEV *eth_dev = (ETH_DEV*)opaque;
+
     vmn_interface = vmnet_start_interface(if_desc, vmn_queue, ^(vmnet_return_t status, xpc_object_t params){
       vmn_status = status;
+
+      if (vmn_status == VMNET_SUCCESS) {
+        // Scan like eth_scan_mac but simplified (only one format)
+        const char *mac_string = xpc_dictionary_get_string(params, vmnet_mac_address_key);
+        int a[6];
+        if (6 == sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5])) {
+          eth_dev->have_host_nic_phy_addr = 1;
+          eth_dev->host_nic_phy_hw_addr[0] = a[0];
+          eth_dev->host_nic_phy_hw_addr[1] = a[1];
+          eth_dev->host_nic_phy_hw_addr[2] = a[2];
+          eth_dev->host_nic_phy_hw_addr[3] = a[3];
+          eth_dev->host_nic_phy_hw_addr[4] = a[4];
+          eth_dev->host_nic_phy_hw_addr[5] = a[5];
+        }
+      }
 
       dispatch_semaphore_signal(cb_finished);
     });
