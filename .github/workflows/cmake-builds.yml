@@ -17,7 +17,7 @@ jobs:
       # (*) "artefact" for the rest of the Anglosphere
       #-
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
+        os: [ubuntu-22.04, ubuntu-latest]
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
 
 
   cmake-macOS:
-    name: macOS 12+
+    name: macOS
     runs-on: ${{ matrix.os }}
     strategy:
       #-
@@ -57,8 +57,10 @@ jobs:
       # that the build produces.
       #
       # (*) "artefact" for the rest of the Anglosphere -
+      #
+      # As of 18 NOV 2024, Github deprecated macos-12.
       matrix:
-        os: [macos-12, macos-13, macos-latest]
+        os: [macos-13, macos-14, macos-latest]
 
     env:
       CPACK_SUFFIX: ${{matrix.os != 'macos-14' && 'x86_64' || 'm1'}}.${{matrix.os}}
@@ -66,26 +68,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    ## Workaround for remnant symlinks in /usr/local pointing back to
-    ## macOS frameworks.
-    ##
-    ## Future: Will have to keep an eye on SDL_ttf's Python dependency
-    ## so that the correct/appropriate Python version is removed.
-    ##
-    ## Redirect stderr to /dev/null so that GH doesn't emit useless failure
-    ## messages.
-    - name: Remnant symlink cleanup
+    ## Nuke homebrew and start with a clean instance.
+    - name: Reinstall HomeBrew (macOS)
       run: |
-        brew unlink python@3 2> /dev/null || true
-        brew uninstall --ignore-dependencies python@3 2> /dev/null || true
-        brew unlink python@3.12 2> /dev/null || true
-        brew uninstall --ignore-dependencies python@3.12 2> /dev/null || true
-        for f in $(find /usr/local/bin -type l -print); do \
-          (readlink $f | grep -q -s "/Library") && echo Removing "$f" && rm -f "$f"; \
-        done || exit 0
+        /usr/bin/sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
+        [ -d /opt/homebrew ] && ( sudo rm -rf /opt/homebrew/* || true )
+        [ -d /usr/local ]    && ( sudo rm -rf /usr/local/*    || true )
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
     - name: Install dependencies
-      run: sh -ex .travis/deps.sh osx
+      run: |
+        sh -ex .travis/deps.sh osx
 
     - name: cmake-builder.sh
       run: |
@@ -192,6 +185,17 @@ jobs:
   cmake-vs2022:
     name: VS 2022 Win10 native VCPKG
     runs-on: windows-latest
+    strategy:
+      #-
+      # The CMake builds produce artifacts (*) and the runner image's name is
+      # used in the artifact's name, simh-4.1.0-x86_64-ubuntu-20.04.deb.
+      # Consequently, each runner image is enumerated for each artifact (*)
+      # that the build produces.
+      #
+      # (*) "artefact" for the rest of the Anglosphere
+      #-
+      matrix:
+        build: [vs2022]
     steps:
     - uses: actions/checkout@v4
     - name: vs2022 build
@@ -209,34 +213,36 @@ jobs:
           Push-Location $env:VCPKG_ROOT
           git pull
           Pop-Location
-          ./cmake/cmake-builder.ps1 -flavor vs2022 -config Release -clean -lto -verbose -notest -cpack_suffix win32-native
+          ./cmake/cmake-builder.ps1 -flavor ${{matrix.build}} -config Release -clean -lto -verbose `
+                -notest `
+                -cpack_suffix ${{matrix.build}}
     - name: SIMH simulator suite test
       shell: pwsh
       run: |
-          ./cmake/cmake-builder.ps1 -flavor vs2022 -config Release -testOnly
+          ./cmake/cmake-builder.ps1 -flavor ${{matrix.build}} -config Release -testOnly
     ## Install isn't strictly necessary, but it's a good way to see what dependencies
     ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
     - name: Install
       shell: pwsh
       run: |
-        cmake/cmake-builder.ps1 -config Release -flavor vs2022 -installOnly
+        cmake/cmake-builder.ps1 -config Release -flavor ${{matrix.build}} -installOnly
     - name: SIMH packaging
       shell: pwsh
       run: |
-          cd cmake\build-vs2022
+          cd cmake\build-${{matrix.build}}
           cpack -G "NSIS;WIX;ZIP" -C Release
     - name: Upload ZIP
       uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-win32-vs2022.zip
-        path: cmake/build-vs2022/simh-4.1.0-win32-native.zip
+        name: simh-4.1.0-${{matrix.build}}.zip
+        path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.zip
     - name: Upload EXE installer
       uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-win32-vs2022.exe
-        path: cmake/build-vs2022/simh-4.1.0-win32-native.exe
+        name: simh-4.1.0-${{matrix.build}}.exe
+        path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.exe
     - name: Upload MSI installer
       uses: actions/upload-artifact@v4
       with:
-        name: simh-4.1.0-win32-vs2022.msi
-        path: cmake/build-vs2022/simh-4.1.0-win32-native.msi
+        name: simh-4.1.0-${{matrix.build}}.msi
+        path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.msi
