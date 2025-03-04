@@ -652,7 +652,7 @@ t_stat xq_showmac (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
   CTLR* xq = xq_unit2ctlr(uptr);
   char  buffer[20];
 
-  eth_mac_fmt((ETH_MAC*)xq->var->mac, buffer);
+  eth_mac_fmt(xq->var->mac, buffer);
   fprintf(st, "MAC=%s", buffer);
   return SCPE_OK;
 }
@@ -687,7 +687,7 @@ t_stat xq_setmac (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 
   if (!cptr) return SCPE_IERR;
   if (uptr->flags & UNIT_ATT) return SCPE_ALATT;
-  status = eth_mac_scan_ex(&xq->var->mac, cptr, uptr);
+  status = eth_mac_scan_ex(xq->var->mac, cptr, uptr);
   if (status != SCPE_OK)
     return status;
 
@@ -745,10 +745,10 @@ t_stat xq_show_filters (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
   int i;
 
   if (xq->var->mode == XQ_T_DELQA_PLUS) {
-    eth_mac_fmt(&xq->var->init.phys, buffer);
+    eth_mac_fmt(xq->var->init.phys, buffer);
     fprintf(st, "Physical Address=%s\n", buffer);
     for (i=1; i<xq->var->etherface->addr_count; i++) {
-      eth_mac_fmt((ETH_MAC*)xq->var->etherface->filter_address[i], buffer);
+      eth_mac_fmt(xq->var->etherface->filter_address[i], buffer);
       fprintf(st, "Additional Filter:[%2d]: %s\n", (int)i, buffer);
     }
     if (xq->var->etherface->hash_filter) {
@@ -762,7 +762,7 @@ t_stat xq_show_filters (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
   } else {
     fprintf(st, "Filters:\n");
     for (i=0; i<XQ_FILTER_MAX; i++) {
-      eth_mac_fmt((ETH_MAC*)xq->var->setup.macs[i], buffer);
+      eth_mac_fmt(xq->var->setup.macs[i], buffer);
       fprintf(st, "  [%2d]: %s\n", (int)i, buffer);
     }
     if (xq->var->setup.multicast)
@@ -1366,7 +1366,6 @@ t_stat xq_process_setup(CTLR* xq)
   int count = 0;
   float secs = 0;
   uint32 saved_debug = xq->dev->dctrl;
-  ETH_MAC zeros = {0, 0, 0, 0, 0, 0};
   ETH_MAC filters[XQ_FILTER_MAX + 1];
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_setup()\n");
@@ -1456,10 +1455,10 @@ t_stat xq_process_setup(CTLR* xq)
   xq_reset_santmr(xq);
 
   /* set ethernet filter */
-  /* memcpy (filters[count++], xq->mac, sizeof(ETH_MAC)); */
+  /* eth_copy_mac(filters[count++], xq->mac); */
   for (i = 0; i < XQ_FILTER_MAX; i++)
-    if (memcmp(zeros, &xq->var->setup.macs[i], sizeof(ETH_MAC)))
-      memcpy (filters[count++], xq->var->setup.macs[i], sizeof(ETH_MAC));
+    if (eth_mac_cmp(eth_mac_any, xq->var->setup.macs[i]))
+      eth_copy_mac(filters[count++], xq->var->setup.macs[i]);
   eth_filter (xq->var->etherface, count, filters, xq->var->setup.multicast, xq->var->setup.promiscuous);
 
   /* process MOP information */
@@ -2012,11 +2011,11 @@ t_stat xq_process_loopback(CTLR* xq, ETH_PACK* pack)
      (we may receive others if we're in promiscuous mode, but shouldn't 
      respond to them) */
   if ((0 == (pack->msg[0]&1)) &&           /* Multicast or Broadcast */
-      (0 != memcmp(physical_address, pack->msg, sizeof(ETH_MAC))))
+      (0 != eth_mac_cmp(*physical_address, pack->msg)))
       return SCPE_NOFNC;
 
-  memcpy (&response.msg[0], &response.msg[offset+2], sizeof(ETH_MAC));
-  memcpy (&response.msg[6], physical_address, sizeof(ETH_MAC));
+  eth_copy_mac (&response.msg[0], &response.msg[offset+2]);
+  eth_copy_mac (&response.msg[6], *physical_address);
   offset += 8 - 16; /* Account for the Ethernet Header and Offset value in this number  */
   response.msg[14] = offset & 0xFF;
   response.msg[15] = (offset >> 8) & 0xFF;
@@ -2043,7 +2042,7 @@ t_stat xq_process_remote_console (CTLR* xq, ETH_PACK* pack)
   switch (code) {
     case 0x05: /* request id */
       receipt = pack->msg[18] | (pack->msg[19] << 8);
-      memcpy(source, &pack->msg[6], sizeof(ETH_MAC));
+      eth_copy_mac(source, &pack->msg[6]);
 
       /* send system id to requestor */
       status = xq_system_id (xq, source, receipt);
@@ -2164,14 +2163,13 @@ void xq_sw_reset(CTLR* xq)
   xq->var->setup.promiscuous = 0;
   if (xq->var->etherface) {
     int count = 0;
-    ETH_MAC zeros = {0, 0, 0, 0, 0, 0};
     ETH_MAC filters[XQ_FILTER_MAX + 1];
 
     /* set ethernet filter */
-    /* memcpy (filters[count++], xq->mac, sizeof(ETH_MAC)); */
+    /* eth_copy_mac(filters[count++], xq->mac); */
     for (i = 0; i < XQ_FILTER_MAX; i++)
-      if (memcmp(zeros, &xq->var->setup.macs[i], sizeof(ETH_MAC)))
-        memcpy (filters[count++], xq->var->setup.macs[i], sizeof(ETH_MAC));
+      if (eth_mac_cmp(eth_mac_any, xq->var->setup.macs[i]))
+        eth_copy_mac(filters[count++], xq->var->setup.macs[i]);
     eth_filter (xq->var->etherface, count, filters, xq->var->setup.multicast, xq->var->setup.promiscuous);
     }
 
@@ -2685,8 +2683,8 @@ t_stat xq_system_id (CTLR* xq, const ETH_MAC dest, uint16 receipt_id)
     return SCPE_NOFNC;  
 
   memset (&system_id, 0, sizeof(system_id));
-  memcpy (&msg[0], dest, sizeof(ETH_MAC));
-  memcpy (&msg[6], xq->var->setup.valid ? xq->var->setup.macs[0] : xq->var->mac, sizeof(ETH_MAC));
+  eth_copy_mac(&msg[0], dest);
+  eth_copy_mac(&msg[6], xq->var->setup.valid ? xq->var->setup.macs[0] : xq->var->mac);
   msg[12] = 0x60;                         /* type */
   msg[13] = 0x02;                         /* type */
   msg[14] = 0x1C;                         /* character count */
@@ -2720,7 +2718,7 @@ t_stat xq_system_id (CTLR* xq, const ETH_MAC dest, uint16 receipt_id)
   msg[31] = 0x07;                         /* type */
   msg[32] = 0x00;                         /* type */
   msg[33] = 0x06;                         /* length */
-  memcpy (&msg[34], xq->var->mac, sizeof(ETH_MAC)); /* ROM address */
+  eth_copy_mac(&msg[34], xq->var->mac); /* ROM address */
 
                                           /* DEVICE TYPE */
   msg[40] = 100;                          /* type */
@@ -2907,7 +2905,7 @@ t_stat xq_attach(UNIT* uptr, CONST char* cptr)
   } else {
     xq->var->must_poll = (SCPE_OK != eth_clr_async(xq->var->etherface));
   }
-  if (SCPE_OK != eth_check_address_conflict (xq->var->etherface, &xq->var->mac)) {
+  if (SCPE_OK != eth_check_address_conflict (xq->var->etherface, xq->var->mac)) {
     eth_close(xq->var->etherface);
     free(tptr);
     free(xq->var->etherface);
@@ -2936,12 +2934,11 @@ t_stat xq_attach(UNIT* uptr, CONST char* cptr)
   else
     if (xq->var->setup.valid) {
       int i, count = 0;
-      ETH_MAC zeros = {0, 0, 0, 0, 0, 0};
       ETH_MAC filters[XQ_FILTER_MAX + 1];
 
       for (i = 0; i < XQ_FILTER_MAX; i++)
-        if (memcmp(zeros, &xq->var->setup.macs[i], sizeof(ETH_MAC)))
-          memcpy (filters[count++], xq->var->setup.macs[i], sizeof(ETH_MAC));
+        if (eth_mac_cmp(eth_mac_any, xq->var->setup.macs[i]))
+          eth_copy_mac(filters[count++], xq->var->setup.macs[i]);
       eth_filter (xq->var->etherface, count, filters, xq->var->setup.multicast, xq->var->setup.promiscuous);
       }
     else
@@ -3085,7 +3082,7 @@ void xq_debug_setup(CTLR* xq)
     }
 
   for (i = 0; i < XQ_FILTER_MAX; i++) {
-    eth_mac_fmt(&xq->var->setup.macs[i], buffer);
+    eth_mac_fmt(xq->var->setup.macs[i], buffer);
     sim_debug(DBG_SET, xq->dev, "%s: setup> set addr[%d]: %s\n", xq->dev->name, i, buffer);
   }
 
@@ -3118,7 +3115,7 @@ void xq_debug_turbo_setup(CTLR* xq)
   if (xq->var->init.mode & XQ_IN_MO_LOP) strcat(buffer, "LOP ");
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Mode: %s\n", xq->dev->name, buffer);
 
-  eth_mac_fmt(&xq->var->init.phys, buffer);
+  eth_mac_fmt(xq->var->init.phys, buffer);
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Physical MAC Address: %s\n", xq->dev->name, buffer);
 
   buffer[0] = '\0';

@@ -645,7 +645,7 @@ xs->var->csr0 = xs->var->csr0 | CSR0_INIT;
 xs->var->csr0 = xs->var->csr0 & ~CSR0_STOP;
 
 /* reset ethernet interface */
-memcpy (xs->var->setup.macs[0], xs->var->mac, sizeof(ETH_MAC));
+eth_copy_mac(xs->var->setup.macs[0], xs->var->mac);
 xs->var->setup.mac_count = 1;
 if (xs->var->etherface)
     eth_filter (xs->var->etherface, xs->var->setup.mac_count,

@@ -340,22 +340,22 @@ t_stat eth_write  (ETH_DEV* dev, ETH_PACK* packet,      /* write synchronous pac
 int eth_read      (ETH_DEV* dev, ETH_PACK* packet,      /* read single packet; */
                    ETH_PCALLBACK routine);              /*  callback when done*/
 t_stat eth_filter (ETH_DEV* dev, int addr_count,        /* set filter on incoming packets */
-                   ETH_MAC* const addresses,
+                   const ETH_MAC addresses[],
                    ETH_BOOL all_multicast,
                    ETH_BOOL promiscuous);
 t_stat eth_filter_hash (ETH_DEV* dev, int addr_count,   /* set filter on incoming packets with hash */
-                        ETH_MAC* const addresses,
+                        const ETH_MAC addresses[],
                         ETH_BOOL all_multicast,
                         ETH_BOOL promiscuous,
                         ETH_MULTIHASH* const hash);     /* AUTODIN II based 8 byte imperfect hash */
 t_stat eth_filter_hash_ex (ETH_DEV* dev, int addr_count,/* set filter on incoming packets with hash */
-                           ETH_MAC* const addresses,
+                           const ETH_MAC addresses[],
                            ETH_BOOL all_multicast,
                            ETH_BOOL promiscuous,
                            ETH_BOOL match_broadcast,
                            ETH_MULTIHASH* const hash);  /* AUTODIN II based 8 byte imperfect hash */
 t_stat eth_check_address_conflict (ETH_DEV* dev,
-                                   ETH_MAC* const address);
+                                   const ETH_MAC address);
 const char *eth_version (void);                         /* Version of dynamically loaded library (pcap) */
 void eth_setcrc   (ETH_DEV* dev, int need_crc);         /* enable/disable CRC mode */
 t_stat eth_set_async (ETH_DEV* dev, int latency);       /* set read behavior to be async */
@@ -372,9 +372,9 @@ t_stat eth_show_devices (FILE* st, DEVICE *dptr,        /* show ethernet devices
 int eth_devices (int max, ETH_LIST* dev, ETH_BOOL framers); /* get ethernet devices on host */
 void eth_show_dev (FILE*st, ETH_DEV* dev);              /* show ethernet device state */
 
-void eth_mac_fmt (ETH_MAC* const add, char* buffer);    /* format ethernet mac address */
-t_stat eth_mac_scan (ETH_MAC* mac, const char* strmac); /* scan string for mac, put in mac */
-t_stat eth_mac_scan_ex (ETH_MAC* mac,                   /* scan string for mac, put in mac */
+void eth_mac_fmt (const ETH_MAC add, char* buffer);     /* format ethernet mac address */
+t_stat eth_mac_scan (ETH_MAC mac, const char* strmac);  /* scan string for mac, put in mac */
+t_stat eth_mac_scan_ex (ETH_MAC mac,                    /* scan string for mac, put in mac */
                         const char* strmac, UNIT *uptr);/* for specified unit */
 
 t_stat ethq_init (ETH_QUE* que, int max);               /* initialize FIFO queue */
@@ -388,6 +388,44 @@ void ethq_insert_data(ETH_QUE* que, int32 type,         /* insert item into FIFO
 t_stat ethq_destroy(ETH_QUE* que);                      /* release FIFO queue */
 const char *eth_capabilities(void);
 t_stat sim_ether_test (DEVICE *dptr, const char *cptr); /* unit test routine */
+
+/* Well-known Ethernet MAC addresses:
+ *
+ * eth_mac_any: All zeroes/any address
+ * eth_mac_bcast: All ones broadcast.
+ */
+extern const ETH_MAC eth_mac_any;
+extern const ETH_MAC eth_mac_bcast;
+
+/* Type-enforcing MAC address copy function.
+ *
+ * This inline helps to prevent the following situation:
+ * 
+ *   void network_func(DEVICE *dev, ETH_MAC *mac)
+ *   {
+ *     ETH_MAC other_mac;
+ * 
+ *     ...
+ *     memcpy(other_mac, mac, sizeof(ETH_MAC));
+ *   }
+ * 
+ * The compiler will happily accept the memcpy() as valid because src and dst are
+ * converted to "void *". This is a subtle bug -- mac is a pointer to an ETH_MAC
+ * and memcpy will copy from somewhere other than the first byte of the source MAC
+ * address.
+ */
+static inline void eth_copy_mac(ETH_MAC dst, const ETH_MAC src)
+{
+  memcpy(dst, src, sizeof(ETH_MAC));
+}
+
+/* Type-enforcing MAC comparison function. Helps to avoid subtle memcmp() issues
+ * (see above).
+ */
+static inline int eth_mac_cmp(const ETH_MAC a, const ETH_MAC b)
+{
+  return memcmp(a, b, sizeof(ETH_MAC));
+}
 
 #if !defined(SIM_TEST_INIT)     /* Need stubs for test APIs */
 #define SIM_TEST_INIT

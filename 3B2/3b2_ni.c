@@ -557,7 +557,7 @@ t_stat ni_setmac(UNIT *uptr, int32 val, CONST char* cptr, void* desc)
     UNUSED(desc);
 
     status = SCPE_OK;
-    status = eth_mac_scan_ex(&ni.macs[NI_NIC_MAC], cptr, uptr);
+    status = eth_mac_scan_ex(ni.macs[NI_NIC_MAC], cptr, uptr);
 
     if (status == SCPE_OK) {
         eth_filter(ni.eth, ni.filter_count, ni.macs, 0, 0);
@@ -577,7 +577,7 @@ t_stat ni_showmac(FILE* st, UNIT* uptr, int32 val, CONST void* desc)
     UNUSED(val);
     UNUSED(desc);
 
-    eth_mac_fmt(&ni.macs[NI_NIC_MAC], buffer);
+    eth_mac_fmt(ni.macs[NI_NIC_MAC], buffer);
     fprintf(st, "MAC=%s", buffer);
     return SCPE_OK;
 }
@@ -591,12 +591,12 @@ t_stat ni_show_filters(FILE* st, UNIT* uptr, int32 val, CONST void* desc)
     UNUSED(val);
     UNUSED(desc);
 
-    eth_mac_fmt(&ni.macs[NI_NIC_MAC], buffer);
+    eth_mac_fmt(ni.macs[NI_NIC_MAC], buffer);
     fprintf(st, "Physical Address=%s\n", buffer);
     if (ni.filter_count > 0) {
         fprintf(st, "Filters:\n");
         for (i=0; i < ni.filter_count; i++) {
-            eth_mac_fmt((ETH_MAC *) ni.macs[i], buffer);
+            eth_mac_fmt(ni.macs[i], buffer);
             fprintf(st, "[%2d]: %s\n", i, buffer);
         }
         fprintf(st, "\n");
@@ -948,7 +948,7 @@ t_stat ni_attach(UNIT *uptr, CONST char *cptr)
         return status;
     }
 
-    status = eth_check_address_conflict(ni.eth, &ni.macs[NI_NIC_MAC]);
+    status = eth_check_address_conflict(ni.eth, ni.macs[NI_NIC_MAC]);
     if (status != SCPE_OK) {
         sim_debug(DBG_ERR, &ni_dev, "ni_attach failure: mac check\n");
         eth_close(ni.eth);
