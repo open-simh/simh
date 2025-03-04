@@ -808,12 +808,12 @@ t_stat ec_srv(UNIT *uptr)
                 
             }
         }
-        memcpy(&ec_data.mac, &buf[0], sizeof (ETH_MAC));
-        eth_mac_fmt(&ec_data.mac, (char *)&buf[0]);
+        eth_copy_mac(ec_data.mac, &buf[0]);
+        eth_mac_fmt(ec_data.mac, (char *)&buf[0]);
         sim_debug(DEBUG_CMD, dptr, "ec_srv setting mac %s\n", buf);
         n = ec_data.macs_n + 2;
-        memcpy(&ec_data.macs[0], &ec_data.mac, sizeof (ETH_MAC));
-        memcpy(&ec_data.macs[1], &broadcast_ethaddr, sizeof (ETH_MAC));
+        eth_copy_mac(ec_data.macs[0], ec_data.mac);
+        eth_copy_mac(ec_data.macs[1], broadcast_ethaddr);
         if (ec_master_uptr->flags & UNIT_ATT)
             /* set promiscuous if bit 7 of byte zero of mac address is set */
             eth_filter (&ec_data.etherface, n, ec_data.macs, ec_data.amc,
@@ -846,13 +846,13 @@ t_stat ec_srv(UNIT *uptr)
             }
             if (i != sizeof (ETH_MAC))
                 break;
-            memcpy(&ec_data.macs[len++], &buf[0], sizeof (ETH_MAC));
+            eth_copy_mac(ec_data.macs[len++], &buf[0]);
         }
         ec_data.macs_n = len - 2;
         ec_data.amc = 1;
 
         for (i = 0; i< len; i++) {
-            eth_mac_fmt(&ec_data.macs[i], (char *)&buf[0]);
+            eth_mac_fmt(ec_data.macs[i], (char *) &buf[0]);
             sim_debug(DEBUG_DETAIL, &ec_dev, "ec_srv load mcast%d: %s\n",i,buf);
         }
 
@@ -946,7 +946,7 @@ t_stat ec_srv(UNIT *uptr)
                 }
             }
             /* insert 6 byte source from configuration */
-            memcpy(&hdr->src, ec_data.mac, sizeof(ETH_MAC));
+            eth_copy_mac(hdr->src, ec_data.mac);
 
             /* copy two byte type/len from user buffer */
             for (i = sizeof(ETH_MAC) * 2; i < sizeof(struct ec_eth_hdr); i++) {
@@ -1023,7 +1023,7 @@ t_stat ec_srv(UNIT *uptr)
                 }
             }
             /* insert source(6) */
-            memcpy(&hdr->src, ec_data.mac, sizeof(ETH_MAC));
+            eth_copy_mac(hdr->src, ec_data.mac);
 
 //#define USE_DATA_CNT
 #ifdef USE_DATA_CNT
@@ -1706,12 +1706,12 @@ void ec_packet_debug(struct ec_device *ec, const char *action,
 
         if (!(ec_dev.dctrl & DEBUG_ARP))
             return;
-        eth_mac_fmt(&arp->ethhdr.src, eth_src);
-        eth_mac_fmt(&arp->ethhdr.dest, eth_dst);
-        eth_mac_fmt(&arp->shwaddr, arp_shwaddr);
+        eth_mac_fmt(arp->ethhdr.src, eth_src);
+        eth_mac_fmt(arp->ethhdr.dest, eth_dst);
+        eth_mac_fmt(arp->shwaddr, arp_shwaddr);
         memcpy(&in_addr, &arp->sipaddr, sizeof(in_addr));
         strlcpy(arp_sipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_sipaddr));
-        eth_mac_fmt(&arp->dhwaddr, arp_dhwaddr);
+        eth_mac_fmt(arp->dhwaddr, arp_dhwaddr);
         memcpy(&in_addr, &arp->dipaddr, sizeof(in_addr));
         strlcpy(arp_dipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_dipaddr));
         sim_debug(DEBUG_ARP, &ec_dev,
@@ -1806,7 +1806,7 @@ t_stat ec_set_mode (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 t_stat ec_show_mac (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
     char buffer[20];
-    eth_mac_fmt(&ec_data.mac, buffer);
+    eth_mac_fmt(ec_data.mac, buffer);
     fprintf(st, "MAC=%s", buffer);
     return SCPE_OK;
 }
@@ -1818,7 +1818,7 @@ t_stat ec_set_mac (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
     if (!cptr) return SCPE_IERR;
     if (uptr->flags & UNIT_ATT) return SCPE_ALATT;
 
-    status = eth_mac_scan_ex(&ec_data.mac, cptr, uptr);
+    status = eth_mac_scan_ex(ec_data.mac, cptr, uptr);
     if (status != SCPE_OK)
       return status;
 
@@ -1866,16 +1866,16 @@ t_stat ec_attach(UNIT* uptr, CONST char* cptr)
     if (tptr == NULL) return SCPE_MEM;
     strcpy(tptr, cptr);
 
-    memcpy(&ec_data.macs[0], &ec_data.mac, sizeof (ETH_MAC));
-    memcpy(&ec_data.macs[1], &broadcast_ethaddr, sizeof (ETH_MAC));
+    eth_copy_mac(ec_data.macs[0], ec_data.mac);
+    eth_copy_mac(ec_data.macs[1], broadcast_ethaddr);
     status = eth_open(&ec_data.etherface, cptr, &ec_dev, DEBUG_ETHER);
     if (status != SCPE_OK) {
         free(tptr);
         return status;
     }
-    eth_mac_fmt(&ec_data.mac, buf);             /* format ethernet mac address */
+    eth_mac_fmt(ec_data.mac, buf);              /* format ethernet mac address */
     if (SCPE_OK != eth_check_address_conflict (&ec_data.etherface,
-                                                 &ec_data.mac)) {
+                                                 ec_data.mac)) {
         eth_close(&ec_data.etherface);
         free(tptr);
         return sim_messagef (SCPE_NOATT,

@@ -368,7 +368,7 @@ t_stat xu_showmac (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
   CTLR* xu = xu_unit2ctlr(uptr);
   char  buffer[20];
 
-  eth_mac_fmt((ETH_MAC*)xu->var->mac, buffer);
+  eth_mac_fmt(xu->var->mac, buffer);
   fprintf(st, "MAC=%s", buffer);
   return SCPE_OK;
 }
@@ -380,7 +380,7 @@ t_stat xu_setmac (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 
   if (!cptr) return SCPE_IERR;
   if (uptr->flags & UNIT_ATT) return SCPE_ALATT;
-  status = eth_mac_scan_ex(&xu->var->mac, cptr, uptr);
+  status = eth_mac_scan_ex(xu->var->mac, cptr, uptr);
   return status;
 }
 
@@ -421,7 +421,7 @@ t_stat xu_show_filters (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 
   fprintf(st, "Filters:\n");
   for (i=0; i<XU_FILTER_MAX; i++) {
-    eth_mac_fmt((ETH_MAC*)xu->var->setup.macs[i], buffer);
+    eth_mac_fmt(xu->var->setup.macs[i], buffer);
     fprintf(st, "  [%2d]: %s\n", i, buffer);
   }
   if (xu->var->setup.multicast)
@@ -570,7 +570,7 @@ t_stat xu_process_loopback(CTLR* xu, ETH_PACK* pack)
 
   /* create forward response packet */
   memcpy (&response, pack, sizeof(ETH_PACK));
-  memcpy (physical_address, xu->var->setup.macs[0], sizeof(ETH_MAC));
+  eth_copy_mac(physical_address, xu->var->setup.macs[0]);
 
   /* The only packets we should be responding to are ones which 
      we received due to them being directed to our physical MAC address, 
@@ -578,12 +578,12 @@ t_stat xu_process_loopback(CTLR* xu, ETH_PACK* pack)
      (we may receive others if we're in promiscuous mode, but shouldn't 
      respond to them) */
   if ((0 == (pack->msg[0]&1)) &&           /* Multicast or Broadcast */
-      (0 != memcmp(physical_address, pack->msg, sizeof(ETH_MAC))))
+      (0 != eth_mac_cmp(physical_address, pack->msg)))
       return SCPE_NOFNC;
 
 
-  memcpy (&response.msg[0], &response.msg[offset+2], sizeof(ETH_MAC));
-  memcpy (&response.msg[6], physical_address, sizeof(ETH_MAC));
+  eth_copy_mac(&response.msg[0], &response.msg[offset+2]);
+  eth_copy_mac(&response.msg[6], physical_address);
   offset += 8 - 16; /* Account for the Ethernet Header and Offset value in this number  */
   response.msg[14] = offset & 0xFF;
   response.msg[15] = (offset >> 8) & 0xFF;
@@ -652,8 +652,8 @@ t_stat xu_system_id (CTLR* xu, const ETH_MAC dest, uint16 receipt_id)
 
   sim_debug(DBG_TRC, xu->dev, "xu_system_id()\n");
   memset (&system_id, 0, sizeof(system_id));
-  memcpy (&msg[0], dest, sizeof(ETH_MAC));
-  memcpy (&msg[6], xu->var->setup.macs[0], sizeof(ETH_MAC));
+  eth_copy_mac(&msg[0], dest);
+  eth_copy_mac(&msg[6], xu->var->setup.macs[0]);
   msg[12] = 0x60;                         /* type */
   msg[13] = 0x02;                         /* type */
   msg[14] = 0x1C;                         /* character count */
@@ -687,7 +687,7 @@ t_stat xu_system_id (CTLR* xu, const ETH_MAC dest, uint16 receipt_id)
   msg[31] = 0x07;                         /* type */
   msg[32] = 0x00;                         /* type */
   msg[33] = 0x06;                         /* length */
-  memcpy (&msg[34], xu->var->mac, sizeof(ETH_MAC)); /* ROM address */
+  eth_copy_mac(&msg[34], xu->var->mac); /* ROM address */
 
                                           /* DEVICE TYPE */
   msg[40] = 0x64;                         /* type */
@@ -824,7 +824,7 @@ t_stat xu_sw_reset (CTLR* xu)
   memset(&xu->var->stats, 0, sizeof(struct xu_stats));
 
   /* reset ethernet interface */
-  memcpy (xu->var->setup.macs[0], xu->var->mac, sizeof(ETH_MAC));
+  eth_copy_mac(xu->var->setup.macs[0], xu->var->mac);
   for (i=0; i<6; i++)
     xu->var->setup.macs[1][i] = 0xff; /* Broadcast Address */
   xu->var->setup.mac_count = 2;
@@ -887,7 +887,6 @@ int32 xu_command(CTLR* xu)
   struct xu_stats* stats = &xu->var->stats;
   uint16* udb = xu->var->udb;
   uint16* mac_w = (uint16*) xu->var->mac;
-  static const ETH_MAC zeros = {0,0,0,0,0,0};
   static const ETH_MAC mcast_load_server = {0xAB, 0x00, 0x00, 0x01, 0x00, 0x00};
   static const char* command[] = {
       "NO-OP",
@@ -1166,7 +1165,7 @@ int32 xu_command(CTLR* xu)
       break;
 
     case FC_RLSA: /* read load server address */
-      if (memcmp(xu->var->load_server, zeros, sizeof(ETH_MAC))) {
+      if (eth_mac_cmp(xu->var->load_server, eth_mac_any)) {
         /* not set, use default multicast load address */
         wstatus = Map_WriteB(xu->var->pcbb + 2, 6, (const uint8*) mcast_load_server);
       } else {
@@ -1452,7 +1451,7 @@ void xu_process_transmit(CTLR* xu)
       /* As described in the DEUNA User Guide (Section 4.7), the DEUNA is responsible 
          for inserting the appropriate source MAC address in the outgoing packet header, 
          so we do that now. */
-      memcpy(xu->var->write_buffer.msg+6, (uint8*)&xu->var->setup.macs[0], sizeof(ETH_MAC));
+      eth_copy_mac(xu->var->write_buffer.msg+6, xu->var->setup.macs[0]);
 
       /* are we in internal loopback mode ? */
       if ((xu->var->mode & MODE_LOOP) && (xu->var->mode & MODE_INTL)) {
@@ -1485,7 +1484,7 @@ void xu_process_transmit(CTLR* xu)
 
       /* was packet self-addressed? */
       for (i=0; i<XU_FILTER_MAX; i++)
-        if (memcmp(xu->var->write_buffer.msg, xu->var->setup.macs[i], sizeof(ETH_MAC)) == 0)
+        if (eth_mac_cmp(xu->var->write_buffer.msg, xu->var->setup.macs[i]) == 0)
           xu->var->txhdr[2] |= TXR_MTCH;
 
       /* tell host we transmitted a packet */
@@ -1775,7 +1774,7 @@ t_stat xu_attach(UNIT* uptr, CONST char* cptr)
     return status;
   }
   eth_set_throttle (xu->var->etherface, xu->var->throttle_time, xu->var->throttle_burst, xu->var->throttle_delay);
-  if (SCPE_OK != eth_check_address_conflict (xu->var->etherface, &xu->var->mac)) {
+  if (SCPE_OK != eth_check_address_conflict (xu->var->etherface, xu->var->mac)) {
     eth_close(xu->var->etherface);
     free(tptr);
     free(xu->var->etherface);
@@ -1798,12 +1797,11 @@ t_stat xu_attach(UNIT* uptr, CONST char* cptr)
 
   if (xu->var->setup.valid) {
     int i, count = 0;
-    ETH_MAC zeros = {0, 0, 0, 0, 0, 0};
     ETH_MAC filters[XU_FILTER_MAX + 1];
 
     for (i = 0; i < XU_FILTER_MAX; i++)
-      if (memcmp(zeros, &xu->var->setup.macs[i], sizeof(ETH_MAC)))
-        memcpy (filters[count++], xu->var->setup.macs[i], sizeof(ETH_MAC));
+      if (eth_mac_cmp(eth_mac_any, xu->var->setup.macs[i]))
+        eth_copy_mac (filters[count++], xu->var->setup.macs[i]);
     eth_filter (xu->var->etherface, count, filters, xu->var->setup.multicast, xu->var->setup.promiscuous);
     }
 
