@@ -31,6 +31,11 @@
 #include <string.h>
 #include "sim_defs.h"                   /* simulator defns */
 
+/* Rename of global PC, BC and SP variables to avoid namespace conflicts on some platforms */
+#define PC PC_Global
+#define BC BC_Global
+#define SP SP_Global
+
 #define SET_XACK(VAL)   (xack = VAL)
 
 #define I3214_NUM       0
