@@ -521,7 +521,7 @@ void           imp_packet_in(struct imp_device *imp);
 void           imp_send_packet (struct imp_device *imp_data, int len);
 void           imp_free_packet(struct imp_device *imp, struct imp_packet *p);
 struct imp_packet * imp_get_packet(struct imp_device *imp);
-void           imp_arp_update(struct imp_device *imp, in_addr_T ipaddr, ETH_MAC *ethaddr, int age);
+void           imp_arp_update(struct imp_device *imp, in_addr_T ipaddr, ETH_MAC ethaddr, int age);
 void           imp_arp_arpin(struct imp_device *imp, ETH_PACK *packet);
 void           imp_arp_arpout(struct imp_device *imp, in_addr_T ipaddr);
 struct arp_entry * imp_arp_lookup(struct imp_device *imp, in_addr_T ipaddr);
@@ -1430,7 +1430,7 @@ imp_packet_in(struct imp_device *imp)
        /* Process as IP if it is for us */
        if (ip_hdr->ip_dst == imp_data.ip || ip_hdr->ip_dst == 0) {
            /* Add mac address since we will probably need it later */
-           imp_arp_update(imp, ip_hdr->ip_src, &hdr->src, 0);
+           imp_arp_update(imp, ip_hdr->ip_src, hdr->src, 0);
            /* Clear beginning of message */
            memset(&imp->rbuffer[0], 0, 256);
            imp->rbuffer[0] = 0xf;
@@ -1955,12 +1955,12 @@ void imp_packet_debug(struct imp_device *imp, const char *action, ETH_PACK *pack
 
         if (!(imp_dev.dctrl & DEBUG_ARP))
             return;
-        eth_mac_fmt(&arp->ethhdr.src, eth_src);
-        eth_mac_fmt(&arp->ethhdr.dest, eth_dst);
-        eth_mac_fmt(&arp->shwaddr, arp_shwaddr);
+        eth_mac_fmt(arp->ethhdr.src, eth_src);
+        eth_mac_fmt(arp->ethhdr.dest, eth_dst);
+        eth_mac_fmt(arp->shwaddr, arp_shwaddr);
         memcpy(&in_addr, &arp->sipaddr, sizeof(in_addr));
         strlcpy(arp_sipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_sipaddr));
-        eth_mac_fmt(&arp->dhwaddr, arp_dhwaddr);
+        eth_mac_fmt(arp->dhwaddr, arp_dhwaddr);
         memcpy(&in_addr, &arp->dipaddr, sizeof(in_addr));
         strlcpy(arp_dipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_dipaddr));
         sim_debug(DEBUG_ARP, &imp_dev,
@@ -2013,7 +2013,7 @@ void imp_packet_debug(struct imp_device *imp, const char *action, ETH_PACK *pack
                     memcpy(&ipaddr, &dhcp->giaddr, sizeof(ipaddr));
                     sim_debug(DEBUG_DHCP, &imp_dev, ", giaddr=%s", ipv4_inet_ntoa(ipaddr));
                     }
-                eth_mac_fmt((ETH_MAC*)&dhcp->chaddr, mac_buf);
+                eth_mac_fmt(dhcp->chaddr, mac_buf);
                 sim_debug(DEBUG_DHCP, &imp_dev, ", chaddr=%s Options: ", mac_buf);
                 while (*opt != DHCP_OPTION_END) {
                     int opt_len;
@@ -2129,7 +2129,7 @@ void imp_write(struct imp_device *imp, ETH_PACK *packet) {
  * Update the ARP table, first use free entry, else use oldest.
  */
 void
-imp_arp_update(struct imp_device *imp, in_addr_T ipaddr, ETH_MAC *ethaddr, int age)
+imp_arp_update(struct imp_device *imp, in_addr_T ipaddr, ETH_MAC ethaddr, int age)
 {
     struct arp_entry  *tabptr;
     int                i;
@@ -2141,8 +2141,8 @@ imp_arp_update(struct imp_device *imp, in_addr_T ipaddr, ETH_MAC *ethaddr, int a
 
         if (tabptr->ipaddr != 0) {
             if (tabptr->ipaddr == ipaddr) {
-                if (0 != memcmp(&tabptr->ethaddr, ethaddr, sizeof(ETH_MAC))) {
-                    memcpy(&tabptr->ethaddr, ethaddr, sizeof(ETH_MAC));
+                if (0 != eth_mac_cmp(tabptr->ethaddr, ethaddr)) {
+                    eth_copy_mac(tabptr->ethaddr, ethaddr);
                     eth_mac_fmt(ethaddr, mac_buf);
                     sim_debug(DEBUG_ARP, &imp_dev,
                               "updating entry for IP %s to %s\n",
@@ -2178,7 +2178,7 @@ imp_arp_update(struct imp_device *imp, in_addr_T ipaddr, ETH_MAC *ethaddr, int a
     }
 
     /* Now save the entry */
-    memcpy(&tabptr->ethaddr, ethaddr, sizeof(ETH_MAC));
+    eth_copy_mac(tabptr->ethaddr, ethaddr);
     tabptr->ipaddr = ipaddr;
     tabptr->age = age;
     eth_mac_fmt(ethaddr, mac_buf);
@@ -2204,7 +2204,7 @@ void imp_arp_age(struct imp_device *imp)
             if (tabptr->age > IMP_ARP_MAX_AGE) {
                 char mac_buf[20];
 
-                eth_mac_fmt(&tabptr->ethaddr, mac_buf);
+                eth_mac_fmt(tabptr->ethaddr, mac_buf);
                 sim_debug(DEBUG_ARP, &imp_dev,
                           "discarding ARP entry for IP %s %s after %d seconds\n",
                           ipv4_inet_ntoa(*((struct in_addr *)&tabptr->ipaddr)), mac_buf, IMP_ARP_MAX_AGE);
@@ -2232,7 +2232,7 @@ imp_arp_arpin(struct imp_device *imp, ETH_PACK *packet)
        return;
     arp = (struct arp_hdr *)(&packet->msg[0]);
     op = ntohs(arp->opcode);
-    imp_arp_update(imp, arp->sipaddr, &arp->shwaddr, 0);
+    imp_arp_update(imp, arp->sipaddr, arp->shwaddr, 0);
 
     switch (op) {
     case ARP_REQUEST:
@@ -2249,7 +2249,7 @@ imp_arp_arpin(struct imp_device *imp, ETH_PACK *packet)
            arp->ethhdr.type = htons(ETHTYPE_ARP);
            packet->len = sizeof(struct arp_hdr);
            imp_write(imp, packet);
-           eth_mac_fmt(&arp->dhwaddr, mac_buf);
+           eth_mac_fmt(arp->dhwaddr, mac_buf);
            sim_debug(DEBUG_ARP, &imp_dev, "replied to received request for IP %s from %s\n",
                ipv4_inet_ntoa(*((struct in_addr *)&imp->ip)), mac_buf);
          }
@@ -2260,7 +2260,7 @@ imp_arp_arpin(struct imp_device *imp, ETH_PACK *packet)
         if (arp->dipaddr == imp->ip) {
             struct imp_packet  *nq = NULL;                /* New send queue */
 
-            eth_mac_fmt(&arp->shwaddr, mac_buf);
+            eth_mac_fmt(arp->shwaddr, mac_buf);
             memcpy(&in_addr, &arp->sipaddr, sizeof(in_addr));
             sim_debug(DEBUG_ARP, &imp_dev, "received reply for IP %s as %s\n",
                ipv4_inet_ntoa(in_addr), mac_buf);
@@ -2351,12 +2351,12 @@ t_stat imp_set_arp (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
 
     cptr = get_glyph (cptr, abuf, '=');
     if (cptr && *cptr) {
-        if (SCPE_OK != eth_mac_scan (&mac_addr, cptr)) /* scan string for mac, put in mac */
+        if (SCPE_OK != eth_mac_scan (mac_addr, cptr))  /* scan string for mac, put in mac */
             return sim_messagef(SCPE_ARG, "Invalid MAC address: %s\n", abuf);
     } else
         return sim_messagef(SCPE_ARG, "MAC address empty\n");
     if (ipv4_inet_aton (abuf, (struct in_addr *)&ip)) {
-        imp_arp_update(&imp_data, ip, &mac_addr, ARP_DONT_AGE);
+        imp_arp_update(&imp_data, ip, mac_addr, ARP_DONT_AGE);
         return SCPE_OK;
     }
     return sim_messagef(SCPE_ARG, "Invalid IP Address: %s\n", abuf);
@@ -2377,7 +2377,7 @@ t_stat imp_show_arp (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
         if (tabptr->ipaddr == 0)
             continue;
 
-        eth_mac_fmt(&tabptr->ethaddr, buf);     /* format ethernet mac address */
+        eth_mac_fmt(tabptr->ethaddr, buf);      /* format ethernet mac address */
         if (tabptr->age == ARP_DONT_AGE)
             fprintf (st, "%-17s%-19s%s\n",
                           ipv4_inet_ntoa(*((struct in_addr *)&tabptr->ipaddr)),
@@ -2457,7 +2457,7 @@ imp_do_send_dhcp(struct imp_device *imp,
     packet->len = len + sizeof(struct ip_hdr);
     imp_write(imp, packet);
 
-    eth_mac_fmt (&pkt->ethhdr.dest, mac_buf);
+    eth_mac_fmt (pkt->ethhdr.dest, mac_buf);
     memcpy(&in_addr, &udp_hdr.ip_dst, sizeof(in_addr));
     sim_debug(DEBUG_DHCP, &imp_dev,
         "client sent %s packet to: %s:%d(%s)\n",
@@ -2574,7 +2574,7 @@ imp_do_dhcp_client(struct imp_device *imp, ETH_PACK *read_buffer)
         }
     }
 
-    eth_mac_fmt(&eth->src, mac_buf);
+    eth_mac_fmt(eth->src, mac_buf);
     memcpy(&in_addr, &udp_hdr.ip_src, sizeof(in_addr));
     sim_debug(DEBUG_DHCP, &imp_dev,
         "client incoming %s packet: dhcp_state=%s - wait_time=%d from: %s:%d(%s)\n",
@@ -2617,7 +2617,7 @@ imp_do_dhcp_client(struct imp_device *imp, ETH_PACK *read_buffer)
                 break;
             }
         /* Record a static ARP for the DHCP server */
-        imp_arp_update(imp, dhcpip, &eth->src, ARP_DONT_AGE);
+        imp_arp_update(imp, dhcpip, eth->src, ARP_DONT_AGE);
 
         /* Broadcast an ARP Reply with the assigned IP Address */
         memset(&arp_pkt, 0, sizeof(ETH_PACK));
@@ -2948,7 +2948,7 @@ t_stat imp_show_mpx (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 t_stat imp_show_mac (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
     char buffer[20];
-    eth_mac_fmt(&imp_data.mac, buffer);
+    eth_mac_fmt(imp_data.mac, buffer);
     fprintf(st, "MAC=%s", buffer);
     return SCPE_OK;
 }
@@ -2960,7 +2960,7 @@ t_stat imp_set_mac (UNIT* uptr, int32 val, CONST char* cptr, void* desc)
     if (!cptr) return SCPE_IERR;
     if (uptr->flags & UNIT_ATT) return SCPE_ALATT;
 
-    status = eth_mac_scan_ex(&imp_data.mac, cptr, uptr);
+    status = eth_mac_scan_ex(imp_data.mac, cptr, uptr);
     if (status != SCPE_OK)
       return status;
 
@@ -3160,8 +3160,8 @@ t_stat imp_attach(UNIT* uptr, CONST char* cptr)
       free(tptr);
       return status;
     }
-    eth_mac_fmt(&imp_data.mac, buf);     /* format ethernet mac address */
-    if (SCPE_OK != eth_check_address_conflict (&imp_data.etherface, &imp_data.mac)) {
+    eth_mac_fmt(imp_data.mac, buf);      /* format ethernet mac address */
+    if (SCPE_OK != eth_check_address_conflict (&imp_data.etherface, imp_data.mac)) {
       eth_close(&imp_data.etherface);
       free(tptr);
       return sim_messagef (SCPE_NOATT, "%s: MAC Address Conflict on LAN for address %s\n",
@@ -3215,7 +3215,7 @@ t_stat imp_attach(UNIT* uptr, CONST char* cptr)
           imp_arp_arpin(&imp_data, &read_buffer);
       } while (read_buffer.len > 0);
       if ((arp = imp_arp_lookup(&imp_data, imp_data.gwip)))
-        imp_arp_update(&imp_data, imp_data.gwip, &arp->ethaddr, ARP_DONT_AGE);
+        imp_arp_update(&imp_data, imp_data.gwip, arp->ethaddr, ARP_DONT_AGE);
     }
 
     eth_set_async (&imp_data.etherface, 0); /* Allow Asynchronous inbound packets */
