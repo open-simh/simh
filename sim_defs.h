@@ -159,11 +159,17 @@ extern int sim_vax_snprintf(char *buf, size_t buf_size, const char *fmt, ...);
 #include <process.h>
 #endif
 
+#include "sim_printf_fmts.h"
+
 #ifdef USE_REGEX
 #undef USE_REGEX
 #endif
 #if defined(HAVE_PCRE_H)
 #include <pcre.h>
+#define USE_REGEX 1
+#elif defined(HAVE_PCRE2_H)
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #define USE_REGEX 1
 #endif
 
@@ -827,6 +833,44 @@ struct BRKTYPTAB {
     };
 #define BRKTYPE(typ,descrip) {SWMASK(typ), descrip}
 
+/* sim_regex_t: Type alias for the appropriate PCRE package to reduce
+   conditional compiles in this header. Unfortunately, that's not the
+   case when the actual PCRE/PCRE2 functions are called in scp.c.
+
+   sim_re_capture_t: Type alias for the PCRE/PCRE2 package's regex
+   subexpression capture index.
+
+   sim_re_context_t: Context structure (closure) used to extract captured
+   regex expressions.
+ */
+
+#if defined(HAVE_PCRE_H)
+typedef pcre   sim_regex_t;
+typedef int    sim_re_capture_t;
+
+typedef struct {
+    int *ovector;
+    int ovector_elts;
+} sim_re_context_t;
+
+#elif defined(HAVE_PCRE2_H)
+typedef pcre2_code sim_regex_t;
+typedef uint32     sim_re_capture_t;
+
+typedef struct {
+    size_t           *ovector;
+    pcre2_match_data *match_data;
+} sim_re_context_t;
+#else
+/* No RegEx support. Provide reasonable defaults. */
+typedef void    *sim_regex_t;
+typedef int     sim_re_capture_t;
+
+typedef struct {
+    int sim_re_ctx_dummy;
+} sim_re_context_t;
+#endif
+
 /* Expect rule */
 
 struct EXPTAB {
@@ -836,15 +880,14 @@ struct EXPTAB {
     int32               cnt;                            /* proceed count */
     uint32              after;                          /* delay before halting */
     int32               switches;                       /* flags */
-#define EXP_TYP_PERSIST         (SWMASK ('P'))      /* rule persists after match, default is once a rule matches, it is removed */
-#define EXP_TYP_CLEARALL        (SWMASK ('C'))      /* clear all rules after matching this rule, default is to once a rule matches, it is removed */
-#define EXP_TYP_REGEX           (SWMASK ('R'))      /* rule pattern is a regular expression */
-#define EXP_TYP_REGEX_I         (SWMASK ('I'))      /* regular expression pattern matching should be case independent */
-#define EXP_TYP_TIME            (SWMASK ('T'))      /* halt delay is in microseconds instead of instructions */
-#if defined(USE_REGEX)
-    pcre                *regex;                         /* compiled regular expression */
-    int                 re_nsub;                        /* regular expression sub expression count */
-#endif
+#define EXP_TYP_PERSIST         (SWMASK ('P'))          /* rule persists after match, default is once a rule matches, it is removed */
+#define EXP_TYP_CLEARALL        (SWMASK ('C'))          /* clear all rules after matching this rule, default is to once a rule matches, it is removed */
+#define EXP_TYP_REGEX           (SWMASK ('R'))          /* rule pattern is a regular expression */
+#define EXP_TYP_REGEX_I         (SWMASK ('I'))          /* regular expression pattern matching should be case independent */
+#define EXP_TYP_TIME            (SWMASK ('T'))          /* halt delay is in microseconds instead of instructions */
+    sim_regex_t         *regex;                         /* compiled regular expression */
+    sim_re_capture_t    re_nsub;                        /* regular expression sub expression count */
+    sim_re_context_t    re_ctx;                         /* regular expression match context */
     char                *act;                           /* action string */
     };
 
