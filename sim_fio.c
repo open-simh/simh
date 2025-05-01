@@ -127,22 +127,89 @@ if (sim_end || (count == 0) || (size == sizeof (char)))
 sim_byte_swap_data (bptr, size, count);
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+#define sim_bswap16 __builtin_bswap16
+#define sim_bswap32 __builtin_bswap32
+#define sim_bswap64 __builtin_bswap64
+
+#define USE_BSWAP_INTRINSIC
+#elif defined(_MSC_VER)
+#define sim_bswap16 _byteswap_ushort
+#define sim_bswap32 _byteswap_ulong
+#define sim_bswap64 _byteswap_uint64
+
+#define USE_BSWAP_INTRINSIC
+#endif
+
 void sim_byte_swap_data (void *bptr, size_t size, size_t count)
 {
-uint32 j;
-int32 k;
-unsigned char by, *sptr, *dptr;
+    size_t j;
+    uint8 *sptr = (uint8 *) bptr;
 
-if (sim_end || (count == 0) || (size == sizeof (char)))
-    return;
-for (j = 0, dptr = sptr = (unsigned char *) bptr;       /* loop on items */
-     j < count; j++) {
-    for (k = (int32)(size - 1); k >= (((int32) size + 1) / 2); k--) {
-        by = *sptr;                                     /* swap end-for-end */
-        *sptr++ = *(dptr + k);
-        *(dptr + k) = by;
+    if (sim_end || (count == 0) || (size == sizeof (char)))
+        return;
+
+    /* Note: Restructured this code so that GCC Link Time Optimization doesn't generate
+     * spurious buffer overwrite messages.
+     *
+     * LTO tries to inline this function where it's used and ends up evaluating the loop.
+     * It's clearly a LTO bug that needs to be worked around as opposed to waiting for a
+     * compiler update (and SIMH can't guarantee that users will maintain updated platforms).
+     * 
+     * Output from the compiler looks like:
+     * 
+     * 363 | int32 f, u, comp, cyl, sect, surf;
+     *     |             ^
+     * PDP18B/pdp18b_rp.c:363:13: note: at offset [16, 48] into destination object ‘comp’ of size 4
+     * PDP18B/pdp18b_rp.c:363:13: note: at offset [80, 17179869168] into destination object ‘comp’ of size 4
+     * In function ‘sim_byte_swap_data’,
+     * inlined from ‘sim_byte_swap_data’ at sim_fio.c:130:6,
+     * inlined from ‘sim_buf_swap_data’ at sim_fio.c:127:1,
+     * inlined from ‘sim_fread’ at sim_fio.c:158:1,
+     * inlined from ‘rp_svc’ at PDP18B/pdp18b_rp.c:442:15:
+     * sim_fio.c:142:17: error: writing 4 bytes into a region of size 0 [-Werror=stringop-overflow=]
+     * 142 |         *sptr++ = *(dptr + k);
+     */
+
+    for (j = 0; j < count; j++) {                           /* loop on items */
+#if defined(USE_BSWAP_INTRINSIC)
+        switch (size) {
+        case sizeof(uint16):
+            *((uint16 *) sptr) = sim_bswap16 (*((uint16 *) sptr));
+            break;
+
+        case sizeof(uint32):
+            *((uint32 *) sptr) = sim_bswap32 (*((uint32 *) sptr));
+            break;
+
+        case sizeof(t_uint64):
+            *((t_uint64 *) sptr) = sim_bswap64 (*((t_uint64 *) sptr));
+            break;
+
+        default:
+#endif
+
+            {
+                /* Either there aren't any intrinsics that do byte swapping or
+                 * it's not a well known size. */
+                uint8 *dptr;
+                size_t k;
+                const size_t midpoint = (size + 1) / 2;
+
+                dptr = sptr + size - 1;
+                for (k = size - 1; k >= midpoint; k--) {
+                    uint8 by = *sptr;                       /* swap end-for-end */
+                    *sptr++ = *dptr;
+                    *dptr-- = by;
+                }
+            }
+
+#if defined(USE_BSWAP_INTRINSIC)
+            break;
         }
-    sptr = dptr = dptr + size;                          /* next item */
+#endif
+
+        sptr += size;                                       /* next item */
     }
 }
 
@@ -550,7 +617,7 @@ dwStatus = FormatMessageA (FORMAT_MESSAGE_FROM_SYSTEM|
                            Error,                             //  __in      DWORD dwMessageId,
                            0,                                 //  __in      DWORD dwLanguageId,
                            szMsgBuffer,                       //  __out     LPTSTR lpBuffer,
-                           sizeof (szMsgBuffer) -1,           //  __in      DWORD nSize,
+                           sizeof (szMsgBuffer) - 1,          //  __in      DWORD nSize,
                            NULL);                             //  __in_opt  va_list *Arguments
 if (0 == dwStatus)
     snprintf(szMsgBuffer, sizeof(szMsgBuffer) - 1, "Error Code: 0x%X", Error);
