@@ -38,5 +38,5 @@ these four paragraphs for those parts of this code that are retained.
 /*----------------------------------------------------------------------------
 | Symbolic Boolean literals.
 *----------------------------------------------------------------------------*/
-#define FALSE 0
-#define TRUE 1
+#define NMI_FALSE 0
+#define NMI_TRUE 1
