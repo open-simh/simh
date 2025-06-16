@@ -98,7 +98,7 @@
 
 extern uint8 M[];
 extern int32 ind[64], ssa, iochk;
-extern int32 conv_old;
+extern t_bool conv_old;
 
 int32 s1sel, s2sel, s4sel, s8sel;
 char cdr_buf[(2 * CBUFSIZE) + 1];                       /* > CDR_WIDTH */
