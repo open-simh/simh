@@ -186,15 +186,15 @@
 #define MAU_RC_RZ         3            /* Round toward Zero        */
 #endif
 
-#define SFP_SIGN(V)  (((V) >> 31) & 1)
+#define SFP_SIGN(V)  ((((V) >> 31) & 1) != 0)
 #define SFP_EXP(V)   (((V) >> 23) & 0xff)
 #define SFP_FRAC(V)  ((V) & 0x7fffff)
 
-#define DFP_SIGN(V)  (((V) >> 63) & 1)
+#define DFP_SIGN(V)  ((((V) >> 63) & 1) != 0)
 #define DFP_EXP(V)   (((V) >> 52) & 0x7ff)
 #define DFP_FRAC(V)  ((V) & 0xfffffffffffffull)
 
-#define XFP_SIGN(V)  (((V)->sign_exp >> 15) & 1)
+#define XFP_SIGN(V)  ((((V)->sign_exp >> 15) & 1) != 0)
 #define XFP_EXP(V)   ((V)->sign_exp & 0x7fff)
 #define XFP_FRAC(V)  ((V)->frac)
 
