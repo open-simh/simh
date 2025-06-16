@@ -207,7 +207,7 @@ return 0;
 
 /* Read blocks */
 
-t_stat rtfile_read (uint32 block, uint32 count, uint16 *buffer)
+t_bool rtfile_read (uint32 block, uint32 count, uint16 *buffer)
 {
 uint32 i, j;
 uint32 pos;
