@@ -4192,7 +4192,7 @@ do {
         continue;
     if (echo)                                           /* echo if -v */
         sim_printf("%s> %s\n", do_position(), cptr);
-    sim_cmd_echoed = echo;
+    sim_cmd_echoed = (echo != 0);
     if (*cptr == ':')                                   /* ignore label */
         continue;
     cptr = get_glyph_cmd (cptr, gbuf);                  /* get command glyph */
@@ -5764,10 +5764,11 @@ return SCPE_OK;
 
 t_stat sim_set_asynch (int32 flag, CONST char *cptr)
 {
+const t_bool flag_bool = (flag != 0);
 if (cptr && (*cptr != 0))                               /* now eol? */
     return SCPE_2MARG;
 #ifdef SIM_ASYNCH_IO
-if (flag == sim_asynch_enabled)                         /* already set correctly? */
+if (flag_bool == sim_asynch_enabled)                    /* already set correctly? */
     return SCPE_OK;
 if (1) {
     uint32 i;
@@ -5779,7 +5780,7 @@ if (1) {
             return sim_messagef (SCPE_ALATT, "Can't change asynch mode with %s device attached\n", dptr->name);
         }
     }
-sim_asynch_enabled = flag;
+sim_asynch_enabled = flag_bool;
 tmxr_change_async ();
 sim_timer_change_asynch ();
 if (1) {
@@ -6944,7 +6945,7 @@ t_stat show_config (FILE *st, DEVICE *dnotused, UNIT *unotused, int32 flag, CONS
 {
 size_t i;
 DEVICE *dptr;
-t_bool only_enabled = (sim_switches & SWMASK ('E'));
+const t_bool only_enabled = ((sim_switches & SWMASK ('E')) != 0);
 
 if (NULL != cptr && (*cptr != 0))
     return SCPE_2MARG;
@@ -11920,7 +11921,7 @@ t_stat reason, bare_reason;
 int32 sim_interval_catchup;
 
 if (stop_cpu) {                                         /* stop CPU? */
-    stop_cpu = 0;
+    stop_cpu = FALSE;
     return SCPE_STOP;
     }
 AIO_UPDATE_QUEUE;
@@ -14002,10 +14003,10 @@ size_t bufsize = sizeof(stackbuf);
 char *buf = stackbuf;
 size_t len;
 va_list arglist;
-t_bool inhibit_message = (!sim_show_message || (stat & SCPE_NOMESSAGE));
+const t_bool inhibit_message = (!sim_show_message || (stat & SCPE_NOMESSAGE) != 0);
 char msg_prefix[32] = "";
 size_t prefix_len;
-t_bool newline_prefix = (*fmt == '\n');
+const t_bool newline_prefix = (*fmt == '\n');
 
 if ((stat == SCPE_OK) && (sim_quiet || (sim_switches & SWMASK ('Q'))))
     return stat;
