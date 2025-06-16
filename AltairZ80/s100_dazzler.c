@@ -63,10 +63,10 @@
 */
 VID_DISPLAY *daz_vptr = NULL;
 
-static t_bool daz_0e = 0x00;
-static t_bool daz_0f = 0x80;
+static uint8 daz_0e = 0x00;
+static uint8 daz_0f = 0x80;
 static uint32 daz_addr = 0x0000;
-static t_bool daz_frame = 0x3f;
+static uint8 daz_frame = 0x3f;
 static uint8 daz_res = 32;
 static uint16 daz_pages = 1;
 static uint16 daz_window_width = 640;
