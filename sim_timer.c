@@ -2306,6 +2306,7 @@ sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - starting\n");
 pthread_mutex_lock (&sim_timer_lock);
 sim_timer_thread_running = TRUE;
 pthread_cond_signal (&sim_timer_startup_cond);   /* Signal we're ready to go */
+pthread_mutex_unlock (&sim_timer_lock);          /* Wake up waiters. */
 while (sim_asynch_timer && sim_is_running) {
     struct timespec start_time, stop_time;
     struct timespec due_time;
@@ -2314,6 +2315,12 @@ while (sim_asynch_timer && sim_is_running) {
     double inst_per_sec;
     UNIT *uptr, *cptr, *prvptr;
 
+    /* Acquire sim_timer_lock and guard the simulator's wall clock queue's internals. 
+     * It will be temporarily released by pthread_cond_timedwait() if the timer thread
+     * has to wait for work to do. sim_timer_lock is released at the bottom of the
+     * loop.
+     */
+    pthread_mutex_lock(&sim_timer_lock);
     if (sim_wallclock_entry) {                          /* something to insert in queue? */
 
         sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - timing %s for %s\n",
@@ -2354,33 +2361,35 @@ while (sim_asynch_timer && sim_is_running) {
     if (sim_wallclock_queue == QUEUE_LIST_END)
         sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - waiting forever\n");
     else
-        sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - waiting for %.0f usecs until %.6f for %s\n", wait_usec, sim_wallclock_queue->a_due_time, sim_uname(sim_wallclock_queue));
+        sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - waiting for %.0f usecs until %.6f for %s\n", 
+                   wait_usec, sim_wallclock_queue->a_due_time, sim_uname(sim_wallclock_queue));
     if ((wait_usec <= 0.0) ||
-        (0 != pthread_cond_timedwait (&sim_timer_wake, &sim_timer_lock, &due_time))) {
+         (0 != pthread_cond_timedwait (&sim_timer_wake, &sim_timer_lock, &due_time))) {
 
-        if (sim_wallclock_queue == QUEUE_LIST_END)      /* queue empty? */
-            continue;                                   /* wait again */
-        inst_per_sec = sim_timer_inst_per_sec ();
+        if (sim_wallclock_queue != QUEUE_LIST_END) {    /* Got work? */
+            inst_per_sec = sim_timer_inst_per_sec ();
 
-        uptr = sim_wallclock_queue;
-        sim_wallclock_queue = uptr->a_next;
-        uptr->a_next = NULL;                            /* hygiene */
+            uptr = sim_wallclock_queue;
+            sim_wallclock_queue = uptr->a_next;
+            uptr->a_next = NULL;                            /* hygiene */
 
-        clock_gettime(CLOCK_REALTIME, &stop_time);
-        if (1 != sim_timespec_compare (&due_time, &stop_time))
-            inst_delay = 0;
-        else
-            inst_delay = (int32)(inst_per_sec*(_timespec_to_double(&due_time)-_timespec_to_double(&stop_time)));
-        sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - slept %.0fms - activating(%s,%d)\n",
-                   1000.0*(_timespec_to_double (&stop_time)-_timespec_to_double (&start_time)), sim_uname(uptr), inst_delay);
-        sim_activate (uptr, inst_delay);
+            clock_gettime(CLOCK_REALTIME, &stop_time);
+            if (1 != sim_timespec_compare (&due_time, &stop_time))
+                inst_delay = 0;
+            else
+                inst_delay = (int32)(inst_per_sec*(_timespec_to_double(&due_time)-_timespec_to_double(&stop_time)));
+            sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - slept %.0fms - activating(%s,%d)\n",
+                    1000.0*(_timespec_to_double (&stop_time)-_timespec_to_double (&start_time)), sim_uname(uptr), inst_delay);
+            sim_activate (uptr, inst_delay);
+            }
         }
     else {/* Something wants to adjust the queue since the wait condition was signaled */
         }
+
+    /* Let go of the mutex. */
+    pthread_mutex_unlock(&sim_timer_lock);
     }
 sim_timer_thread_running = FALSE;
-pthread_mutex_unlock (&sim_timer_lock);
-
 sim_debug (DBG_TIM, &sim_timer_dev, "_timer_thread() - exiting\n");
 
 return NULL;
@@ -2584,7 +2593,9 @@ if (sim_asynch_timer) {
     pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
     pthread_create (&sim_timer_thread, &attr, _timer_thread, NULL);
     pthread_attr_destroy( &attr);
+    pthread_mutex_lock(&sim_timer_lock);
     pthread_cond_wait (&sim_timer_startup_cond, &sim_timer_lock); /* Wait for thread to stabilize */
+    pthread_mutex_unlock(&sim_timer_lock);
     pthread_cond_destroy (&sim_timer_startup_cond);
     }
 pthread_mutex_unlock (&sim_timer_lock);
@@ -2843,8 +2854,8 @@ if ((sim_asynch_timer) &&
                 }
             }
         sim_wallclock_entry = uptr;
-        pthread_mutex_unlock (&sim_timer_lock);
         pthread_cond_signal (&sim_timer_wake);      /* wake the timer thread to deal with it */
+        pthread_mutex_unlock (&sim_timer_lock);     /* allow the time thread to wake up. */
         return SCPE_OK;
         }
     else {                                          /* inserting at prvptr */
