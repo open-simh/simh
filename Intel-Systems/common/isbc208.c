@@ -438,7 +438,7 @@
 #define CM              0x40            /* Control mark */
 #define DD              0x20            /* Data error in data field */
 #define WC              0x10            /* Wrong cylinder */
-#define BC              0x02            /* Bad cylinder */
+//#define BC              0x02            /* Bad cylinder */
 #define MD              0x01            /* Missing address mark in data field */
  
 /* status register 3/fddst definitions */
