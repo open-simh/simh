@@ -266,6 +266,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\PDP8\pdp8_dpy.c"
+				>
+			</File>
+			<File
 				RelativePath="..\scp.c"
 				>
 			</File>

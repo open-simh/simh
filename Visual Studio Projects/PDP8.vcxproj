@@ -255,6 +255,7 @@
     <ClCompile Include="..\PDP8\pdp8_tsc.c" />
     <ClCompile Include="..\PDP8\pdp8_tt.c" />
     <ClCompile Include="..\PDP8\pdp8_ttx.c" />
+    <ClCompile Include="..\PDP8\pdp8_dpy.c" />
     <ClCompile Include="..\scp.c" />
     <ClCompile Include="..\sim_console.c" />
     <ClCompile Include="..\sim_disk.c" />

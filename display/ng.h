@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Lars Brinkhoff
+ * Copyright (c) 2025 Lars Brinkhoff
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,31 +33,27 @@ typedef int int32;
 typedef unsigned int uint32;
 #endif /* SIM_DEFS_H_ */
 
-/* Hardware type. */
-#define TYPE_DAZZLE  1
-#define TYPE_LOGO    2
-
 /*
  * The PIX_SCALE #define establishes the initial default display scale
- * factor; to change from the default scale factor, set ng_scale
- * before calling ng_init().
+ * factor; to change from the default scale factor, set type34_scale
+ * before calling type34_init().
  */
 #ifndef PIX_SCALE
 #define PIX_SCALE RES_FULL
 #endif
-extern int32 ng_type;
-extern int32 ng_scale;
+extern int32 type34_type;
+extern int32 type34_scale;
 
-extern int32 ng_get_csr(void);
-extern int32 ng_get_reloc(void);
-extern void ng_set_csr(uint16);
-extern void ng_set_reloc(uint16);
+extern int32 type34_get_csr(void);
+extern int32 type34_get_reloc(void);
+extern void type34_set_csr(uint16);
+extern void type34_set_reloc(uint16);
 
-extern int  ng_init(void *, int);
-extern int  ng_cycle(int, int);
+extern int  type34_init(void *, int);
+extern int  type34_cycle(int, int);
 
-extern int  ng_fetch(uint32, uint16 *);       /* get a display-file word */
-extern int  ng_store(uint32, uint16);
+extern int  type34_fetch(uint32, uint16 *);       /* get a display-file word */
+extern int  type34_store(uint32, uint16);
 
 #if defined(__cplusplus)
 }
