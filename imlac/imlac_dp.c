@@ -29,18 +29,23 @@
 /* Debug */
 #define DBG             0001
 
+/* Alpha display processor */
+#define DP_ALPHA        0001
+
 static t_addr DPC;
 static t_addr DT[8];
 static uint16 SP = 0;
 static uint16 ON = 0;
 static uint16 HALT = 0;
 static uint16 MODE = 0;
-static uint16 XA, YA;
+static uint16 XMSB, YMSB;
+static uint16 XLSB, YLSB;
 static uint16 SCALE = 2;
 static uint16 BLOCK = 0;
 static uint16 MIT8K;
 static uint16 SGR;
 static uint16 SYNC = 1;
+static uint16 HZ = 40;
 
 /* Function declaration. */
 static uint16 dp_iot (uint16, uint16);
@@ -67,13 +72,23 @@ static REG dp_reg[] = {
   { ORDATAD (MODE, MODE, 1, "Display mode") },
   { BRDATAD (DT, DT, 8, 16, 8, "Return address stack") },
   { ORDATAD (SP, SP, 3, "Stack pointer") },
-  { ORDATAD (XA, XA, 11, "X accumulator") },
-  { ORDATAD (YA, YA, 11, "Y accumulator") },
+  { ORDATAD (XMSB, XMSB, 7, "X accumulator MSB") },
+  { ORDATAD (XLSB, XLSB, 5, "X accumulator LSB") },
+  { ORDATAD (YMSB, YMSB, 7, "Y accumulator MSB") },
+  { ORDATAD (YLSB, YLSB, 5, "Y accumulator LSB") },
   { ORDATAD (SCALE, SCALE, 3, "Scale") },
   { ORDATAD (BLOCK, BLOCK, 3, "Block") },
   { ORDATAD (MIT8K, MIT8K, 1, "MIT 8K addressing") },
   { ORDATAD (SGR, SGR, 1, "Suppressed grid mode") },
   { NULL }
+};
+
+static MTAB dp_mod[] = {
+  { DP_ALPHA, DP_ALPHA, "Alpha machine", "ALPHA",
+    NULL, NULL, NULL, "Enables Alpha display processor" },
+  { DP_ALPHA, 0,        "Graphics machine", "GRAPHICS",
+    NULL, NULL, NULL, "Disables Alpha display processor" },
+  { 0 }
 };
 
 static DEBTAB dp_deb[] = {
@@ -82,7 +97,7 @@ static DEBTAB dp_deb[] = {
 };
 
 DEVICE dp_dev = {
-  "DP", &dp_unit, dp_reg, NULL,
+  "DP", &dp_unit, dp_reg, dp_mod,
   1, 8, 16, 1, 8, 16,
   NULL, NULL, dp_reset,
   NULL, NULL, NULL, &dp_imdev, DEV_DEBUG, 0, dp_deb,
@@ -95,6 +110,7 @@ static UNIT sync_unit = {
 
 static REG sync_reg[] = {
   { ORDATAD (SYNC, SYNC, 1, "Flag") },
+  { ORDATAD (HZ,   HZ,   1, "Frequency") },
   { NULL }
 };
 
@@ -165,6 +181,59 @@ dp_iot (uint16 insn, uint16 AC)
   return AC;
 }
 
+static uint16 deflect (uint16 msb, uint16 lsb)
+{
+  if (dp_unit.flags & DP_ALPHA)
+    return 18*msb + lsb;
+  else
+    return (msb << 5) + lsb;
+}
+
+static void increment (uint16 *msb, uint16 *lsb, uint16 x)
+{
+  /* On an Alpha machine, the LSB doesn't carry to the MSB. */
+
+  *lsb += SCALE * x;
+  if (dp_unit.flags & DP_ALPHA)
+    return;
+
+  *msb += *lsb >> 5;
+  *lsb &= 037;
+}
+
+static void decrement (uint16 *msb, uint16 *lsb, uint16 x)
+{
+  /* On an Alpha machine, the LSB doesn't carry to the MSB. */
+
+  *lsb -= SCALE * x;
+  if (dp_unit.flags & DP_ALPHA)
+    return;
+
+  *msb += ((int16)*lsb) >> 5;
+  *lsb &= 037;
+}
+
+static int scale_or_one (void)
+{
+  /* On an Alpha machine, the MSB is incremented per the scaling
+     factor.  On a Graphics machine, it's incremented by one
+     regardless of the scaling factor. */
+
+  if (dp_unit.flags & DP_ALPHA)
+    return SCALE >> 1;
+  else
+    return 1;
+}
+
+static void load_xy_accumulator (uint16 *msb, uint16 *lsb, uint16 insn)
+{
+  if (dp_unit.flags & DP_ALPHA)
+    *msb = (insn >> 5) & 0177;
+  else
+    *msb = (insn >> 4) & 0077;
+  *lsb = (insn << 1) & 0036;
+}
+
 static t_stat
 dp_opr(uint16 insn)
 {
@@ -202,7 +271,7 @@ dp_opr(uint16 insn)
   }
   if (insn & 00020) { /* DDSP */
     sim_debug (DBG, &dp_dev, "DDSP ");
-    crt_point (XA, YA);
+    crt_point (deflect (XMSB, XLSB), deflect (YMSB, YLSB));
   }
   if (insn & 00040) { /* DRJM */
     sim_debug (DBG, &dp_dev, "DRJM ");
@@ -213,19 +282,19 @@ dp_opr(uint16 insn)
   }
   if (insn & 00100) { /* DDYM */
     sim_debug (DBG, &dp_dev, "DDYM ");
-    YA -= 040;
+    YMSB -= scale_or_one ();
   }
   if (insn & 00200) { /* DDXM */
     sim_debug (DBG, &dp_dev, "DDXM ");
-    XA -= 040;
+    XMSB -= scale_or_one ();
   }
   if (insn & 00400) { /* DIYM */
     sim_debug (DBG, &dp_dev, "DIYM ");
-    YA += 040;
+    YMSB += scale_or_one ();
   }
   if (insn & 01000) { /* DIXM */
     sim_debug (DBG, &dp_dev, "DIXM ");
-    XA += 040;
+    XMSB += scale_or_one ();
   }
   if (insn & 02000) { /* DHVC */
     sim_debug (DBG, &dp_dev, "DHVC ");
@@ -294,11 +363,11 @@ dp_opt (uint16 insn)
 static void
 dp_inc_vector (uint16 byte)
 {
-  uint16 x1 = XA, y1 = YA;
+  uint16 x1 = deflect (XMSB, XLSB), y1 = deflect (YMSB, YLSB);
   uint16 dx, dy;
 
   if (byte == 0200) {
-    sim_debug (DBG, &dp_dev, "P");
+    sim_debug (DBG, &dp_dev, "P\n");
   } else {
     sim_debug (DBG, &dp_dev, "%s", byte & 0100 ? "B" : "D");
     if (byte & 00040)
@@ -306,22 +375,21 @@ dp_inc_vector (uint16 byte)
     sim_debug (DBG, &dp_dev, "%o", (byte >> 3) & 3);
     if (byte & 00004)
       sim_debug (DBG, &dp_dev, "M");
-    sim_debug (DBG, &dp_dev, "%o", byte & 3);
+    sim_debug (DBG, &dp_dev, "%o\n", byte & 3);
   }
 
-  dx = SCALE * ((byte >> 3) & 3);
-  dy = SCALE * (byte & 3);
+  dx = (byte >> 3) & 3;
+  dy = byte & 3;
   if (byte & 040)
-    XA -= dx;
+    decrement (&XMSB, &XLSB, dx);
   else
-    XA += dx;
+    increment (&XMSB, &XLSB, dx);
   if (byte & 4)
-    YA -= dy;
+    decrement (&YMSB, &YLSB, dy);
   else
-    YA += dy;
+    increment (&YMSB, &YLSB, dy);
   if (byte & 0100)
-    crt_line (x1, y1, XA, YA);
-
+    crt_line (x1, y1, deflect (XMSB, XLSB), deflect (YMSB, YLSB));
 }
 
 static void
@@ -345,15 +413,17 @@ dp_inc_escape (uint16 byte)
       sim_debug (DBG, &dp_dev, "stack underflow");
   }
   if (byte & 020)
-    XA += 040;
+    XMSB += scale_or_one ();
   if (byte & 010)
-    XA &= 03740;
+    XLSB = 0;
   if (byte & 4) /* Enter PPM mode. */
     ;
   if (byte & 2)
-    YA += 040;
+    YMSB += scale_or_one ();
   if (byte & 1)
-    YA &= 03740;
+    YLSB = 0;
+
+  sim_debug (DBG, &dp_dev, "\n");
 }
 
 static void
@@ -374,13 +444,12 @@ dp_deim (uint16 insn)
   MODE = 1;
   sim_debug (DBG, &dp_dev, "E,");
   dp_inc (insn & 0377);
-  sim_debug (DBG, &dp_dev, "\n");
 }
 
 static void
 dp_dlvh (uint16 insn1, uint16 insn2, uint16 insn3)
 {
-  uint16 x1 = XA, y1 = YA;
+  uint16 x1 = deflect (XMSB, XLSB), y1 = deflect (YMSB, YLSB);
   uint16 m, n, dx, dy;
   m = insn2 & 07777;
   n = insn3 & 07777;
@@ -392,15 +461,15 @@ dp_dlvh (uint16 insn1, uint16 insn2, uint16 insn3)
     dy = n;
   }
   if (insn3 & 040000)
-    XA -= SCALE * dx;
+    decrement (&XMSB, &XLSB, dx);
   else
-    XA += SCALE * dx;
+    increment (&XMSB, &XLSB, dx);
   if (insn3 & 020000)
-    YA -= SCALE * dy;
+    decrement (&YMSB, &YLSB, dy);
   else
-    YA += SCALE * dy;
+    increment (&YMSB, &YLSB, dy);
   if (insn2 & 020000)
-    crt_line (x1, y1, XA, YA);
+    crt_line (x1, y1, deflect (XMSB, XLSB), deflect (YMSB, YLSB));
 }
 
 static void
@@ -411,12 +480,12 @@ dp_insn (uint16 insn)
     dp_opr (insn);
     break;
   case 1: /* DLXA */
-    sim_debug (DBG, &dp_dev, "DLXA\n");
-    XA = (insn & 01777) << 1;
+    sim_debug (DBG, &dp_dev, "DLXA %04o\n", insn & 01777);
+    load_xy_accumulator (&XMSB, &XLSB, insn);
     break;
   case 2: /* DLYA */
-    sim_debug (DBG, &dp_dev, "DLYA\n");
-    YA = (insn & 01777) << 1;
+    sim_debug (DBG, &dp_dev, "DLYA %04o\n", insn & 01777);
+    load_xy_accumulator (&YMSB, &YLSB, insn);
     break;
   case 3: /* DEIM */
     sim_debug (DBG, &dp_dev, "DEIM ");
@@ -485,7 +554,7 @@ dp_reset(DEVICE * uptr)
 static t_stat
 sync_svc (UNIT *uptr)
 {
-  sim_debug (DBG, &sync_dev, "40 Hz sync\n");
+  sim_debug (DBG, &sync_dev, "Display sync (%d Hz)\n", HZ);
   SYNC = 1;
   if (SYNC && HALT)
     flag_on (FLAG_SYNC);
@@ -500,7 +569,7 @@ sync_iot (uint16 insn, uint16 AC)
     sim_debug (DBG, &sync_dev, "Clear flag\n");
     SYNC = 0;
     flag_off (FLAG_SYNC);
-    sim_activate_after (&sync_unit, 25000);
+    sim_activate_after (&sync_unit, 1000000 / HZ);
   }
   if ((insn & 0772) == 0072) { /* IOS */
   }
