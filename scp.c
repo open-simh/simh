@@ -253,6 +253,19 @@
 #include ".git-commit-id.h"
 #endif
 
+#if !defined(_WIN32) && !defined(_WIN64)
+/* fsync() */
+#include <unistd.h>
+#elif defined(_WIN32) || defined(_WIN64)
+#include <io.h>
+
+/* fsync() wrapper for Windows. */
+static inline int fsync(int fd)
+{
+    return _commit(fd);
+}
+#endif
+
 #ifndef MAX
 #define MAX(a,b)  (((a) >= (b)) ? (a) : (b))
 #endif
@@ -13611,6 +13624,18 @@ static void _debug_fwrite_all (const char *buf, size_t len, FILE *f)
 {
 size_t len_written;
 
+/* NOTE: There be a dragon here. This is UNSAFE in a multithreaded SIMH. This
+ * race could still exist if sim_set_deboff() is called prematurely before all
+ * threads are quiescent (needs confirmation.)
+ *
+ * _sim_debug_flush() calls sim_set_deboff(0, NULL), which NULLs sim_deb (aka f).
+ * This causes a race on sim_deb between threads -- a thread can read a NULL sim_deb
+ * and call _debug_fwrite_all() with f == NULL.
+ * 
+ * f == NULL: fwrite() returns 0 on Linux and Windows. len never gets decremented
+ * and an infinite loop ensues (cue "Forever NULL" sung to the tune of Alphaville's
+ * "Forever Young".)
+ */
 while (len > 0) {
     errno = 0;
     len_written = fwrite (buf, 1, len, f);
@@ -13755,33 +13780,13 @@ _sim_debug_write_flush (buf, len, FALSE);
 
 static t_stat _sim_debug_flush (void)
 {
-int32 saved_quiet = sim_quiet;
-int32 saved_sim_switches = sim_switches;
-int32 saved_deb_switches = sim_deb_switches;
-struct timespec saved_deb_basetime = sim_deb_basetime;
-char saved_debug_filename[CBUFSIZE];
-
 if (sim_deb == NULL)                                    /* no debug? */
     return SCPE_OK;
 
 _sim_debug_write_flush ("", 0, TRUE);
+fflush (sim_deb);
+fsync(fileno(sim_deb));
 
-if (sim_deb == sim_log) {                               /* debug is log */
-    fflush (sim_deb);                                   /* fflush is the best we can do */
-    return SCPE_OK;
-    }
-
-if (!(saved_deb_switches & SWMASK ('B'))) {
-    strcpy (saved_debug_filename, sim_logfile_name (sim_deb, sim_deb_ref));
-
-    sim_quiet = 1;
-    sim_set_deboff (0, NULL);
-    sim_switches = saved_deb_switches;
-    sim_set_debon (0, saved_debug_filename);
-    sim_deb_basetime = saved_deb_basetime;
-    sim_switches = saved_sim_switches;
-    sim_quiet = saved_quiet;
-    }
 return SCPE_OK;
 }
 
