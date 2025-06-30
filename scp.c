@@ -235,6 +235,7 @@
 #include "sim_video.h"
 #include "sim_sock.h"
 #include "sim_frontpanel.h"
+#include "sim_printf_fmts.h"
 #include <signal.h>
 #include <ctype.h>
 #include <time.h>
@@ -2164,15 +2165,16 @@ static const char simh_help2[] =
       " If a [count] is specified, the rule will match after the match string\n"
       " has matched count times.\n\n"
       " When multiple expect rules are defined with the same match string, they\n"
-      " will match in the same order they were defined in.\n\n"
-      " When expect rules are defined, they are evaluated agains recently\n"
+      " will match in the same order in which they were defined in.\n\n"
+      " When expect rules are defined, they are evaluated against recently\n"
       " produced output as each character is output to the device.  Since this\n"
       " evaluation processing is done on each output character, rule matching\n"
       " is not specifically line oriented.  If line oriented matching is desired\n"
       " then rules should be defined which contain the simulated system's line\n"
       " ending character sequence (i.e. \"\\r\\n\").\n"
       " Once data has matched any expect rule, that data is no longer eligible\n"
-      " to match other expect rules which may already be defined.\n"
+      " to match other expect rules which may already be defined. In other words,\n"
+      " matching is a 'one shot' process.\n"
       " Data which is output prior to the definition of an expect rule is not\n"
       " eligible to be matched against.\n\n"
       " The NOEXPECT command removes a previously defined EXPECT command for the\n"
@@ -2196,12 +2198,18 @@ static const char simh_help2[] =
       " If an expect rule is defined with the -r switch, the string is interpreted\n"
       " as a regular expression applied to the output data stream.  This regular\n"
       " expression may contain parentheses delimited sub-groups.\n\n"
+      " When using '.*' multi-character pattern matches, the output data buffer has\n"
+      " a finite size, currently 1024 characters.\n\n"
        /***************** 80 character line width template *************************/
-#if defined (HAVE_PCRE_H)
+#if defined (HAVE_PCRE_H) || defined(HAVE_PCRE2_H)
       " The syntax of the regular expressions available are those supported by\n"
       " the Perl Compatible Regular Expression package (aka PCRE).  As the name\n"
       " implies, the syntax is generally the same as Perl regular expressions.\n"
+#  if defined(HAVE_PCRE_H)
       " See http://perldoc.perl.org/perlre.html for more details\n"
+#  else
+      " See http://pcre.org/current/doc/html/pcre2pattern.html for more details\n"
+#  endif
 #else
       " Regular expression support is not currently available on your environment.\n"
       " This simulator could use regular expression support provided by the\n"
@@ -2921,6 +2929,8 @@ sim_timer_precalibrate_execution_rate ();
 show_version (stdnul, NULL, NULL, 1, NULL);             /* Quietly set SIM_OSTYPE */
 #if defined (HAVE_PCRE_H)
 setenv ("SIM_REGEX_TYPE", "PCRE", 1);                   /* Publish regex type */
+#elif defined(HAVE_PCRE2_H)
+setenv ("SIM_REGEX_TYPE", "PCRE2", 1);
 #endif
 sim_argv = argv;
 
@@ -6755,6 +6765,8 @@ if (flag) {
     fprintf (st, "\n        SDL Video support: %s", vid_version());
 #if defined (HAVE_PCRE_H)
     fprintf (st, "\n        PCRE RegEx (Version %s) support for EXPECT commands", pcre_version());
+#elif defined(HAVE_PCRE2_H)
+    fprintf (st, "\n        PCRE2 RegEx (Version %d.%d) support for EXPECT commands", PCRE2_MAJOR, PCRE2_MINOR);
 #else
     fprintf (st, "\n        No RegEx support for EXPECT commands");
 #endif
@@ -12920,6 +12932,159 @@ return msg;
         sim_exp_check           test for rule match
 */
 
+/* PCRE/PCRE2 interoperability abstractions:
+ *
+ * Typedefs:
+ * sim_regex_bufp_t: Ordinary buffer pointer type into the EXPECT buffer.
+ * sim_regex_matchp_t: Regex match pointer.
+ * sim_re_capture_t: RegEx capture count type.
+ *
+ * PCRE2 uses pointers to const when pointing to regex matches, whereas PCRE
+ * doesn't.
+ */
+
+#if USE_REGEX
+#  if defined(HAVE_PCRE_H)
+typedef char *sim_regex_bufp_t;
+typedef char *sim_regex_matchp_t;
+#  elif defined(HAVE_PCRE2_H)
+typedef PCRE2_UCHAR *sim_regex_bufp_t;
+typedef PCRE2_SPTR sim_regex_matchp_t;
+#  endif
+#else
+/* Reasonable defaults/stubs when USE_REGEX is disabled: */
+
+typedef char *sim_regex_bufp_t;
+typedef char *sim_regex_matchp_t;
+#endif
+
+/* Compile a SIMH RegEx: */
+sim_regex_t *sim_compile_regex(const uint8 *match_buf, uint32 switches)
+{
+#if USE_REGEX
+    sim_regex_t *re;
+
+#  if defined(HAVE_PCRE_H)
+#  define ERROFFSET_FMT "d"
+
+    const char *errmsg;
+    int erroffset;
+
+    /* macOS expects match_buf to be const char * */
+    re = pcre_compile((const char *)match_buf, (switches & EXP_TYP_REGEX_I) ? PCRE_CASELESS : 0,
+                      &errmsg, &erroffset, NULL);
+#  elif defined(HAVE_PCRE2_H)
+#  define ERROFFSET_FMT SIZE_T_FMT "u"
+
+    PCRE2_UCHAR errmsg[128];
+    int errcode;
+    PCRE2_SIZE erroffset;
+
+    re = pcre2_compile((const PCRE2_SPTR)match_buf, PCRE2_ZERO_TERMINATED,
+                       (switches & EXP_TYP_REGEX_I) ? PCRE2_CASELESS : 0,
+                       &errcode, &erroffset, NULL);
+#  endif
+
+    if (re == NULL)
+    {
+#  if defined(HAVE_PCRE2_H)
+        pcre2_get_error_message(errcode, errmsg, sizeof(errmsg) / sizeof(errmsg[0]));
+#  endif
+        sim_messagef(SCPE_ARG, "RegEx error, pattern offset %" ERROFFSET_FMT ": %s\n",
+                     erroffset, errmsg);
+    }
+
+    return re;
+#else
+    return NULL;
+#endif
+}
+
+/* Get the RegEx's capture count. */
+static SIM_INLINE sim_re_capture_t get_regex_capturecount(sim_regex_t *re)
+{
+#if USE_REGEX
+    sim_re_capture_t retval;
+
+#  if defined(HAVE_PCRE_H)
+    (void)pcre_fullinfo(re, NULL, PCRE_INFO_CAPTURECOUNT, &retval);
+#  elif defined(HAVE_PCRE2_H)
+    (void)pcre2_pattern_info(re, PCRE2_INFO_CAPTURECOUNT, &retval);
+#  endif
+
+    return retval;
+#else
+    return 0;
+#endif
+}
+
+/* Release a RegEx once SIMH is done with it. */
+static SIM_INLINE void sim_release_regex(sim_regex_t *re)
+{
+#if USE_REGEX
+#  if defined(HAVE_PCRE_H)
+    pcre_free(re);
+#  elif defined(HAVE_PCRE2_H)
+    pcre2_code_free(re);
+#  endif
+#else
+    /* NOP */
+#endif
+}
+
+/* Execute a regular expression match. */
+static int sim_execute_regex(EXPECT *exp, EXPTAB *ep, sim_regex_matchp_t cbuf)
+{
+#if USE_REGEX
+    int rc;
+
+#  if defined(HAVE_PCRE_H)
+    ep->re_ctx.ovector_elts = 3 * (ep->re_nsub + 1);
+    ep->re_ctx.ovector = (int *)calloc((size_t)ep->re_ctx.ovector_elts, sizeof(*ep->re_ctx.ovector));
+    rc = pcre_exec(ep->regex, NULL, cbuf, exp->buf_ins, 0, PCRE_NOTBOL, ep->re_ctx.ovector, ep->re_ctx.ovector_elts);
+#  elif defined(HAVE_PCRE2_H)
+    ep->re_ctx.match_data = pcre2_match_data_create_from_pattern(ep->regex, NULL);
+    rc = pcre2_match(ep->regex, cbuf, exp->buf_ins, 0, PCRE2_NOTBOL, ep->re_ctx.match_data, NULL);
+    if (rc >= 0)
+    {
+        ep->re_ctx.ovector = pcre2_get_ovector_pointer(ep->re_ctx.match_data);
+    }
+#  endif
+
+    return rc;
+#else
+    return -1;
+#endif
+}
+
+/* Get capture group's start and end offsets. */
+static SIM_INLINE void sim_capture_offsets(const EXPTAB *ep, size_t capture, int *start_offs, int *end_offs)
+{
+#if USE_REGEX
+    *start_offs = ep->re_ctx.ovector[2 * capture];
+    *end_offs = ep->re_ctx.ovector[2 * capture + 1];
+#else
+    *start_offs = *end_offs = -1;
+#endif
+}
+
+/* Cleanup after sim_execute_regex(). */
+static void sim_finish_re_match(EXPTAB *ep)
+{
+#if USE_REGEX
+#  if defined(HAVE_PCRE_H)
+    free(ep->re_ctx.ovector);
+#  elif defined(HAVE_PCRE2_H)
+    pcre2_match_data_free(ep->re_ctx.match_data);
+    ep->re_ctx.match_data = NULL;
+#  endif
+
+    ep->re_ctx.ovector = NULL;
+#else
+    /* NOP*/
+#endif
+}
+
 /*   Initialize an expect context. */
 
 t_stat sim_exp_init (EXPECT *exp)
@@ -13016,10 +13181,8 @@ if (NULL == ep)                                         /* not there? ok */
 free (ep->match);                                       /* deallocate match string */
 free (ep->match_pattern);                               /* deallocate the display format match string */
 free (ep->act);                                         /* deallocate action */
-#if defined(USE_REGEX)
 if (ep->switches & EXP_TYP_REGEX)
-    pcre_free (ep->regex);                              /* release compiled regex */
-#endif
+    sim_release_regex(ep->regex);                       /* release compiled regex */
 exp->size -= 1;                                         /* decrement count */
 for (i=ep-exp->rules; i<exp->size; i++)                 /* shuffle up remaining rules */
     exp->rules[i] = exp->rules[i+1];
@@ -13051,10 +13214,8 @@ for (i=0; i<exp->size; i++) {
     free (exp->rules[i].match);                         /* deallocate match string */
     free (exp->rules[i].match_pattern);                 /* deallocate display format match string */
     free (exp->rules[i].act);                           /* deallocate action */
-#if defined(USE_REGEX)
     if (exp->rules[i].switches & EXP_TYP_REGEX)
-        pcre_free (exp->rules[i].regex);                /* release compiled regex */
-#endif
+        sim_release_regex(exp->rules[i].regex);             /* release compiled regex */
     }
 free (exp->rules);
 exp->rules = NULL;
@@ -13071,49 +13232,51 @@ return SCPE_OK;
 t_stat sim_exp_set (EXPECT *exp, const char *match, int32 cnt, uint32 after, int32 switches, const char *act)
 {
 EXPTAB *ep;
-uint8 *match_buf;
+uint8 *match_buf = NULL;
 uint32 match_size;
+char *pattern_buf = NULL;
+sim_regex_t *compiled_re = NULL;
+sim_re_capture_t re_nsub;
 size_t i;
 
 /* Validate the match string */
-match_buf = (uint8 *)calloc (strlen (match) + 1, 1);
-if (!match_buf)
-    return SCPE_MEM;
 if (switches & EXP_TYP_REGEX) {
-#if !defined (USE_REGEX)
-    free (match_buf);
-    return sim_messagef (SCPE_ARG, "RegEx support not available\n");
-    }
-#else   /* USE_REGEX */
-    pcre *re;
-    const char *errmsg;
-    int erroffset, re_nsub;
+#if USE_REGEX
+    match_buf = (uint8 *) calloc (strlen (match) - 2 + 1, 1);
+    if (NULL == match_buf)
+        return SCPE_MEM;
 
     memcpy (match_buf, match+1, strlen(match)-2);       /* extract string without surrounding quotes */
     match_buf[strlen(match)-2] = '\0';
-    re = pcre_compile ((char *)match_buf, (switches & EXP_TYP_REGEX_I) ? PCRE_CASELESS : 0, &errmsg, &erroffset, NULL);
-    if (re == NULL) {
-        sim_messagef (SCPE_ARG, "Regular Expression Error: %s\n", errmsg);
+    compiled_re = sim_compile_regex(match_buf, switches);
+    if (NULL == compiled_re) {
         free (match_buf);
         return SCPE_ARG|SCPE_NOMESSAGE;
         }
-    (void)pcre_fullinfo(re, NULL, PCRE_INFO_CAPTURECOUNT, &re_nsub);
+
+    re_nsub = get_regex_capturecount(compiled_re);
     sim_debug (exp->dbit, exp->dptr, "Expect Regular Expression: \"%s\" has %d sub expressions\n", match_buf, re_nsub);
-    pcre_free (re);
-    }
+#else
+    return sim_messagef (SCPE_ARG, "RegEx support not available\n");
 #endif
+    }
 else {
+    t_stat good_string;
     if (switches & EXP_TYP_REGEX_I) {
         free (match_buf);
         return sim_messagef (SCPE_ARG, "Case independent matching is only valid for RegEx expect rules\n");
         }
     sim_data_trace(exp->dptr, exp->dptr->units, (const uint8 *)match, "", strlen(match)+1, "Expect Match String", exp->dbit);
-    if (SCPE_OK != sim_decode_quoted_string (match, match_buf, &match_size)) {
-        free (match_buf);
+    match_buf = (uint8 *)calloc (strlen (match) + 1, 1);
+    if (NULL == match_buf)
+        return SCPE_MEM;
+    good_string = sim_decode_quoted_string (match, match_buf, &match_size);
+    if (SCPE_OK != good_string) {
+        free(match_buf);
         return sim_messagef (SCPE_ARG, "Invalid quoted string\n");
         }
     }
-free (match_buf);
+
 for (i=0; i<exp->size; i++) {                           /* Make sure this rule won't be occluded */
     if ((0 == strcmp (match, exp->rules[i].match_pattern)) &&
         (exp->rules[i].switches & EXP_TYP_PERSIST))
@@ -13121,43 +13284,37 @@ for (i=0; i<exp->size; i++) {                           /* Make sure this rule w
     }
 if (after && exp->size)
     return sim_messagef (SCPE_ARG, "Multiple concurrent EXPECT rules aren't valid when a HALTAFTER parameter is non-zero\n");
-exp->rules = (EXPTAB *) realloc (exp->rules, sizeof (*exp->rules)*(exp->size + 1));
+
+pattern_buf = (char *) calloc (sizeof(char), strlen (match) + 1);
+if (NULL == pattern_buf) {
+    free(match_buf);
+    if (compiled_re != NULL)
+        sim_release_regex(compiled_re);
+    return SCPE_MEM;
+    }
+
+exp->rules = (EXPTAB *) realloc(exp->rules, sizeof (exp->rules[0])*(exp->size + 1));
 ep = &exp->rules[exp->size];
 exp->size += 1;
 memset (ep, 0, sizeof(*ep));
-ep->after = after;                                     /* set halt after value */
-ep->match_pattern = (char *)malloc (strlen (match) + 1);
-if (ep->match_pattern)
-    strcpy (ep->match_pattern, match);
+ep->after = after;                                      /* set halt after value */
+ep->match_pattern = strcpy (pattern_buf, match);
 ep->cnt = cnt;                                          /* set proceed count */
 ep->switches = switches;                                /* set switches */
-match_buf = (uint8 *)calloc (strlen (match) + 1, 1);
-if ((match_buf == NULL) || (ep->match_pattern == NULL)) {
-    sim_exp_clr_tab (exp, ep);                          /* clear it */
-    free (match_buf);
-    return SCPE_MEM;
-    }
 if (switches & EXP_TYP_REGEX) {
-#if defined(USE_REGEX)
-    const char *errmsg;
-    int erroffset;
-
-    memcpy (match_buf, match+1, strlen(match)-2);      /* extract string without surrounding quotes */
-    match_buf[strlen(match)-2] = '\0';
-    ep->regex = pcre_compile ((char *)match_buf, (switches & EXP_TYP_REGEX_I) ? PCRE_CASELESS : 0, &errmsg, &erroffset, NULL);
-    (void)pcre_fullinfo(ep->regex, NULL, PCRE_INFO_CAPTURECOUNT, &ep->re_nsub);
-#endif
+    /* compiled_re = NULL, re_nsub = 0 if USE_REGEX not defined; enclosing
+     * with #if USE_REGEX is redundant. */
+    ep->regex = compiled_re;
+    ep->re_nsub = re_nsub;
     free (match_buf);
     match_buf = NULL;
     }
 else {
     sim_data_trace(exp->dptr, exp->dptr->units, (const uint8 *)match, "", strlen(match)+1, "Expect Match String", exp->dbit);
-    /* quoted string was validated above, this decode operation will always succeed */
-    (void)sim_decode_quoted_string (match, match_buf, &match_size);
     ep->match = match_buf;
     ep->size = match_size;
     }
-if (ep->act) {                                          /* replace old action? */
+if (ep->act != NULL) {                                  /* replace old action? */
     free (ep->act);                                     /* deallocate */
     ep->act = NULL;                                     /* now no action */
     }
@@ -13235,7 +13392,7 @@ if (exp->dptr && (exp->dbit & exp->dptr->dctrl))
 fprintf (st, "  Match Rules:\n");
 if (!*match)
     return sim_exp_showall (st, exp);
-if (!ep) {
+if (ep == NULL) {
     fprintf (st, "  No Rules match '%s'\n", match);
     return SCPE_ARG;
     }
@@ -13264,7 +13421,7 @@ t_stat sim_exp_check (EXPECT *exp, uint8 data)
 size_t i;
 EXPTAB *ep = NULL;
 int regex_checks = 0;
-char *tstr = NULL;
+sim_regex_bufp_t tstr = NULL;
 
 if ((!exp) || (!exp->rules))                            /* Anything to check? */
     return SCPE_OK;
@@ -13277,47 +13434,48 @@ if (exp->buf_data < exp->buf_size)
 for (i=0; i < exp->size; i++) {
     ep = &exp->rules[i];
     if (ep->switches & EXP_TYP_REGEX) {
-#if defined (USE_REGEX)
-        int *ovector = NULL;
-        int ovector_elts;
+#if USE_REGEX
         int rc;
-        char *cbuf = (char *)exp->buf;
+        sim_regex_matchp_t cbuf = (sim_regex_matchp_t) exp->buf;
         static size_t sim_exp_match_sub_count = 0;
 
-        if (tstr)
+        if (NULL != tstr)
             cbuf = tstr;
         else {
-            if (strlen ((char *)exp->buf) != exp->buf_ins) { /* Nul characters in buffer? */
-                size_t off;
+            if (strlen ((const char *) exp->buf) != exp->buf_ins) {
+                /* If there are NUL characters in exp->buf, eliminate them by successive
+                * concatenation into tstr. */
+                size_t exp_off, tstr_off;
 
-                tstr = (char *)malloc (exp->buf_ins + 1);
-                tstr[0] = '\0';
-                for (off=0; off < exp->buf_ins; off += 1 + strlen ((char *)&exp->buf[off]))
-                    strcpy (&tstr[strlen (tstr)], (char *)&exp->buf[off]);
+                tstr = (sim_regex_bufp_t) calloc (exp->buf_ins + 1, sizeof(char));
+                tstr_off = 0;
+                for (exp_off=0; exp_off < exp->buf_ins; /* empty */) {
+                    size_t to_copy = strlen ((char *) &exp->buf[exp_off]);
+                    memcpy(&tstr[tstr_off], &exp->buf[exp_off], to_copy);
+                    tstr_off += to_copy;
+                    exp_off += to_copy + 1;
+                    }
                 cbuf = tstr;
                 }
             }
         ++regex_checks;
-        ovector_elts = 3 * (ep->re_nsub + 1);
-        ovector = (int *)calloc ((size_t) ovector_elts, sizeof(*ovector));
         if (sim_deb && exp->dptr && (exp->dptr->dctrl & exp->dbit)) {
             char *estr = sim_encode_quoted_string (exp->buf, exp->buf_ins);
             sim_debug (exp->dbit, exp->dptr, "Checking String: %s\n", estr);
             sim_debug (exp->dbit, exp->dptr, "Against RegEx Match Rule: %s\n", ep->match_pattern);
             free (estr);
             }
-        /* exp->buf_ins is never going to exceed 1024 (current limit), so this is safe to
-           downcast to int. */
-        rc = pcre_exec (ep->regex, NULL, cbuf, (int) exp->buf_ins, 0, PCRE_NOTBOL, ovector, ovector_elts);
+        rc = sim_execute_regex(exp, ep, cbuf);
         if (rc >= 0) {
             size_t j;
             char *buf = (char *)malloc (1 + exp->buf_ins);
 
-            for (j=0; j < (size_t)rc; j++) {
-                char env_name[32];
-                int end_offs = ovector[2 * j + 1], start_offs = ovector[2 * j];
+            for (j=0; j < (size_t) rc; j++) {
+                char env_name[48];
+                int end_offs, start_offs;
 
-                sprintf (env_name, "_EXPECT_MATCH_GROUP_%d", (int)j);
+                sim_capture_offsets(ep, j, &start_offs, &end_offs);
+                sprintf (env_name, "_EXPECT_MATCH_GROUP_%" SIZE_T_FMT "u", j);
                 if (start_offs >= 0 && end_offs >= start_offs) {
                     memcpy (buf, &cbuf[start_offs], end_offs - start_offs);
                     buf[end_offs - start_offs] = '\0';
@@ -13326,8 +13484,8 @@ for (i=0; i < exp->size; i++) {
                     }
                 else {
                     /* Substring was not captured by regexp: remove from the environment
-                     * (unsetenv is local static -- doesn't actually remove the variable from
-                     * the environment, sets it to an empty string.) */
+                    * (unsetenv is local static -- doesn't actually remove the variable from
+                    * the environment, sets it to an empty string.) */
                     sim_debug (exp->dbit, exp->dptr, "unsetenv %s\n", env_name);
                     unsetenv(env_name);
                     }
@@ -13339,12 +13497,10 @@ for (i=0; i < exp->size; i++) {
                 setenv (env_name, "", 1);      /* Remove previous extra environment variables */
                 }
             sim_exp_match_sub_count = ep->re_nsub;
-            free (ovector);
-            ovector = NULL;
+            sim_finish_re_match(ep);
             free (buf);
             break;
             }
-        free (ovector);
 #endif
         }
     else {
@@ -14197,7 +14353,7 @@ void sim_data_trace(DEVICE *dptr, UNIT *uptr, const uint8 *data, const char *pos
 {
 
 if (sim_deb && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & reason)) {
-    _sim_debug_unit (reason, uptr, "%s %s %slen: %08X\n", sim_uname(uptr), txt, position, (unsigned int)len);
+    _sim_debug_unit (reason, uptr, "%s %s %slen: %08" SIZE_T_FMT "X\n", sim_uname(uptr), txt, position, len);
     if (data && len) {
         size_t i, same, group, sidx, oidx, ridx, eidx, soff;
         char outbuf[80], strbuf[28], rad50buf[36], ebcdicbuf[32];
