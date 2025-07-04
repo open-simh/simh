@@ -355,11 +355,15 @@ static const char *att3b2_clock_precalibrate_commands[] = {
 
 MTAB cpu_mod[] = {
 #if defined(REV2)
-    { UNIT_MSIZE, (1u << 20), NULL, "1M",
+    { UNIT_MSIZE, MSIZ_512K, NULL, "512K",
+      &cpu_set_size, NULL, NULL, "Set Memory to 512K bytes" },
+    { UNIT_MSIZE, MSIZ_1M, NULL, "1M",
       &cpu_set_size, NULL, NULL, "Set Memory to 1M bytes" },
-    { UNIT_MSIZE, (1u << 21), NULL, "2M",
+    { UNIT_MSIZE, MSIZ_2M, NULL, "2M",
       &cpu_set_size, NULL, NULL, "Set Memory to 2M bytes" },
-    { UNIT_MSIZE, (1u << 22), NULL, "4M",
+    { UNIT_MSIZE, MSIZ_3M, NULL, "3M",
+      &cpu_set_size, NULL, NULL, "Set Memory to 3M bytes" },
+    { UNIT_MSIZE, MSIZ_4M, NULL, "4M",
       &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" },
 #endif
 #if defined(REV3)

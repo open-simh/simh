@@ -38,6 +38,7 @@
 #include "3b2_iu.h"
 #include "3b2_ni.h"
 #include "3b2_ports.h"
+#include "3b2_scsi.h"
 #include "3b2_mau.h"
 #include "3b2_stddev.h"
 #include "3b2_timer.h"
@@ -60,6 +61,7 @@ DEVICE *sim_devices[] = {
     &if_dev,
     &id_dev,
     &ports_dev,
+    &ha_dev,
     &lpt_dev,
     &ctc_dev,
     &ni_dev,
@@ -78,6 +80,7 @@ void full_reset()
     id_reset(&id_dev);
     csr_reset(&csr_dev);
     ports_reset(&ports_dev);
+    ha_reset(&ha_dev);
     lpt_reset(&lpt_dev);
     ctc_reset(&ctc_dev);
     ni_reset(&ni_dev);

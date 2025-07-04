@@ -48,71 +48,58 @@
 
 #include "3b2_cpu.h"
 
-#define ID_SEEK_WAIT        50
-#define ID_SEEK_BASE        700
-#define ID_RECAL_WAIT       6000
-#define ID_RW_WAIT          1000
-#define ID_SUS_WAIT         200
-#define ID_SPEC_WAIT        1250
-#define ID_SIS_WAIT         142
-#define ID_CMD_WAIT         140
+#define ID_STEP_WAIT        4000   /* Delay per track step */
+#define ID_STEP_MIN         10000  /* Minimum delay for RECAL/SEEK command */
+#define ID_RW_WAIT          5000
+#define ID_SUS_WAIT         1000
+#define ID_SPEC_WAIT        1000
+#define ID_SIS_WAIT         1000
+#define ID_CMD_WAIT         2000
+
+#define POLLING(id)         ((id_dtlh & ID_DTLH_POLL) == 0)
 
 /* Static function declarations */
 static SIM_INLINE t_lba id_lba(uint16 cyl, uint8 head, uint8 sec);
 
-/* Data FIFO pointer - Read */
-uint8    id_dpr = 0;
-/* Data FIFO pointer - Write */
-uint8    id_dpw = 0;
-/* Controller Status Register */
-uint8    id_status = 0;
-/* Unit Interrupt Status */
-uint8    id_int_status = 0;
-/* Last command received */
-uint8    id_cmd = 0;
 /* DMAC request */
-t_bool   id_drq = FALSE;
+t_bool id_drq = FALSE;
+
+struct id_state id_state[ID_NUM_UNITS] = {0};
+
+/* Enable support for disks with > 1024 cylinders */
+static t_bool   id_large = FALSE;
+/* Data FIFO pointer - Read */
+static uint8    id_dpr = 0;
+/* Data FIFO pointer - Write */
+static uint8    id_dpw = 0;
+/* Controller Status Register */
+static uint8    id_status = 0;
+/* Unit Interrupt Status */
+static uint8    id_int_status = 0;
+/* Last command received */
+static uint8    id_cmd = 0;
 /* 8-byte FIFO */
-uint8    id_data[ID_FIFO_LEN] = {0};
+static uint8    id_data[ID_FIFO_LEN] = {0};
 /* SRQM bit */
-t_bool   id_srqm = FALSE;
+static t_bool   id_srqm = FALSE;
 /* The logical unit number (0-1) */
-uint8    id_unit_num = 0;
+static uint8    id_unit_num = 0;
 /* The physical unit number (0-3) */
-uint8    id_ua = 0;
-/* Cylinder the drive is positioned on */
-uint16   id_cyl[ID_NUM_UNITS] = {0};
-/* Ending Track Number (from Specify) */
-uint8    id_etn = 0;
-/* Ending Sector Number (from Specify) */
-uint8    id_esn = 0;
-/* DTLH word (from Specify) */
-uint8    id_dtlh = 0;
-/* Physical sector number */
-uint8    id_psn = 0;
-/* Physical head number */
-uint8    id_phn = 0;
-/* Logical cylinder number, high byte */
-uint8    id_lcnh = 0;
-/* Logical cylinder number, low byte */
-uint8    id_lcnl = 0;
-/* Logical head number */
-uint8    id_lhn = 0;
-/* Logical sector number */
-uint8    id_lsn = 0;
-/* Number of sectors to transfer, decremented after each sector */
-uint8    id_scnt = 0;
-/* Whether we are using polling mode or not */
-t_bool   id_polling = FALSE;
+static uint8    id_ua = 0;
+/* Whether we are using buffered SEEK/RECAL or not */
+static t_bool   id_buffered = FALSE;
 /* Sector buffer */
-uint8    id_buf[ID_SEC_SIZE];
+static uint8    id_buf[ID_SEC_SIZE];
 /* Buffer pointer */
-size_t   id_buf_ptr = 0;
+static size_t   id_buf_ptr = 0;
 
-uint8    id_idfield[ID_IDFIELD_LEN];
-uint8    id_idfield_ptr = 0;
+/* SPECIFY parameters */
+static uint8    id_esn;
+static uint8    id_etn;
+static uint8    id_dtlh;
 
-int8     id_seek_state[ID_NUM_UNITS] = {ID_SEEK_NONE};
+static uint8    id_idfield[ID_IDFIELD_LEN];
+static uint8    id_idfield_ptr = 0;
 
 struct id_dtype {
     uint8  hd;    /* Number of heads */
@@ -125,14 +112,14 @@ static struct id_dtype id_dtab[] = {
     ID_DRV(HD72),
     ID_DRV(HD72C),
     ID_DRV(HD135),
-    ID_DRV(HD161),
+    ID_DRV(HD161),   /* Only enabled if 'id_large' is set */
     { 0 }
 };
 
 UNIT id_unit[] = {
-    { UDATA (&id_unit_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_BINK+ID_AUTOSIZE+
+    { UDATA (&id_unit_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_BINK+DKUF_NOAUTOSIZE+
              (ID_HD72_DTYPE << ID_V_DTYPE), ID_DSK_SIZE(HD72)), 0, ID0, 0 },
-    { UDATA (&id_unit_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_BINK+ID_AUTOSIZE+
+    { UDATA (&id_unit_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_BINK+DKUF_NOAUTOSIZE+
              (ID_HD72_DTYPE << ID_V_DTYPE), ID_DSK_SIZE(HD72)), 0, ID1, 0 },
     { UDATA (&id_ctlr_svc, 0, 0) },
     { NULL }
@@ -146,15 +133,14 @@ UNIT    *id_sel_unit = &id_unit[ID0];
 REG id_reg[] = {
     { HRDATAD(CMD,  id_cmd,    8, "Command") },
     { HRDATAD(STAT, id_status, 8, "Status")  },
-    { BRDATAD(CYL,  id_cyl,    8, 8, ID_NUM_UNITS, "Track")   },
     { NULL }
 };
 
-/* HD161 and HD135 are identical; the difference is only in the
- * software being run on the emulator. SVR 2.0 will support a maximum
- * of 1024 cylinders, so can only format the first 1024 cylinders of
- * the HD135. SVR 3.0+ can support all 1224 cylinders of the HD161. */
 MTAB id_mod[] = {
+    { MTAB_XTD|MTAB_VDV, 1, NULL, "LARGE",
+      &id_set_large, NULL, NULL, "Enable support for disks with > 1024 cylinders" },
+    { MTAB_XTD|MTAB_VDV, 0, NULL, "NOLARGE",
+      &id_set_large, NULL, NULL, "Disable support disks with > 1024 cylinders" },
     { MTAB_XTD|MTAB_VUN, ID_HD30_DTYPE, NULL, "HD30",
       &id_set_type, NULL, NULL, "Set HD30 Disk Type" },
     { MTAB_XTD|MTAB_VUN, ID_HD72_DTYPE, NULL, "HD72",
@@ -167,10 +153,6 @@ MTAB id_mod[] = {
       &id_set_type, NULL, NULL, "Set HD161 Disk Type" },
     { MTAB_XTD|MTAB_VUN, 0, "TYPE", NULL,
       NULL, &id_show_type, NULL, "Display device type" },
-    { ID_AUTOSIZE, ID_AUTOSIZE, "autosize", "AUTOSIZE",
-      NULL, NULL, NULL, "Set type based on file size at attach" },
-    { ID_AUTOSIZE,           0, "noautosize",   "NOAUTOSIZE",
-      NULL, NULL, NULL, "Disable disk autosize on attach" },
     { 0 }
 };
 
@@ -184,15 +166,12 @@ DEVICE id_dev = {
     &id_description
 };
 
-/* Function implementation */
-
-#define UPDATE_INT {                                      \
-        if ((id_status & (ID_STAT_CEL|ID_STAT_CEH)) ||    \
-            ((id_status & ID_STAT_SRQ) && !id_srqm)) {    \
-            CPU_SET_INT(INT_DISK);                        \
-        } else {                                          \
-            CPU_CLR_INT(INT_DISK);                        \
-        }                                                 \
+#define UPDATE_INT {                                     \
+        if ((id_status & ID_IRQ_MASK) && !id_srqm) {     \
+            CPU_SET_INT(INT_DISK);                       \
+        } else {                                         \
+            CPU_CLR_INT(INT_DISK);                       \
+        }                                                \
     }
 
 static SIM_INLINE void id_set_status(uint8 flags)
@@ -264,11 +243,14 @@ t_stat id_ctlr_svc(UNIT *uptr)
  */
 t_stat id_unit_svc(UNIT *uptr)
 {
-    uint8 unit, other, cmd;
+    t_bool recal_error;
+    uint8 unit, other, cmd, end_flags;
 
     unit  = uptr->u3;  /* The unit number that needs an interrupt */
     cmd   = uptr->u4;  /* The command that caused the activity    */
     other = unit ^ 1;  /* The number of the other unit            */
+
+    recal_error = FALSE;
 
     /* If the other unit is active, we cannot interrupt, so we delay
      * here */
@@ -279,62 +261,35 @@ t_stat id_unit_svc(UNIT *uptr)
     }
 
     id_set_srqm(FALSE);
-    id_clr_status(ID_STAT_CB);
-    /* Note that we don't set CEH, in case this is a SEEK/RECAL ID_SEEK_1 */
 
     switch (cmd) {
-    case ID_CMD_SEEK:   /* fall-through */
     case ID_CMD_RECAL:
-        /* In POLLING mode, SEEK and RECAL actually interrupt twice.
-         *
-         * 1. Immediately after the correct number of stepping pulses
-         *    have been issued (SRQ is not set)
-         *
-         * 2. After the drive has completed seeking and is ready
-         *    for a new command (SRQ is set)
-         */
-        if (id_polling) {
-            switch (id_seek_state[unit]) {
-            case ID_SEEK_0:
-                id_set_status(ID_STAT_CEH);
-                sim_debug(EXECUTE_MSG, &id_dev,
-                          "INTR\t\tCOMPLETING Recal/Seek SEEK_0 UNIT %d\n",
-                          unit);
-                id_seek_state[unit] = ID_SEEK_1;
-                id_activate(uptr, 8000); /* TODO: Correct Delay based on steps */
-                break;
-            case ID_SEEK_1:
-                sim_debug(EXECUTE_MSG, &id_dev,
-                          "INTR\t\tCOMPLETING Recal/Seek SEEK_1 UNIT %d\n",
-                          unit);
-                id_seek_state[unit] = ID_SEEK_NONE;
-                id_set_status(ID_STAT_SRQ);
-                uptr->u4 = 0; /* Only clear out the command on a SEEK_1, never a SEEK_0 */
-                if (uptr->flags & UNIT_ATT) {
-                    id_int_status |= (ID_IST_SEN|unit);
-                } else {
-                    id_int_status |= (ID_IST_NR|unit);
-                }
-                break;
-            default:
-                sim_debug(EXECUTE_MSG, &id_dev,
-                          "INTR\t\tERROR, NOT SEEK_0 OR SEEK_1, UNIT %d\n",
-                          unit);
-                break;
-            }
+        /* Recalibrate ends in an error condition if we were never able to
+           reach track 0 */
+        recal_error = (id_state[unit].cyl != 0);
+        /* intentional fall-through */
+    case ID_CMD_SEEK:
+        id_int_status = 0;
+        uptr->u4 = 0;
+
+        sim_debug(EXECUTE_MSG, &id_dev,
+                  "INTR\t\tCOMPLETING Recal/Seek UNIT %d (polling=%d)\n",
+                  unit, POLLING(unit));
+
+        if (recal_error) {
+            end_flags = 0;
         } else {
-            sim_debug(EXECUTE_MSG, &id_dev,
-                      "INTR\t\tCOMPLETING NON-POLLING Recal/Seek UNIT %d\n",
-                      unit);
-            id_set_status(ID_STAT_CEH);
-            uptr->u4 = 0;
-            if (uptr->flags & UNIT_ATT) {
-                id_int_status |= (ID_IST_SEN|unit);
-            } else {
-                id_int_status |= (ID_IST_NR|unit);
-            }
+            end_flags = POLLING(unit) ? ID_STAT_SRQ : ID_STAT_CEH;
         }
 
+        if (uptr->flags & UNIT_ATT) {
+            id_set_status(end_flags);
+            id_int_status |= (ID_IST_SEN|unit);
+        } else {
+            id_int_status |= (ID_IST_NR|unit);
+        }
+
+        id_data[0] = id_int_status;
         break;
     case ID_CMD_SUS:
         sim_debug(EXECUTE_MSG, &id_dev,
@@ -349,7 +304,7 @@ t_stat id_unit_svc(UNIT *uptr)
         } else {
             /* Put Unit Status into byte 0 */
             id_data[0] = (ID_UST_DSEL|ID_UST_SCL|ID_UST_RDY);
-            if (id_cyl[unit] == 0) {
+            if (id_state[unit].cyl == 0) {
                 id_data[0] |= ID_UST_TK0;
             }
         }
@@ -361,6 +316,23 @@ t_stat id_unit_svc(UNIT *uptr)
         id_set_status(ID_STAT_CEH);
         uptr->u4 = 0;
         break;
+    }
+
+    /* In all conditions except on a RECALIBRATE failure, CB is cleared */
+    if (!recal_error) {
+        id_clr_status(ID_STAT_CB);
+    }
+
+    return SCPE_OK;
+}
+
+t_stat id_set_large(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+    id_large = (t_bool)val;
+
+    if (!id_large && (ID_GET_DTYPE(id_unit[0].flags) > ID_HD135_DTYPE ||
+                      ID_GET_DTYPE(id_unit[1].flags) > ID_HD135_DTYPE)) {
+        return sim_messagef(SCPE_OK, "Large disk support disabled, but at least one attached disk is large!\n");
     }
 
     return SCPE_OK;
@@ -379,12 +351,22 @@ t_stat id_set_type(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
     uptr->flags = (uptr->flags & ~ID_DTYPE) | (val << ID_V_DTYPE);
     uptr->capac = (t_addr)id_dtab[val].capac;
 
+    /*
+     * Warn the user after setting the type, so we can guard against accidentally
+     * attaching to a disk we can't use.
+     */
+    if (val == ID_HD161_DTYPE && !id_large) {
+        return sim_messagef(SCPE_OK, "HD161 disks can only be used if large disk support is enabled (SET IDISK LARGE)\n");
+    }
+
     return SCPE_OK;
 }
 
 t_stat id_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
-    fprintf (st, "%s", id_dtab[ID_GET_DTYPE(uptr->flags)].name);
+    fprintf(st, "%s%s",
+            id_dtab[ID_GET_DTYPE(uptr->flags)].name,
+            id_large ? " (Large Disk Support Enabled)" : "");
     return SCPE_OK;
 }
 
@@ -396,10 +378,12 @@ t_stat id_reset(DEVICE *dptr)
 
 t_stat id_attach(UNIT *uptr, CONST char *cptr)
 {
-    static const char *drives[] = {"HD30", "HD72", "HD72C", "HD135", "HD161", NULL};
 
-    return sim_disk_attach_ex(uptr, cptr, 512, 1, TRUE, 0, id_dtab[ID_GET_DTYPE(uptr->flags)].name,
-                              0, 0, (uptr->flags & ID_AUTOSIZE) ? drives : NULL);
+    if (ID_GET_DTYPE(uptr->flags) == ID_HD161_DTYPE && !id_large) {
+        return sim_messagef(SCPE_ARG, "HD161 disks can only be used if large disk support is enabled (SET IDISK LARGE)\n");
+    }
+
+    return sim_disk_attach_ex(uptr, cptr, 512, 1, TRUE, 0, id_dtab[ID_GET_DTYPE(uptr->flags)].name, 0, 0, NULL);
 }
 
 t_stat id_detach(UNIT *uptr)
@@ -423,29 +407,33 @@ static t_lba id_lba(uint16 cyl, uint8 head, uint8 sec)
  * with the correct return parameters. */
 static void SIM_INLINE id_end_rw(uint8 est)
 {
+    uint8 id = id_sel_unit->u3;
+
     id_clear_fifo();
     id_data[0] = est;
-    id_data[1] = id_phn;
-    id_data[2] = ~(id_lcnh);
-    id_data[3] = id_lcnl;
-    id_data[4] = id_lhn;
-    id_data[5] = id_lsn;
-    id_data[6] = id_scnt;
+    id_data[1] = id_state[id].phn;
+    id_data[2] = ~(id_state[id].lcnh);
+    id_data[3] = id_state[id].lcnl;
+    id_data[4] = id_state[id].lhn;
+    id_data[5] = id_state[id].lsn;
+    id_data[6] = id_state[id].scnt;
 }
 
 /* The controller wraps id_lsn, id_lhn, and id_lcnl on each sector
  * read, so that they point to the next C/H/S */
 static void SIM_INLINE id_update_chs()
 {
-    if (id_lsn++ >= id_esn) {
-        id_lsn = 0;
-        if (id_lhn++ >= id_etn) {
-            id_lhn = 0;
-            if (id_lcnl == 0xff) {
-                id_lcnl = 0;
-                id_lcnh++;
+    uint8 id = id_sel_unit->u3;
+
+    if (id_state[id].lsn++ >= id_esn) {
+        id_state[id].lsn = 0;
+        if (id_state[id].lhn++ >= id_etn) {
+            id_state[id].lhn = 0;
+            if (id_state[id].lcnl == 0xff) {
+                id_state[id].lcnl = 0;
+                id_state[id].lcnh++;
             } else {
-                id_lcnl++;
+                id_state[id].lcnl++;
             }
         }
     }
@@ -453,12 +441,13 @@ static void SIM_INLINE id_update_chs()
 
 uint32 id_read(uint32 pa, size_t size)
 {
-    uint8 reg;
+    uint8 reg, id;
     uint16 cyl;
     t_lba lba;
     uint32 data;
     t_seccnt sectsread;
 
+    id = id_sel_unit->u3;
     reg = (uint8) (pa - IDBASE);
 
     switch(reg) {
@@ -482,7 +471,7 @@ uint32 id_read(uint32 pa, size_t size)
             if (CMD_NUM == ID_CMD_RDATA) {
                 /* If we're still in DRQ but we've read all our sectors,
                  * that's an error state. */
-                if (id_scnt == 0) {
+                if (id_state[id].scnt == 0) {
                     sim_debug(READ_MSG, &id_dev,
                               "ERROR\tid_scnt = 0 but still in dma\n");
                     id_end_rw(ID_EST_OVR);
@@ -493,9 +482,9 @@ uint32 id_read(uint32 pa, size_t size)
                 if (id_buf_ptr == 0 || id_buf_ptr >= ID_SEC_SIZE) {
                     /* It's time to read a new sector into our sector buf */
                     id_buf_ptr = 0;
-                    cyl = (uint16) (((uint16)id_lcnh << 8)|(uint16)id_lcnl);
-                    id_cyl[id_unit_num] = cyl;
-                    lba = id_lba(cyl, id_lhn, id_lsn);
+                    cyl = (uint16) (((uint16)id_state[id].lcnh << 8)|(uint16)id_state[id].lcnl);
+                    id_state[id_unit_num].cyl = cyl;
+                    lba = id_lba(cyl, id_state[id].lhn, id_state[id].lsn);
                     if (sim_disk_rdsect(id_sel_unit, lba, id_buf, &sectsread, 1) == SCPE_OK) {
                         if (sectsread !=1) {
                             sim_debug(READ_MSG, &id_dev,
@@ -517,17 +506,17 @@ uint32 id_read(uint32 pa, size_t size)
 
                 /* Done with this current sector, update id_scnt */
                 if (id_buf_ptr >= ID_SEC_SIZE) {
-                    if (--id_scnt == 0) {
+                    if (--id_state[id].scnt == 0) {
                         id_end_rw(0);
                     }
                 }
             } else if (CMD_NUM == ID_CMD_RID) {
                 /* We have to return the ID bytes for the current C/H/S */
                 if (id_idfield_ptr == 0 || id_idfield_ptr >= ID_IDFIELD_LEN) {
-                    id_idfield[0] = ~(id_lcnh);
-                    id_idfield[1] = id_lcnl;
-                    id_idfield[2] = id_lhn;
-                    id_idfield[3] = id_lsn;
+                    id_idfield[0] = ~(id_state[id].lcnh);
+                    id_idfield[1] = id_state[id].lcnl;
+                    id_idfield[2] = id_state[id].lhn;
+                    id_idfield[3] = id_state[id].lsn;
                     id_idfield_ptr = 0;
                 }
 
@@ -537,14 +526,14 @@ uint32 id_read(uint32 pa, size_t size)
                           data);
 
                 if (id_idfield_ptr >= ID_IDFIELD_LEN) {
-                    if (id_scnt-- > 0) {
+                    if (id_state[id].scnt-- > 0) {
                         /* Another sector to ID */
                         id_idfield_ptr = 0;
                     } else {
                         /* All done, set return codes */
                         id_clear_fifo();
                         id_data[0] = 0;
-                        id_data[1] = id_scnt;
+                        id_data[1] = id_state[id].scnt;
                     }
                 }
             } else {
@@ -584,12 +573,13 @@ uint32 id_read(uint32 pa, size_t size)
 
 void id_write(uint32 pa, uint32 val, size_t size)
 {
-    uint8 reg;
+    uint8 reg, id;
     uint16 cyl;
     t_lba lba;
     t_seccnt sectswritten;
 
     reg = (uint8) (pa - IDBASE);
+    id = id_sel_unit->u3;
 
     switch(reg) {
     case ID_DATA_REG:
@@ -599,7 +589,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
         if (id_drq) {
             /* If we're still in DRQ but we've written all our sectors,
              * that's an error state. */
-            if (id_scnt == 0) {
+            if (id_state[id].scnt == 0) {
                 sim_debug(WRITE_MSG, &id_dev,
                           "ERROR\tid_scnt = 0 but still in dma\n");
                 id_end_rw(ID_EST_OVR);
@@ -623,9 +613,9 @@ void id_write(uint32 pa, uint32 val, size_t size)
             if (id_buf_ptr >= ID_SEC_SIZE) {
                 /* It's time to start the next sector, and flush the old. */
                 id_buf_ptr = 0;
-                cyl = (uint16) (((uint16) id_lcnh << 8)|(uint16)id_lcnl);
-                id_cyl[id_unit_num] = cyl;
-                lba = id_lba(cyl, id_lhn, id_lsn);
+                cyl = (uint16) (((uint16) id_state[id].lcnh << 8)|(uint16)id_state[id].lcnl);
+                id_state[id].cyl = cyl;
+                lba = id_lba(cyl, id_state[id].lhn, id_state[id].lsn);
                 if (sim_disk_wrsect(id_sel_unit, lba, id_buf, &sectswritten, 1) == SCPE_OK) {
                     if (sectswritten !=1) {
                         sim_debug(WRITE_MSG, &id_dev,
@@ -633,7 +623,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
                                   sectswritten);
                     }
                     id_update_chs();
-                    if (--id_scnt == 0) {
+                    if (--id_state[id].scnt == 0) {
                         id_end_rw(0);
                     }
                 } else {
@@ -668,7 +658,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
 
 void id_handle_command(uint8 val)
 {
-    uint8 cmd, aux_cmd, sec, pattern;
+    uint8 cmd, aux_cmd, sec, pattern, id;
     uint16 cyl;
     uint32 time;
     t_lba lba;
@@ -709,8 +699,7 @@ void id_handle_command(uint8 val)
             sim_cancel(id_sel_unit);
             sim_cancel(id_ctlr_unit);
             id_status = 0;
-            id_srqm = FALSE;
-            UPDATE_INT;
+            id_set_srqm(FALSE);
         }
 
         /* Just return early */
@@ -721,7 +710,7 @@ void id_handle_command(uint8 val)
      * nothing */
     if (id_status & ID_STAT_CB) {
         sim_debug(EXECUTE_MSG, &id_dev,
-                  "!!! Controller Busy. Skipping command byte %02x\n",
+                  "Controller Busy. Skipping command byte %02x\n",
                   val);
         return;
     }
@@ -733,16 +722,13 @@ void id_handle_command(uint8 val)
     id_cmd = val;
     cmd = (id_cmd >> 4) & 0xf;
 
-    /* Now that we know it's not an aux command, we can get the unit
-     * number. Note that we don't update the unit in the case of three
-     * special commands. */
-    if (cmd != ID_CMD_SIS && cmd != ID_CMD_SPEC && cmd != ID_CMD_DERR) {
-        if ((id_cmd & 3) != id_ua) {
-            id_unit_num = id_cmd & 1;
-            id_ua = id_cmd & 3;
-            id_sel_unit = &id_unit[id_unit_num];
-        }
+    if ((id_cmd & 3) != id_ua) {
+        id_unit_num = id_cmd & 1;
+        id_ua = id_cmd & 3;
+        id_sel_unit = &id_unit[id_unit_num];
     }
+
+    id = id_unit_num;
 
     /* TODO: Fix this hack */
     if (cmd == ID_CMD_SIS || cmd == ID_CMD_SPEC || cmd == ID_CMD_DERR) {
@@ -768,7 +754,6 @@ void id_handle_command(uint8 val)
         id_dtlh = id_data[1];
         id_etn = id_data[3];
         id_esn = id_data[4];
-        id_polling = (id_dtlh & ID_DTLH_POLL) == 0;
         id_activate(id_ctlr_unit, ID_SPEC_WAIT);
         break;
     case ID_CMD_SUS:
@@ -784,48 +769,56 @@ void id_handle_command(uint8 val)
         id_activate(id_ctlr_unit, ID_CMD_WAIT);
         break;
     case ID_CMD_RECAL:
-        time = id_cyl[id_unit_num];
-        id_cyl[id_unit_num] = 0;
-        id_seek_state[id_unit_num] = ID_SEEK_0;
-        if (id_polling) {
-            sim_debug(WRITE_MSG, &id_dev,
-                      "COMMAND\t%02x\tRecalibrate - %d - POLLING\n",
-                      val, id_ua);
-            id_activate(id_sel_unit, 1000);
-        } else {
-            sim_debug(WRITE_MSG, &id_dev,
-                      "COMMAND\t%02x\tRecalibrate - %d - NORMAL\n",
-                      val, id_ua);
-            id_activate(id_sel_unit, (ID_RECAL_WAIT + (time * ID_SEEK_WAIT)));
+        id_buffered = (val & 0x08) == 0x08;
+        time = MAX(ID_STEP_MIN, id_state[id].cyl * ID_STEP_WAIT);
+
+        sim_debug(WRITE_MSG, &id_dev,
+                  "COMMAND\t%02x\tRecalibrate - %d - (buffered=%d, polling=%d, delay=%u)\n",
+                  val, id_ua, id_buffered, POLLING(id), time);
+
+        if (POLLING(id)) {
+            id_set_status(ID_STAT_CEH);
         }
+
+        /* If large disk support hasn't been enabled, and the starting cylinder we're
+         * recalibrating from is > 1023, we can't reach track 0! */
+        if (!id_large && id_state[id].cyl > 1023) {
+            sim_debug(WRITE_MSG, &id_dev,
+                      "WARNING: RECALIBRATE - Starting cylinder %d is > 1023!\n",
+                      id_state[id].cyl);
+
+            id_state[id].cyl -= 1023;
+        } else {
+            id_state[id].cyl = 0;
+        }
+
+        id_activate(id_sel_unit, time);
         break;
     case ID_CMD_SEEK:
-        id_lcnh = id_data[0];
-        id_lcnl = id_data[1];
-        cyl = id_lcnh << 8 | id_lcnl;
-        time = (uint32) abs(id_cyl[id_unit_num] - cyl);
-        id_cyl[id_unit_num] = cyl;
-        id_seek_state[id_unit_num] = ID_SEEK_0;
+        id_buffered = (val & 0x08) == 0x08;
+        id_state[id].lcnh = id_data[0];
+        id_state[id].lcnl = id_data[1];
+        cyl = ((uint16)id_state[id].lcnh) << 8 | (uint16)id_state[id].lcnl;
+        time = MAX(ID_STEP_MIN, ID_STEP_WAIT * (cyl > id_state[id].cyl ? cyl - id_state[id].cyl : id_state[id].cyl - cyl));
 
-        if (id_polling) {
-            sim_debug(WRITE_MSG, &id_dev,
-                      "COMMAND\t%02x\tSeek - %d - POLLING\n",
-                      val, id_ua);
-            id_activate(id_sel_unit, 4000);
-        } else {
-            sim_debug(WRITE_MSG, &id_dev,
-                      "COMMAND\t%02x\tSeek - %d - NORMAL\n",
-                      val, id_ua);
-            id_activate(id_sel_unit, ID_SEEK_BASE + (time * ID_SEEK_WAIT));
+        sim_debug(WRITE_MSG, &id_dev,
+                  "COMMAND\t%02x\tSeek - %d - CYL=%u BUF=%d POL=%d DELAY=%u\n",
+                  val, id_ua, cyl, id_buffered, POLLING(id), time);
+
+        if (POLLING(id)) {
+            id_set_status(ID_STAT_CEH);
         }
+
+        id_state[id].cyl = cyl;
+        id_activate(id_sel_unit, time);
         break;
     case ID_CMD_FMT:
         sim_debug(WRITE_MSG, &id_dev,
                   "COMMAND\t%02x\tFormat - %d\n",
                   val, id_ua);
 
-        id_phn  = id_data[0];
-        id_scnt = id_data[1];
+        id_state[id].phn  = id_data[0];
+        id_state[id].scnt = id_data[1];
         pattern = id_data[2];
 
         /* Format scnt sectors with the given pattern, if attached */
@@ -833,20 +826,20 @@ void id_handle_command(uint8 val)
             /* Formatting soft-sectored disks always begins at sector 0 */
             sec = 0;
 
-            while (id_scnt-- > 0) {
+            while (id_state[id].scnt-- > 0) {
                 /* Write one sector of pattern */
                 for (id_buf_ptr = 0; id_buf_ptr < ID_SEC_SIZE; id_buf_ptr++) {
                     id_buf[id_buf_ptr] = pattern;
                 }
-                lba = id_lba(id_cyl[id_unit_num], id_phn, sec++);
+                lba = id_lba(id_state[id].cyl, id_state[id].phn, sec++);
                 if (sim_disk_wrsect(id_sel_unit, lba, id_buf, NULL, 1) == SCPE_OK) {
                     sim_debug(EXECUTE_MSG, &id_dev,
                               "FORMAT: PHN=%d SCNT=%d PAT=%02x LBA=%04x\n",
-                              id_phn, id_scnt, pattern, lba);
+                              id_state[id].phn, id_state[id].scnt, pattern, lba);
                 } else {
                     sim_debug(EXECUTE_MSG, &id_dev,
                               "FORMAT FAILED! PHN=%d SCNT=%d PAT=%02x LBA=%04x\n",
-                              id_phn, id_scnt, pattern, lba);
+                              id_state[id].phn, id_state[id].scnt, pattern, lba);
                     break;
                 }
             }
@@ -857,7 +850,7 @@ void id_handle_command(uint8 val)
             id_data[0] = ID_EST_NR;
         }
 
-        id_data[1] = id_scnt;
+        id_data[1] = id_state[id].scnt;
 
         id_activate(id_sel_unit, ID_CMD_WAIT);
         break;
@@ -877,12 +870,12 @@ void id_handle_command(uint8 val)
             id_drq = TRUE;
 
             /* Grab our arguments */
-            id_phn = id_data[0];
-            id_scnt = id_data[1];
+            id_state[id].phn = id_data[0];
+            id_state[id].scnt = id_data[1];
 
             /* Compute logical values used by ID verification */
-            id_lhn = id_phn;
-            id_lsn = 0;
+            id_state[id]. lhn = id_state[id].phn;
+            id_state[id].lsn = 0;
         } else {
             sim_debug(EXECUTE_MSG, &id_dev,
                       "UNIT %d NOT ATTACHED, CANNOT READ ID.\n",
@@ -897,25 +890,29 @@ void id_handle_command(uint8 val)
         id_activate(id_sel_unit, ID_CMD_WAIT);
         break;
     case ID_CMD_RDATA:
+        /* Grab our arguments */
+        id_state[id].phn  = id_data[0];
+        id_state[id].lcnh = ~(id_data[1]);
+        id_state[id].lcnl = id_data[2];
+        id_state[id].lhn  = id_data[3];
+        id_state[id].lsn  = id_data[4];
+        id_state[id].scnt = id_data[5];
+
         sim_debug(WRITE_MSG, &id_dev,
-                  "COMMAND\t%02x\tRead Data - %d\n",
-                  val, id_ua);
+                  "COMMAND\t%02x\tRead Data - %d - CYL=%u PH=%u LH=%u SEC=%u SCNT=%u\n",
+                  val, id_ua,
+                  (uint16)id_state[id].lcnh << 8 | (uint16)id_state[id].lcnl,
+                  id_data[0], id_data[3], id_data[4], id_data[5]);
+
         if (id_sel_unit->flags & UNIT_ATT) {
             id_drq = TRUE;
             id_buf_ptr = 0;
-
-            /* Grab our arguments */
-            id_phn  = id_data[0];
-            id_lcnh = ~(id_data[1]);
-            id_lcnl = id_data[2];
-            id_lhn  = id_data[3];
-            id_lsn  = id_data[4];
-            id_scnt = id_data[5];
         } else {
             sim_debug(EXECUTE_MSG, &id_dev,
                       "UNIT %d NOT ATTACHED, CANNOT READ DATA.\n",
                       id_ua);
         }
+
         id_activate(id_sel_unit, ID_RW_WAIT);
         break;
     case ID_CMD_CHECK:
@@ -937,20 +934,23 @@ void id_handle_command(uint8 val)
         id_activate(id_sel_unit, ID_CMD_WAIT);
         break;
     case ID_CMD_WDATA:
+        /* Grab our arguments */
+        id_state[id].phn  = id_data[0];
+        id_state[id].lcnh = ~(id_data[1]);
+        id_state[id].lcnl = id_data[2];
+        id_state[id].lhn  = id_data[3];
+        id_state[id].lsn  = id_data[4];
+        id_state[id].scnt = id_data[5];
+
         sim_debug(WRITE_MSG, &id_dev,
-                  "COMMAND\t%02x\tWrite Data - %d\n",
-                  val, id_ua);
+                  "COMMAND\t%02x\tWrite Data - %d - CYL=%u PH=%u LH=%u SEC=%u SCNT=%u\n",
+                  val, id_ua,
+                  (uint16)id_state[id].lcnh << 8 | (uint16)id_state[id].lcnl,
+                  id_data[0], id_data[3], id_data[4], id_data[5]);
+
         if (id_sel_unit->flags & UNIT_ATT) {
             id_drq = TRUE;
             id_buf_ptr = 0;
-
-            /* Grab our arguments */
-            id_phn  = id_data[0];
-            id_lcnh = ~(id_data[1]);
-            id_lcnl = id_data[2];
-            id_lhn  = id_data[3];
-            id_lsn  = id_data[4];
-            id_scnt = id_data[5];
         } else {
             sim_debug(EXECUTE_MSG, &id_dev,
                       "UNIT %d NOT ATTACHED, CANNOT WRITE.\n",
@@ -983,8 +983,10 @@ t_stat id_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
     fprintf(st, "  HD30   30.6 MB   3    697     5   18    512     CDC Wren 94155-36\n");
     fprintf(st, "  HD72   73.2 MB   5    925     9   18    512     CDC Wren II 94156-86\n");
     fprintf(st, "  HD72C  72.9 MB   8    754    11   18    512     Fujitsu M2243AS\n");
-    fprintf(st, "  HD135 135.0 MB  11   1024    15   18    512     Maxtor XT1190 (SVR2)\n");
-    fprintf(st, "  HD161 161.4 MB  11   1224    15   18    512     Maxtor XT1190 (SVR3+)\n\n");
+    fprintf(st, "  HD135 135.0 MB  11   1024    15   18    512     Maxtor XT-2190\n");
+    if (id_large) {
+        fprintf(st, "  HD161 161.4 MB  11   1224    15   18    512     Maxtor XT-2190\n\n");
+    }
     fprintf(st, "The drive ID and geometry values are used when low-level formatting a\n");
     fprintf(st, "drive using the AT&T 'idtools' utility.\n");
 

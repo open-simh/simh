@@ -275,7 +275,7 @@ static SIM_INLINE t_stat mmu_check_perm(uint8 flags, uint8 r_acc)
             return SCPE_NXM;
         }
         return SCPE_OK;
-    default:
+    default: /* Read / Write / Execute */
         return SCPE_OK;
     }
 }
@@ -670,14 +670,14 @@ t_stat mmu_decode_paged(uint32 va, uint8 r_acc, t_bool fc,
         /* If this is a write, modify the M bit */
         if (SHOULD_UPDATE_PD_M_BIT(pd)) {
             sim_debug(EXECUTE_MSG, &mmu_dev,
-                      "Updating M bit in PD\n");
+                      "Updating M bit in PD [va=%08x, pd=%08x, r_acc=%d]\n", va, pd, r_acc);
             mmu_update_pd(va, PD_LOC(sd1, va), PD_M_MASK);
         }
 
         /* Modify the R bit and write it back */
         if (SHOULD_UPDATE_PD_R_BIT(pd)) {
             sim_debug(EXECUTE_MSG, &mmu_dev,
-                      "Updating R bit in PD\n");
+                      "Updating R bit in PD [va=%08x, pd=%08x, r_acc=%d]\n", va, pd, r_acc);
             mmu_update_pd(va, PD_LOC(sd1, va), PD_R_MASK);
         }
     }

@@ -2129,7 +2129,7 @@ ATT3B2M400 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
     ${ATT3B2D}/3b2_if.c ${ATT3B2D}/3b2_id.c \
     ${ATT3B2D}/3b2_dmac.c ${ATT3B2D}/3b2_io.c \
     ${ATT3B2D}/3b2_ports.c ${ATT3B2D}/3b2_ctc.c \
-    ${ATT3B2D}/3b2_ni.c
+    ${ATT3B2D}/3b2_scsi.c ${ATT3B2D}/3b2_ni.c
 ATT3B2M400_OPT = -DUSE_INT64 -DUSE_ADDR64 -DREV2 -I ${ATT3B2D} ${NETWORK_OPT} ${AIO_CCDEFS}
 
 ATT3B2M700 = ${ATT3B2D}/3b2_cpu.c ${ATT3B2D}/3b2_sys.c \
@@ -2878,7 +2878,7 @@ endif
 
 ${BIN}3b2${EXE} : ${ATT3B2M400} ${SIM}
 	${MKDIRBIN}
-	${CC} ${ATT3B2M400} ${SIM} ${ATT3B2M400_OPT} ${CC_OUTSPEC} ${LDFLAGS}
+	${CC} ${ATT3B2M400} ${SCSI} ${SIM} ${ATT3B2M400_OPT} ${CC_OUTSPEC} ${LDFLAGS}
 ifeq (${WIN32},)
 	cp ${BIN}3b2${EXE} ${BIN}3b2-400${EXE}
 else

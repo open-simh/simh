@@ -263,6 +263,7 @@
     <ClCompile Include="..\3B2\3b2_rev2_csr.c" />
     <ClCompile Include="..\3B2\3b2_rev2_mmu.c" />
     <ClCompile Include="..\3B2\3b2_rev2_sys.c" />
+    <ClCompile Include="..\3B2\3b2_scsi.c" />
     <ClCompile Include="..\3B2\3b2_stddev.c" />
     <ClCompile Include="..\3B2\3b2_sys.c" />
     <ClCompile Include="..\3B2\3b2_timer.c" />
@@ -271,6 +272,7 @@
     <ClCompile Include="..\sim_disk.c" />
     <ClCompile Include="..\sim_ether.c" />
     <ClCompile Include="..\sim_fio.c" />
+    <ClCompile Include="..\sim_scsi.c" />
     <ClCompile Include="..\sim_serial.c" />
     <ClCompile Include="..\sim_sock.c" />
     <ClCompile Include="..\sim_tape.c" />

@@ -32,6 +32,7 @@ add_simulator(3b2
         3b2_io.c
         3b2_ports.c
         3b2_ctc.c
+        3b2_scsi.c
         3b2_ni.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}

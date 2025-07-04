@@ -250,6 +250,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\3B2\3b2_scsi.c"
+				>
+			</File>
+			<File
 				RelativePath="..\3B2\3b2_stddev.c"
 				>
 			</File>
@@ -302,6 +306,10 @@
 			</File>
 			<File
 				RelativePath="..\sim_fio.c"
+				>
+			</File>
+			<File
+				RelativePath="..\sim_scsi.c"
 				>
 			</File>
 			<File

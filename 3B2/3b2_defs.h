@@ -97,6 +97,7 @@
 #define MSIZ_512K      0x80000
 #define MSIZ_1M        0x100000
 #define MSIZ_2M        0x200000
+#define MSIZ_3M        0x300000
 #define MSIZ_4M        0x400000
 #define MSIZ_8M        0x800000
 #define MSIZ_16M       0x1000000
@@ -146,6 +147,7 @@ extern DEVICE cpu_dev;
 extern DEVICE csr_dev;
 extern DEVICE ctc_dev;
 extern DEVICE dmac_dev;
+extern DEVICE ha_dev;
 extern DEVICE id_dev;
 extern DEVICE if_dev;
 extern DEVICE iu_timer_dev;
@@ -161,7 +163,6 @@ extern DEVICE tto_dev;
 extern DEVICE lpt_dev;
 #if defined(REV3)
 extern DEVICE flt_dev;
-extern DEVICE ha_dev;
 #endif /* defined(REV3) */
 
 #endif /* _3B2_DEFS_H_ */
