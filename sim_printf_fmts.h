@@ -5,6 +5,7 @@
  * this header so that these formats are available to more than SCP.
  *
  * Author: B. Scott Michel
+ *         C. Gauger-Cosgrove
  *
  * "scooter me fecit"
  *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~*/
@@ -15,7 +16,9 @@
 /* cross-platform printf() format specifiers:
  *
  * Note: MS apparently does recognize "ll" as "l" in its printf() routines, but "I64" is
- * preferred for 64-bit types.
+ * preferred for 64-bit types.  _MSC_VER and _WIN32 are always defined for Visual Studio
+ * builds. To check if the build is using 64-bit Visual Studio, you must check if the
+ * _WIN64 macro is defined.
  *
  * MinGW note: __MINGW64__ and __MINGW32__ are both defined by 64-bit gcc. Check
  * for __MINGW64__ before __MINGW32__.
@@ -31,12 +34,14 @@
 
 #if defined (_WIN32) || defined(_WIN64)
 
-#  if defined(__MINGW64__)
+     /* 64-bit Visual Studio or MINGW build */
+#  if defined(_WIN64) || defined(__MINGW64__)
 #    define LL_FMT     "I64"
 #    define SIZE_T_FMT "I64"
-#  elif defined(_MSC_VER) || defined(__MINGW32__)
+     /* 32-bit Visual Studio or MINGW build */
+#  elif defined(_WIN32) || defined(__MINGW32__)
 #    define LL_FMT     "ll"
-#    define SIZE_T_FMT "z"
+#    define SIZE_T_FMT "I32"
 #  else
      /* Graceful fail -- shouldn't ever default to this on a Windows platform. */
 #    define LL_FMT     "ll"
