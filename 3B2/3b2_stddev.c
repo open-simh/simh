@@ -741,6 +741,12 @@ DEVICE flt_dev = {
  */
 static uint32 mem_size(uint8 slot) {
     switch(MEM_SIZE) {
+    case MSIZ_4M:
+        if (slot == 0) {
+            return MEM_EQP|MEM_4M;
+        } else {
+            return 0;
+        }
     case MSIZ_8M:
         if (slot <= 1) {
             return MEM_EQP|MEM_4M;

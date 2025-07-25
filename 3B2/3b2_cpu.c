@@ -367,6 +367,8 @@ MTAB cpu_mod[] = {
       &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" },
 #endif
 #if defined(REV3)
+    { UNIT_MSIZE, (1u << 22), NULL, "4M",
+      &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" },
     { UNIT_MSIZE, (1u << 23), NULL, "8M",
       &cpu_set_size, NULL, NULL, "Set Memory to 8M bytes" },
     { UNIT_MSIZE, (1u << 24), NULL, "16M",
