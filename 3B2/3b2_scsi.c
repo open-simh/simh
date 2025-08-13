@@ -420,14 +420,7 @@ void ha_express(uint8 slot)
     cio_entry rqe;
     uint8 rapp_data[RAPP_LEN] = {0};
 
-    sim_debug(HA_TRACE, &ha_dev,
-              "[ha_express] Handling Express Request. pump_state=%d, ha_state.frq=%d, subdev=%02x\n",
-              ha_state.pump_state, ha_state.frq, rqe.subdevice);
-
     if (ha_state.pump_state == PUMP_SYSGEN) {
-        sim_debug(HA_TRACE, &ha_dev,
-                  "[ha_full] PUMP: NEW STATE = PUMP_COMPLETE\n");
-
         ha_state.pump_state = PUMP_COMPLETE;
     }
 
