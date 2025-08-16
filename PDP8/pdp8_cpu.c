@@ -406,7 +406,7 @@ reason = 0;
 // so it's no longer "uninitialized" with respect to the simulated execution. See
 // the TBD FIX in the code for the Start switch in main.c.in. When that is fixed,
 // this can be removed.
-if (IB = -1)
+if (IB == -1)
     IB = IF;
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -1497,3 +1497,4 @@ for (k = 0; k < lnt; k++) {                             /* print specified */
     }                                                   /* end for */
 return SCPE_OK;
 }
+
