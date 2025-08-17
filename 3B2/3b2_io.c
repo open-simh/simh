@@ -461,22 +461,45 @@ uint32 io_read(uint32 pa, size_t size)
     }
 #else
     if (pa == MEMSIZE_REG) {
+        /* The memsize register at 0x4c003 maps its lower two bits to the
+         * SIZE64K and ONEBANK signals from the first DPDRAM slot.  This
+         * determines what kind of memory module is installed in that
+         * slot.
+         *
+         *    SIZE64K | ONEBANK | Module Size
+         *    --------+---------+----------
+         *          0 |       0 | 256 KB
+         *          0 |       1 | 1 MB
+         *          1 |       1 | 2 MB
+         *
+         * After determining the size of the module in slot 1, the firmware
+         * then tries to write to higher memory addresses to see if more
+         * than one memory module is installed.
+         *
+         * In a real 3B2/300, /310, or /400, if two memory modules are
+         * installed, the module in slot 2 should be the same size or
+         * smaller than the module in slot 1, otherwise it won't all get
+         * used. For example, if a 1 MB module is in slot 1 and a 2 MB
+         * card is in slot 2, only 1 MB of the second module would be
+         * used!
+         *
+         * Since the 3B2 simulator doesn't let you do this, we just assume
+         * the configuration of the two modules based on the total memory
+         * configured.
+         *
+         * N.B.: A 512 KB configuration was only supported through SVR 2.
+         *       A single 256 KB memory module was never supported.
+         */
 
-        /* The following values map to memory sizes:
-           0x00: 512KB (  524,288 B)
-           0x01: 2MB   (2,097,152 B)
-           0x02: 1MB   (1,048,576 B)
-           0x03: 4MB   (4,194,304 B)
-        */
         switch(MEM_SIZE) {
-        case 0x80000:  /* 512KB */
+        case MSIZ_512K:  /* slot 1=256 KB,  slot 2=256 KB */
             return 0;
-        case 0x100000: /* 1MB */
-            return 2;
-        case 0x200000: /* 2MB */
-            return 1;
-        case 0x400000: /* 4MB */
-            return 3;
+        case MSIZ_1M:    /* slot 1=1 MB,    slot 2=empty  */
+            return 0x1;
+        case MSIZ_2M:    /* slot 1=2 MB,    slot 2=empty  */
+        case MSIZ_3M:    /* slot 1=2 MB,    slot 2=1 MB   */
+        case MSIZ_4M:    /* slot 1=2 MB,    slot 2=2 MB   */
+            return 0x3;
         default:
             return 0;
         }

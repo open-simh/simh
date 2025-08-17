@@ -301,7 +301,7 @@ typedef struct {
  * Not-a-Number Type
  */
 typedef struct {
-    t_bool sign;
+    uint32 sign;
     t_uint64 high;
     t_uint64 low;
 } T_NAN;
