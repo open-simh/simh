@@ -126,6 +126,7 @@ t_addr   sim_hopper_size(UNIT * uptr);
      /* Return number of cards punched */
 t_addr   sim_punch_count(UNIT * uptr);
 t_addr   sim_card_input_hopper_count(UNIT *uptr);
+t_addr   sim_card_input_hopper_ok_count(UNIT *uptr);
 t_addr   sim_card_output_hopper_count(UNIT *uptr);
 t_stat   sim_card_attach(UNIT * uptr, CONST char *file);
 t_stat   sim_card_detach(UNIT *uptr);

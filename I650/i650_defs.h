@@ -172,8 +172,8 @@ extern struct card_wirings {
 extern char    digits_ascii[31];
 extern char    mem_to_ascii[101];
 extern int     ascii_to_NN(int ch);
-extern uint16  sim_ascii_to_hol(char c);
-extern char    sim_hol_to_ascii(uint16 hol);
+extern uint16  ascii_to_hol(char c);
+extern char    hol_to_ascii(uint16 hol);
 
 /* Generic devices common to all */
 extern DEVICE      cpu_dev;
