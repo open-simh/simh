@@ -214,6 +214,79 @@ Note: As mentioned above, NAT networking is specifically capable of providing
 
 
 -------------------------------------------------------------------------------
+Another alternative to pcap and tun/tap on macOS is using the vmnet framework.
+The vmnet framework provides simh a way to provide emulated systems networking,
+without requiring any additional software. Because tun/tap support requires
+third-party kernel extensions (which is heavily discouraged by Apple), this
+provides an equivalent that doesn't require reducing OS security.
+
+vmnet provides Layer 2 networking, so things like DECnet and MOP will work
+properly, even across multiple systems. It can be used to either bridge to a
+physical network, or provide a virtual network for systems, including NAT.
+
+simh must be running as root. (Running without root is possible if simh is a
+notarized application. You're very unlikely to be building simh like this, so
+de facto it needs root.) vmnet.framework requires macOS 10.10; macOS 10.15 is
+required for bridged networking.
+
+When attaching an ethernet device, you have three options available:
+
+  - "vmnet:host": This provides "host-only" networking. It allows the system to
+    talk to the host Mac, as well as other emulated systems on the host-only VM
+    network.
+  - "vmnet:shared": This extends the host-only network to add NAT, using the
+    host as a gateway.
+  - "vmnet:<device>": This bridges vmnet to a physical network. You must
+    specify a valid network device to use.
+
+    You can use SHOW ETHERNET in SCP to see what devices are allowed to be
+    bridged; these are likely your Ethernet and Wi-Fi devices.
+
+    sim> show eth
+    ETH devices:
+     eth0	vmnet:en0
+     eth1	vmnet:en7
+     eth2	udp:sourceport:remotehost:remoteport
+    sim> attach xq vmnet:en0
+
+    You can verify with i.e. "ifconfig" to see if this is the correct interface
+    to bridge to.
+
+When using the host and shared modes, the host system create an IPv4 and v6
+subnet for the emulated systems. macOS will provide DHCP and other discovery
+protocols on the virtual network as well. To see what IP and subnet the host
+has claimed, you can use "ifconfig" to display it; macOS will bind its IP to
+the bridgeN device, with the simh instance having its own vmenetN device joined
+to that bridgeN device:
+
+vmenet0: flags=8963<UP,BROADCAST,SMART,RUNNING,PROMISC,SIMPLEX,MULTICAST> mtu 1500
+	options=60<TSO4,TSO6>
+	ether a6:94:63:7e:f3:04
+	media: autoselect
+	status: active
+bridge100: flags=8a63<UP,BROADCAST,SMART,RUNNING,ALLMULTI,SIMPLEX,MULTICAST> mtu 1500
+	options=3<RXCSUM,TXCSUM>
+	ether b2:f1:d8:65:66:64
+	inet 192.168.67.1 netmask 0xffffff00 broadcast 192.168.67.255
+	inet6 fe80::b0f1:d8ff:fe65:6664%bridge100 prefixlen 64 scopeid 0x23 
+	inet6 fd91:d62b:63cd:ec3d:4ad:c40c:d0b8:5826 prefixlen 64 autoconf secured 
+	Configuration:
+		id 0:0:0:0:0:0 priority 0 hellotime 0 fwddelay 0
+		maxage 0 holdcnt 0 proto stp maxaddr 100 timeout 1200
+		root id 0:0:0:0:0:0 priority 0 ifcost 0 port 0
+		ipfilter disabled flags 0x0
+	member: vmenet0 flags=3<LEARNING,DISCOVER>
+	        ifmaxaddr 0 port 34 priority 0 path cost 0
+	nd6 options=201<PERFORMNUD,DAD>
+	media: autoselect
+	status: active
+
+Currently, settings like the subnet ranges nor port forwarding are controllable
+via simh. For finer grained control over how systems are addressed, you can use
+a bridged network instead of a host-only or shared network. These settings are
+provided by macOS, so a future version of simh may be able to adopt these.
+
+-------------------------------------------------------------------------------
 
 Windows notes:
  1. The Npcap package available from https://nmap.org/npcap is the preferred
