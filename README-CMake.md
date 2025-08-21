@@ -398,9 +398,11 @@ simh                      # Top-level SIMH source directory
 +-- BIN                   # Simulator executables (note 1)
 |   +-- Debug
 |   +-- Release
+|   +-- RelWithDebInfo
 |   +-- Win32
 |       +-- Debug
 |       +-- Release
+|       +-- RelWithDebInfo
 +-- cmake                 # CMake modules and build subdirectories
 |   +-- build-vs2022      # Build directory for VS-2022 (note 2)
 |   +-- build-vs2019      # Build directory for VS-2019 (note 2)
@@ -434,7 +436,7 @@ Notes:
      will appear directly underneath the `BIN` directory.
    - Multi-configuration builders (`msbuild`, `xcodebuild`): The simulator
      executables will appear underneath individual configuration subdirectories
-     ("Debug" and "Release").
+     ("Debug", "Release" and "RelWithDebInfo").
    - The Windows platform has its `Win32` subdirectory.
 2. The `cmake-builder.ps1` and `cmake-builder.sh` scripts create the
    `cmake/build-*` subdirectories as needed.

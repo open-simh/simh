@@ -87,7 +87,8 @@ param (
     [Parameter(Mandatory=$false)]
     [string] $flavor         = "vs2022",
 
-    ## The target build configuration. Valid values: "Release" and "Debug"
+    ## The target build configuration. Valid values: "Release", "Debug" and
+    ## "RelWithDebInfo"
     [Parameter(Mandatory=$false)]
     [string] $config         = "Release",
 
@@ -297,7 +298,7 @@ if (!$testonly)
 }
 
 ## Validate the requested configuration.
-if (!@("Release", "Debug").Contains($config))
+if (!@("Release", "Debug", "RelWithDebInfo").Contains($config))
 {
     @"
 ${scriptName}: Invalid configuration: "${config}".
