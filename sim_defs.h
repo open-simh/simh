@@ -235,7 +235,7 @@ typedef uint32_t        uint32;
 #endif                                                  /* end standard integers */
 
 typedef int             t_stat;                         /* status */
-typedef int             t_bool;                         /* boolean */
+#include "support/sim_bool.h"                           /* boolean */
 
 /* 64b integers */
 

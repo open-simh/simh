@@ -1251,7 +1251,7 @@ sim_card_attach(UNIT * uptr, CONST char *cptr)
     char                 gbuf[30];
     unsigned int         i;
     char                *saved_filename;
-    t_bool               was_attached = (uptr->flags & UNIT_ATT);
+    t_bool               was_attached = ((uptr->flags & UNIT_ATT) != 0);
     t_addr               saved_pos;
     static int           ebcdic_init = 0;
 
