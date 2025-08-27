@@ -2136,7 +2136,7 @@ static inline void m68ki_check_interrupts(void)
 {
     if(m68ki_cpu.nmi_pending)
     {
-        m68ki_cpu.nmi_pending = FALSE;
+        m68ki_cpu.nmi_pending = NMI_FALSE;
         m68ki_exception_interrupt(7);
     }
     else if(CPU_INT_LEVEL > FLAG_INT_MASK)
