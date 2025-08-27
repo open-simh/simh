@@ -48,6 +48,37 @@ if (WITH_NETWORK)
         find_package(VDE)
     endif ()
 
+    if (WITH_VMNET AND APPLE)
+        # CMAKE_OSX_DEPLOYMENT_TARGET is attractive, but not set by default.
+        # See what we're using, either by default or what the user has set.
+        check_c_source_compiles(
+            "
+            #include <Availability.h>
+            #if TARGET_OS_OSX && MAC_OS_X_VERSION_MIN_REQUIRED < 101000
+	    #error macOS MAC_OS_X_VERSION_MIN_REQUIRED too old
+	    #else
+	    #error macOS MAC_OS_X_VERSION_MIN_REQUIRED is good
+            #endif
+            int main(int argc, char **argv) { return 0; }
+            " TARGETING_MACOS_10_10)
+        if (NOT TARGETING_MACOS_10_10)
+            message(WARNING "vmnet.framework requires targeting macOS 10.10 or newer, skipping support")
+        endif()
+
+        # vmnet requires blocks for its callback parameter, even in vanilla C.
+        # This is only supported in clang, not by GCC. It's default in clang,
+        # but we should be clear about it. Do a feature instead of compiler
+        # check anyways though, in case GCC does add it eventually.
+        check_c_compiler_flag(-fblocks HAVE_C_BLOCKS)
+        if (NOT HAVE_C_BLOCKS)
+            message(WARNING "vmnet.framework requires blocks support in the C compiler, skipping support")
+        endif()
+
+	if (TARGETING_MACOS_10_10 AND HAVE_C_BLOCKS)
+	    set(VMNET_FOUND TRUE)
+        endif()
+    endif()
+
     ## pcap is special: Headers only and dynamically loaded.
     if (WITH_PCAP)
         find_package(PCAP)
