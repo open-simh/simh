@@ -1063,12 +1063,21 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
         NETWORK_CCDEFS += -DUSE_NETWORK
       endif
     endif
-    # XXX: Check for the target version of macOS, check for -fblocks
+    # XXX: Check for the target version of macOS
     ifeq (Darwin,$(OSTYPE))
-      # Provide support for macOS vmnet.framework (requires 10.10)
-      NETWORK_CCDEFS += -fblocks -DHAVE_VMNET_NETWORK
-      NETWORK_LAN_FEATURES += vmnet.framework
-      NETWORK_LDFLAGS += -framework vmnet
+      # Check if blocks are supported
+      CC_HELP_OUTPUT_CMD = ${CC} --help 2>&1
+      CC_HELP_OUTPUT = $(shell $(CC_HELP_OUTPUT_CMD))
+      ifneq (,$(findstring -fblocks,$(CC_HELP_OUTPUT)))
+        # Provide support for macOS vmnet.framework (requires 10.10)
+        NETWORK_CCDEFS += -fblocks -DHAVE_VMNET_NETWORK
+        NETWORK_LAN_FEATURES += vmnet.framework
+        NETWORK_LDFLAGS += -framework vmnet
+      else
+        $(info *** Warning ***)
+        $(info *** Warning *** No blocks support in the compiler, vmnet.framework will be skipped)
+        $(info *** Warning ***)
+      endif
     endif
     ifeq (slirp,$(shell if ${TEST} -e slirp_glue/sim_slirp.c; then echo slirp; fi))
       NETWORK_CCDEFS += -Islirp -Islirp_glue -Islirp_glue/qemu -DHAVE_SLIRP_NETWORK -DUSE_SIMH_SLIRP_DEBUG slirp/*.c slirp_glue/*.c
