@@ -204,7 +204,7 @@ t_bool sim_signaled_int_char                            /* WRU character detecte
 #else
                              = TRUE;
 #endif
-uint32 sim_last_poll_kbd_time;                          /* time when sim_poll_kbd was called */
+uint32 sim_last_poll_kbd_time = 0;                      /* time when sim_poll_kbd was called */
 extern TMLN *sim_oline;                                 /* global output socket */
 static uint32 sim_con_pos;                              /* console character output count */
 

@@ -127,7 +127,7 @@ extern void vt11_set_sar(uint16);       /* write stack address/maint register */
 extern void vt11_set_zpr(uint16);       /* write Z position register */
 extern void vt11_set_zor(uint16);       /* write Z offset register */
 
-extern void vt11_reset(void *, int);    /* reset the display processor */
+extern void vt11_reset(DEVICE *, int);  /* reset the display processor */
 extern int  vt11_cycle(int, int);       /* perform a display processor cycle */
 
 /*

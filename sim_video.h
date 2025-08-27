@@ -186,49 +186,129 @@ struct key_event {
 typedef struct mouse_event SIM_MOUSE_EVENT;
 typedef struct key_event SIM_KEY_EVENT;
 
-t_stat vid_open (DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
-#define SIM_VID_INPUTCAPTURED       1                       /* Mouse and Keyboard input captured (calling */
-                                                            /* code responsible for cursor display in video) */
-#define SIM_VID_IGNORE_VBAR         2                       /* ignore video buffer aspect ratio */
-#define SIM_VID_RESIZABLE           4                       /* video screen is resizable */
+typedef enum vid_beep_duration_enum {
+  BEEP_SHORT  = 90   /* ms */,
+  BEEP_MEDIUM = 195  /* ms */,
+  BEEP_LONG   = 400  /* ms */
+} VID_BEEP_DURATION;
+
+/* vid_open(), vid_open_window() flags: */
+typedef enum {
+    SIM_VID_FLAGS_BASE    = 1,
+    SIM_VID_INPUTCAPTURED = SIM_VID_FLAGS_BASE << 0, /* Mouse and Keyboard input captured (calling */
+                                                     /* code responsible for cursor display in video) */
+    SIM_VID_IGNORE_VBAR   = SIM_VID_FLAGS_BASE << 1, /* ignore video buffer aspect ratio */
+    SIM_VID_RESIZABLE     = SIM_VID_FLAGS_BASE << 2  /* video screen is resizable */
+} VidOpenFlags;
+
+/* Callbacks from SDL into the simulator when quitting (exiting the SDL event loop, simulator
+ * thread terminated.)
+ */
 typedef void (*VID_QUIT_CALLBACK)(void);
 t_stat vid_register_quit_callback (VID_QUIT_CALLBACK callback);
+
+/* Callbacks from SDL when gamepad or joystick events occur. */
 typedef void (*VID_GAMEPAD_CALLBACK)(int, int, int);
 t_stat vid_register_gamepad_motion_callback (VID_GAMEPAD_CALLBACK);
 t_stat vid_register_gamepad_button_callback (VID_GAMEPAD_CALLBACK);
-t_stat vid_close (void);
+
+/* Callback from SDL into the simulator to draw pixels. 
+ *
+ * Note to professionals: This function is invoked from the SDL (main) thread, not the
+ * simulator. You will need to be thread savvy.
+ *
+ * vptr: The VID_DISPLAY being updated
+ * dev: The SIMH video device
+ * x, y: The drawing coordinates.
+ * w, h: Width and height
+ * draw_data: Opaque pointer to draw_fn-specific data, NULL if none
+ * vid_dest: The video buffer into which pixels should be copied.
+ * vid_stride: Row length (stride) in vid_dest, which is likely not the
+ *   same as w.
+ *
+ * For an example, see ws_sync() and ws_draw_onto().
+ */
+typedef void (*VID_DRAW_ONTO_CALLBACK)(VID_DISPLAY *vptr, DEVICE *dev, int32 x, int32 y, int32 w, int32 h,
+                                       void *draw_data, void *vid_dest, int vid_stride);
+
+/* SIMH video API functions:
+ *
+ * The "basic" (functions without the "_window" suffix) operate on the first VID_DISPLAY
+ * in the sim_displays list. This used to be known as "vid_first".
+ */
+/* Basic window operations: */
+t_stat vid_open(DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
+t_stat vid_open_window(VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
+t_stat vid_close(void);
+t_stat vid_close_window(VID_DISPLAY *vptr);
+t_stat vid_close_all(void);
+/* Individual draw events: */
+void vid_draw(int32 x, int32 y, int32 w, int32 h, const uint32 *buf);
+void vid_draw_window(VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, const uint32 *buf);
+/* Direct transfer to the SDL window's texture from the SDL (main)
+ * thread (draw onto the window...).
+ *
+ * x, y: The drawing coordinates.
+ * w, h: Width and height
+ * draw_fn: The display or simulator function that does the drawing (e.g., see ws_sync()
+ *     and ws_draw_onto()
+ * draw_data: Opaque pointer to draw_fn-specific data, NULL if none
+ */
+void vid_draw_onto(int32 x, int32 y, int32 w, int32 h, VID_DRAW_ONTO_CALLBACK draw_fn, void *draw_data);
+void vid_draw_onto_window(VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h,
+                          VID_DRAW_ONTO_CALLBACK draw_fn, void *draw_data);
+/* Commit updates to the display. */
+void vid_refresh(void);
+void vid_refresh_window(VID_DISPLAY *vptr);
+
+/* Fullscreen: */
+t_bool vid_is_fullscreen (void);
+t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr);
+t_stat vid_set_fullscreen (t_bool flag);
+t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag);
+
+/* SCP's "show" command:
+ *
+ * vid_show_video: This executes in the main thread and prints various SDL
+ *   information, such as the current renderers, available renderers (not that
+ *   you can actually change renderer, but...) When it completes, it signals
+ *   completion via a condition variable.
+ *
+ * vid_show: Invoked by SCP as a "show" subcommand. It sends an event up to SDL
+ *   and waits for a signal via a condition variable.
+ *
+ * Note: It's not clear that vid_show_video needs to be externally visible, even
+ * if the VAXen insist that it's needed.
+ */
+t_stat vid_show_video (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
+t_stat vid_show (FILE* st, DEVICE *dptr,  UNIT* uptr, int32 val, CONST char* desc);
+
+/* Audio tone (currently a 330 Hz tone, but the duration can be tweaked.) */
+void vid_beep (void);
+void vid_set_beep_duration(VID_BEEP_DURATION);
+
 t_stat vid_poll_kb (SIM_KEY_EVENT *ev);
 t_stat vid_poll_mouse (SIM_MOUSE_EVENT *ev);
 uint32 vid_map_rgb (uint8 r, uint8 g, uint8 b);
-void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf);
-void vid_beep (void);
-void vid_refresh (void);
 const char *vid_version (void);
 const char *vid_key_name (uint32 key);
 t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
 t_stat vid_set_release_key (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
 t_stat vid_show_release_key (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
-t_stat vid_show_video (FILE* st, UNIT* uptr, int32 val, CONST void* desc);
-t_stat vid_show (FILE* st, DEVICE *dptr,  UNIT* uptr, int32 val, CONST char* desc);
 t_stat vid_screenshot (const char *filename);
-t_bool vid_is_fullscreen (void);
-t_stat vid_set_fullscreen (t_bool flag);
 
-extern int vid_active;
+/* Use  hardware (native) renderer (flag == TRUE), otherwise use the software renderer
+ * (flag == FALSE). */
+t_stat vid_native_renderer(t_bool flag);
+
+int vid_is_active();                                    /* Get vid_active flag */
 void vid_set_cursor_position (int32 x, int32 y);        /* cursor position (set by calling code) */
 void vid_set_window_size (VID_DISPLAY *vptr, int32 x, int32 y);            /* window size (set by calling code) */
 void vid_render_set_logical_size (VID_DISPLAY *vptr, int32 w, int32 h);
 
-t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
-t_stat vid_close_window (VID_DISPLAY *vptr);
-t_stat vid_close_all (void);
 uint32 vid_map_rgb_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b);
 uint32 vid_map_rgba_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b, uint8 a);
-void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32 *buf);
-void vid_refresh_window (VID_DISPLAY *vptr);
 t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
-t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr);
-t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag);
 void vid_set_cursor_position_window (VID_DISPLAY *vptr, int32 x, int32 y);        /* cursor position (set by calling code) */
 t_stat vid_set_alpha_mode (VID_DISPLAY *vptr, int mode);
 
@@ -246,11 +326,13 @@ t_stat vid_set_alpha_mode (VID_DISPLAY *vptr, int mode);
  */
 extern int (*vid_display_kb_event_process)(SIM_KEY_EVENT *kev);
 
+/* Device/unit debug flags: */
 #define SIM_VID_DBG_JOYSTICK 0x08000000
 #define SIM_VID_DBG_MOUSE    0x10000000
 #define SIM_VID_DBG_CURSOR   0x20000000
 #define SIM_VID_DBG_KEY      0x40000000
 #define SIM_VID_DBG_VIDEO    0x80000000
+#define SIM_VID_DBG_ALL      (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR|SIM_VID_DBG_JOYSTICK)
 
 #ifdef  __cplusplus
 }

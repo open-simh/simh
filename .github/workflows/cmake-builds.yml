@@ -26,7 +26,7 @@ jobs:
         sudo apt install -ym ninja-build
     - name: cmake-builder.sh
       run: |
-        cmake/cmake-builder.sh --config Release --flavor ninja --lto --notest --parallel --verbose --cpack_suffix x86_64-${{matrix.os}}
+        cmake/cmake-builder.sh --config Release --flavor ninja --notest --parallel --verbose --cpack_suffix x86_64-${{matrix.os}}
     - name: SIMH simulator suite test
       run: |
         cmake/cmake-builder.sh --config Release --flavor ninja --testonly

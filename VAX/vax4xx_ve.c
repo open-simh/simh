@@ -1448,7 +1448,7 @@ if (dptr->flags & DEV_DIS) {
         return SCPE_OK;
     }
 
-if (!vid_active && !ve_active)  {
+if (!vid_is_active() && !ve_active)  {
     r = vid_open (dptr, NULL, VE_XSIZE, VE_YSIZE, ve_input_captured ? SIM_VID_INPUTCAPTURED : 0);/* display size & capture mode */
     if (r != SCPE_OK)
         return r;
@@ -1491,7 +1491,7 @@ return cpu_set_model (NULL, 0, (val ? "VAXSTATIONSPX" : "MICROVAX"), NULL);
 
 t_stat ve_set_capture (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-if (vid_active)
+if (vid_is_active())
     return sim_messagef (SCPE_ALATT, "Capture Mode Can't be changed with device enabled\n");
 ve_input_captured = val;
 return SCPE_OK;
