@@ -54,10 +54,8 @@ if (WITH_NETWORK)
         check_c_source_compiles(
             "
             #include <Availability.h>
-            #if TARGET_OS_OSX && MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-	    #error macOS MAC_OS_X_VERSION_MIN_REQUIRED too old
-	    #else
-	    #error macOS MAC_OS_X_VERSION_MIN_REQUIRED is good
+            #if TARGET_OS_OSX && __MAC_OS_X_VERSION_MIN_REQUIRED < 101000
+	    #error macOS too old
             #endif
             int main(int argc, char **argv) { return 0; }
             " TARGETING_MACOS_10_10)
