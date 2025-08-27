@@ -265,7 +265,6 @@ struct eth_device {
 #define ETH_API_VDE  3                                  /* VDE API in use */
 #define ETH_API_UDP  4                                  /* UDP API in use */
 #define ETH_API_NAT  5                                  /* NAT (SLiRP) API in use */
-#define ETH_API_VMN  6                                  /* Apple vmnet.framework in use */
   ETH_PCALLBACK read_callback;                          /* read callback function */
   ETH_PCALLBACK write_callback;                         /* write callback function */
   ETH_PACK*     read_packet;                            /* read packet */
