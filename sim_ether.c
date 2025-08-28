@@ -381,11 +381,6 @@
 
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-// Declare earlier than other implementations
-#ifdef HAVE_VMNET_NETWORK
-#include <vmnet/vmnet.h>
-#endif
-
 /* Internal routine - forward declaration */
 static int _eth_get_system_id (char *buf, size_t buf_size);
 static void eth_get_nic_hw_addr(ETH_DEV* dev, const char *devname, int set_on);
@@ -1019,9 +1014,6 @@ const char *eth_capabilities(void)
 #if defined (HAVE_SLIRP_NETWORK)
      ":NAT"
 #endif
-#if defined (HAVE_VMNET_NETWORK)
-     ":VMNET"
-#endif
      ":UDP";
  }
 
@@ -1211,42 +1203,6 @@ if (used < max) {
   list[used].eth_api = ETH_API_NAT;
   ++used;
   }
-#endif
-#ifdef HAVE_VMNET_NETWORK
-if (used < max) {
-  sprintf(list[used].name, "%s", "vmnet:shared");
-  sprintf(list[used].desc, "%s", "Integrated NAT (vmnet.framework) support");
-  list[used].eth_api = ETH_API_VMN;
-  ++used;
-}
-if (used < max) {
-  sprintf(list[used].name, "%s", "vmnet:host");
-  sprintf(list[used].desc, "%s", "Integrated host-only network (vmnet.framework) support");
-  list[used].eth_api = ETH_API_VMN;
-  ++used;
-}
-// vmnet.framework has an allowed list of devices for bridging
-// handy for user if we list them since ifconfig is noisy
-#if (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500)
-if (__builtin_available(macOS 10.15, *)) {
-  // avoid putting a __block marker on used on other platforms
-  __block int used_block;
-  xpc_object_t bridge_list = vmnet_copy_shared_interface_list();
-
-  xpc_array_apply(bridge_list, ^bool(size_t index, xpc_object_t value) {
-    if (used_block < max) {
-      sprintf(list[used_block].name, "%s%s", "vmnet:", xpc_string_get_string_ptr(value));
-      sprintf(list[used_block].desc, "%s", "Integrated bridged network (vmnet.framework) support");
-      list[used_block].eth_api = ETH_API_VMN;
-      ++used_block;
-    }
-    return true;
-  });
-  used = used_block;
-
-  xpc_release(bridge_list);
-}
-#endif
 #endif
 
 if (used < max) {
@@ -1813,10 +1769,6 @@ return tool;
 
 static void eth_get_nic_hw_addr(ETH_DEV* dev, const char *devname, int set_on)
 {
-  // we set this at interface creation time in open_port for vmnet 
-  if (dev->eth_api == ETH_API_VMN) {
-    return;
-  }
   memset(&dev->host_nic_phy_hw_addr, 0, sizeof(dev->host_nic_phy_hw_addr));
   dev->have_host_nic_phy_addr = 0;
   if (dev->eth_api != ETH_API_PCAP)
@@ -2116,37 +2068,6 @@ while (dev->handle) {
           }
         break;
 #endif /* HAVE_VDE_NETWORK */
-#ifdef HAVE_VMNET_NETWORK
-    case ETH_API_VMN:
-      {
-        vmnet_return_t ret;
-        int count = 1;
-        struct pcap_pkthdr header;
-        struct vmpktdesc pkt_desc;
-        struct iovec iov;
-
-        // XXX: Should be MTU returned from vmnet startup?
-        u_char buf[ETH_MAX_JUMBO_FRAME];
-
-        iov.iov_base = buf;
-        iov.iov_len = ETH_MAX_JUMBO_FRAME;
-
-        pkt_desc.vm_pkt_size = ETH_MAX_JUMBO_FRAME;
-        pkt_desc.vm_pkt_iov = &iov;
-        pkt_desc.vm_pkt_iovcnt = 1;
-        pkt_desc.vm_flags = 0;
-
-        ret = vmnet_read((interface_ref)dev->handle, &pkt_desc, &count);
-        if (ret == VMNET_SUCCESS && count > 0) {
-          status = 1;
-          header.caplen = header.len = pkt_desc.vm_pkt_size;
-          _eth_callback((u_char *)dev, &header, buf);
-        } else {
-          status = ret == VMNET_SUCCESS ? 0 : -1;
-        }
-      }
-      break;
-#endif
 #ifdef HAVE_SLIRP_NETWORK
       case ETH_API_NAT:
         sim_slirp_dispatch ((SLIRP*)dev->handle);
@@ -2331,87 +2252,6 @@ if (bufsz < ETH_MAX_JUMBO_FRAME)
 
 /* attempt to connect device */
 memset(errbuf, 0, PCAP_ERRBUF_SIZE);
-
-  if (0 == strncmp("vmnet:", savname, 6)) {
-#if defined(HAVE_VMNET_NETWORK)
-    xpc_object_t if_desc;
-    dispatch_queue_t vmn_queue;
-    interface_ref vmn_interface;
-    // __block is used so it can be captured in the callback
-    __block vmnet_return_t vmn_status;
-    // Because vmnet operates via callbacks, set up a semaphore to block on
-    dispatch_semaphore_t cb_finished;
-
-    const char *devname = savname + sizeof("vmnet:") - 1;
-
-    if_desc = xpc_dictionary_create(NULL, NULL, 0);
-    if (0 == strcmp(devname, "shared")) {
-      xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_SHARED_MODE);
-    } else if (0 == strcmp(devname, "host")) {
-      xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_HOST_MODE);
-#if (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500)
-    } else if (strlen(devname) > 0) { // Bridged, this is the device name
-      if (__builtin_available(macOS 10.15, *)) {
-        xpc_dictionary_set_uint64(if_desc, vmnet_operation_mode_key, VMNET_BRIDGED_MODE);
-        xpc_dictionary_set_string(if_desc, vmnet_shared_interface_name_key, devname);
-      } else {
-        xpc_release(if_desc);
-        return sim_messagef (SCPE_OPENERR, "Eth: You must be using macOS 10.15 or newer for bridged devices\n");
-      }
-#endif
-    } else {
-      if (__builtin_available(macOS 10.15, *)) {
-        xpc_release(if_desc);
-        return sim_messagef (SCPE_OPENERR, "Eth: You must pick either shared, host, or an allowed bridge device\n");
-      } else {
-        xpc_release(if_desc);
-        return sim_messagef (SCPE_OPENERR, "Eth: You must pick either shared or host\n");
-      }
-    }
-
-    vmn_queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
-
-    cb_finished = dispatch_semaphore_create(0);
-
-    // Set the MAC address
-    __block ETH_DEV *eth_dev = (ETH_DEV*)opaque;
-
-    vmn_interface = vmnet_start_interface(if_desc, vmn_queue, ^(vmnet_return_t status, xpc_object_t params){
-      vmn_status = status;
-
-      if (vmn_status == VMNET_SUCCESS) {
-        // Scan like eth_scan_mac but simplified (only one format)
-        const char *mac_string = xpc_dictionary_get_string(params, vmnet_mac_address_key);
-        int a[6];
-        if (6 == sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5])) {
-          eth_dev->have_host_nic_phy_addr = 1;
-          eth_dev->host_nic_phy_hw_addr[0] = a[0];
-          eth_dev->host_nic_phy_hw_addr[1] = a[1];
-          eth_dev->host_nic_phy_hw_addr[2] = a[2];
-          eth_dev->host_nic_phy_hw_addr[3] = a[3];
-          eth_dev->host_nic_phy_hw_addr[4] = a[4];
-          eth_dev->host_nic_phy_hw_addr[5] = a[5];
-        }
-      }
-
-      dispatch_semaphore_signal(cb_finished);
-    });
-    dispatch_semaphore_wait(cb_finished, DISPATCH_TIME_FOREVER);
-    dispatch_release(cb_finished);
-    xpc_release(if_desc);
-
-    if (vmn_status != VMNET_SUCCESS) {
-      return sim_messagef (SCPE_OPENERR, "Eth: Failed to create vmnet (vmnet_return_t: %d)\n", vmn_status);
-    }
-
-    *eth_api = ETH_API_VMN;
-    *handle = (void *)vmn_interface;  /* Flag used to indicated open */
-    return SCPE_OK;
-#else
-    return sim_messagef (SCPE_OPENERR, "Eth: No support for vmnet devices\n");
-#endif
-  }
-
 if (0 == strncmp("tap:", savname, 4)) {
   int  tun = -1;    /* TUN/TAP Socket */
   int  on = 1;
@@ -2815,15 +2655,6 @@ switch (eth_api) {
     sim_slirp_close((SLIRP*)pcap);
     break;
 #endif
-#ifdef HAVE_VMNET_NETWORK
-  case ETH_API_VMN:
-    {
-      dispatch_queue_t stop_queue;
-      stop_queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
-      vmnet_stop_interface((interface_ref)pcap, stop_queue, ^(vmnet_return_t status){});
-    }
-    break;
-#endif
   case ETH_API_UDP:
     sim_close_sock(pcap_fd);
     break;
@@ -2920,11 +2751,6 @@ fprintf (st, "    eth2   vde:device{:switch-port-number}      (Integrated VDE su
 fprintf (st, "    eth3   nat:{optional-nat-parameters}        (Integrated NAT (SLiRP) support)\n");
 #endif
 fprintf (st, "    eth4   udp:sourceport:remotehost:remoteport (Integrated UDP bridge support)\n");
-#if defined(HAVE_VMNET_NETWORK)
-fprintf (st, "    eth6   vmnet:shared                         (Integrated NAT (vmnet.framework) support)\n");
-fprintf (st, "    eth7   vmnet:host                           (Integrated host-only (vmnet.framework) support)\n");
-fprintf (st, "    eth8   vmnet:device-name                    (Integrated bridged (vmnet.framework) support)\n");
-#endif
 fprintf (st, "   sim> ATTACH %s eth0\n\n", dptr->name);
 fprintf (st, "or equivalently:\n\n");
 fprintf (st, "   sim> ATTACH %s en0\n\n", dptr->name);
@@ -3141,21 +2967,12 @@ switch (dev->eth_api) {
   case ETH_API_NAT:
       netname = "nat";
       break;
-  case ETH_API_VMN:
-      netname = "vmnet";
-      break;
   }
 sprintf(msg, "%s(%s): ", where, netname);
 switch (dev->eth_api) {
 #if defined(HAVE_PCAP_NETWORK)
   case ETH_API_PCAP:
       sim_printf ("%s%s\n", msg, pcap_geterr ((pcap_t*)dev->handle));
-      break;
-#endif
-#if defined(HAVE_VMNET_NETWORK)
-  case ETH_API_VMN:
-      /* XXX: vmnet errors aren't global */
-      sim_printf ("%s\n", msg);
       break;
 #endif
   default:
@@ -3277,27 +3094,6 @@ if ((packet->len >= ETH_MIN_PACKET) && (packet->len <= ETH_MAX_PACKET)) {
         status = 0;
       else
         status = 1;
-      break;
-#endif
-#ifdef HAVE_VMNET_NETWORK
-    case ETH_API_VMN:
-      {
-        vmnet_return_t ret;
-        int count = 1;
-        struct vmpktdesc pkt_desc;
-        struct iovec iov;
-
-        iov.iov_base = packet->msg;
-        iov.iov_len = packet->len;
-
-        pkt_desc.vm_pkt_size = packet->len;
-        pkt_desc.vm_pkt_iov = &iov;
-        pkt_desc.vm_pkt_iovcnt = 1;
-        pkt_desc.vm_flags = 0;
-
-        ret = vmnet_write((interface_ref)dev->handle, &pkt_desc, &count);
-        status = (ret == VMNET_SUCCESS && count > 0) ? 0 : 1;
-      }
       break;
 #endif
     case ETH_API_UDP:
@@ -3919,7 +3715,6 @@ switch (dev->eth_api) {
   case ETH_API_VDE:
   case ETH_API_UDP:
   case ETH_API_NAT:
-  case ETH_API_VMN:
     bpf_used = 0;
     to_me = 0;
     eth_packet_trace (dev, data, header->len, "received");
@@ -4116,37 +3911,6 @@ do {
         }
       break;
 #endif /* HAVE_VDE_NETWORK */
-#ifdef HAVE_VMNET_NETWORK
-    case ETH_API_VMN:
-      {
-        vmnet_return_t ret;
-        int count = 1;
-        struct pcap_pkthdr header;
-        struct vmpktdesc pkt_desc;
-        struct iovec iov;
-
-        // XXX: Should be MTU returned from vmnet startup?
-        u_char buf[ETH_MAX_JUMBO_FRAME];
-
-        iov.iov_base = buf;
-        iov.iov_len = ETH_MAX_JUMBO_FRAME;
-
-        pkt_desc.vm_pkt_size = ETH_MAX_JUMBO_FRAME;
-        pkt_desc.vm_pkt_iov = &iov;
-        pkt_desc.vm_pkt_iovcnt = 1;
-        pkt_desc.vm_flags = 0;
-
-        ret = vmnet_read((interface_ref)dev->handle, &pkt_desc, &count);
-        if (ret == VMNET_SUCCESS && count > 0) {
-          status = 1;
-          header.caplen = header.len = pkt_desc.vm_pkt_size;
-          _eth_callback((u_char *)dev, &header, buf);
-        } else {
-          status = ret == VMNET_SUCCESS ? 0 : -1;
-        }
-      }
-      break;
-#endif
     case ETH_API_UDP:
       if (1) {
         struct pcap_pkthdr header;

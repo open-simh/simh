@@ -199,9 +199,6 @@ option(WITH_VDE
 option(WITH_TAP
        "Enable (=1)/disable (=0) TAP/TUN device network support. (def: enabled)"
        TRUE)
-option(WITH_VMNET
-       "Enable (=1)/disable (=0) macOS vmnet.framework network support. (def: enabled)"
-       TRUE)
 option(WITH_VIDEO
        "Enable (=1)/disable (=0) simulator display and graphics support (def: enabled)"
        TRUE)

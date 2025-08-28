@@ -351,36 +351,6 @@ if (WITH_NETWORK)
         list(APPEND NETWORK_PKG_STATUS "NAT(SLiRP)")
     endif (WITH_SLIRP)
 
-    if (WITH_VMNET AND APPLE)
-        # CMAKE_OSX_DEPLOYMENT_TARGET is attractive, but not set by default.
-        # See what we're using, either by default or what the user has set.
-        check_c_source_compiles(
-            "
-            #include <Availability.h>
-            #if TARGET_OS_OSX && __MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-            #error macOS too old
-            #endif
-            int main(int argc, char **argv) { return 0; }
-            " TARGETING_MACOS_10_10)
-        if (NOT TARGETING_MACOS_10_10)
-        message(FATAL_ERROR "vmnet.framework requires targeting macOS 10.10 or newer")
-        endif()
-
-        # vmnet requires blocks for its callback parameter, even in vanilla C.
-        # This is only supported in clang, not by GCC. It's default in clang,
-        # but we should be clear about it. Do a feature instead of compiler
-        # check anyways though, in case GCC does add it eventually.
-        check_c_compiler_flag(-fblocks HAVE_C_BLOCKS)
-        if (NOT HAVE_C_BLOCKS)
-            message(FATAL_ERROR "vmnet.framework requires blocks support in the C compiler")
-        endif()
-        target_compile_options(simh_network INTERFACE -fblocks)
-
-        target_link_libraries(simh_network INTERFACE "-framework vmnet")
-        target_compile_definitions(simh_network INTERFACE HAVE_VMNET_NETWORK)
-        list(APPEND NETWORK_PKG_STATUS "macOS vmnet.framework")
-    endif(WITH_VMNET AND APPLE)
-
     ## Finally, set the network runtime
     if (NOT network_runtime)
         ## Default to USE_SHARED... USE_NETWORK is deprecated.
