@@ -27,6 +27,7 @@ install_linux() {
     sudo apt-get install -ym libegl1-mesa-dev libgles2-mesa-dev
     sudo apt-get install -ym libsdl2-dev libfreetype6-dev libsdl2-ttf-dev
     sudo apt-get install -ym libpcap-dev libvdeplug-dev
+    sudo apt-get install -ym libpcre2-dev libpcre2-8-0
     sudo apt-get install -ym cmake cmake-data ninja-build
 }
 
@@ -38,6 +39,7 @@ install_mingw32() {
         mingw-w64-i686-gcc \
 	mingw-w64-i686-make \
         mingw-w64-i686-pcre \
+        mingw-w64-i686-pcre2 \
 	mingw-w64-i686-freetype \
         mingw-w64-i686-SDL2 \
 	mingw-w64-i686-SDL2_ttf
@@ -50,6 +52,7 @@ install_mingw64() {
         mingw-w64-x86_64-gcc \
 	mingw-w64-x86_64-make \
         mingw-w64-x86_64-pcre \
+        mingw-w64-x86_64-pcre2 \
 	mingw-w64-x86_64-freetype \
         mingw-w64-x86_64-SDL2 \
 	mingw-w64-x86_64-SDL2_ttf \
@@ -63,6 +66,7 @@ install_ucrt64() {
         mingw-w64-ucrt-x86_64-gcc \
 	mingw-w64-ucrt-x86_64-make \
         mingw-w64-ucrt-x86_64-pcre \
+        mingw-w64-ucrt-x86_64-pcre2 \
 	mingw-w64-ucrt-x86_64-freetype \
         mingw-w64-ucrt-x86_64-SDL2 \
 	mingw-w64-ucrt-x86_64-SDL2_ttf \

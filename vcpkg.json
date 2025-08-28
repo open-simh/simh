@@ -7,6 +7,7 @@
     "dependencies": [
         "pthreads",
         "pcre",
+        "pcre2",
         "libpng",
         "sdl2",
         "sdl2-ttf"
