@@ -64,7 +64,7 @@ typedef struct {
 
 #define MAX_CYL     80
 #define MAX_HEAD    2
-#define MAX_SPT     26
+#define MAX_SPT     51    /* Tarbell DD has a 51 sector per track format */
 
 #define FD_FLAG_WRITELOCK   1
 
