@@ -784,7 +784,7 @@ t_stat hi_attach (UNIT *uptr, CONST char *cptr)
   //    ATTACH HIn llll:w.x.y.z:rrrr - connect via UDP to a remote simh host
   //
   t_stat ret;  char *pfn;  uint16 host = uptr->hline;
-  t_bool fport = sim_switches & SWMASK('P');
+  t_bool fport = ((sim_switches & SWMASK('P')) != 0);
 
   // If we're already attached, then detach ...
   if ((uptr->flags & UNIT_ATT) != 0) detach_unit(uptr);

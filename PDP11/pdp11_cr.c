@@ -1753,7 +1753,7 @@ t_stat cr_set_eof (    UNIT    *uptr,
 {
     if (DEBUG_PRS (cr_dev))
         fprintf (sim_deb, "set_eof\n");
-    eofPending = 1;
+    eofPending = TRUE;
 
     return (SCPE_OK);
 }

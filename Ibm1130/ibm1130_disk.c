@@ -540,7 +540,7 @@ static t_stat dsk_attach (UNIT *uptr, CONST char *cptr)
     }
 
     enable_dms_tracing(sim_switches & SWMASK('D'));
-    raw_disk_debug = sim_switches & SWMASK('G');
+    raw_disk_debug = (sim_switches & SWMASK('G')) != 0;
 
     return SCPE_OK;
 }
