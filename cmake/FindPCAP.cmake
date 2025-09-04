@@ -32,18 +32,20 @@ find_path(PCAP_INCLUDE_DIR
 #     set(LIB_PATH_SUFFIXES x86)
 # endif ()
 
-# find_library(PCAP_LIBRARY
-#         NAMES
-#             pcap pcap_static libpcap libpcap_static
-#         HINTS
-#             ENV PCAP_DIR
-#         PATH_SUFFIXES
-#             ${LIB_PATH_SUFFIXES}
-#         PATHS
-#             ${PCAP_PATH}
-#         )
-# ## message(STATUS "LIB_PATH_SUFFIXES ${LIB_PATH_SUFFIXES}")
-# ## message(STATUS "PCAP_LIBRARY is ${PCAP_LIBRARY}")
+if (NEED_PCAP_LIBRARY)^M
+    find_library(PCAP_LIBRARY^M
+            NAMES^M
+                pcap pcap_static libpcap libpcap_static^M
+            HINTS^M
+                ENV PCAP_DIR^M
+            PATH_SUFFIXES^M
+                ${LIB_PATH_SUFFIXES}^M
+            PATHS^M
+                ${PCAP_PATH}^M
+            )^M
+    message(STATUS "LIB_PATH_SUFFIXES ${LIB_PATH_SUFFIXES}")^M
+    message(STATUS "PCAP_LIBRARY is ${PCAP_LIBRARY}")^M
+endif()^M
 
 # if (WIN32 AND PCAP_LIBRARY)
 #     ## Only worry about the packet library on Windows.
@@ -62,15 +64,25 @@ find_path(PCAP_INCLUDE_DIR
 # endif (WIN32 AND PCAP_LIBRARY)
 # ## message(STATUS "PACKET_LIBRARY is ${PACKET_LIBRARY}")
 
-# set(PCAP_LIBRARIES ${PCAP_LIBRARY} ${PACKET_LIBRARY})
+if (NEED_PCAP_LIBRARY)^M
+    set(PCAP_LIBRARIES ${PCAP_LIBRARY} ${PACKET_LIBRARY})^M
+endif()^M
 set(PCAP_INCLUDE_DIRS ${PCAP_INCLUDE_DIR})
 unset(PCAP_LIBRARY)
 unset(PCAP_INCLUDE_DIR)
 
 include(FindPackageHandleStandardArgs)
+if (NEED_PCAP_LIBRARY)^M
+find_package_handle_standard_args(^M
+    PCAP^M
+    REQUIRED_VARS^M
+        PCAP_LIBRARIES^M
+        PCAP_INCLUDE_DIRS^M
+)^M
+else()^M
 find_package_handle_standard_args(
     PCAP
     REQUIRED_VARS
-        ## PCAP_LIBRARIES
         PCAP_INCLUDE_DIRS
 )
+endif()^M
