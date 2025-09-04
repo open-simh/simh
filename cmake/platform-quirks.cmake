@@ -264,3 +264,8 @@ if (CMAKE_HOST_APPLE)
         set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
     endif ()
 endif()
+
+set(NEED_PCAP_LIBRARY FALSE)
+if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "FreeBSD")
+    set(NEED_PCAP_LIBRARY TRUE)
+endif()
