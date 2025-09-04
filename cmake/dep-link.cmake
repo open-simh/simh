@@ -308,6 +308,10 @@ if (WITH_NETWORK)
             endforeach()
 
             target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
+            if (NEED_PCAP_LIBRARY)^M
+                target_link_directories(simh_network INTERFACE "${PCAP_LIBRARY_DIRS}")^M
+                target_link_libraries(simh_network INTERFACE "${PCAP_LIBRARIES}")^M
+            endif ()^M
             target_compile_definitions(simh_network INTERFACE HAVE_PCAP_NETWORK)
         endif ()
     endif ()
