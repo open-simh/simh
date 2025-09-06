@@ -287,6 +287,7 @@
     <ClCompile Include="..\AltairZ80\s100_mdsa.c" />
     <ClCompile Include="..\AltairZ80\s100_mdsad.c" />
     <ClCompile Include="..\AltairZ80\s100_pmmi.c" />
+    <ClCompile Include="..\AltairZ80\s100_sbc200.c" />
     <ClCompile Include="..\AltairZ80\s100_scp300f.c" />
     <ClCompile Include="..\AltairZ80\s100_selchan.c" />
     <ClCompile Include="..\AltairZ80\s100_ss1.c" />
@@ -294,6 +295,7 @@
     <ClCompile Include="..\AltairZ80\s100_tdd.c" />
     <ClCompile Include="..\AltairZ80\s100_tuart.c" />
     <ClCompile Include="..\AltairZ80\s100_vdm1.c" />
+    <ClCompile Include="..\AltairZ80\s100_vfii.c" />
     <ClCompile Include="..\AltairZ80\sol20.c" />
     <ClCompile Include="..\AltairZ80\vfdhd.c" />
     <ClCompile Include="..\AltairZ80\wd179x.c" />

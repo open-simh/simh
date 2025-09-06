@@ -87,12 +87,14 @@ extern DEVICE jairs1_dev;
 extern DEVICE jairp_dev;
 extern DEVICE mmd_dev;
 extern DEVICE mmdm_dev;
+extern DEVICE sbc200_dev;
 extern DEVICE sol20_dev;
 extern DEVICE sol20k_dev;
 extern DEVICE sol20t_dev;
 extern DEVICE sol20s_dev;
 extern DEVICE sol20p_dev;
 extern DEVICE vdm1_dev;
+extern DEVICE vfii_dev;
 
 extern DEVICE cromfdc_dev;
 extern DEVICE wd179x_dev;
@@ -166,6 +168,9 @@ DEVICE      *sim_devices[]  = {
     &djhdc_dev,
     &mmd_dev,
     &mmdm_dev,
+    /* SD Systems */
+    &sbc200_dev,
+    &vfii_dev,
     /* Processor Technology Devices */
     &sol20_dev,
     &sol20k_dev,
