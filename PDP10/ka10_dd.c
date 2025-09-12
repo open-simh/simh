@@ -103,7 +103,7 @@ uint32 vds_analog[VDS_OUTPUTS];           /* Analog channel. */
 
 static t_stat dd_set_windows (UNIT *uptr, int32 val, CONST char *cptr, void *desc) ;
 static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
-static void dd_chargen (char c, int column);
+static void dd_chargen (uint16 c, int column);
 static void dd_graphics (uint8 data, int column);
 static t_stat dd_devio(uint32 dev, uint64 *data);
 static t_stat vds_devio(uint32 dev, uint64 *data);
@@ -149,11 +149,6 @@ DEVICE vds_dev = {
     NULL, NULL, NULL, &vds_dib, DEV_DEBUG | DEV_DISABLE | DEV_DIS | DEV_DISPLAY, 0, dev_debug,
     NULL, NULL, &vds_help, NULL, NULL, &vds_description
     };
-
-static void unimplemented (const char *text)
-{
-    fprintf (stderr, "\r\n[UNIMPLEMENTED: %s]\r\n", text);
-}
 
 static void
 dd_hang (const char *msg)
@@ -271,7 +266,7 @@ dd_pixel (int x, int y, uint8 pixel)
 }
 
 static void
-dd_chargen (char c, int column)
+dd_chargen (uint16 c, int column)
 {
     int i, j;
     uint8 pixels;
@@ -386,7 +381,7 @@ dd_text (uint64 insn)
 static void
 dd_graphics (uint8 data, int column)
 {
-    int i, j;
+    int i;
 
     sim_debug (DEBUG_CMD, &dd_dev, "GRAPHICS %03o %d@(%d,%d)\n",
                data, dd_unit.CHANNEL, column, dd_unit.LINE);
@@ -516,7 +511,7 @@ dd_decode (uint64 insn)
         dd_halt ("halt instruction");
         break;
     case 020:
-        dd_unit.MA = insn >> 18;
+        dd_unit.MA = (int32)(insn >> 18);
         sim_debug(DEBUG_CMD, &dd_dev, "JUMP %06o\n", dd_unit.MA);
         break;
     case 006: case 016: case 026: case 036:
@@ -541,7 +536,7 @@ dd_decode (uint64 insn)
 static t_stat
 dd_svc (UNIT *uptr)
 {
-    if (uptr->MA >= MEMSIZE) {
+    if ((t_addr)uptr->MA >= MEMSIZE) {
         uptr->STATUS |= DD_NXM;
         dd_halt ("NXM");
      } else {
@@ -654,7 +649,7 @@ static t_stat dd_set_windows (UNIT *uptr, int32 val, CONST char *cptr, void *des
     x = get_uint (cptr, 10, 32, &r);
     if (r != SCPE_OK)
         return r;
-    dd_windows = x;
+    dd_windows = (int)x;
     return SCPE_OK;
 }
 
@@ -726,7 +721,7 @@ vds_devio(uint32 dev, uint64 *data)
     case DATAO:
         sim_debug(DEBUG_DATAIO, &vds_dev, "%012llo (%6o)\n", *data, PC);
         vds_changed[vds_channel] = 1;
-        vds_selection[vds_channel] = *data >> 4;
+        vds_selection[vds_channel] = (uint32)(*data >> 4);
         vds_sync_inhibit[vds_channel] = (*data >> 3) & 1;
         vds_analog[vds_channel] = *data & 7;
         sim_debug(DEBUG_DETAIL, &vds_dev, "Output %d selection %011o\n",

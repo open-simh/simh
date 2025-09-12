@@ -546,7 +546,7 @@ static void tym_output(void)
     while (M[tym_base + OBP] != M[tym_base + OHP]) {
         sim_debug(DEBUG_DETAIL, &tym_dev, "Output from host: %llu %012llo\n",
                    M[tym_base + OBP], word(OBP, ORNG));
-        type = word(OBP, ORNG) >> 28;
+        type = (word(OBP, ORNG) >> 28) & 0377;
         port = (word(OBP, ORNG) >> 20) & 0377;
         subtype = (word(OBP, ORNG) >> 12) & 0377;
         data = (word(OBP, ORNG) >> 4) & 0377;
@@ -565,7 +565,7 @@ static uint64 lock = ~0ULL;
 static uint64 dump = ~0ULL;
 static uint64 irng = ~0ULL;
 static uint64 isiz = ~0ULL;
-static uint64 ihp = ~0ULL;
+static uint64 ihp = ~0ULL;
 static uint64 ibp = ~0ULL;
 static uint64 orng = ~0ULL;
 static uint64 osiz = ~0ULL;
