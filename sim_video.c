@@ -2614,12 +2614,12 @@ if (1) {
     SDL_Surface *sshot = sim_end ? SDL_CreateRGBSurface(0, vptr->vid_width, vptr->vid_height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000) :
                                    SDL_CreateRGBSurface(0, vptr->vid_width, vptr->vid_height, 32, 0x0000ff00, 0x000ff000, 0xff000000, 0x000000ff) ;
     if (!sshot)
-	return SCPE_MEM;
+        return SCPE_MEM;
     if (SDL_RenderReadPixels(vptr->vid_renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch) != 0) {
-	SDL_FreeSurface(sshot);
-	sim_printf ("Error creating screenshot: %s\n", SDL_GetError());
-	return SCPE_ARG | SCPE_NOMESSAGE;
-	}
+        SDL_FreeSurface(sshot);
+        sim_printf ("Error creating screenshot: %s\n", SDL_GetError());
+        return SCPE_ARG | SCPE_NOMESSAGE;
+        }
 #if defined(HAVE_LIBPNG)
     if (!match_ext (filename, "bmp")) {
         sprintf (fullname, "%s%s", filename, match_ext (filename, "png") ? "" : ".png");
