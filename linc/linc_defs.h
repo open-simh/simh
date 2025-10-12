@@ -57,6 +57,7 @@ extern DEVICE cpu_dev;
 extern DEVICE crt_dev;
 extern DEVICE dpy_dev;
 extern DEVICE kbd_dev;
+extern DEVICE sam_dev;
 extern DEVICE tape_dev;
 extern DEVICE tty_dev;
 

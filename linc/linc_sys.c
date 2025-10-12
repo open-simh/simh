@@ -39,6 +39,7 @@ DEVICE *sim_devices[] = {
   &crt_dev,
   &dpy_dev,
   &kbd_dev,
+  &sam_dev,
   &tape_dev,
   &tty_dev,
   NULL
