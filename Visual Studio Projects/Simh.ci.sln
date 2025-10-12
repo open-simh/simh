@@ -159,6 +159,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PDP10-KS", "PDP10-KS.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SEL32", "SEL32.vcxproj", "{9B214A06-3727-44D4-99B7-2C3E44B86B32}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "linc", "linc.vcxproj", "{58E9E172-1CC9-4BA6-8176-F832B11DB1EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
