@@ -301,7 +301,7 @@ static void kbd_convert(uint32 key)
   paused = 0;
 }
 
-static int
+void
 kbd_event(SIM_KEY_EVENT *ev)
 {
   if (ev->state == SIM_KEYPRESS_DOWN)

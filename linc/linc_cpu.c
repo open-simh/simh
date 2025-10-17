@@ -894,6 +894,7 @@ t_stat sim_instr(void)
   if (sim_step)
     sim_step++;
 
+  crt_svc_stat = SCPE_OK;
   stop_reason = 0;
   paused = 0;
   PINFF = 0;
