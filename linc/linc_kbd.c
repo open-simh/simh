@@ -92,7 +92,7 @@ uint16 kbd_key(uint16 wait)
   return 0;
 }
 
-static void kbd_convert(uint32 key)
+static void kbd_convert(uint32 key, VID_DISPLAY *vptr)
 {
   switch (key) {
   case SIM_KEY_0: /* 0 Q */
@@ -265,7 +265,7 @@ static void kbd_convert(uint32 key)
     // : 76
     // ʸ 77
   case SIM_KEY_F11:
-    crt_toggle_fullscreen();
+    crt_toggle_fullscreen(vptr);
     return;
   case SIM_KEY_UP:
     kbd_code = KBD_CASE;
@@ -304,9 +304,10 @@ static void kbd_convert(uint32 key)
 void
 kbd_event(SIM_KEY_EVENT *ev)
 {
-  if (ev->state == SIM_KEYPRESS_DOWN)
-    kbd_convert(ev->key);
-  return 0;
+  if (ev->state == SIM_KEYPRESS_DOWN) {
+    sim_debug(DBG, &kbd_dev, "Key pressed, window %p\n", ev->vptr);
+    kbd_convert(ev->key, ev->vptr);
+  }
 }
 
 static t_stat
