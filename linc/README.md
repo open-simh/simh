@@ -100,6 +100,25 @@ Some characters are translated by LAP6 from the LINC character to ASCII:
 - `"` to `^`
 - `„` to `;`
 
+### Scopes
+
+The CRT device implements two scopes, or displays.  Normally a LINC
+would only have one scope, but some had two.  The display instructions
+can chose between two channels.  Both scopes can display either
+channel, or both.
+
+The CRT device has two units: CRT0 and CRT1.
+
+Options for the CRT units:
+- `ORANGE` - use an orange phosphor with long retention.
+- `GREEN` - use a green phosphor with short retention.
+- `CH0` - display channel 0.
+- `CH1` - display channel 1.
+- `BOTH` - display both channels.
+
+The defaults for CRT0 are `ORANGE` and `CH0`.  The CRT1 defaults are
+`DISABLED`, `GREEN`, and `CH1`.
+
 ### CPU
 
 Registers:

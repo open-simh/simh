@@ -24,7 +24,7 @@ void dpy_dis(uint16 h, uint16 x, uint16 y)
     y += 255;
   else
     y -= 256;
-  crt_point(x, y);
+  crt_point(h, x, y);
 }
 
 /* Called from display library to get data switches. */
