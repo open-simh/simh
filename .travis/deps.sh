@@ -26,7 +26,7 @@ install_redhat() {
     sudo dnf install -y cmake ninja-build which g++
     sudo dnf install -y SDL_ttf-devel
     sudo dnf install -y freetype-devel
-
+}
 
 install_linux() {
     sudo apt-get update -yqqm
