@@ -91,6 +91,8 @@ Before you begin building the simulators, you need the following:
 
       apt: `sudo apt install cmake cmake-data`
 
+      dnf: `sudo dnf install cmake`
+
       pacman: `sudo pacman install cmake`
 
   - macOS: Install `cmake` using your preferred external package management
@@ -277,6 +279,12 @@ binaries.
 
     ```bash
     $ sudo sh .travis/deps.sh linux
+    ```
+
+  - Linux dnf-based distributions (e.g., Fedora, Red Hat):
+
+    ```bash
+    $ sudo sh .travis/deps.sh redhat
     ```
 
   - macOS Homebrew:
