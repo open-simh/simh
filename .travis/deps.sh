@@ -24,7 +24,7 @@ install_arch_linux() {
 install_redhat() {
     sudo dnf group install -y "development-tools"
     sudo dnf install -y cmake ninja-build which g++
-    sudo dnf install -y SDL_ttf-devel
+    sudo dnf install -y SDL2_ttf-devel
     sudo dnf install -y freetype-devel
 }
 
