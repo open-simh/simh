@@ -12,7 +12,7 @@ typedef int SOCKET;
 #endif
 
 #ifndef  __cplusplus
-#if __STDC_VERSION__ >= 202300L
+#if __STDC_VERSION__ < 202300L
 typedef int bool;
 #endif
 #endif
