@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-latest]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install dependencies
       run: |
         sh -ex .travis/deps.sh linux
@@ -40,7 +40,7 @@ jobs:
         cd cmake/build-ninja
         cpack -G DEB -C Release
     - name: Upload DEB
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-x86_64-${{matrix.os}}.deb
         path: cmake/build-ninja/simh-4.1.0-x86_64-${{matrix.os}}.deb
@@ -60,13 +60,13 @@ jobs:
       #
       # As of 18 NOV 2024, Github deprecated macos-12.
       matrix:
-        os: [macos-13, macos-14, macos-latest]
+        os: [macos-14, macos-latest]
 
     env:
       CPACK_SUFFIX: ${{matrix.os != 'macos-14' && 'x86_64' || 'm1'}}.${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     ## Nuke homebrew and start with a clean instance.
     - name: Reinstall HomeBrew (macOS)
@@ -102,23 +102,23 @@ jobs:
         cpack -G DragNDrop -C Release
 
     - name: Upload ZIP
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-${{env.CPACK_SUFFIX}}.zip
         path: cmake/build-xcode/simh-4.1.0-${{env.CPACK_SUFFIX}}.zip
 
     - name: Upload DMG
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-${{env.CPACK_SUFFIX}}.dmg
         path: cmake/build-xcode/simh-4.1.0-${{env.CPACK_SUFFIX}}.dmg
 
 
   cmake-vs2022xp:
-    name: VS 2022 XP-compatible LEGACY
+    name: LEGACY XP executables
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install v141_xp (XP toolkit) and build SIMH
       shell: pwsh
       run: |
@@ -172,33 +172,38 @@ jobs:
           cd cmake\build-vs2022-xp
           cpack -G "ZIP;WIX" -C Release
     - name: Upload ZIP
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-win32-vs2022xp.zip
         path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.zip
     - name: Upload MSI
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-win32-vs2022xp.msi
         path: cmake/build-vs2022-xp/simh-4.1.0-win32-xp.msi
 
-  cmake-vs2022:
-    name: VS 2022 Win10 native VCPKG
-    runs-on: windows-latest
+  ## Visual Studio: The open-simh CMake workflow does not make use of windows-latest (aka windows-2025).
+  ##
+  ## There is only Visual Studio 2022, so it's pointless to build on both Windows 2022 and Windows 2025
+  ## to produce identical artifacts/artefacts.
+  ##
+  ## TODO: When there is a new Visual Studio release, update matrix.os, remove matrix.build. Use the
+  ## ${{ fromJSON ... }} hack to look up the cmake-builder.ps1 flavor corresponding to the Visual
+  ## Studio installation.
+  ##
+  ## TODO: windows-2025 does not have NSIS, so will have to conditionalize the NSIS installer and
+  ## EXE package upload, e.g., if: ${{ matrix.os == "windows-2022" }}
+  
+  cmake-vstudio:
+    name: Visual Studio w/VCPKG executables
+    runs-on: ${{matrix.os}}
     strategy:
-      #-
-      # The CMake builds produce artifacts (*) and the runner image's name is
-      # used in the artifact's name, simh-4.1.0-x86_64-ubuntu-20.04.deb.
-      # Consequently, each runner image is enumerated for each artifact (*)
-      # that the build produces.
-      #
-      # (*) "artefact" for the rest of the Anglosphere
-      #-
       matrix:
+        os: [windows-2022]
         build: [vs2022]
     steps:
-    - uses: actions/checkout@v4
-    - name: vs2022 build
+    - uses: actions/checkout@v5
+    - name: ${{ matrix.build }} build
       shell: pwsh
       run: |
           $ErrorActionPreference="Stop"
@@ -220,8 +225,8 @@ jobs:
       shell: pwsh
       run: |
           ./cmake/cmake-builder.ps1 -flavor ${{matrix.build}} -config Release -testOnly
-    ## Install isn't strictly necessary, but it's a good way to see what dependencies
-    ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
+      ## Install isn't strictly necessary, but it's a good way to see what dependencies
+      ## (IMPORTED_RUNTIME_ARTIFACTS) get installed.
     - name: Install
       shell: pwsh
       run: |
@@ -231,18 +236,18 @@ jobs:
       run: |
           cd cmake\build-${{matrix.build}}
           cpack -G "NSIS;WIX;ZIP" -C Release
-    - name: Upload ZIP
-      uses: actions/upload-artifact@v4
-      with:
-        name: simh-4.1.0-${{matrix.build}}.zip
-        path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.zip
     - name: Upload EXE installer
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-${{matrix.build}}.exe
         path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.exe
+    - name: Upload ZIP
+      uses: actions/upload-artifact@v5
+      with:
+        name: simh-4.1.0-${{matrix.build}}.zip
+        path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.zip
     - name: Upload MSI installer
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: simh-4.1.0-${{matrix.build}}.msi
         path: cmake/build-${{matrix.build}}/simh-4.1.0-${{matrix.build}}.msi
