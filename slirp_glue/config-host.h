@@ -12,7 +12,9 @@ typedef int SOCKET;
 #endif
 
 #ifndef  __cplusplus
+#if __STDC_VERSION__ < 202311L
 typedef int bool;
+#endif
 #endif
 #ifdef _MSC_VER
 #include <win32/stdint.h>
@@ -54,3 +56,4 @@ int qemu_recv (int s, void *buf, size_t len, int flags);
 #define error_report(...) fprintf(stderr, __VA_ARGS__)
 
 #endif
+
