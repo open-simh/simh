@@ -82,6 +82,9 @@ endif()
 
 project(simh VERSION "${SIMH_VERSION}" LANGUAGES C CXX)
 
+## Tell cmake we need c99 because GCC 15 defaults to c23 which breaks things.
+set(CMAKE_C_STANDARD 99)
+
 include(vcpkg-setup)
 include(GNUInstallDirs)
 
