@@ -44,7 +44,7 @@
 #define DBG_WRITE      0010
 #define DBG_POS        0020
 
-static uint16 GROUP;
+static uint16 BLOCK_GROUP;
 static int16 CURRENT_BLOCK;
 static int16 WANTED_BLOCK;
 
@@ -113,15 +113,15 @@ void tape_op(void)
   switch (C & 7) {
   case RDC: case RDE: case WRC: case WRI: case CHK:
     S = 256 * (B >> 9);
-    GROUP = 0;
-    sim_debug(DBG, &tape_dev, "Single tranfer: S=%04o, BN=%03o\n",
+    BLOCK_GROUP = 0;
+    sim_debug(DBG, &tape_dev, "Single transfer: S=%04o, BN=%03o\n",
               S, WANTED_BLOCK);
     break;
   case RCG: case WCG:
     S = 256 * (B & 7);
-    GROUP = B >> 9;
+    BLOCK_GROUP = B >> 9;
     sim_debug(DBG, &tape_dev, "Group transfer: S=%04o, BN=%03o/%o\n",
-              S, WANTED_BLOCK, GROUP+1);
+              S, WANTED_BLOCK, BLOCK_GROUP+1);
     break;
   case MTB:
     sim_debug(DBG, &tape_dev, "Move towards block %03o\n", WANTED_BLOCK);
@@ -232,12 +232,12 @@ static void tape_done(UNIT *uptr)
     paused = 0;
     break;
   case RCG: case WCG:
-    if (GROUP == 0) {
+    if (BLOCK_GROUP == 0) {
       sim_debug(DBG, &tape_dev, "Done with group\n");
       paused = 0;
     } else {
-      sim_debug(DBG, &tape_dev, "Blocks left in group: %d\n", GROUP);
-      GROUP--;
+      sim_debug(DBG, &tape_dev, "Blocks left in group: %d\n", BLOCK_GROUP);
+      BLOCK_GROUP--;
     }
     WANTED_BLOCK = (WANTED_BLOCK + 1) & TMASK;
     break;
