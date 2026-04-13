@@ -43,6 +43,8 @@ if (NOT DEFINED VCPKG_TARGET_TRIPLET)
 
             set (SIMH_VCPKG_PLATFORM "linux")
         else ()
+            message(STATUS "CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
+            message(STATUS "CMAKE_HOST_SYSTEM_PROCESSOR=${CMAKE_HOST_SYSTEM_PROCESSOR}")
             message(FATAL_ERROR "Could not determine VCPKG platform and system triplet."
                 "\n"
                 "(a) Are you sure that VCPKG is usable on this system? Check VCPKG_ROOT and ensure that"
