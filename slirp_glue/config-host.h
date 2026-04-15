@@ -12,7 +12,9 @@ typedef int SOCKET;
 #endif
 
 #ifndef  __cplusplus
-typedef int bool;
+    #if !defined(__GNUC__) || (__GNUC__ < 15)
+    typedef int bool;
+    #endif
 #endif
 #ifdef _MSC_VER
 #include <win32/stdint.h>
