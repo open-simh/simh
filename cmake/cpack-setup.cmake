@@ -39,7 +39,6 @@ else ()
             list(APPEND buildSuffix "win32")
         endif ()
 
-        list(APPEND buildSuffix "\${CPACK_BUILD_CONFIG}")
         ## If using Visual Studio, append the compiler and toolkit:
         if (CMAKE_GENERATOR MATCHES "Visual Studio 17 .*")
             list(APPEND buildSuffix "vs2022")
