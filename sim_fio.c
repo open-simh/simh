@@ -271,7 +271,7 @@ sptr = (const unsigned char *) bptr;                    /* init input ptr */
 for (i = (int32)nbuf; i > 0; i--) {                     /* loop on buffers */
     c = (i == 1)? lcnt: nelem;
     sim_buf_copy_swapped (sim_flip, sptr, size, c);
-    sptr = sptr + size * count;
+    sptr = sptr + size * c;
     c = fwrite (sim_flip, size, c, fptr);
     if (c == 0) {
         free(sim_flip);
