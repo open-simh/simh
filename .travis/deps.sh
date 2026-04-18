@@ -17,6 +17,7 @@ install_arch_linux() {
     sudo pacman -S --noconfirm mesa
     sudo pacman -S --noconfirm libsm
     sudo pacman -S --noconfirm cmake
+    sudo pacman -S --noconfirm sdl2_ttf
 
 }
 
