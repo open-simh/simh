@@ -169,7 +169,7 @@ DEVICE tti_dev = {
     1, 10, 31, 1, 8, 8,
     NULL, NULL, &tti_reset,
     NULL, NULL, NULL,
-    &tti_dib, DEV_DEBUG | DEV_UBUS | DEV_QBUS, 0, tti_debug
+    &tti_dib, DEV_DEBUG | DEV_UBUS | DEV_QBUS | DEV_DISABLE, 0, tti_debug
     };
 
 /* TTO data structures
@@ -221,7 +221,7 @@ DEVICE tto_dev = {
     1, 10, 31, 1, 8, 8,
     NULL, NULL, &tto_reset,
     NULL, NULL, NULL,
-    &tto_dib, DEV_UBUS | DEV_QBUS
+    &tto_dib, DEV_UBUS | DEV_QBUS | DEV_DISABLE
     };
 
 /* CLK data structures
@@ -391,7 +391,7 @@ tti_unit.buf = 0;
 tti_csr = 0;
 CLR_INT (TTI);
 sim_activate (&tti_unit, tmr_poll);
-return SCPE_OK;
+return auto_config (dptr->name, (dptr->flags & DEV_DIS) ? 0 : 1);
 }
 
 /* Terminal output address routines */
@@ -467,7 +467,7 @@ tto_unit.buf = 0;
 tto_csr = CSR_DONE;
 CLR_INT (TTO);
 sim_cancel (&tto_unit);                                 /* deactivate unit */
-return SCPE_OK;
+return auto_config (dptr->name, (dptr->flags & DEV_DIS) ? 0 : 1);
 }
 
 t_stat tty_set_mode (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
