@@ -17,6 +17,7 @@ jobs:
     uses: ./.github/workflows/cmake-builds.yml
 
   makefile:
+    name: "Legacy makefile"
     runs-on: ${{ matrix.os }}
     strategy:
       #-
