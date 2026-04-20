@@ -723,8 +723,6 @@ static CPCODE cardcode_026C[] =     /* 026 commercial */
     {0x2220,        '('},           /* if ASCII has (, treat like % */
 };
 
-extern int cgi;
-
 static int16 ascii_to_card[256];
 
 static CPCODE *cardcode;

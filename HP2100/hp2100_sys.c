@@ -4153,7 +4153,7 @@ switch (op_type) {                                      /* dispatch by the opera
 
     case opSCHC:
     case opSCOHC:
-        clear = (instruction & IR_HCF);                 /* set TRUE if the clear-flag bit is set */
+        clear = (instruction & IR_HCF) != 0;            /* set TRUE if the clear-flag bit is set */
 
     /* fall through into the opSC case */
 

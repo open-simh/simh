@@ -3230,7 +3230,7 @@ t_stat rq_attach (UNIT *uptr, CONST char *cptr)
 {
 MSC *cp = rq_ctxmap[uptr->cnum];
 t_stat r;
-t_bool dontchangecapac = (uptr->flags & UNIT_NOAUTO);
+t_bool dontchangecapac = ((uptr->flags & UNIT_NOAUTO) != 0);
 
 if (drv_tab[GET_DTYPE (uptr->flags)].flgs & RQDF_RO) {
     sim_switches |= SWMASK ('R');
