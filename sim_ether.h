@@ -324,6 +324,10 @@ struct eth_device {
   int write_queue_peak;
   ETH_WRITE_REQUEST *write_buffers;
   t_stat write_status;
+
+  /* Thread startup state. */
+  pthread_mutex_t startup_mtx;
+  pthread_cond_t  startup_cond;
 #endif
 };
 

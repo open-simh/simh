@@ -403,8 +403,8 @@ pthread_setspecific (panel_thread_id, "debugflush");
 
 pthread_mutex_lock (&p->io_lock);
 p->debugflush_thread_running = 1;
-pthread_mutex_unlock (&p->io_lock);
 pthread_cond_signal (&p->startup_done);   /* Signal we're ready to go */
+pthread_mutex_unlock (&p->io_lock);
 msleep (100);
 pthread_mutex_lock (&p->io_lock);
 while (p->sock != INVALID_SOCKET) {
@@ -2157,8 +2157,8 @@ if (!p->parent) {
         }
     }
 p->io_thread_running = 1;
-pthread_mutex_unlock (&p->io_lock);
 pthread_cond_signal (&p->startup_done);   /* Signal we're ready to go */
+pthread_mutex_unlock (&p->io_lock);
 msleep (100);
 pthread_mutex_lock (&p->io_lock);
 while ((p->sock != INVALID_SOCKET) &&
@@ -2460,8 +2460,8 @@ _panel_debug (p, DBG_THR, "Starting", NULL, 0);
 
 pthread_mutex_lock (&p->io_lock);
 p->callback_thread_running = 1;
-pthread_mutex_unlock (&p->io_lock);
 pthread_cond_signal (&p->startup_done);   /* Signal we're ready to go */
+pthread_mutex_unlock (&p->io_lock);
 msleep (100);
 pthread_mutex_lock (&p->io_lock);
 while ((p->sock != INVALID_SOCKET) &&
