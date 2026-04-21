@@ -226,6 +226,9 @@ option(SIMH_PACKAGE_SUFFIX
 option(MAC_UNIVERSAL
        "macOS universal binary flag: TRUE -> build universal binaries, FALSE -> don't."
        ${MAC_UNIVERSAL_OPTVAL})
+option(DONT_USE_AIO_INTRINSICS
+       "Don't use compiler/platform intrinsics for AIO, revert to lock-based AIO"
+       FALSE)
 
 # Places where CMake should look for dependent package configuration fragments and artifacts:
 set(SIMH_PREFIX_PATH_LIST)
