@@ -1434,8 +1434,6 @@ static uint8 ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32 Data)
             pICOM->status &= ~ICOM_STAT_DRVFAIL;
             pICOM->status &= ~ICOM_STAT_CRC;
             pICOM->status &= ~ICOM_STAT_DDM;
-            pICOM->rDataBuf = 0;
-            pICOM->wDataBuf = 0;
             break;
 
         case ICOM_CMD_LDCONF:
