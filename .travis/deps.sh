@@ -20,6 +20,13 @@ install_arch_linux() {
 
 }
 
+install_redhat() {
+    sudo dnf group install -y "development-tools"
+    sudo dnf install -y cmake ninja-build which g++
+    sudo dnf install -y SDL2_ttf-devel
+    sudo dnf install -y freetype-devel
+}
+
 install_linux() {
     sudo apt-get update -yqqm
     sudo apt-get install -ym pkg-config
@@ -84,7 +91,7 @@ install_clang64() {
 
 
 case "$1" in
-  osx|macports|linux|mingw32|mingw64|ucrt64|clang64)
+  osx|macports|linux|mingw32|mingw64|redhat|ucrt64|clang64)
     install_"$1"
     ;;
   arch-linux)
