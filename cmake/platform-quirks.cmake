@@ -84,15 +84,11 @@ if (WIN32)
             message(STATUS "Adding LTO to Release compiler and linker flags")
         endif ()
 
-        ## Set the MSVC runtime. Note CMP0091 policy is set to new early on in
-        ## the top-level CMakeLists.txt
-        if (BUILD_SHARED_DEPS)
-            set(use_rtdll "$<$<BOOL:${BUILD_SHARED_DEPS}:DLL>")
-        else ()
-            set(use_rtdll "")
-        endif ()
+        ## Set the MSVC runtime. Note CMP0091 policy is set to "new" early on in
+        ## the top-level CMakeLists.txt.
 
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>${use_rtll}")
+        ## set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<BOOL:${BUILD_SHARED_DEPS}:DLL>")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
         ## Disable automagic add for _MBCS:
         add_definitions(-D_SBCS)
@@ -112,7 +108,7 @@ if (WIN32)
         ## need to build with the '--verbose' flag and check the values of "/M*" flags
         ## (typically you should see /MT or /MTd for the static runtime libraries.)
         ##
-        # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /verbose:lib")
+        ## set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /verbose:lib")
 
         if (WARNINGS_FATAL)
             message(STATUS "WARNINGS_FATAL: Compiler warnings are errors!! (/WX)")

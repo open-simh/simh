@@ -2,14 +2,7 @@
 
 include (CTest)
 
-## Regenerate the git commit ID if git exists.
-find_program(GIT_COMMAND git)
-if (GIT_COMMAND)
-    message(STATUS "Git command is ${GIT_COMMAND}")
-else ()
-    message(STATUS "Git not found -- will not update or include .git-commit-id.h")
-endif ()
-
+## Arrange to dynamically update .git-commit-id.h and .git-commit-id artifacts.
 add_custom_target(update_sim_commit ALL
     COMMAND ${CMAKE_COMMAND}
         -D GIT_COMMIT_DEST=${CMAKE_SOURCE_DIR}

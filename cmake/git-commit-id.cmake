@@ -6,31 +6,29 @@
 set(GIT_COMMIT_ID ${GIT_COMMIT_DEST}/.git-commit-id)
 set(GIT_COMMIT_ID_H ${GIT_COMMIT_DEST}/.git-commit-id.h)
 
-find_program(GIT_COMMAND git)
-if (GIT_COMMAND)
-    execute_process(COMMAND ${GIT_COMMAND} "log" "-1" "--pretty=%H"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        RESULT_VARIABLE HAVE_GIT_COMMIT_HASH
-        OUTPUT_VARIABLE SIMH_GIT_COMMIT_HASH)
+find_package(Git QUIET)
+if (GIT_FOUND)
+    execute_process(COMMAND ${GIT_EXECUTABLE} "log" "-1" "--pretty=%H"
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    RESULT_VARIABLE HAVE_GIT_COMMIT_HASH
+                    OUTPUT_VARIABLE SIMH_GIT_COMMIT_HASH)
+    execute_process(COMMAND ${GIT_EXECUTABLE} "log" "-1" "--pretty=%aI"
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    RESULT_VARIABLE HAVE_GIT_COMMIT_TIME
+                    OUTPUT_VARIABLE SIMH_GIT_COMMIT_TIME)
 
-    execute_process(COMMAND ${GIT_COMMAND} "log" "-1" "--pretty=%aI"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        RESULT_VARIABLE HAVE_GIT_COMMIT_TIME
-        OUTPUT_VARIABLE SIMH_GIT_COMMIT_TIME)
-
-    execute_process(COMMAND ${GIT_COMMAND} "update-index" "--refresh" "--"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        RESULT_VARIABLE HAVE_UNCOMMITTED_CHANGES
-        OUTPUT_VARIABLE SIMH_UNCOMMITTED_CHANGES)
+    execute_process(COMMAND ${GIT_EXECUTABLE} "update-index" "--refresh" "--"
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    RESULT_VARIABLE HAVE_UNCOMMITTED_CHANGES
+                    OUTPUT_VARIABLE SIMH_UNCOMMITTED_CHANGES)
 endif ()
 
-if (GIT_COMMAND AND NOT (HAVE_GIT_COMMIT_HASH OR HAVE_GIT_COMMIT_TIME))
+if (GIT_FOUND AND NOT HAVE_GIT_COMMIT_HASH AND NOT HAVE_GIT_COMMIT_TIME)
     string(STRIP ${SIMH_GIT_COMMIT_HASH} SIMH_GIT_COMMIT_HASH)
     string(STRIP ${SIMH_GIT_COMMIT_TIME} SIMH_GIT_COMMIT_TIME)
     string(REPLACE "T" " " SIMH_GIT_COMMIT_TIME ${SIMH_GIT_COMMIT_TIME})
 
     if (HAVE_UNCOMMITTED_CHANGES)
-        ## message(STATUS "Git detected uncommitted changes.")
         string(APPEND SIMH_GIT_COMMIT_HASH "+uncommitted-changes")
     else ()
         message(STATUS "Clean working directory, no uncommitted changes.")

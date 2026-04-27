@@ -53,31 +53,7 @@ if (WITH_ASYNC)
     endif (semaphore_h_found)
 endif (WITH_ASYNC)
 
-## Note: We could use this to enforce better type safety with file I/O.
-##
-## _LARGEFILE64_SOURCE and _FILE_OFFSET_BITS for Linux
-## check_type_size(off_t SIZE_OFF_T)
-## if (SIZE_OFF_T)
-##     target_compile_definitions(os_features INTERFACE SIZE_OFF_T=${SIZE_OFF_T})
-## endif ()
-##
-## check_type_size(off64_t SIZE_OFF64_T)
-## if (NOT SIZE_OFF64_T)
-##     set(xxx_CMAKE_REQUIRED_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS})
-##     list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1)
-##     check_type_size(off64_t SIZE_OFF64_T)
-##     set(xxx_CMAKE_REQUIRED_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS})
-## 
-##     if (SIZE_OFF64_T)
-##         target_compile_definitions(os_features INTERFACE _FILE_OFFSET_BITS=64 _LARGEFILE64_SOURCE=1)
-##     endif ()
-## endif()
-## 
-## if (SIZE_OFF64_T)
-##     target_compile_definitions(os_features INTERFACE SIZE_OFF64_T=${SIZE_OFF64_T})
-## endif ()
-
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     target_compile_definitions(os_features INTERFACE _GNU_SOURCE)
 endif ()
 

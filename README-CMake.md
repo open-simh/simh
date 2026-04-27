@@ -352,35 +352,11 @@ Setup and Usage:
     libraries finish building successfully, the _superbuild_ invokes CMake to
     reconfigure SIMH to use these newly installed dependencies.
 
-- [`vcpkg`](https://vcpkg.io)
+- [`vcpkg`](https://vcpkg.io): `vcpkg` is a Git submodule that is initialized,
+  updated and compiled (when necessary) during CMake's _configure_ phase. No
+  special installation required.
 
-  Simply set the `VCPKG_ROOT` environment variable to use the `vcpkg` strategy.
-  `vcpkg` operates in [Manifest mode][vcpkg_manifest]; refer to the `vcpkg.json`
-  manifest file.
-
-  The default platform triplets for  the Visual Studio compilers are
-  `x86-windows-static` and `x64-windows-static`, depending on the architecture
-  flag passed to CMake.
-
-  The `x64-mingw-dynamic` triplet is known to work from within a MinGW-w64
-  console/terminal window using the GCC compiler.
-
-  If you haven't git-cloned `vcpkg`, `git clone vcpkg` somewhere outside of the
-  SIMH source tree. For example, you could choose to clone `vcpkg` in the
-  directory above `open-simh`:
-
-        ```powershell
-        PS C:\...\open-simh> pwd
-        C:\...\open-simh
-        PS C:\...\open-simh> cd ..
-        PS C:\...> git clone https://github.com/Microsoft/vcpkg.git
-        PS C:\...> cd vcpkg
-        PS C:\...\vcpkg> .\vcpkg\bootstrap-vcpkg.bat
-        PS C:\...\vcpkg> cd ..\open-simh
-        PS C:\...\open-simh>
-        ```
-  Then set the `VCPKG_ROOT` environment variable to the `vcpkg` installation directory.
-
+  
 [^1]: `vcpkg` does not support the `v141_xp` toolkit required to compile Windows
 XP binaries. Windows XP is a target platform that SIMH can hopefully deprecate
 in the future. For the time being, Windows XP is a target platform that is part

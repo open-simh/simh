@@ -3,16 +3,19 @@ cmake_minimum_required(VERSION 3.14)
 
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR
-         ""
-        "!!! DO NOT BUILD CMake artifacts in the SIMH source directory !!!\n"
-        ""
-        "Create a subdirectory and build in that subdirectory, e.g.:"
-        "\n"
-        "  $ mkdir cmake-build\n"
-        "  $ cd cmake-build\n"
-        "  $ cmake -G \"your generator here\" ..\n"
-        ""
-        "Preventing in-tree source build.")
+          ""
+          "!!! DO NOT BUILD CMake artifacts in the SIMH source directory !!!\n"
+          ""
+          "Create a subdirectory and build in that subdirectory, e.g.:"
+          "\n"
+          "  $ mkdir cmake-build\n"
+          "  $ cd cmake-build\n"
+          "  $ cmake -G \"your generator here\" ..\n"
+          ""
+          "CMAKE_SOURCE_DIR set to ${CMAKE_SOURCE_DIR}\n"
+          "CMAKE_BINARY_DIR set to ${CMAKE_BINARY_DIR}\n"
+          ""
+          "Preventing in-tree source build.")
 endif ()
 
 if (CMAKE_VERSION VERSION_LESS "3.21" AND NOT DEFINED SIMH_INSTALLER_WARNING)
@@ -42,35 +45,6 @@ set(SIMH_INCLUDE_PATH_LIST
 list(APPEND CMAKE_MODULE_PATH ${SIMH_INCLUDE_PATH_LIST})
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-## vcpkg sanity checking: Cannot use vcpkg and XP toolkit together. If this is
-## a XP build, disable vcpkg:
-set(USING_VCPKG FALSE)
-if (DEFINED ENV{VCPKG_ROOT})
-    if (CMAKE_GENERATOR_TOOLSET MATCHES "v[0-9][0-9][0-9]_xp")
-        message(FATAL_ERROR
-            "Configuration conflict: Cannot build XP binaries with vcpkg. Either "
-            "unset VCPKG_ROOT in your environment or remove the '-T' toolkit option."
-            "\n"
-            "Also remove CMakeCache.txt and recursively remove the CMakeFiles "
-            "subdirectory in your build folder before reconfiguring.")
-    endif ()
-
-    set(USING_VCPKG TRUE)
-
-    ## Defer loading the CMAKE_TOOLCHAIN_FILE:
-    set(SIMH_CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
-    if(DEFINED CMAKE_TOOLCHAIN_FILE)
-        ## Use the user's provided toolchain file, but load it later.
-        message(STATUS "Deferring CMAKE_TOOLCHAIN_FILE load.")
-        set(SIMH_CMAKE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}")
-        unset(CMAKE_TOOLCHAIN_FILE)
-        unset(CMAKE_TOOLCHAIN_FILE CACHE)
-    endif()
-
-    file(TO_CMAKE_PATH "${SIMH_CMAKE_TOOLCHAIN_FILE}" SIMH_CMAKE_TOOLCHAIN_FILE)
-    message(STATUS "SIMH_CMAKE_TOOLCHAIN_FILE is ${SIMH_CMAKE_TOOLCHAIN_FILE}")
-endif ()
-
 ## Respect MSVC_RUNTIME_LIBRARY's setting. the policy has to be set before
 ## project(), otherwise it'd have been put into platform-quirks.
 ##
@@ -82,8 +56,14 @@ endif()
 
 project(simh VERSION "${SIMH_VERSION}" LANGUAGES C CXX)
 
-include(vcpkg-setup)
+## "Standard" includes
 include(GNUInstallDirs)
+include(CheckCSourceCompiles)
+include(CheckIncludeFile)
+include(CheckSymbolExists)
+include(CheckTypeSize)
+include(CheckCCompilerFlag)
+include(FindPackageHandleStandardArgs)
 
 ## Provide a default CMAKE_BUILD_TYPE if CMAKE_CONFIGURATION_TYPES is empty or not defined.
 if (NOT CMAKE_CONFIGURATION_TYPES)
@@ -243,16 +223,6 @@ list(APPEND CMAKE_INCLUDE_PATH "${CMAKE_BINARY_DIR}/include")
 ## an error if anything is sent to stderr and $ErrorDefaultAction is set to "Stop".
 set(DEP_CMAKE_ARGS "-Wno-dev" "--no-warn-unused-cli")
 
-## build-stage directory hierarchy for dependency installs:
-if (NOT (USING_VCPKG OR NO_DEP_BUILD) AND NOT EXISTS ${SIMH_DEP_TOPDIR})
-    message(STATUS "Creating dependency library directory hierarchy")
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${SIMH_DEP_TOPDIR} ${SIMH_DEP_TOPDIR}/include ${SIMH_DEP_TOPDIR}/lib
-                    ${SIMH_DEP_TOPDIR}/bin
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
-endif ()
-
 ## Default install location is ${CMAKE_SOURCE_DIR}/SIMH-install if not otherwise set
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/SIMH-install" CACHE PATH "${CMAKE_SOURCE_DIR}/SIMH-install default install prefix" FORCE)
@@ -268,14 +238,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SIMH_LEGACY_INSTALL})
 ## Source directory is always on the global include path.
 include_directories(${CMAKE_SOURCE_DIR})
 
-if (NOT USING_VCPKG AND NOT NO_DEP_BUILD)
-    # Make sure we can include and link from the dependency directory
-    list(APPEND CMAKE_LIBRARY_PATH ${SIMH_DEP_TOPDIR}/lib)
-    link_directories(${SIMH_DEP_TOPDIR}/lib)
-    list(APPEND CMAKE_INCLUDE_PATH ${SIMH_DEP_TOPDIR}/include)
-    include_directories(${SIMH_DEP_TOPDIR}/include)
-endif ()
-
 ## CMake policy tweaks
 
 if (CMAKE_VERSION GREATER_EQUAL 3.24)
@@ -284,16 +246,30 @@ if (CMAKE_VERSION GREATER_EQUAL 3.24)
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-## "Standard" includes
-include(CheckCSourceCompiles)
-include(CheckIncludeFile)
-include(CheckSymbolExists)
-include(CheckTypeSize)
-include(CheckCCompilerFlag)
-include(FindPackageHandleStandardArgs)
-
 ## Deal with platform quirkiness
 include(platform-quirks)
+
+## Git submodule setup, vcpkg setup when needed.
+include(submodule-setup)
+include(vcpkg-setup)
+
+## build-stage directory hierarchy for dependency installs:
+if (NOT (USING_VCPKG OR NO_DEP_BUILD) AND NOT EXISTS ${SIMH_DEP_TOPDIR})
+    message(STATUS "Creating dependency library directory hierarchy")
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${SIMH_DEP_TOPDIR} ${SIMH_DEP_TOPDIR}/include ${SIMH_DEP_TOPDIR}/lib
+                    ${SIMH_DEP_TOPDIR}/bin
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+endif ()
+
+if (NOT USING_VCPKG AND NOT NO_DEP_BUILD)
+    # Make sure we can include and link from the dependency directory
+    list(APPEND CMAKE_LIBRARY_PATH ${SIMH_DEP_TOPDIR}/lib)
+    link_directories(${SIMH_DEP_TOPDIR}/lib)
+    list(APPEND CMAKE_INCLUDE_PATH ${SIMH_DEP_TOPDIR}/include)
+    include_directories(${SIMH_DEP_TOPDIR}/include)
+endif ()
 
 # Find packages, arrange for dependency download/compile/install:
 #
@@ -308,16 +284,6 @@ set(ZLIB_PKG_STATUS "unknown")
 set(PCRE_PKG_STATUS "unknown")
 set(VIDEO_PKG_STATUS)
 set(NETWORK_PKG_STATUS)
-
-# if (USING_VCPKG)
-#     ## Sanity checking output: Ensure that vcpkg picked up the correct triplet
-#     message(STATUS "VCPKG sanity check:\n"
-#         "    .. VCPKG target triplet is ${VCPKG_TARGET_TRIPLET}\n"
-#         "    .. VCPKG_CRT_LINKAGE is ${VCPKG_CRT_LINKAGE}"
-#         ## "    .. CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}\n"
-#         ## "    .. CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-#     )
-# endif ()
 
 # SIMH local packages:
 include(build_dep_matrix)

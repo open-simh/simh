@@ -1,5 +1,7 @@
 .git-commit-id
 .git-commit-id.h
+# User-defined CMake presets
+CMakeUserPresets.json
 #ignore thumbnails created by windows
 Thumbs.db
 #ignore Desktop Services Store created by OSX

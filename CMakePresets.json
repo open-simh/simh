@@ -1,0 +1,209 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "vs2022-generator",
+      "displayName": "Common settings across VS-2022 Windows configurations",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "vs2022-win32",
+      "displayName": "Common settings across all 32-bit Windows configurations",
+      "inherits": "vs2022-generator",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/cmake/build-vs2022",
+      "architecture": "Win32"
+    },
+    {
+      "name": "win32-vs2022-debug",
+      "displayName": "Win32 VS-2022 (Debug)",
+      "inherits": "vs2022-win32",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "win32-vs2022-relwithdebinfo",
+      "displayName": "Win32 VS-2022 (RelWithDebInfo)",
+      "inherits": "vs2022-win32",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "win32-vs2022-release",
+      "displayName": "Win32 VS-2022 (Release)",
+      "inherits": "vs2022-win32",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "vs2022-win64",
+      "displayName": "Common settings across 64-bit Windows configurations",
+      "inherits": "vs2022-generator",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/cmake/build-vs2022-x64",
+      "architecture": "x64"
+    },
+    {
+      "name": "win64-vs2022-debug",
+      "displayName": "Win64 VS-2022 (Debug)",
+      "inherits": "vs2022-win64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "win64-vs2022-relwithdebinfo",
+      "displayName": "Win64 VS-2022 (RelWithDebInfo)",
+      "inherits": "vs2022-win64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "win64-vs2022-release",
+      "displayName": "Win64 VS-2022 (Release)",
+      "inherits": "vs2022-win64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ninja-common",
+      "description": "Ninja common configuration",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/cmake/build-ninja"
+    },
+    {
+      "name": "ninja-debug",
+      "displayName": "Generic Ninja (Debug)",
+      "inherits": "ninja-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "ninja-relwithdebinfo",
+      "displayName": "Generic Ninja (RelWithDebInfo)",
+      "inherits": "ninja-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "ninja-release",
+      "displayName": "Generic Ninja (Release)",
+      "inherits": "ninja-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "vs2022-build",
+      "description": "VS-2022 common build settings",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "win32-vs2022-debug",
+      "displayName": "Build Win32 VS-2022 (Debug)",
+      "inherits": "vs2022-build",
+      "configurePreset": "win32-vs2022-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "win32-vs2022-relwithdebinfo",
+      "displayName": "Build Win32 VS-2022 (RelWithDebInfo)",
+      "inherits": "vs2022-build",
+      "configurePreset": "win32-vs2022-relwithdebinfo",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "win32-vs2022-release",
+      "displayName": "Build Win32 VS-2022 (Release)",
+      "inherits": "vs2022-build",
+      "configurePreset": "win32-vs2022-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "ninja-debug",
+      "displayName": "Build Generic Ninja (Debug)",
+      "configurePreset": "ninja-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "ninja-relwithdebinfo",
+      "displayName": "Build Generic Ninja (RelWithDebInfo)",
+      "configurePreset": "ninja-relwithdebinfo",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "ninja-release",
+      "displayName": "Build Generic Ninja (Release)",
+      "configurePreset": "ninja-release",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "win32-vs2022-debug",
+      "configurePreset": "win32-vs2022-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "win32-vs2022-relwithdebinfo",
+      "configurePreset": "win32-vs2022-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "win32-vs2022-release",
+      "configurePreset": "win32-vs2022-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ninja-debug",
+      "configurePreset": "ninja-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ninja-relwithdebinfo",
+      "configurePreset": "ninja-relwithdebinfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ninja-release",
+      "configurePreset": "ninja-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
