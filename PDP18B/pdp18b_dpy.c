@@ -1,6 +1,6 @@
-/* pdp18b_dpy.c: PDP-7 Type 340 interface
+/* pdp18b_dpy.c: PDP-7 Type 34 and Type 340 interface
 
-   Copyright (c) 2019, Lars Brinkhoff
+   Copyright (c) 2019, 2026, Lars Brinkhoff
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,11 @@
 #define DBG_IOT         001         /* IOT instructions. */
 #define DBG_IRQ         002         /* Interrupts. */
 #define DBG_INS         004         /* 340 instructions. */
+#define DBG_PLT         010         /* Points plotted. */
+
+#define UNIT_V_TYPE34   (UNIT_V_UF + 0)                 /* Type 34 */
+#define UNIT_TYPE34     (1 << UNIT_V_TYPE34)
+#define TYPE34          (dpy_unit[0].flags & UNIT_TYPE34)
 
 /*
  * Number of microseconds between svc calls.  Used to age display and
@@ -63,11 +68,18 @@ DEBTAB dpy_deb[] = {
     { "IOT", DBG_IOT },
     { "IRQ", DBG_IRQ },
     { "INS", DBG_INS },
+    { "PLT", DBG_PLT },
     { NULL, 0 }
     };
 
+MTAB dpy_mod[] = {
+    { UNIT_TYPE34, UNIT_TYPE34, "Type 34", "TYPE34", NULL },
+    { UNIT_TYPE34, 0,           "Type 340", "TYPE340", NULL },
+    { 0 }
+    };
+
 DEVICE dpy_dev = {
-    "DPY", dpy_unit, NULL, NULL,
+    "DPY", dpy_unit, NULL, dpy_mod,
     1, 8, 12, 1, 8, 18,
     NULL, NULL, &dpy_reset,
     NULL, NULL, NULL,
@@ -75,11 +87,14 @@ DEVICE dpy_dev = {
     dpy_deb, NULL, NULL
     };
 
+static uint16 dpy_x, dpy_y, dpy_i;
+
 t_stat dpy_svc (UNIT *uptr)
 {
   sim_activate_after(uptr, DPY_CYCLE_US);
   display_age(DPY_CYCLE_US, 0);
-  ty340_cycle();
+  if (!TYPE34)
+    ty340_cycle();
   return SCPE_OK;
 }
 
@@ -95,7 +110,10 @@ t_stat dpy_reset (DEVICE *dptr)
     display_reset();
     ty340_reset(dptr);
   }
-  sim_cancel (&dpy_unit[0]);
+  if (TYPE34)
+    sim_activate_abs (dpy_unit, 0);
+  else
+    sim_cancel (&dpy_unit[0]);
   return SCPE_OK;
 }
 
@@ -132,18 +150,34 @@ int32 dpy05 (int32 dev, int32 pulse, int32 dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7005%02o, %06o\n", pulse, dat);
 
-  if (pulse & 001) {
+  if ((pulse & 001) != 0 && !TYPE34) {
     if (ty340_sense(ST340_VEDGE))
       dat |= IOT_SKP;
   }
 
   if (pulse & 002) {
-    dat |= ty340_get_dac();
+    if (TYPE34) {
+      sim_debug(DBG_IOT, &dpy_dev, "Clear X\n");
+      dpy_x = 0;
+    } else {
+      dat |= ty340_get_dac();
+    }
   }
 
   if (pulse & 004) {
-    ty340_clear (ST340_LPHIT);
-    sim_activate_abs (dpy_unit, 0);
+    if (TYPE34) {
+      dpy_x |= dat & 01777;
+      sim_debug(DBG_IOT, &dpy_dev, "Set X to %04o\n", dpy_x);
+    } else {
+      ty340_clear (ST340_LPHIT);
+      sim_activate_abs (dpy_unit, 0);
+    }
+  }
+
+  if ((pulse & 040) != 0 && TYPE34) {
+    sim_debug(DBG_PLT, &dpy_dev, "Plot %04o,%04o intensity %o\n",
+              dpy_x, dpy_y, dpy_i);
+    display_point (dpy_x, dpy_y, (dpy_i * DISPLAY_INT_MAX) / 7, 0);
   }
 
   return dat;
@@ -153,20 +187,36 @@ int32 dpy06 (int32 dev, int32 pulse, int32 dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7006%02o, %06o\n", pulse, dat);
 
-  if (pulse & 001) {
+  if ((pulse & 001) != 0 && !TYPE34) {
     if (ty340_sense(ST340_STOPPED))
       dat |= IOT_SKP;
   }
 
   if (pulse & 002) {
-    ty340_set_dac (0);
+    if (TYPE34) {
+       sim_debug(DBG_IOT, &dpy_dev, "Clear Y\n");
+       dpy_y = 0;
+    } else {
+      ty340_set_dac (0);
+    }
   }
 
   if (pulse & 004) {
-    if ((pulse & 010) == 0)
-      ty340_set_dac (dat & 07777);
-    ty340_clear (ST340_STOPPED|ST340_STOP_INT);
-    sim_activate_abs (dpy_unit, 0);
+    if (TYPE34) {
+      dpy_y |= dat & 01777;
+      sim_debug(DBG_IOT, &dpy_dev, "Set Y to %04o\n", dpy_y);
+    } else {
+      if ((pulse & 010) == 0)
+        ty340_set_dac (dat & 07777);
+      ty340_clear (ST340_STOPPED|ST340_STOP_INT);
+      sim_activate_abs (dpy_unit, 0);
+    }
+  }
+
+  if ((pulse & 040) != 0 && TYPE34) {
+    sim_debug(DBG_PLT, &dpy_dev, "Plot %04o,%04o intensity %o\n",
+              dpy_x, dpy_y, dpy_i);
+    display_point (dpy_x, dpy_y, (dpy_i * DISPLAY_INT_MAX) / 7, 0);
   }
 
   return dat;
@@ -175,6 +225,15 @@ int32 dpy06 (int32 dev, int32 pulse, int32 dat)
 int32 dpy07 (int32 dev, int32 pulse, int32 dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7007%02o, %06o\n", pulse, dat);
+
+  if (TYPE34) {
+    if (dat & 4)
+      dpy_i = 7 - (dat & 7);
+    else
+      dpy_i = (dat & 3) + 4;
+    sim_debug(DBG_IOT, &dpy_dev, "Set intensity to %06o\n", dpy_i);
+    return dat;
+  }
 
   if (pulse & 001) {
     if (ty340_sense(ST340_LPHIT))
@@ -195,6 +254,9 @@ int32 dpy07 (int32 dev, int32 pulse, int32 dat)
 int32 dpy10 (int32 dev, int32 pulse, int32 dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7010%02o, %06o\n", pulse, dat);
+
+  if (TYPE34)
+    return dat;
 
   if (pulse & 001) {
     if (ty340_sense(ST340_HEDGE))
