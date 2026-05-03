@@ -414,7 +414,7 @@ extern const ETH_MAC eth_mac_bcast;
  * and memcpy will copy from somewhere other than the first byte of the source MAC
  * address.
  */
-static inline void eth_copy_mac(ETH_MAC dst, const ETH_MAC src)
+static SIM_INLINE void eth_copy_mac(ETH_MAC dst, const ETH_MAC src)
 {
   memcpy(dst, src, sizeof(ETH_MAC));
 }
@@ -422,7 +422,7 @@ static inline void eth_copy_mac(ETH_MAC dst, const ETH_MAC src)
 /* Type-enforcing MAC comparison function. Helps to avoid subtle memcmp() issues
  * (see above).
  */
-static inline int eth_mac_cmp(const ETH_MAC a, const ETH_MAC b)
+static SIM_INLINE int eth_mac_cmp(const ETH_MAC a, const ETH_MAC b)
 {
   return memcmp(a, b, sizeof(ETH_MAC));
 }
