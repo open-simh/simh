@@ -3162,6 +3162,7 @@ sim_debug (DBG_ASY, &sim_con_telnet, "_console_poll() - starting\n");
 
 pthread_mutex_lock (&sim_tmxr_poll_lock);
 pthread_cond_signal (&sim_console_startup_cond);   /* Signal we're ready to go */
+/* We still have the poll lock acquired entering the loop. */
 while (sim_asynch_enabled) {
 
     if (!sim_is_running) {

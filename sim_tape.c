@@ -239,10 +239,11 @@ struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
     pthread_mutex_lock (&ctx->io_lock);
     pthread_cond_signal (&ctx->startup_cond);   /* Signal we're ready to go */
     while (1) {
+        /* Entering the loop, io_lock is acquired. */
         pthread_cond_wait (&ctx->io_cond, &ctx->io_lock);
+        pthread_mutex_unlock (&ctx->io_lock);
         if (ctx->io_top == TOP_DONE)
             break;
-        pthread_mutex_unlock (&ctx->io_lock);
         switch (ctx->io_top) {
             case TOP_RDRF:
                 ctx->io_status = sim_tape_rdrecf (uptr, ctx->buf, ctx->bc, ctx->max);
@@ -299,9 +300,10 @@ struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
         pthread_mutex_lock (&ctx->io_lock);
         ctx->io_top = TOP_DONE;
         pthread_cond_signal (&ctx->io_done);
+        pthread_mutex_unlock(&ctx->io_lock);    /* Allow waiters to wake up. */
         sim_activate (uptr, ctx->asynch_io_latency);
+        pthread_mutex_lock(&ctx->io_lock);      /* Re-acquire for the condition wait at loop's top. */
     }
-    pthread_mutex_unlock (&ctx->io_lock);
 
     sim_debug_unit (ctx->dbit, uptr, "_tape_io(unit=%d) exiting\n", (int)(uptr-ctx->dptr->units));
 
