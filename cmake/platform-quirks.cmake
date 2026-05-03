@@ -80,6 +80,7 @@ if (WIN32)
         if (RELEASE_LTO)
             ## /LTCG: Link-Time Code Generation. Pair with /GL at compile time.
             add_compile_options("$<$<CONFIG:Release>:/GL>")
+            add_compile_options("$<$<CONFIG:RelWithDebInfo>:/GL>")
             add_link_options("$<$<CONFIG:Release>:/LTCG>")
             message(STATUS "Adding LTO to Release compiler and linker flags")
         endif ()
@@ -106,6 +107,9 @@ if (WIN32)
         list(APPEND EXTRA_TARGET_CFLAGS
              "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:/W4>>"
              "$<$<CONFIG:Release>:/W3>"
+             "$<$<CONFIG:RelWithDebInfo>:$<$<BOOL:${DEBUG_WALL}>:/W4>>"
+             # 4100: Unused arg warning.
+             "/wd4100"
         )
 
         ## Uncomment this line if you end up with /NODEFAULTLIB warninigs. You will also
@@ -137,6 +141,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
     LIST(APPEND EXTRA_TARGET_CFLAGS
         "-U__STRICT_ANSI__"
         "$<$<CONFIG:Debug>:$<$<BOOL:${DEBUG_WALL}>:-Wall>>"
+        "$<$<CONFIG:RelWithDebInfo>:$<$<BOOL:${DEBUG_WALL}>:-Wall>>"
         ## Only add if WARNINGS_FATAL set; has undesirable consequences with LTO.
         "$<$<CONFIG:Release>:-Wall>"
     )
@@ -199,6 +204,8 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
         message(STATUS "    ${opt_flag}")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
         string(APPEND CMAKE_C_FLAGS_RELEASE " ${opt_flag}")
+        string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+        string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " ${opt_flag}")
         string(REGEX REPLACE "${opt_flag}[ \t\r\n]*" "" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
         string(APPEND CMAKE_C_FLAGS_MINSIZEREL " ${opt_flag}")
     endforeach ()
