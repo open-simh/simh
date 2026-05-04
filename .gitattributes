@@ -13,4 +13,6 @@
 *.crd binary
 *.dck binary
 sim_rev.h export-subst
-
+*.cmake text=auto
+.gitattributes text=auto
+.gitignore text=auto
