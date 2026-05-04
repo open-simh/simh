@@ -206,7 +206,7 @@ int32 iochk = 0;                                        /* I/O check stop */
 int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
-t_bool conv_old = 0;                                    /* old conversions */
+t_bool conv_old = FALSE;                                /* old conversions */
 
 extern int32 sim_emax;
 
@@ -1954,7 +1954,7 @@ return SCPE_OK;
 
 t_stat cpu_set_conv (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-conv_old = val;
+conv_old = (val != 0);
 return SCPE_OK;
 }
 
