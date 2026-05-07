@@ -157,7 +157,7 @@
  * Comment out this define to make @ and ' different in symbol names, keep to make equivalent
  */
 
-#if defined(VMS)
+#if defined(__linux) || defined(VMS)
     #  include <unistd.h>                   /* to pick up 'unlink' */
 #endif
 
