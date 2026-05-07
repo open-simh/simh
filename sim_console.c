@@ -327,7 +327,7 @@ return sim_set_notelnet (0, NULL);
 
 /* Forward declarations */
 
-static t_stat sim_os_fd_isatty (int fd);
+static t_bool sim_os_fd_isatty (int fd);
 
 /* Set/show data structures */
 
@@ -3288,11 +3288,15 @@ return r2;
 
 t_bool sim_ttisatty (void)
 {
-static int answer = -1;
+static int inited = -1;
+static t_bool is_a_tty = FALSE;
 
-if (answer == -1)
-    answer = sim_os_fd_isatty (0);
-return (t_bool)answer;
+if (inited != -1)
+    return is_a_tty;
+
+is_a_tty = sim_os_fd_isatty (0);
+inited = 1;
+return sim_ttisatty();
 }
 
 t_bool sim_fd_isatty (int fd)

@@ -240,7 +240,7 @@ int32 cso_csr = 0;                                      /* control/status */
 int32 cmctl_reg[CMCTLSIZE >> 2] = { 0 };                /* CMCTL reg */
 int32 ka_cacr = 0;                                      /* KA655 cache ctl */
 int32 ka_bdr = BDR_BRKENB;                              /* KA655 boot diag */
-t_bool ka_hltenab = 1;                                  /* Halt Enable / Autoboot flag */
+t_bool ka_hltenab = TRUE;                               /* Halt Enable / Autoboot flag */
 int32 ssc_base = SSCBASE;                               /* SSC base */
 int32 ssc_cnf = 0;                                      /* SSC conf */
 int32 ssc_bto = 0;                                      /* SSC timeout */
@@ -249,7 +249,7 @@ int32 tmr_csr[2] = { 0 };                               /* SSC timers */
 uint32 tmr_tir[2] = { 0 };                              /* curr interval */
 uint32 tmr_tnir[2] = { 0 };                             /* next interval */
 int32 tmr_tivr[2] = { 0 };                              /* vector */
-t_bool tmr_inst[2] = { 0 };                             /* wait instructions vs usecs */
+t_bool tmr_inst[2] = { FALSE, FALSE };                  /* wait instructions vs usecs */
 int32 ssc_adsm[2] = { 0 };                              /* addr strobes */
 int32 ssc_adsk[2] = { 0 };
 int32 cdg_dat[CDASIZE >> 2];                            /* cache data */
@@ -1733,7 +1733,7 @@ return SCPE_OK;
 
 t_stat sysd_set_halt (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
-ka_hltenab = val;
+ka_hltenab = (val != 0);
 if (ka_hltenab)
     ka_bdr |= BDR_BRKENB;
 else
