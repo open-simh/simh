@@ -95,7 +95,7 @@ cpack_add_component(sds_family
 )
 cpack_add_component(swtp_family
     DISPLAY_NAME "SWTP simulators"
-    DESCRIPTION "Southwest Technical Products (SWTP) system simulators. Simulators: swtp6800mp-a, swtp6800mp-a2"
+    DESCRIPTION "Southwest Technical Products (SWTP) system simulators. Simulators: swtp6800mp-a, swtp6800mp-a2, swtp6809mp-09"
 )
 cpack_add_component(vax_family
     DISPLAY_NAME "DEC VAX simulator collection"

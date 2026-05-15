@@ -379,7 +379,8 @@ t_stat dsk_reset(DEVICE *dptr)
 {
     int i;
 
-    sim_printf("dsk_reset: call to reset routine\n");
+    //sim_printf("dsk_reset: call to reset routine\n");
+    sim_debug(DEBUG_flow, &dsk_dev, "dsk_reset: call to reset routine\n");
 
     cur_dsk = 0;                        /* force initial SIR read in FLEX mode, use a drive # that can't be selected */
     prev_dsk = 5;

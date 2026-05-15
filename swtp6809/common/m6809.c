@@ -2933,7 +2933,7 @@ t_stat sim_instr (void)
         }
     }
     /* Simulation halted - lets dump all the registers! */
-    dump_regs();
+    //dump_regs();
     saved_PC = PC;
     return reason;
 }

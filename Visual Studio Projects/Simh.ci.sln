@@ -59,6 +59,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swtp6800mp-a", "swtp6800mp-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swtp6800mp-a2", "swtp6800mp-a2.vcxproj", "{A0BAF350-853E-4A8F-8435-B583E29FFACE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swtp6809mp-09", "swtp6809mp-09.vcxproj", "{8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}"
+EndProject 
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BuildROMs", "BuildROMs.vcxproj", "{D40F3AF1-EEE7-4432-9807-2AD287B490F8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VAX730", "VAX730.vcxproj", "{C526F7F2-9476-44BC-B1E9-9522B693BEA7}"
@@ -791,6 +793,14 @@ Global
 		{9B214A06-3727-44D4-99B7-2C3E44B86B32}.Release|ARM.Build.0 = Release|ARM
 		{9B214A06-3727-44D4-99B7-2C3E44B86B32}.Release|Win32.ActiveCfg = Release|Win32
 		{9B214A06-3727-44D4-99B7-2C3E44B86B32}.Release|Win32.Build.0 = Release|Win32
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Debug|ARM.ActiveCfg = Debug|ARM
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Debug|ARM.Build.0 = Debug|ARM
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Debug|Win32.ActiveCfg = Debug|Win32
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Debug|Win32.Build.0 = Debug|Win32
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Release|ARM.ActiveCfg = Release|ARM
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Release|ARM.Build.0 = Release|ARM
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Release|Win32.ActiveCfg = Release|Win32
+                {8E13D759-D7F9-4AFB-91CC-B7F8BA98F8F7}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

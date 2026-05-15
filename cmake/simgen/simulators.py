@@ -59,6 +59,7 @@
 "ssem"
 "swtp6800mp-a"
 "swtp6800mp-a2"
+"swtp6800mp-09"
 "tt2500"
 "tx-0"
 "uc15"
