@@ -2358,6 +2358,8 @@ else { /* !tap: */
     const char *devname = savname + 4;
 
     memset(&voa, 0, sizeof(voa));
+    voa.mode = 0600;
+
     if (!strcmp(savname, "vde:vdedevice"))
       return sim_messagef (SCPE_OPENERR, "Eth: Must specify actual vde device name (i.e. vde:/tmp/switch)\n");
     while (isspace(*devname))
