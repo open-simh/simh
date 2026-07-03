@@ -1,6 +1,6 @@
 /* pdp18b_lp.c: 18b PDP's line printer simulator
 
-   Copyright (c) 1993-2021, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
    lp09         (PDP-9,15) LP09 line printer
    lp15         (PDP-15)   LP15 line printer
 
+   01-Jul-26    RMS     Added delay on 647 LPCB completion (Frodevan)
    09-Jun-21    RMS     Reverted use of ftell for pipe compatibility
    13-Mar-17    RMS     Annotated fall throughs in switch
    10-Mar-16    RMS     Added 3-cycle databreak set/show entry
@@ -268,6 +269,8 @@ int32 lp647_err = 0;                                    /* error */
 int32 lp647_iot = 0;                                    /* saved state */
 int32 lp647_stopioe = 0;
 int32 lp647_bp = 0;                                     /* buffer ptr */
+int32 lp647_itime = 1000;                               /* init timeout */
+t_bool lp647_init = FALSE;                              /* init in progress */
 char lp647_buf[LP647_BSIZE] = { 0 };
 static const char *lp647_cc[] = {
     "\n",
@@ -313,6 +316,8 @@ REG lp647_reg[] = {
     { ORDATA (SCMD, lp647_iot, 6), REG_HRO },
     { DRDATAD (POS, lp647_unit.pos, T_ADDR_W, "position in the output file"), PV_LEFT },
     { DRDATAD (TIME, lp647_unit.wait, 24, "time from I/O initiation to interrupt"), PV_LEFT },
+    { DRDATA (ITIME, lp647_itime, 24), PV_LEFT | REG_HRO},
+    { FLDATA (INIT, lp647_init, 0), REG_HRO },
     { FLDATAD (STOP_IOE, lp647_stopioe, 0, "stop on I/O error") },
     { BRDATAD (LBUF, lp647_buf, 8, 8, LP647_BSIZE, "line buffer") },
     { ORDATA (DEVNO, lp647_dib.dev, 6), REG_HRO },
@@ -348,9 +353,9 @@ if (pulse & 02) {                                       /* pulse 02 */
         for (i = 0; i < LP647_BSIZE; i++)
             lp647_buf[i] = 0;
         lp647_bp = 0;                                   /* reset buf ptr */
-        lp647_don = 1;                                  /* set done */
-        if (lp647_ie)                                   /* set int */
-            SET_INT (LPT);
+        lp647_don = 0;                                  /* clear done */
+        lp647_init = TRUE;                              /* init in progress */
+        sim_activate (&lp647_unit, lp647_itime);        /* time it out*/
         }
     }
 if (pulse & 004) {                                      /* LPDI */
@@ -413,8 +418,9 @@ if (pulse & 04) {
 return dat;
 }
 
-/* Unit service.  lp647_iot specifies the action to be taken
+/* Unit service.  lp647_init and lp647_iot specify the action to be taken
 
+   lp647_init = TRUE            clear init flag, set DON flag
    lp647_iot = 0x               print only
    lp647_iot = 2x               space only, x is spacing command
    lp647_iot = 4x               print then space, x is spacing command
@@ -428,6 +434,10 @@ char pbuf[LP647_BSIZE + 2];
 lp647_don = 1;
 if (lp647_ie)                                           /* set flag */
     SET_INT (LPT);
+if (lp647_init) {                                       /* init in progress? */
+    lp647_init = FALSE;                                 /* mark complete */
+    return SCPE_OK;
+    }
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* not attached? */
     lp647_err = 1;                                      /* set error */
     return IORETURN (lp647_stopioe, SCPE_UNATT);
@@ -475,6 +485,7 @@ CLR_INT (LPT);                                          /* clear int */
 sim_cancel (&lp647_unit);                               /* deactivate unit */
 lp647_bp = 0;                                           /* clear buffer ptr */
 lp647_iot = 0;                                          /* clear state */
+lp647_init = FALSE;
 for (i = 0; i < LP647_BSIZE; i++)                       /* clear buffer */
     lp647_buf[i] = 0;
 return SCPE_OK;
