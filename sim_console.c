@@ -3483,9 +3483,12 @@ return SCPE_OK;
 #include <fcntl.h>
 #include <io.h>
 #define RAW_MODE 0
+typedef BOOL (WINAPI *std_output_writer_fn)(HANDLE, const void *, DWORD, LPDWORD, LPVOID);
+
 static HANDLE std_input;
 static HANDLE std_output;
 static HANDLE std_error;
+static std_output_writer_fn std_output_writer = NULL;
 static DWORD saved_input_mode;
 static DWORD saved_output_mode;
 static DWORD saved_error_mode;
@@ -3537,12 +3540,19 @@ SetConsoleCtrlHandler( ControlHandler, TRUE );
 std_input = GetStdHandle (STD_INPUT_HANDLE);
 std_output = GetStdHandle (STD_OUTPUT_HANDLE);
 std_error = GetStdHandle (STD_ERROR_HANDLE);
+
 if ((std_input) &&                                      /* Not Background process? */
     (std_input != INVALID_HANDLE_VALUE))
     GetConsoleMode (std_input, &saved_input_mode);      /* Save Input Mode */
 if ((std_output) &&                                     /* Not Background process? */
-    (std_output != INVALID_HANDLE_VALUE))
-    GetConsoleMode (std_output, &saved_output_mode);    /* Save Output Mode */
+    (std_output != INVALID_HANDLE_VALUE)) {             /* Save Output Mode */
+    std_output_writer = GetConsoleMode(std_output, &saved_output_mode)
+        ? WriteConsoleA
+        : (std_output_writer_fn) WriteFile;
+} else {
+    /* Default to something resonable... */
+    std_output_writer = (std_output_writer_fn) WriteFile;
+}
 if ((std_error) &&                                      /* Not Background process? */
     (std_error != INVALID_HANDLE_VALUE))
     GetConsoleMode (std_error, &saved_error_mode);      /* Save Output Mode */
@@ -3690,16 +3700,15 @@ return (WAIT_OBJECT_0 == WaitForSingleObject (std_input, ms_timeout));
 static uint8 out_buf[ESC_HOLD_MAX]; /* Buffered characters pending output */
 static int32 out_ptr = 0;
 
-static void sim_console_write(uint8 *outbuf, int32 outsz)
+static inline void sim_console_write(uint8 *outbuf, int32 outsz)
 {
     DWORD unused;
-    DWORD mode;
+    BOOL result;
 
-    if (GetConsoleMode(std_output, &mode)) {
-        WriteConsoleA(std_output, outbuf, outsz, &unused, NULL);
-    } else {
-        BOOL result = WriteFile(std_output, outbuf, outsz, &unused, NULL);
-    }
+    /* Useful to see the return value from std_output_writer. */
+    result = std_output_writer(std_output, outbuf, outsz, &unused, NULL);
+    /* But squelch the set-but-not-used warnings. */
+    (void) result;
 }
 
 static t_stat sim_out_hold_svc (UNIT *uptr)
