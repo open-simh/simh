@@ -3755,6 +3755,7 @@ sockets = (SOCKET *)calloc(FD_SETSIZE, sizeof(*sockets));
 timeout_usec = 1000000;
 pthread_mutex_lock (&sim_tmxr_poll_lock);
 pthread_cond_signal (&sim_tmxr_startup_cond);   /* Signal we're ready to go */
+/* We still have sim_tmxr_poll_lock acquired entering the loop. */
 while (sim_asynch_enabled) {
     int i, j, status, select_errno;
     fd_set readfds, errorfds;
@@ -4175,6 +4176,7 @@ lines = (TMLN **)calloc(MAXIMUM_WAIT_OBJECTS, sizeof(*lines));
 threads = (pthread_t *)calloc(MAXIMUM_WAIT_OBJECTS, sizeof(*threads));
 pthread_mutex_lock (&sim_tmxr_poll_lock);
 pthread_cond_signal (&sim_tmxr_serial_startup_cond);   /* Signal we're ready to go */
+pthread_mutex_unlock (&sim_tmxr_poll_lock);            /* Let waiters wake up. */
 pthread_cond_init (&sim_serial_line_startup_cond, NULL);
 while (sim_asynch_enabled) {
     pthread_attr_t attr;
@@ -4192,8 +4194,10 @@ while (sim_asynch_enabled) {
         for (j=0; j<mp->lines; ++j) {
             if (mp->ldsc[j].serport) {
                 lines[serport_count] = &mp->ldsc[j];
+                pthread_mutex_lock (&sim_tmxr_poll_lock);
                 pthread_create (&threads[serport_count], &attr, _tmxr_serial_line_poll, (void *)&mp->ldsc[j]);
                 pthread_cond_wait (&sim_serial_line_startup_cond, &sim_tmxr_poll_lock); /* Wait for thread to stabilize */
+                pthread_mutex_unlock (&sim_tmxr_poll_lock);
                 ++serport_count;
                 }
             }
@@ -4201,12 +4205,10 @@ while (sim_asynch_enabled) {
     pthread_attr_destroy( &attr);
     if (serport_count == 0)                                 /* No open serial ports? */
         break;                                              /* We're done */
-    pthread_mutex_unlock (&sim_tmxr_poll_lock);
+    /* Wait for serial line threads to exit. */
     for (i=0; i<serport_count; i++)
         pthread_join (threads[i], NULL);
-    pthread_mutex_lock (&sim_tmxr_poll_lock);
     }
-pthread_mutex_unlock (&sim_tmxr_poll_lock);
 pthread_cond_destroy (&sim_serial_line_startup_cond);
 free(lines);
 free(threads);
