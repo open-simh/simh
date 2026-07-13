@@ -892,7 +892,7 @@ x  RF75  ?    ?     ?     ?    ?    ?     ?
 #define KLESI_MODEL     3
 
 #define RUX50_CTYPE     2               // UNIBUS RX50-only controller
-#define RUX50_UQPM      10		// this should be 10 according to the MSCP spec
+#define RUX50_UQPM      10
 #define RUX50_MODEL     10
 
 #define UDA50A_CTYPE    3               // UNIBUS SDI (RAxx) controller
@@ -916,7 +916,7 @@ x  RF75  ?    ?     ?     ?    ?    ?     ?
 #define KRQ50_MODEL     16
 
 #define KRU50_CTYPE     8               // UNIBUS RRD40/50 CDROM controller
-#define KRU50_UQPM      26              // unassigned in appendix C
+#define KRU50_UQPM      26
 #define KRU50_MODEL     26
 
 #define RQDX4_CTYPE     9               // QBUS RXxx/RDxx controller
@@ -1079,6 +1079,8 @@ typedef struct {
     uint32              hat;                            /* host timer */
     uint32              htmo;                           /* host timeout */
     uint32              ctype;                          /* controller type */
+    uint16              mscp_model;                     /* mscp ctrlr model number */
+    uint16              mscp_uqpm;                      /* mscp port model number */
     struct uq_ring      cq;                             /* cmd ring */
     struct uq_ring      rq;                             /* rsp ring */
     struct rqpkt        pak[RQ_NPKTS];                  /* packet queue */
@@ -1252,6 +1254,8 @@ REG rq_reg[] = {
     { FLDATA  (PRGI,    rq_ctx.prgi,                 0), REG_HIDDEN },
     { FLDATA  (PIP,     rq_ctx.pip,                  0), REG_HIDDEN },
     { BINRDATA(CTYPE,   rq_ctx.ctype,               32), REG_HIDDEN },
+    { DRDATAD (MODEL,   rq_ctx.mscp_model,          16, "mscp controller model id") },
+    { DRDATAD (PORT,    rq_ctx.mscp_uqpm,           16, "mscp port model id") },
     { DRDATAD (ITIME,   rq_itime,                   24, "init time delay, except stage 4"), PV_LEFT + REG_NZ },
     { DRDATAD (I4TIME,  rq_itime4,                  24, "init stage 4 delay"), PV_LEFT + REG_NZ },
     { DRDATAD (QTIME,   rq_qtime,                   24, "response time for 'immediate' packets"), PV_LEFT + REG_NZ },
@@ -1465,6 +1469,8 @@ REG rqb_reg[] = {
     { FLDATA  (PRGI,    rqb_ctx.prgi,                 0), REG_HIDDEN },
     { FLDATA  (PIP,     rqb_ctx.pip,                  0), REG_HIDDEN },
     { BINRDATA(CTYPE,   rqb_ctx.ctype,               32), REG_HIDDEN },
+    { DRDATAD (MODEL,   rqb_ctx.mscp_model,          16, "mscp controller model id") },
+    { DRDATAD (PORT,    rqb_ctx.mscp_uqpm,           16, "mscp port model id") },
     { VBRDATAD (PKTS,   rqb_ctx.pak,     DEV_RDX,    16, sizeof(rq_ctx.pak)/2, "packet buffers, 33W each, 32 entries") },
     { URDATAD (CPKT,    rqb_unit[0].cpkt, 10, 5, 0, RQ_NUMDR, 0, "current packet, units 0 to 3") },
     { URDATAD (UCNUM,   rqb_unit[0].cnum, 10, 5, 0, RQ_NUMDR, 0, "ctrl number, units 0 to 3") },
@@ -1538,6 +1544,8 @@ REG rqc_reg[] = {
     { FLDATA  (PRGI,    rqc_ctx.prgi,                 0), REG_HIDDEN },
     { FLDATA  (PIP,     rqc_ctx.pip,                  0), REG_HIDDEN },
     { BINRDATA(CTYPE,   rqc_ctx.ctype,               32), REG_HIDDEN },
+    { DRDATAD (MODEL,   rqc_ctx.mscp_model,          16, "mscp controller model id") },
+    { DRDATAD (PORT,    rqc_ctx.mscp_uqpm,           16, "mscp port model id") },
     { VBRDATAD (PKTS,   rqc_ctx.pak,     DEV_RDX,    16, sizeof(rq_ctx.pak)/2, "packet buffers, 33W each, 32 entries") },
     { URDATAD (CPKT,    rqc_unit[0].cpkt, 10, 5, 0, RQ_NUMDR, 0, "current packet, units 0 to 3") },
     { URDATAD (UCNUM,   rqc_unit[0].cnum, 10, 5, 0, RQ_NUMDR, 0, "ctrl number, units 0 to 3") },
@@ -1611,6 +1619,8 @@ REG rqd_reg[] = {
     { FLDATA  (PRGI,    rqd_ctx.prgi,                 0), REG_HIDDEN },
     { FLDATA  (PIP,     rqd_ctx.pip,                  0), REG_HIDDEN },
     { BINRDATA(CTYPE,   rqd_ctx.ctype,               32), REG_HIDDEN },
+    { DRDATAD (MODEL,   rqd_ctx.mscp_model,          16, "mscp controller model id") },
+    { DRDATAD (PORT,    rqd_ctx.mscp_uqpm,           16, "mscp port model id") },
     { VBRDATAD (PKTS,   rqd_ctx.pak,     DEV_RDX,    16, sizeof(rq_ctx.pak)/2, "packet buffers, 33W each, 32 entries") },
     { URDATAD (CPKT,    rqd_unit[0].cpkt, 10, 5, 0, RQ_NUMDR, 0, "current packet, units 0 to 3") },
     { URDATAD (UCNUM,   rqd_unit[0].cnum, 10, 5, 0, RQ_NUMDR, 0, "ctrl number, units 0 to 3") },
@@ -1756,7 +1766,7 @@ for (i = 0; i < (lnt >> 1); i++)                        /* clr buffer */
 if (Map_WriteW (base, lnt, zero))                       /* zero comm area */
     return rq_fatal (cp, PE_QWE);                       /* error? */
 cp->sa = SA_S4 |                                        /* send step 4 */
-    (ctlr_tab[cp->ctype].uqpm << SA_S4C_V_MOD) |
+    (cp->mscp_uqpm << SA_S4C_V_MOD) |
     (RQ_SVER << SA_S4C_V_VER);
 cp->csta = CST_S4;                                      /* set step 4 */
 rq_init_int (cp);                                       /* poke host */
@@ -2188,7 +2198,7 @@ else {
     cp->pak[pkt].d[SCC_CIDB] = 0;
     cp->pak[pkt].d[SCC_CIDC] = 0;
     cp->pak[pkt].d[SCC_CIDD] = (RQ_CLASS << SCC_CIDD_V_CLS) |
-        (ctlr_tab[cp->ctype].model << SCC_CIDD_V_MOD);
+        (cp->mscp_model << SCC_CIDD_V_MOD);
     cp->pak[pkt].d[SCC_MBCL] = 0;                       /* max bc */
     cp->pak[pkt].d[SCC_MBCH] = 0;
     }
@@ -2656,7 +2666,7 @@ cp->pak[pkt].d[DTE_CIDA] = 0;                           /* ctrl ID */
 cp->pak[pkt].d[DTE_CIDB] = 0;
 cp->pak[pkt].d[DTE_CIDC] = 0;
 cp->pak[pkt].d[DTE_CIDD] = (RQ_CLASS << DTE_CIDD_V_CLS) |
-    (ctlr_tab[cp->ctype].model << DTE_CIDD_V_MOD);
+    (cp->mscp_model << DTE_CIDD_V_MOD);
 cp->pak[pkt].d[DTE_VER] = (RQ_HVER << DTE_VER_V_HVER) |
     (RQ_SVER << DTE_VER_V_SVER);
 cp->pak[pkt].d[DTE_MLUN] = lu;                          /* MLUN */
@@ -2698,7 +2708,7 @@ cp->pak[pkt].d[HBE_CIDA] = 0;                           /* ctrl ID */
 cp->pak[pkt].d[HBE_CIDB] = 0;
 cp->pak[pkt].d[HBE_CIDC] = 0;
 cp->pak[pkt].d[HBE_CIDD] = (RQ_CLASS << DTE_CIDD_V_CLS) |
-    (ctlr_tab[cp->ctype].model << DTE_CIDD_V_MOD);
+    (cp->mscp_model << DTE_CIDD_V_MOD);
 cp->pak[pkt].d[HBE_VER] = (RQ_HVER << HBE_VER_V_HVER) | /* versions */
     (RQ_SVER << HBE_VER_V_SVER);
 cp->pak[pkt].d[HBE_RSV] = 0;
@@ -2726,7 +2736,7 @@ cp->pak[pkt].d[PLF_CIDA] = 0;                           /* cntl ID */
 cp->pak[pkt].d[PLF_CIDB] = 0;
 cp->pak[pkt].d[PLF_CIDC] = 0;
 cp->pak[pkt].d[PLF_CIDD] = (RQ_CLASS << PLF_CIDD_V_CLS) |
-    (ctlr_tab[cp->ctype].model << PLF_CIDD_V_MOD);
+    (cp->mscp_model << DTE_CIDD_V_MOD);
 cp->pak[pkt].d[PLF_VER] = (RQ_SVER << PLF_VER_V_SVER) |
     (RQ_HVER << PLF_VER_V_HVER);
 cp->pak[pkt].d[PLF_ERR] = err;
@@ -3212,6 +3222,8 @@ MSC *cp = rq_ctxmap[uptr->cnum];
 if (val < 0)
     return SCPE_ARG;
 cp->ctype = val;
+cp->mscp_model = ctlr_tab[cp->ctype].model;
+cp->mscp_uqpm = ctlr_tab[cp->ctype].uqpm;
 return SCPE_OK;
 }
 
@@ -3284,6 +3296,11 @@ cp->cnum = cidx;                                        /* init index */
 if (cp->ctype == DEFAULT_CTYPE)
     cp->ctype = (UNIBUS    ? UDA50A_CTYPE :
                  MICROVAX1 ? RQDX1_CTYPE : RQDX3_CTYPE);
+if (cp->mscp_model == 0) {
+    cp->mscp_model = ctlr_tab[cp->ctype].model;
+    cp->mscp_uqpm = ctlr_tab[cp->ctype].uqpm;
+    fprintf(stderr, "setting rq model and uqpm at reset\r\n");
+    }
 
 if (!plugs_inited ) {
 #if !defined (VM_VAX)

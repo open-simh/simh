@@ -270,6 +270,8 @@ int32 tq_qtime = 200;                                   /* queue time */
 int32 tq_xtime = 500;                                   /* transfer time */
 int32 tq_rwtime = 2000000;                              /* rewind time 2 sec (adjusted later) */
 int32 tq_typ = INIT_TYPE;                               /* device type */
+int16 tq_mscp_model;                                    /* mscp ctrlr model number */
+int16 tq_mscp_uqpm;                                     /* mscp port model number */
 
 /* Command table - legal modifiers (low 16b) and flags (high 16b) */
 
@@ -468,6 +470,8 @@ REG tq_reg[] = {
     { VBRDATAD (PKTS,                 tq_pkt, DEV_RDX, 16, TQ_NPKTS * (TQ_PKT_SIZE_W + 1), "packet buffers, 33W each, 32 entries") },
     { URDATAD (PLUG,    tq_unit[0].unit_plug, 10, 32, 0, TQ_NUMDR, PV_LEFT | REG_RO, "unit plug value, units 0 to 3") },
     { DRDATA  (DEVTYPE,               tq_typ, 2), REG_HRO },
+    { DRDATAD (MODEL,          tq_mscp_model,16, "mscp controller model id") },
+    { DRDATAD (PORT,            tq_mscp_uqpm,16, "mscp port model id") },
     { DRDATA  (DEVCAP, drv_tab[TQU_TYPE].cap, T_ADDR_W), PV_LEFT | REG_HRO },
     { GRDATA  (DEVADDR,            tq_dib.ba, DEV_RDX, 32, 0), REG_HRO },
     { GRDATA  (DEVVEC,            tq_dib.vec, DEV_RDX, 16, 0), REG_HRO },
@@ -644,7 +648,7 @@ for (i = 0; i < (lnt >> 1); i++)                        /* clr buffer */
     zero[i] = 0;
 if (Map_WriteW (base, lnt, zero))                       /* zero comm area */
     return tq_fatal (PE_QWE);                           /* error? */
-tq_sa = SA_S4 | (drv_tab[tq_typ].uqpm << SA_S4C_V_MOD) |/* send step 4 */
+tq_sa = SA_S4 | (tq_mscp_uqpm << SA_S4C_V_MOD) |        /* send step 4 */
     ((drv_tab[tq_typ].cver & 0xFF) << SA_S4C_V_VER);
 tq_csta = CST_S4;                                       /* set step 4 */
 tq_init_int ();                                         /* poke host */
@@ -1093,7 +1097,7 @@ else {
     tq_pkt[pkt].d[SCC_CIDB] = 0;
     tq_pkt[pkt].d[SCC_CIDC] = 0;
     tq_pkt[pkt].d[SCC_CIDD] = (TQ_CLASS << SCC_CIDD_V_CLS) |
-        (drv_tab[tq_typ].cmod << SCC_CIDD_V_MOD);
+        (tq_mscp_model << SCC_CIDD_V_MOD);
     PUTP32 (pkt, SCC_MBCL, TQ_MAXFR);                   /* max bc */
     tq_putr (pkt, OP_SCC | OP_END, 0, ST_SUC, SCC_LNT, UQ_TYP_SEQ);
     }
@@ -1668,7 +1672,7 @@ tq_pkt[pkt].d[DTE_CIDA] = 0;                            /* ctrl ID */
 tq_pkt[pkt].d[DTE_CIDB] = 0;
 tq_pkt[pkt].d[DTE_CIDC] = 0;
 tq_pkt[pkt].d[DTE_CIDD] = (TQ_CLASS << DTE_CIDD_V_CLS) |
-    (drv_tab[tq_typ].cmod << DTE_CIDD_V_MOD);
+    (tq_mscp_model << DTE_CIDD_V_MOD);
 tq_pkt[pkt].d[DTE_VER] = drv_tab[tq_typ].cver;          /* ctrl ver */
 tq_pkt[pkt].d[DTE_MLUN] = lu;                           /* MLUN */
 tq_pkt[pkt].d[DTE_UIDA] = lu;                           /* unit ID */
@@ -1702,7 +1706,7 @@ tq_pkt[pkt].d[HBE_CIDA] = 0;                            /* ctrl ID */
 tq_pkt[pkt].d[HBE_CIDB] = 0;
 tq_pkt[pkt].d[HBE_CIDC] = 0;
 tq_pkt[pkt].d[DTE_CIDD] = (TQ_CLASS << DTE_CIDD_V_CLS) |
-    (drv_tab[tq_typ].cmod << DTE_CIDD_V_MOD);
+    (tq_mscp_model << DTE_CIDD_V_MOD);
 tq_pkt[pkt].d[HBE_VER] = drv_tab[tq_typ].cver;          /* ctrl ver */
 tq_pkt[pkt].d[HBE_RSV] = 0;
 PUTP32 (pkt, HBE_BADL, ba);                             /* bad addr */
@@ -1724,7 +1728,7 @@ tq_pkt[pkt].d[PLF_CIDA] = 0;                            /* cntl ID */
 tq_pkt[pkt].d[PLF_CIDB] = 0;
 tq_pkt[pkt].d[PLF_CIDC] = 0;
 tq_pkt[pkt].d[PLF_CIDD] = (TQ_CLASS << PLF_CIDD_V_CLS) |
-    (drv_tab[tq_typ].cmod << PLF_CIDD_V_MOD);
+    (tq_mscp_model << PLF_CIDD_V_MOD);
 tq_pkt[pkt].d[PLF_VER] = drv_tab[tq_typ].cver;
 tq_pkt[pkt].d[PLF_ERR] = (uint16)err;
 tq_putr (pkt, FM_CNT, LF_SNR, ST_CNT, PLF_LNT, UQ_TYP_DAT);
@@ -2077,6 +2081,12 @@ int32 i, j;
 UNIT *uptr;
 static t_bool plugs_inited = FALSE;
 
+if (tq_mscp_model == 0) {
+    tq_mscp_model = drv_tab[tq_typ].cmod;
+    tq_mscp_uqpm = drv_tab[tq_typ].uqpm;
+    fprintf(stderr, "setting tq model and uqpm at reset\r\n");
+    }
+
 for (i=tq_max_plug=0; i<TQ_NUMDR; i++)
     if (dptr->units[i].unit_plug > tq_max_plug)
         tq_max_plug = (uint16)dptr->units[i].unit_plug;
@@ -2410,6 +2420,8 @@ if (cptr) {
     drv_tab[TQU_TYPE].cap = ((t_addr) cap) << 20;
     }
 tq_typ = val;
+tq_mscp_model = drv_tab[tq_typ].cmod;
+tq_mscp_uqpm = drv_tab[tq_typ].uqpm;
 for (i = 0; i < TQ_NUMDR; i++)
     tq_unit[i].capac = drv_tab[tq_typ].cap;
 return SCPE_OK;
