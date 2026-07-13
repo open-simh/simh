@@ -200,7 +200,7 @@ return;
 t_stat dcw (FILE *of, int32 op, t_value *val, int32 sw)
 {
 int32 i;
-t_bool use_h = sw & SWMASK ('F');
+t_bool use_h = (sw & SWMASK ('F')) != 0;
 
 fprintf (of, "DCW @%c", bcd2ascii (op, use_h));         /* assume it's data */
 for (i = 1; i < sim_emax; i++) {
@@ -232,7 +232,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
 {
 int32 op, flags, ilnt, i, t;
 int32 wmch = conv_old? '~': '`';
-t_bool use_h = sw & SWMASK ('F');
+t_bool use_h = (sw & SWMASK ('F')) != 0;
 
 if (sw & SWMASK ('C')) {                                /* character? */
     t = val[0];

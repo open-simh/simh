@@ -675,7 +675,7 @@ static t_stat sca_svc (UNIT *uptr)
         if (timeout)
             sca_interrupt(SCA_DSW_TIMEOUT);
 
-        any_timer_running = (sca_timer_state[0]| sca_timer_state[1] | sca_timer_state[2]) & SCA_TIMER_RUNNING;
+        any_timer_running = ((sca_timer_state[0]| sca_timer_state[1] | sca_timer_state[2]) & SCA_TIMER_RUNNING) != 0;
     }
 
     if (sca_dsw & SCA_DSW_READY) {              /* if connected */
@@ -1003,7 +1003,7 @@ void xio_sca (int32 iocc_addr, int32 func, int32 modify)
                 sca_toggle_timer(TIMER_3S, msec_now);           /* toggle the 3 sec and 1.35 sec timers accordingly */
                 sca_toggle_timer(TIMER_125S, msec_now);
 
-                any_timer_running = (sca_timer_state[0]| sca_timer_state[1] | sca_timer_state[2]) & SCA_TIMER_RUNNING;
+                any_timer_running = ((sca_timer_state[0]| sca_timer_state[1] | sca_timer_state[2]) & SCA_TIMER_RUNNING) != 0;
             }
 
             if (modify & 0x10) {                    /* bit 11 */

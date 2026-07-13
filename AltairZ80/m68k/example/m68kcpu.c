@@ -1047,7 +1047,7 @@ void m68k_set_irq(unsigned int int_level)
 	/* A transition from < 7 to 7 always interrupts (NMI) */
 	/* Note: Level 7 can also level trigger like a normal IRQ */
 	if(old_level != 0x0700 && CPU_INT_LEVEL == 0x0700)
-		m68ki_cpu.nmi_pending = TRUE;
+		m68ki_cpu.nmi_pending = NMI_TRUE;
 }
 
 void m68k_set_virq(unsigned int level, unsigned int active)
