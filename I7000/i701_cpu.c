@@ -783,19 +783,22 @@ cpu_reset(DEVICE * dptr)
 t_stat
 cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 {
-    if (addr >= (MEMSIZE * 2))
+    t_addr a = (addr >> 1) & 03777; /* treat same as memory deposit. */
+    /* THE FOLLOWING HAS NEVER EVER WORKED BECAUSE `MEMSIZE` IS ALWAYS
+       LESS THAN 131072, WHICH IS `SIGN` BIT SET FOR 36-BIT WORD ACCESS!!!!!
+    if ( >= (MEMSIZE * 2)) */
+    if (a >= (MEMSIZE))
         return SCPE_NXM;
     if (vptr == NULL)
         return SCPE_OK;
 
-    *vptr = M[(addr & 07777) >> 1];
-    if ((addr & 0400000) == 0) {
-        if ( addr & 1)
-           *vptr <<= 18;
+    *vptr = M[a] & 0777777777777L;
+    if ((addr & 0400000) == 0) { /* show the full word anyway... */
+        if (addr & 1)
+          *vptr &= RMASK;
         else
-           *vptr &= LMASK;
+          *vptr >>= 18;
     }
-    *vptr &= 0777777777777L;
 
     return SCPE_OK;
 }
@@ -805,20 +808,23 @@ cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 t_stat
 cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
 {
-    t_addr      a = (addr >> 1) & 03777;
+    t_addr a = (addr >> 1) & 03777;
 
-    if (addr >= (MEMSIZE * 2))
+    /* THE FOLLOWING HAS NEVER EVER WORKED BECAUSE `MEMSIZE` IS ALWAYS
+       LESS THAN 131072, WHICH IS `SIGN` BIT SET FOR 36-BIT WORD ACCESS!!!!!
+    if (addr >= (MEMSIZE * 2)) */
+    if (a >= (MEMSIZE))
         return SCPE_NXM;
-    if ((addr & 0400000) == 0) {
+    if ((addr & 0400000) == 0) { /* set the full word anyway... */
         if (addr & 1) {
-           M[a] &= LMASK;
-           M[a] |= (val >> 18) & RMASK;
+          M[a] &= LMASK;
+          M[a] |= val & RMASK;
         } else {
-           M[a] &= RMASK;
-           M[a] |= val & LMASK;
+          M[a] &= RMASK;
+          M[a] |= (val << 18) & LMASK;
         }
     } else
-        M[a] = val & 0777777777777L;
+      M[a] = val & 0777777777777L;
     return SCPE_OK;
 }
 
@@ -962,4 +968,3 @@ cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
 
 return SCPE_OK;
 }
-
