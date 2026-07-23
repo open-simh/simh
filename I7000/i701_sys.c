@@ -138,7 +138,7 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
         t_uint64            lbuff[24];
         int                 i;
 
-        while (sim_fread(cbuf, 2, 80, fileref) == 80) {
+        while (addr < MAXMEMSIZE && sim_fread(cbuf, 2, 80, fileref) == 80) {
 
             /* Bit flip into read buffer */
             for (i = 0; i < 24; i++) {
@@ -165,41 +165,67 @@ sim_load(FILE * fileref, CONST char *cptr, CONST char *fnam, int flag)
                 dlen = (int)(lbuff[0] >> 18) & 077777;
             }
             for (; i < 24 && dlen > 0; i++) {
+                if (addr >= MAXMEMSIZE) /* safety check! */
+                    break;
                 M[addr++] = lbuff[i];
                 dlen--;
             }
         }
     } else if (match_ext(fnam, "oct")) {
         while (fgets((char *)buf, 80, fileref) != 0) {
-             for(p = (char *)buf; *p == ' ' || *p == '\t'; p++);
-            /* Grab address */
-             for(addr = 0; *p >= '0' && *p <= '7'; p++)
+            for(p = (char *)buf; *p == ' ' || *p == '\t'; p++);
+            if (*p == '\n' || *p == '\r')
+                continue; /* blank line with no meaningful content! */
+            /* Grab address; these are half-word addresses! */
+            for (addr = 0; *p >= '0' && *p <= '7'; p++)
                 addr = (addr << 3) + *p - '0';
-             while(*p != '\n' && *p != '\0') {
+            while (*p != '\n' && *p != '\0') {
                 for(; *p == ' ' || *p == '\t'; p++);
-                for(wd = 0; *p >= '0' && *p <= '7'; p++)
+                for (wd = 0; *p >= '0' && *p <= '7'; p++)
                     wd = (wd << 3) + *p - '0';
-                if (addr < MAXMEMSIZE)
-                    M[addr++] = wd;
-             }
+                /* `addr` is half-word address! */
+                dlen = addr >> 1; /* `dlen` is full-word address! */
+                if (dlen < MAXMEMSIZE)
+                    if (addr & 1) {
+                        M[dlen] &= LMASK;
+                        M[dlen] |= wd & RMASK;
+                        addr++;
+                    } else {
+                        M[dlen] &= RMASK;
+                        M[dlen] |= (wd << 18) & LMASK;
+                    }
+            }
         }
-    } else if (match_ext(fnam, "txt")) {
+    } else if (match_ext(fnam, "sym")) {
         while (fgets((char *)buf, 80, fileref) != 0) {
-             for(p = (char *)buf; *p == ' ' || *p == '\t'; p++);
-             /* Grab address */
-             for(addr = 0; *p >= '0' && *p <= '7'; p++)
-                addr = (addr << 3) + *p - '0';
-             while(*p == ' ' || *p == '\t') p++;
-             if(sim_strncasecmp(p, "BCD", 3) == 0) {
-                 p += 3;
-                 parse_sym(++p, addr, &cpu_unit, &M[addr], SWMASK('C'));
-             } else if (sim_strncasecmp(p, "OCT", 3) == 0) {
-                 p += 3;
-                 for(; *p == ' ' || *p == '\t'; p++);
-                 parse_sym(p, addr, &cpu_unit, &M[addr], 0);
-             } else {
-                 parse_sym(p, addr, &cpu_unit, &M[addr], SWMASK('M'));
-             }
+            for (p = (char *)buf; *p == ' ' || *p == '\t'; p++);
+            /* any lines with first meaningful char of ';' are comment lines */
+            if (*p == ';' || *p == '\n' || *p == '\r' || *p == '\0')
+                continue; /* skip lines with no meaningful content! */
+            /* Grab address; this is a half-word address! */
+            for (addr = 0; *p >= '0' && *p <= '7'; p++)
+               addr = (addr << 3) + *p - '0';
+            while (*p == ' ' || *p == '\t') p++;
+            if (sim_strncasecmp(p, "BCD", 3) == 0) {
+                p += 3;
+                parse_sym(++p, addr, &cpu_unit, &wd, SWMASK('C'));
+            } else if (sim_strncasecmp(p, "OCT", 3) == 0) {
+                p += 3;
+                for(; *p == ' ' || *p == '\t'; p++);
+                parse_sym(p, addr, &cpu_unit, &wd, 0);
+            } else {
+                parse_sym(p, addr, &cpu_unit, &wd, SWMASK('M'));
+            }
+            /* `addr` is half-word address! */
+            dlen = addr >> 1; /* `dlen` is full-word address! */
+            if (dlen < MAXMEMSIZE)
+                if (addr & 1) {
+                    M[dlen] &= LMASK;
+                    M[dlen] |= wd & RMASK;
+                } else {
+                    M[dlen] &= RMASK;
+                    M[dlen] |= (wd << 18) & LMASK;
+                }
         }
     } else
         return SCPE_ARG;
@@ -277,7 +303,9 @@ parse_addr(DEVICE *dptr, const char *cptr, const char **tptr) {
     if (*cptr == '-') {
         cptr++;
         s = 1;
-    }
+    } else
+        if (*cptr == '+')
+            cptr++;
     while(*cptr >= '0' && *cptr <= '7') {
         v <<= 3;
         v += *cptr++ - '0';
@@ -320,28 +348,14 @@ fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
 
 /* Print value in octal first */
     fputc(' ', of);
-    fprint_val(of, inst, 8, 36, PV_RZRO);
+    fprint_val(of, inst, 8, 18, PV_RZRO);
 
     if (sw & SWMASK('M')) {
-        int     op = (int)(inst >> (12+18));
+        int     op = (int)(inst >> 12);
         int     i;
-        fputs("  rt  ", of);
-        if (op != (040 + 13))
+        if (op != (040 + 13)) /* if EXTR instruction... */
            op &= 037;
-        for(i = 0; base_ops[i].name != NULL; i++) {
-            if (base_ops[i].opbase == op) {
-                fputs(base_ops[i].name, of);
-                break;
-            }
-        }
-        fputc(' ', of);
-        if ((inst >> 18) & 0400000L)
-            fputc('-', of);
-        fprint_val(of, (inst >> 18) & 0000000007777L, 8, 12, PV_RZRO);
-        op = (int)(inst >> 12);
-        fputs(" lt  ", of);
-        if (op != (040 + 13))
-           op &= 037;
+        fputs("      ", of); /* space between octal value and sym value */
         for(i = 0; base_ops[i].name != NULL; i++) {
             if (base_ops[i].opbase == op) {
                 fputs(base_ops[i].name, of);
@@ -407,12 +421,12 @@ parse_sym(CONST char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
     while (isspace(*cptr))
         cptr++;
     d = 0;
-    if (sw & SWMASK('M')) {
+    if (sw & SWMASK('M')) { /* symbolic code... */
         t_opcode           *op;
 
         i = 0;
         sign = 0;
-next:
+        
         /* Skip blanks */
         while (isspace(*cptr))
             cptr++;
@@ -429,16 +443,10 @@ next:
         tag = parse_addr(&cpu_dev, opcode, &arg);
         if (*arg != opcode[0])
             d += (t_value)tag;
-        if (*cptr == ',') {
-            d <<= 18;
-            cptr++;
-            goto next;
-        }
-        if (*cptr != '\0')
-            return STOP_UUO;
-        *val = d;
+        /* ignore any following characters, which can be any form of comments */
+        *val = d & 0777777; /* exactly one instructions per line! */
         return SCPE_OK;
-    } else if (sw & SWMASK('C')) {
+    } else if (sw & SWMASK('C')) { /* character string... */
         i = 0;
         while (*cptr != '\0' && i < 6) {
             d <<= 6;
@@ -452,7 +460,8 @@ next:
             d |= 060;
             i++;
         }
-    } else {
+        d &= 0777777777777; /* in case of too many digits, take right ones! */
+    } else { /* octal... */
         if (*cptr == '-') {
             sign = 1;
             cptr++;
@@ -465,8 +474,9 @@ next:
             d <<= 3;
             d |= *cptr++ - '0';
         }
+        d &= 0377777; /* in case of too many digits, take right ones! */
         if (sign)
-            d |= 00400000000000L;
+            d |= 00400000L;
     }
     *val = d;
     return SCPE_OK;
