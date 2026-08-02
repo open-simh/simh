@@ -2071,6 +2071,25 @@ uint32 tmp;
 double sim_gtime_now = sim_gtime ();
 
 tmxr_debug_trace_line (lp, "tmxr_getc_ln()");
+if (lp->rxbps && lp->rxmaxbacklog && lp->rxdeltausecs) { /* capping how much already-due
+                                                            backlog we'll honor -- rxdeltausecs
+                                                            must be nonzero, or furthest_behind
+                                                            computes to exactly 0 and rxnexttime
+                                                            gets pinned at "now" forever (it would
+                                                            never advance on success either, since
+                                                            that adds the same zero-length delta)
+                                                            -- permanently "already due" regardless
+                                                            of real data. (Whether the line can
+                                                            actually deliver right now is checked
+                                                            separately below and in
+                                                            _tmxr_activate_delay(), so this clamp
+                                                            doesn't need to duplicate that check.) */
+    double furthest_behind =
+        ((double)lp->rxmaxbacklog * lp->rxdeltausecs * sim_timer_inst_per_sec ()) / USECS_PER_SECOND;
+
+    if (lp->rxnexttime < sim_gtime_now - furthest_behind)
+        lp->rxnexttime = sim_gtime_now - furthest_behind;
+    }
 if (((lp->conn || lp->txbfd) && lp->rcve) &&            /* (conn or buffered) & enb & */
     ((!lp->rxbps) ||                                    /* (!rate limited || enough time passed)? */
      (sim_gtime_now >= lp->rxnexttime))) {
@@ -2091,7 +2110,14 @@ if (lp->rxbpi == lp->rxbpr)                             /* empty? zero ptrs */
     lp->rxbpi = lp->rxbpr = 0;
 if (val) {                                              /* Got something? */
     if (lp->rxbps)
-        lp->rxnexttime = floor (sim_gtime_now + ((lp->rxdeltausecs * sim_timer_inst_per_sec ()) / USECS_PER_SECOND));
+        /* Advance from the previously scheduled time, not from "now": this is what
+           lets a caller that only checks back occasionally (e.g. once per silo-full
+           batch) drain a genuine backlog of already-due characters one at a time,
+           each still correctly paced, instead of always being limited to at most
+           one character per call regardless of how far behind it's fallen. The
+           rxmaxbacklog clamp above bounds how large that backlog is ever allowed
+           to look, so a long-idle line can't claim an unbounded instant burst. */
+        lp->rxnexttime += floor ((lp->rxdeltausecs * sim_timer_inst_per_sec ()) / USECS_PER_SECOND);
     else
         lp->rxnexttime = floor (sim_gtime_now + ((lp->mp->uptr->wait * sim_timer_inst_per_sec ()) / USECS_PER_SECOND));
     }
@@ -4765,6 +4791,31 @@ static int32 _tmxr_activate_delay (UNIT *uptr, int32 interval)
 TMXR *mp = (TMXR *)uptr->tmxr;
 int32 i, sooner = interval, due;
 double sim_gtime_now = sim_gtime ();
+/* Circuit breaker: this function can be asked to compute a near-zero delay
+   several times per real millisecond under legitimate bursty conditions
+   (observed peak so far: ~4/ms), but there is no legitimate scenario where
+   it's called anywhere close to *hundreds* of times within a single real
+   millisecond -- that pattern only happens if something (a bug here, or in
+   a caller's state) has produced a value that looks "already due" forever
+   without ever actually resolving, which live-locks the whole simulator (it
+   stops advancing at all, since a ~0 delay burns no virtual time either).
+   If that ever happens, for any reason, fall back to the caller's original
+   safe interval rather than trusting the computation, so the simulator can
+   never fully hang from this class of problem. Threshold picked well above
+   the highest legitimate rate observed, but low enough to trip within a
+   millisecond or two of an actual livelock. */
+static uint32 spin_ms = 0;
+static uint32 spin_count = 0;
+uint32 now_ms = sim_os_msec ();
+
+if (now_ms == spin_ms) {
+    if (++spin_count > 50)
+        return interval;
+    }
+else {
+    spin_ms = now_ms;
+    spin_count = 0;
+    }
 
 for (i=0; i<mp->lines; i++) {
     TMLN *lp = &mp->ldsc[i];
@@ -4775,6 +4826,14 @@ for (i=0; i<mp->lines; i++) {
             due = (int32)(lp->send.next_time - sim_gtime_now);
         else {
             if ((lp->rxbps)        &&           /* while rate limiting? */
+                ((lp->conn || lp->txbfd) && lp->rcve) && /* AND the line can actually
+                                                    deliver right now (mirrors the gate
+                                                    tmxr_getc_ln() itself uses) -- raw
+                                                    buffered bytes that can never be
+                                                    extracted (e.g. disconnected or
+                                                    receive-disabled) must not be treated
+                                                    as "due immediately", or this can
+                                                    reschedule with ~0 delay forever */
                 (tmxr_rqln_bare (lp, FALSE))) { /* with pending input data */
                 if (lp->rxnexttime > sim_gtime_now)
                     due = (int32)(lp->rxnexttime - sim_gtime_now);

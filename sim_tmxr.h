@@ -183,6 +183,10 @@ struct tmln {
 #define USECS_PER_SECOND 1000000.0
     uint32              rxdeltausecs;                   /* rcv inter character min time (usecs) */
     double              rxnexttime;                     /* min time for next receive character */
+    uint32              rxmaxbacklog;                   /* max # of already-due characters tmxr_getc_ln()
+                                                            will let accumulate before catching rxnexttime
+                                                            up to (now - rxmaxbacklog*rxdeltausecs); 0 means
+                                                            no cap (preserves prior behavior) */
     uint32              txbps;                          /* xmt bps speed (0 - unlimited) */
     uint32              txdeltausecs;                   /* xmt inter character min time (usecs) */
     double              txnexttime;                     /* min time for next transmit character */

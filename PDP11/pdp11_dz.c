@@ -628,12 +628,16 @@ for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* loop thru muxes */
             if (dz_scnt[dz] >= DZ_SILO_ALM)
                 break;
             lp = &dz_ldsc[(dz * DZ_LINES) + i];         /* get line desc */
-            c = tmxr_getc_ln (lp);                      /* test for input */
-            if (c & SCPE_BREAK)                         /* break? frame err */
-                c = RBUF_FRME;
-            if (c) {                                    /* save in silo */
+            while (dz_scnt[dz] < DZ_SILO_ALM) {         /* drain what's already
+                                                            due from this line,
+                                                            not just one char */
+                c = tmxr_getc_ln (lp);                  /* test for input */
+                if (c & SCPE_BREAK)                     /* break? frame err */
+                    c = RBUF_FRME;
+                if (!c)                                 /* nothing more due yet? */
+                    break;
                 c = (c & (RBUF_CHAR | RBUF_FRME)) | RBUF_VALID | (i << RBUF_V_RLINE);
-                dz_silo[dz][dz_scnt[dz]] = (uint16)c;
+                dz_silo[dz][dz_scnt[dz]] = (uint16)c;   /* save in silo */
                 ++dz_scnt[dz];
                 }
             if (dz_mctl && !lp->conn)                   /* if disconn */
@@ -803,6 +807,8 @@ if ((dz_desc.lines % DZ_LINES) != 0) {      /* Transition from Qbus to Unibus de
     memset (dz_ldsc + dz_desc.lines, 0, sizeof(*dz_ldsc)*(newln-dz_desc.lines));
     dz_desc.lines = newln;
     }
+for (i = 0; i < dz_desc.lines; i++)                     /* cap how much backlog */
+    dz_ldsc[i].rxmaxbacklog = DZ_SILO_ALM;              /* tmxr_getc_ln() will honor */
 tmxr_set_port_speed_control (&dz_desc);
 for (i = 0; i < dz_desc.lines/DZ_LINES; i++)            /* init muxes */
     dz_clear (i, TRUE);
