@@ -470,10 +470,10 @@ static int32  bitmask[]  = { 0x00000000,
                              0x00000001,0x00000002,0x00000004,0x00000008,
                              0x00000010,0x00000020,0x00000040,0x00000080,
                              0x00000100,0x00000200,0x00000400,0x00000800,
-                             0x00001000,0x00002000,0x00004000,0x00000800,
-                             0x00010000,0x00020000,0x00040000,0x00008000,
-                             0x00100000,0x00200000,0x00400000,0x00080000,
-                             0x01000000,0x02000000,0x04000000,0x00800000,
+                             0x00001000,0x00002000,0x00004000,0x00008000,
+                             0x00010000,0x00020000,0x00040000,0x00080000,
+                             0x00100000,0x00200000,0x00400000,0x00800000,
+                             0x01000000,0x02000000,0x04000000,0x08000000,
                              0x10000000,0x20000000,0x40000000,0x80000000,
                              0x00000000 };
 
@@ -511,7 +511,7 @@ static t_stat ea_src_b(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        return ReadVB(saved_ea = *AREG(eareg) + EXTW(IRE_DISP) + reg, val);
+        return ReadVB(saved_ea = *AREG(eareg) + EXTB(IRE_DISP) + reg, val);
     case EA_EXT:
         switch (eareg) {
         case EAX_AW:
@@ -531,7 +531,7 @@ static t_stat ea_src_b(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
             regno = IRE_REG;
             reg = (IRE_DA) ? *AREG(regno) : DR[regno];
             if (!IRE_WL) reg = EXTW(reg);
-            return ReadVB(saved_ea = *pc-2 + EXTW(IRE_DISP) + reg, val);
+            return ReadVB(saved_ea = *pc-2 + EXTB(IRE_DISP) + reg, val);
         case EAX_IMM:
             ASSERT_OKRET(ReadInstrInc(pc,val));
             *val = MASK_8L(*val);
@@ -585,7 +585,7 @@ static t_stat ea_src_w(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        return ReadVW(saved_ea = *AREG(eareg) + EXTW(IRE_DISP) + reg, val);
+        return ReadVW(saved_ea = *AREG(eareg) + EXTB(IRE_DISP) + reg, val);
     case EA_EXT:
         switch (eareg) {
         case EAX_AW:
@@ -603,7 +603,7 @@ static t_stat ea_src_w(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
             regno = IRE_REG;
             reg = (IRE_DA) ? *AREG(regno) : DR[regno];
             if (!IRE_WL) reg = EXTW(reg);
-            return ReadVW(saved_ea = *pc-2 + EXTW(IRE_DISP) + reg, val);
+            return ReadVW(saved_ea = *pc-2 + EXTB(IRE_DISP) + reg, val);
         case EAX_IMM:
             return ReadInstrInc(pc,val);
         default:
@@ -642,7 +642,7 @@ static t_stat ea_src_l_nd(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        *val = *AREG(eareg) + EXTW(IRE_DISP) + reg;
+        *val = *AREG(eareg) + EXTB(IRE_DISP) + reg;
         return SCPE_OK;
     case EA_EXT:
         switch (eareg) {
@@ -663,7 +663,7 @@ static t_stat ea_src_l_nd(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
             regno = IRE_REG;
             reg = (IRE_DA) ? *AREG(regno) : DR[regno];
             if (!IRE_WL) reg = EXTW(reg);
-            *val = *pc-2 + EXTW(IRE_DISP) + reg;
+            *val = *pc-2 + EXTB(IRE_DISP) + reg;
             return SCPE_OK;
         default:
             return STOP_ERROP;
@@ -705,7 +705,7 @@ static t_stat ea_src_l(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        return ReadVL(saved_ea = *AREG(eareg) + EXTW(IRE_DISP) + reg, val);
+        return ReadVL(saved_ea = *AREG(eareg) + EXTB(IRE_DISP) + reg, val);
     case EA_EXT:
         switch (eareg) {
         case EAX_AW:
@@ -723,7 +723,7 @@ static t_stat ea_src_l(uint32 eamod,uint32 eareg,uint32* val,t_addr* pc)
             regno = IRE_REG;
             reg = (IRE_DA) ? *AREG(regno) : DR[regno];
             if (!IRE_WL) reg = EXTW(reg);
-            return ReadVL(saved_ea = *pc-2 + EXTW(IRE_DISP) + reg, val);
+            return ReadVL(saved_ea = *pc-2 + EXTB(IRE_DISP) + reg, val);
         case EAX_IMM:
             ASSERT_OKRET(ReadVL(*pc,val));
             *pc += 4;
@@ -789,7 +789,7 @@ static t_stat ea_dst_b(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        return WriteVB(*AREG(eareg) + EXTW(IRE_DISP) + reg, val);
+        return WriteVB(*AREG(eareg) + EXTB(IRE_DISP) + reg, val);
     case EA_EXT:
         switch (eareg) {
         case EAX_AW:
@@ -869,7 +869,7 @@ static t_stat ea_dst_w(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        return WriteVW(*AREG(eareg) + EXTW(IRE_DISP) + reg, val);
+        return WriteVW(*AREG(eareg) + EXTB(IRE_DISP) + reg, val);
     case EA_EXT:
         switch (eareg) {
         case EAX_AW:
@@ -910,6 +910,7 @@ static t_stat ea_dst_w_rmw(uint32 eamod,uint32 eareg,uint32 val)
             return WriteVW(saved_ea, val);
         case EAX_IMM:
             SR = val;
+            m68k_set_s(SR_S != 0);      /* privilege change must swap A7/USP */
             return SCPE_OK;
         default:
             return STOP_ERROP;
@@ -951,7 +952,7 @@ static t_stat ea_dst_l(uint32 eamod,uint32 eareg,uint32 val,t_addr* pc)
         regno = IRE_REG;
         reg = IRE_DA ? *AREG(regno) : DR[regno];
         if (!IRE_WL) reg = EXTW(reg);
-        return WriteVL(*AREG(eareg) + EXTW(IRE_DISP) + reg, val);
+        return WriteVL(*AREG(eareg) + EXTB(IRE_DISP) + reg, val);
     case EA_EXT:
         switch (eareg) {
         case EAX_AW:
@@ -1314,8 +1315,8 @@ static t_stat m68k_divs_w(uint32 divdr,int32* reg, t_addr* pc)
         return SCPE_OK;
     }
     
-    quo = *reg / divdr;
-    rem = (*reg % divdr)<<16;
+    quo = *reg / div;
+    rem = (*reg % div)<<16;
     if (EXTW(quo) == quo) {
         SETNZ16(quo);
         CLRF(FLAG_V|FLAG_C);
@@ -1368,6 +1369,7 @@ t_stat sim_instr()
     uint32 IR, IRE, src1, src2, res, ea;
     int32 sres, *reg, cnt;
     t_uint64 resx, srcx1, srcx2;
+    uint32 xflag;
     t_addr PC, srca, *areg, oldpc;
     t_bool isbsr,iscond;
     uint16 tracet0;
@@ -1749,6 +1751,7 @@ do_bclr8:       SETZ8(res & src1);
             else {
                 ASSERT_OK(ea_dst_b(ea,IR_REGX,src1,&PC));
                 SETNZ8(src1);
+                CLRF(FLAG_V|FLAG_C);
             }
             break;
         case 0x2000:
@@ -1760,6 +1763,7 @@ do_bclr8:       SETZ8(res & src1);
             } else {
                 rc = ea_dst_l(ea,IR_REGX,src1,&PC);
                 SETNZ32(src1);
+                CLRF(FLAG_V|FLAG_C);
             }
             break;
         case 0x3000:
@@ -1771,6 +1775,7 @@ do_bclr8:       SETZ8(res & src1);
             } else {
                 rc = ea_dst_w(ea,IR_REGX,src1,&PC);
                 SETNZ16(src1);
+                CLRF(FLAG_V|FLAG_C);
             }
             break;
 
@@ -1889,6 +1894,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 ASSERT_PRIV();
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
                 SR = src1;
+                m68k_set_s(SR_S != 0);  /* privilege change must swap A7/USP */
                 tracet0 = SR_T0;
                 break;
 
@@ -2040,6 +2046,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                         ASSERT_PRIV();
                         ASSERT_OKRET(ReadInstrInc(&PC,&IRE));
                         SR = (uint16)IRE;
+                        m68k_set_s(SR_S != 0);
                         rc = STOP_HALT;
                         tracet0 = SR_T0;
                         break;
@@ -2243,6 +2250,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 break;
             case 0000700: case 0000720: case 0000730: case 0000740:
             case 0000750: case 0000760: case 0000770: /*divs.w*/
+                ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
                 rc = m68k_divs_w(src1,&DR[IR_REGX], &PC);
                 break;
             case 0000400: /*sbcd d*/
@@ -2263,12 +2271,12 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 res = MASK_16L(src1 | DRX);
                 SETNZ16(res);
                 CLRF(FLAG_C|FLAG_V);
-                rc = ea_dst_b(EA_DDIR,IR_REGX,res,&PC);
+                rc = ea_dst_w(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000200: case 0000220: case 0000230: case 0000240:
             case 0000250: case 0000260: case 0000270: /*or.l ->d*/
                 ASSERT_OK(ea_src_l(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = src1 & DRX;
+                res = src1 | DRX;
                 SETNZ32(res);
                 CLRF(FLAG_C|FLAG_V);
                 rc = ea_dst_l(EA_DDIR,IR_REGX,res,&PC);
@@ -2322,33 +2330,33 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 *AREG(IR_REGX) -= srca; /* note: no flag changes! */
                 break;
             case 0000400: /*subx.b d*/
-                res = m68k_sub8(MASK_8L(DRY),DRX,CCR_X?1:0);
+                res = m68k_sub8(MASK_8L(DRX),MASK_8L(DRY),CCR_X?1:0);
                 rc = ea_dst_b(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000410: /*subx.b -a*/
                 ASSERT_OK(ea_src_b(EA_APD,IR_REGY,&src1,&PC));
                 ASSERT_OK(ea_src_b(EA_APD,IR_REGX,&src2,&PC));
-                res = m68k_sub8(src1,src2,CCR_X?1:0);
+                res = m68k_sub8(src2,src1,CCR_X?1:0);
                 rc = ea_dst_b_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000500: /*subx.w d*/
-                res = m68k_sub16(MASK_16L(DRY),DRX,CCR_X?1:0,TRUE);
+                res = m68k_sub16(MASK_16L(DRX),MASK_16L(DRY),CCR_X?1:0,TRUE);
                 rc = ea_dst_w(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000510: /*subx.w -a*/
                 ASSERT_OK(ea_src_w(EA_APD,IR_REGY,&src1,&PC));
                 ASSERT_OK(ea_src_w(EA_APD,IR_REGX,&src2,&PC));
-                res = m68k_sub16(src1,src2,CCR_X?1:0,TRUE);
+                res = m68k_sub16(src2,src1,CCR_X?1:0,TRUE);
                 rc = ea_dst_w_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000600: /*subx.l d*/
-                res = m68k_sub32((t_uint64)DRY,(t_uint64)DRX,CCR_X?1:0,TRUE);
+                res = m68k_sub32((t_uint64)DRX,(t_uint64)DRY,CCR_X?1:0,TRUE);
                 rc = ea_dst_l(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000610: /*subx.l -a*/
                 ASSERT_OK(ea_src_l64(EA_APD,IR_REGY,&srcx1,&PC));
                 ASSERT_OK(ea_src_l64(EA_APD,IR_REGX,&srcx2,&PC));
-                res = m68k_sub32(srcx1,srcx2,CCR_X?1:0,TRUE);
+                res = m68k_sub32(srcx2,srcx1,CCR_X?1:0,TRUE);
                 rc = ea_dst_l_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000000: case 0000020: case 0000030: case 0000040:
@@ -2409,11 +2417,26 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
         case 0xb000:
             switch (IR_0803) {
             case 0000410: /*cmpm.b*/
-                rc = STOP_IMPL; break;
+                ASSERT_OK(ea_src_b(EA_API,IR_REGY,&src1,&PC));
+                ASSERT_OK(ea_src_b(EA_API,IR_REGX,&src2,&PC));
+                xflag = CCR_X;
+                (void)m68k_sub8(src2,src1,0);
+                SETF(xflag,FLAG_X);
+                break;
             case 0000510: /*cmpm.w*/
-                rc = STOP_IMPL; break;
+                ASSERT_OK(ea_src_w(EA_API,IR_REGY,&src1,&PC));
+                ASSERT_OK(ea_src_w(EA_API,IR_REGX,&src2,&PC));
+                xflag = CCR_X;
+                (void)m68k_sub16(src2,src1,0,TRUE);
+                SETF(xflag,FLAG_X);
+                break;
             case 0000610: /*cmpm.l*/
-                rc = STOP_IMPL; break;
+                ASSERT_OK(ea_src_l64(EA_API,IR_REGY,&srcx1,&PC));
+                ASSERT_OK(ea_src_l64(EA_API,IR_REGX,&srcx2,&PC));
+                xflag = CCR_X;
+                (void)m68k_sub32(srcx2,srcx1,0,TRUE);
+                SETF(xflag,FLAG_X);
+                break;
             case 0000400: case 0000420: case 0000430: case 0000440:
             case 0000450: case 0000460: case 0000470: /*eor.b*/
                 ASSERT_OK(ea_src_b(IR_EAMOD,IR_EAREG,&src1,&PC));
@@ -2441,29 +2464,39 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000000: case 0000020: case 0000030: case 0000040:
             case 0000050: case 0000060: case 0000070: /*cmp.b*/
                 ASSERT_OK(ea_src_b(IR_EAMOD,IR_EAREG,&src1,&PC));
+                xflag = CCR_X;
                 (void)m68k_sub8(DRX,src1,0);
+                SETF(xflag,FLAG_X);
                 break;
             case 0000100: case 0000110: case 0000120: case 0000130:
             case 0000140: case 0000150: case 0000160: case 0000170: /*cmp.w*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
+                xflag = CCR_X;
                 (void)m68k_sub16(DRX,src1,0,TRUE);
+                SETF(xflag,FLAG_X);
                 break;
             case 0000200: case 0000210: case 0000220: case 0000230:
             case 0000240: case 0000250: case 0000260: case 0000270: /*cmp.l*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
+                xflag = CCR_X;
                 (void)m68k_sub32((t_uint64)DRX,srcx1,0,TRUE);
+                SETF(xflag,FLAG_X);
                 break;
             case 0000300: case 0000310: case 0000320: case 0000330:
             case 0000340: case 0000350: case 0000360: case 0000370: /*cmpa.w*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
                 areg = AREG(IR_REGX);
-                (void)m68k_sub32((t_uint64)EXTW(*areg),(t_uint64)src1,0,TRUE);
+                xflag = CCR_X;
+                (void)m68k_sub32((t_uint64)(uint32)*areg,(t_uint64)(uint32)EXTW(src1),0,TRUE);
+                SETF(xflag,FLAG_X);
                 break;
 
             case 0000700: case 0000710: case 0000720: case 0000730:
             case 0000740: case 0000750: case 0000760: case 0000770: /*cmpa.l*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
+                xflag = CCR_X;
                 (void)m68k_sub32((t_uint64)*AREG(IR_REGX),srcx1,0,TRUE);
+                SETF(xflag,FLAG_X);
                 break;
             default:
                 rc = STOP_ERROP;
@@ -3039,7 +3072,7 @@ do_roxr16:      ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
             case 004220: case 005220: case 006220: case 007220: /*roxr.l #*/
                 cnt = quickarg[IR_REGX];
 do_roxr32:      reg = DR+IR_REGY;
-                resx = *reg;
+                resx = (uint32)*reg;
                 if (cnt) {
                     cnt %= 33;
                     if (CCR_X) resx |= BIT32;
@@ -3107,7 +3140,7 @@ do_roxl16:      ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
             case 004620: case 005620: case 006620: case 007620: /*roxl.l #*/
                 cnt = quickarg[IR_REGX];
 do_roxl32:      reg = DR+IR_REGY;
-                resx = *reg;
+                resx = (uint32)*reg;
                 if (cnt) {
                     cnt %= 33;
                     if (CCR_X) resx |= BIT32;
@@ -3173,7 +3206,7 @@ do_ror16:       ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
             case 004230: case 005230: case 006230: case 007230: /*ror.l #*/
                 cnt = quickarg[IR_REGX];
 do_ror32:       reg = DR+IR_REGY;
-                resx = *reg;
+                resx = (uint32)*reg;
                 if (cnt) {
                     cnt &= 31;
                     resx = (resx>>cnt) | (resx<<(32-cnt));
