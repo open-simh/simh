@@ -1210,10 +1210,10 @@ static t_stat m68k_movem_r_pd(t_addr* areg,uint32 regs,t_bool sz)
         if (regs & (1<<i)) {
             if (sz) {
                 ea -= 4;
-                ASSERT_OK(WriteVL(ea, *movem_regs[15-i]));
+                ASSERT_OKRET(WriteVL(ea, *movem_regs[15-i]));
             } else {
                 ea -= 2;
-                ASSERT_OK(WriteVW(ea, *movem_regs[15-i]));
+                ASSERT_OKRET(WriteVW(ea, *movem_regs[15-i]));
             }
         }
     }
@@ -1229,10 +1229,10 @@ static t_stat m68k_movem_r_ea(t_addr ea,uint32 regs,t_bool sz)
     for (i=0; i<16; i++) {
         if (regs & (1<<i)) {
             if (sz) {
-                ASSERT_OK(WriteVL(ea, *movem_regs[i]));
+                ASSERT_OKRET(WriteVL(ea, *movem_regs[i]));
                 ea += 4;
             } else {
-                ASSERT_OK(WriteVW(ea, *movem_regs[i]));
+                ASSERT_OKRET(WriteVW(ea, *movem_regs[i]));
                 ea += 2;
             }
         }
@@ -1250,10 +1250,10 @@ static t_stat m68k_movem_pi_r(t_addr* areg,uint32 regs,t_bool sz)
     for (i=0; i<16; i++) {
         if (regs & (1<<i)) {
             if (sz) {
-                ASSERT_OK(ReadVL(ea, movem_regs[i]));
+                ASSERT_OKRET(ReadVL(ea, movem_regs[i]));
                 ea += 4;
             } else {
-                ASSERT_OK(ReadVW(ea, &src));
+                ASSERT_OKRET(ReadVW(ea, &src));
                 *movem_regs[i] = EXTW(src);
                 ea += 2;
             }
@@ -1272,10 +1272,10 @@ static t_stat m68k_movem_ea_r(t_addr ea,uint32 regs,t_bool sz)
     for (i=0; i<16; i++) {
         if (regs & (1<<i)) {
             if (sz) {
-                ASSERT_OK(ReadVL(ea, movem_regs[i]));
+                ASSERT_OKRET(ReadVL(ea, movem_regs[i]));
                 ea += 4;
             } else {
-                ASSERT_OK(ReadVW(ea, &src));
+                ASSERT_OKRET(ReadVW(ea, &src));
                 *movem_regs[i] = EXTW(src);
                 ea += 2;
             }
@@ -1470,7 +1470,7 @@ do_bsetd:       reg = &DRY;
             case 0006760: case 0006770: case 0007720: case 0007730:
             case 0007740: case 0007750: case 0007760: case 0007770: /* bset d,ea */
                 ASSERT_OK(ea_src_b(IR_EAMOD,IR_EAREG,&res,&PC));
-                cnt = DRY & 7;
+                cnt = DRX & 7;
                 src1 = bitmask[cnt+1];
                 goto do_bset8;
             case 0004320: case 0004330: case 0004340: case 0004350:
@@ -1660,8 +1660,17 @@ do_bclr8:       SETZ8(res & src1);
             case 0002050: case 0002060: case 0002070: /*subi.b*/
                 ASSERT_OK(ReadInstrInc(&PC,&src2));
                 ASSERT_OK(ea_src_b(IR_EAMOD,IR_EAREG,&src1,&PC));
+                /* CMPI must not affect X; SUBI must.  The two share this case,
+                 * so the compare path puts X back the way it found it, the same
+                 * way cmp, cmpa and cmpm in this file already do. */
+                xflag = CCR_X;
                 res = m68k_sub8(src1,src2,0);
-                rc = IR_1103 < 0006000 ? ea_dst_b_rmw(IR_EAMOD,IR_EAREG,res) : SCPE_OK; 
+                if (IR_1103 < 0006000) {
+                    rc = ea_dst_b_rmw(IR_EAMOD,IR_EAREG,res);
+                } else {
+                    SETF(xflag,FLAG_X);
+                    rc = SCPE_OK;
+                }
                 break;
             case 0006100: case 0006120: case 0006130: case 0006140:
             case 0006150: case 0006160: case 0006170: /*cmpi.w*/
@@ -1669,8 +1678,17 @@ do_bclr8:       SETZ8(res & src1);
             case 0002150: case 0002160: case 0002170: /*subi.w*/
                 ASSERT_OK(ReadInstrInc(&PC,&src2));
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
+                /* CMPI must not affect X; SUBI must.  The two share this case,
+                 * so the compare path puts X back the way it found it, the same
+                 * way cmp, cmpa and cmpm in this file already do. */
+                xflag = CCR_X;
                 res = m68k_sub16(src1,src2,0,TRUE);
-                rc = IR_1103 < 0006000 ? ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res) : SCPE_OK; 
+                if (IR_1103 < 0006000) {
+                    rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
+                } else {
+                    SETF(xflag,FLAG_X);
+                    rc = SCPE_OK;
+                }
                 break;
             case 0006200: case 0006220: case 0006230: case 0006240:
             case 0006250: case 0006260: case 0006270: /*cmpi.l*/
@@ -1678,8 +1696,17 @@ do_bclr8:       SETZ8(res & src1);
             case 0002250: case 0002260: case 0002270: /*subi.l*/
                 ASSERT_OK(ReadInstrLongInc(&PC,&src2));
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
+                /* CMPI must not affect X; SUBI must.  The two share this case,
+                 * so the compare path puts X back the way it found it, the same
+                 * way cmp, cmpa and cmpm in this file already do. */
+                xflag = CCR_X;
                 res = m68k_sub32(srcx1,(t_uint64)src2,0,TRUE);
-                rc = IR_1103 < 0006000 ? ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res) : SCPE_OK; 
+                if (IR_1103 < 0006000) {
+                    rc = ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res);
+                } else {
+                    SETF(xflag,FLAG_X);
+                    rc = SCPE_OK;
+                }
                 break;
 
             case 0003000: case 0003020: case 0003030: case 0003040:
@@ -1800,10 +1827,22 @@ do_bclr8:       SETZ8(res & src1);
             switch (IR_1106) {
             case 000600: case 001600: case 002600: case 003600:
             case 004600: case 005600: case 006600: case 007600: /*chk*/
-                src1 = DRX;
-                SETF((src1 & BIT31) != 0,FLAG_N);
+                /* CHK.W compares the low word of Dn, sign extended, against a
+                 * signed 16 bit bound.  Taking the whole 32 bit register and an
+                 * unsigned bound trapped on any Dn with bit 31 set even when its
+                 * low word was in range, and never trapped on a negative bound.
+                 * Z, V and C are undefined in the programmer's manual; the values
+                 * below are what the hardware leaves behind. */
+                sres = EXTW(DRX);
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
-                rc = CCR_N || src1 > res ? m68k_gen_exception(6,&PC) : SCPE_OK;
+                SETZ16(sres);
+                CLRF(FLAG_V|FLAG_C);
+                if (sres >= 0 && sres <= EXTW(res)) {
+                    rc = SCPE_OK;
+                } else {
+                    SETF(sres < 0,FLAG_N);
+                    rc = m68k_gen_exception(6,&PC);
+                }
                 break;
             case 000700: case 001700: case 002700: case 003700:
             case 004700: case 005700: case 006700: case 007700: /*lea*/
@@ -2843,12 +2882,12 @@ do_asl32:       reg = DR+IR_REGY;
                 if (cnt) {
                     if (cnt<32) {
                         res <<= cnt;
-                        SETF(src1 & bitmask[32-cnt],FLAG_C|FLAG_X);
+                        SETF(src1 & bitmask[33-cnt],FLAG_C|FLAG_X);
                         src1 &= shmask32[cnt+1];
                         SETF(src1 && src1 != shmask32[cnt+1],FLAG_V);
                     } else {
                         res = 0;
-                        SETF(cnt==16?(src1 & 1):0,FLAG_C|FLAG_X);
+                        SETF(cnt==32?(src1 & 1):0,FLAG_C|FLAG_X);
                         SETF(src1,FLAG_V);
                     }
                     *reg = res;
@@ -3164,7 +3203,7 @@ do_ror8:        reg = DR+IR_REGY;
                 if (cnt) {
                     cnt &= 7;
                     res = (res>>cnt) | (res<<(8-cnt));
-                    SETF(MASK_9(res),FLAG_C);
+                    SETF(MASK_8SGN(res),FLAG_C);
                     *reg = COMBINE8(*reg,res);
                 } else CLRF(FLAG_C);
                 SETNZ8(res);
@@ -3188,7 +3227,7 @@ do_ror16:       ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
                 if (cnt) {
                     cnt &= 15;
                     res = (res>>cnt) | (res<<(16-cnt));
-                    SETF(MASK_17(res),FLAG_C);
+                    SETF(MASK_16SGN(res),FLAG_C);
                     rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 } else {
                     CLRF(FLAG_C);
@@ -3210,7 +3249,7 @@ do_ror32:       reg = DR+IR_REGY;
                 if (cnt) {
                     cnt &= 31;
                     resx = (resx>>cnt) | (resx<<(32-cnt));
-                    SETF(MASK_33(resx),FLAG_C);
+                    SETF(MASK_32SGN(resx),FLAG_C);
                     *reg = (int32)resx;
                 } else {
                     CLRF(FLAG_C);
@@ -3232,7 +3271,7 @@ do_rol8:        reg = DR+IR_REGY;
                 if (cnt) {
                     cnt &= 7;
                     res = (res<<cnt) | (res>>(8-cnt));
-                    SETF(MASK_9(res),FLAG_C);
+                    SETF(MASK_0(res),FLAG_C);
                     *reg = COMBINE8(*reg,res);
                 } else CLRF(FLAG_C);
                 SETNZ8(res);
@@ -3256,7 +3295,7 @@ do_rol16:       ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&res,&PC));
                 if (cnt) {
                     cnt &= 15;
                     res = (res<<cnt) | (res>>(16-cnt));
-                    SETF(MASK_17(res),FLAG_C);
+                    SETF(MASK_0(res),FLAG_C);
                     rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 } else {
                     CLRF(FLAG_C);
@@ -3278,7 +3317,7 @@ do_rol32:       reg = DR+IR_REGY;
                 if (cnt) {
                     cnt &= 31;
                     resx = (resx<<cnt) | (resx>>(32-cnt));
-                    SETF(MASK_32L(resx),FLAG_C);
+                    SETF(MASK_0(resx),FLAG_C);
                     *reg = MASK_32L(resx);
                 } else CLRF(FLAG_C);
                 SETNZ32(resx);
