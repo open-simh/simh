@@ -2545,6 +2545,8 @@ uint32 sim_prompt_time = (sim_gtime () > 0) ? (sim_os_msec () - sim_stop_time) :
 int32 registered_units = 0;
 
 sim_time_at_sim_prompt +=  (((double)sim_prompt_time) / 1000.0);
+if (sim_idle_end_time > sim_gtime ())                   /* time restarted (RUN, BOOT, RESTORE)? */
+    sim_idle_end_time = sim_gtime ();
 for (tmr=0; tmr<=SIM_NTIMERS; tmr++) {
     RTC *rtc = &rtcs[tmr];
 
