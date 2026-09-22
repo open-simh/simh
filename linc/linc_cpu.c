@@ -537,6 +537,7 @@ static void cpu_mul(void)
     A = product & 03777;
   if (L)
     A ^= 07777;
+  Z = (product << 1) & WMASK;
 }
 
 static void cpu_ldh(void)
