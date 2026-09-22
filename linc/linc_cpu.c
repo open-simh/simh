@@ -511,7 +511,6 @@ static void cpu_lam(void)
 
 static void cpu_mul(void)
 {
-  uint32 factor, product;
   cpu_mem_read();
 
   C &= ~BMASK;
@@ -522,21 +521,20 @@ static void cpu_mul(void)
     B ^= WMASK;
   Z = B;
   cpu_set_B(A);
-  factor = B;
-  product = A = 0;
-  while (C03 < 12) {
-    if (Z & 1)
-      product += factor;
-    Z >>= 1;
-    factor <<= 1;
+  A = 0;
+  for (;;) {
     cpu_ndxc();
+    if (Z & 1)
+      A += B;
+    if (C03 == 12)
+      break;
+    Z = ((A << 11) | (Z >> 1)) & WMASK;
+    A >>= 1;
   }
-  if (S & HMASK)
-    A = product >> 11;
-  else
-    A = product & 03777;
+  if ((S & HMASK) == 0)
+    A = Z >> 1;
   if (L)
-    A ^= 07777;
+    A ^= WMASK;
 }
 
 static void cpu_ldh(void)
