@@ -650,6 +650,9 @@ static void cpu_jmp(void)
 static void
 cpu_insn(void)
 {
+  if (history)
+    history[history_i].P = P;
+
   /* Cycle 0, or I. */
   cpu_fetch();
   if (!DO)
@@ -660,7 +663,6 @@ cpu_insn(void)
     cpu_indexing();
 
   if (history) {
-    history[history_i].P = P;
     history[history_i].C = C;
     history[history_i].S = S;
   }
