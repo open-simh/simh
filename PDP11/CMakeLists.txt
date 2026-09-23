@@ -34,6 +34,7 @@ add_simulator(pdp11
         pdp11_rq.c
         pdp11_tq.c
         pdp11_pclk.c
+        pdp11_kwv11.c
         pdp11_ry.c
         pdp11_pt.c
         pdp11_hk.c
