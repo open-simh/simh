@@ -27,6 +27,7 @@
 
 /* Function declaration. */
 static t_stat tty_svc(UNIT *uptr);
+static t_stat tty_reset(DEVICE *dptr);
 static t_stat tty_attach(UNIT *uptr, CONST char *cptr);
 static t_stat tty_detach(UNIT *uptr);
 
@@ -43,7 +44,7 @@ static DEBTAB tty_deb[] = {
 DEVICE tty_dev = {
   "TTY", &tty_unit, NULL, NULL,
   1, 8, 12, 1, 8, 12,
-  NULL, NULL, NULL,
+  NULL, NULL, &tty_reset,
   NULL, &tty_attach, &tty_detach,
   NULL, DEV_DISABLE | DEV_DEBUG, 0, tty_deb,
   NULL, NULL, NULL, NULL, NULL, NULL
@@ -103,6 +104,14 @@ static t_stat tty_svc(UNIT *uptr)
      the stop bit, and finally the start bit. */
   uptr->STATE--;
   return SCPE_OK;
+}
+
+static t_stat tty_reset(DEVICE *dptr)
+{
+  if ((tty_unit.flags & UNIT_ATT) != 0 && !sim_is_active(&tty_unit))
+    sim_activate(&tty_unit, 1);
+  return SCPE_OK;
+  
 }
 
 static t_stat tty_attach(UNIT *uptr, CONST char *cptr)
