@@ -229,9 +229,15 @@ switch (rg) {
 
                 xs_updateint (xs);
 
+                /* The chip's interrupt pin is CSR0<INTR> gated by CSR0<INEA>: clearing
+                   INEA drops it, and setting INEA while INTR is already set asserts it at
+                   once. xs_setint() only raises the request when INTR goes from 0 to 1,
+                   so an interrupt condition that arrives while INEA is clear must be
+                   raised here, when the driver sets INEA again - otherwise it is lost,
+                   and the driver waits for an interrupt that never comes. */
                 if ((data & CSR_IE) == 0)
                     CLR_INT (XS1);
-                else if ((xs->var->csr0 & (CSR0_INTR + CSR_IE)) == CSR0_INTR)
+                else if ((xs->var->csr0 & (CSR0_INTR + CSR_IE)) == (CSR0_INTR + CSR_IE))
                     SET_INT (XS1);
                 break;
 
