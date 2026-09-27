@@ -713,6 +713,14 @@ ifeq (${WIN32},)  #*nix Environments (&& cygwin)
       OS_CCDEFS += -DHAVE_ZLIB
       OS_LDFLAGS += -lz
       $(info using zlib: $(call find_lib,z) $(call find_include,zlib))
+    else
+      ifeq (Darwin,$(OSTYPE))
+        # macOS always provides libz, but only as a .tbd stub in the SDK
+        # and a versioned dylib in /usr/lib, so find_lib can't see it.
+        OS_CCDEFS += -DHAVE_ZLIB
+        OS_LDFLAGS += -lz
+        $(info using zlib: macOS system libz $(call find_include,zlib))
+      endif
     endif
   endif
   ifneq (,$(call find_include,glob))
