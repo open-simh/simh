@@ -370,6 +370,23 @@ if (bus->buf_b > alloc)                                 /* check allocation */
     bus->buf_b = alloc;
 }
 
+/* Check that a requested transfer fits in the bus transfer buffer.
+
+   Returns TRUE and reports CHECK CONDITION to the initiator when it does not.
+   Real host adapters have a maximum transfer size and reject commands that
+   exceed it; the alternative here -- silently transferring less than was
+   asked for -- would report success for a short transfer. */
+
+t_bool scsi_xfer_too_big (SCSI_BUS *bus, uint32 bytes)
+{
+if (bytes <= bus->buf_size)
+    return FALSE;
+sim_debug (SCSI_DBG_CMD, bus->dptr,
+    "transfer of %u bytes exceeds the %u byte buffer\n", bytes, bus->buf_size);
+scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
+return TRUE;
+}
+
 /* Command - Test Unit Ready */
 
 void scsi_test_ready (SCSI_BUS *bus, uint8 *data, uint32 len)
@@ -784,6 +801,9 @@ if (sects == 0)
 
 scsi_debug_cmd (bus, "Read(6) lba %d blks %d\n", lba, sects);
 
+if (scsi_xfer_too_big (bus, sects * dev->block_size))
+    return;
+
 if (uptr->flags & UNIT_ATT)
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, sects);
 else {
@@ -924,6 +944,9 @@ if (sects == 0) {                                       /* no data to read */
     return;
     }
 
+if (scsi_xfer_too_big (bus, sects * dev->block_size))
+    return;
+
 if (uptr->flags & UNIT_ATT)
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, sects);
 else {
@@ -943,6 +966,7 @@ scsi_set_req (bus);                                     /* request to send data 
 void scsi_read_long (SCSI_BUS *bus, uint8 *data, uint32 len)
 {
 UNIT *uptr = bus->dev[bus->target];
+SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
 t_lba lba;
 t_seccnt sects, sectsread;
 t_stat r;
@@ -951,6 +975,9 @@ lba = GETL (data, 2);
 sects = GETW (data, 7);
 
 scsi_debug_cmd (bus, "Read Long lba %d bytes %d\n", lba, sects);
+
+if (scsi_xfer_too_big (bus, (((sects >> 9) + 1) * dev->block_size)))
+    return;
 
 if (uptr->flags & UNIT_ATT)
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, ((sects >> 9) + 1));
@@ -978,6 +1005,8 @@ if (bus->phase == SCSI_CMD) {
     memcpy (&bus->cmd[0], &data[0], 6);
     sects = bus->cmd[4];
     if (sects == 0) sects = 256;
+    if (scsi_xfer_too_big (bus, sects * dev->block_size))
+        return;
     bus->buf_b = (sects * dev->block_size);
     scsi_set_phase (bus, SCSI_DATO);                    /* data out phase next */
     scsi_set_req (bus);                                 /* request data */
@@ -1051,6 +1080,8 @@ if (bus->phase == SCSI_CMD) {
     if (sects == 0)                                     /* no data to write */
         scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
     else {
+        if (scsi_xfer_too_big (bus, sects * dev->block_size))
+            return;
         bus->buf_b = (sects * dev->block_size);
         scsi_set_phase (bus, SCSI_DATO);                /* data out phase next */
         scsi_set_req (bus);                             /* request data */
@@ -1525,6 +1556,8 @@ uint32 scsi_data (SCSI_BUS *bus, uint8 *data, uint32 len)
 {
 uint32 i;
 
+if (bus->buf_b > bus->buf_size)                         /* never leave the buffer */
+    bus->buf_b = bus->buf_size;
 for (i = 0; ((i < len) && (bus->buf_t != bus->buf_b)); i++, bus->buf_t++)
     bus->buf[bus->buf_t] = data[i];
 if (bus->buf_t == bus->buf_b) {
@@ -1588,6 +1621,8 @@ if (len == 0) {
     return 0;
     }
 scsi_release_req (bus);                                 /* assume done */
+if (bus->buf_b > bus->buf_size)                         /* never leave the buffer */
+    bus->buf_b = bus->buf_size;
 for (i = 0; ((i < len) && (bus->buf_t != bus->buf_b)); i++, bus->buf_t++)
     data[i] = bus->buf[bus->buf_t];
 if (bus->buf_t == bus->buf_b) {
@@ -1691,6 +1726,7 @@ if (bus->buf == NULL)
     bus->buf = (uint8 *)calloc (maxfr, sizeof(uint8));
 if (bus->buf == NULL)
     return SCPE_MEM;
+bus->buf_size = maxfr;                                  /* remember the limit */
 return SCPE_OK;
 }
 
