@@ -68,6 +68,7 @@
 
 #define KEY_OK          0                               /* no sense */
 #define KEY_NOTRDY      2                               /* not ready */
+#define KEY_HWERR       4                               /* hardware error */
 #define KEY_ILLREQ      5                               /* illegal request */
 #define KEY_PROT        7                               /* data protect */
 #define KEY_BLANK       8                               /* blank check */
@@ -78,6 +79,8 @@
 #define ASC_OK          0                               /* no additional sense information */
 #define ASC_INVCOM      0x20                            /* invalid command operation code */
 #define ASC_INVCDB      0x24                            /* invalid field in cdb */
+#define ASC_UNRERR      0x11                            /* unrecovered read error */
+#define ASC_WRTERR      0x0C                            /* write error */
 #define ASC_NOMEDIA     0x3A                            /* media not present */
 
 #define PUTL(b,x,v)     b[x] = (v >> 24) & 0xFF; \
@@ -784,8 +787,13 @@ if (sects == 0)
 
 scsi_debug_cmd (bus, "Read(6) lba %d blks %d\n", lba, sects);
 
-if (uptr->flags & UNIT_ATT)
+if (uptr->flags & UNIT_ATT) {
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, sects);
+    if (r != SCPE_OK) {                                 /* read failed? */
+        scsi_status (bus, STS_CHK, KEY_HWERR, ASC_UNRERR);
+        return;
+        }
+    }
 else {
     memset (&bus->buf[0], 0, (sects * dev->block_size));
     sectsread = sects;
@@ -924,8 +932,13 @@ if (sects == 0) {                                       /* no data to read */
     return;
     }
 
-if (uptr->flags & UNIT_ATT)
+if (uptr->flags & UNIT_ATT) {
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, sects);
+    if (r != SCPE_OK) {                                 /* read failed? */
+        scsi_status (bus, STS_CHK, KEY_HWERR, ASC_UNRERR);
+        return;
+        }
+    }
 else {
     memset (&bus->buf[0], 0, (sects * dev->block_size));
     sectsread = sects;
@@ -952,8 +965,13 @@ sects = GETW (data, 7);
 
 scsi_debug_cmd (bus, "Read Long lba %d bytes %d\n", lba, sects);
 
-if (uptr->flags & UNIT_ATT)
+if (uptr->flags & UNIT_ATT) {
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, ((sects >> 9) + 1));
+    if (r != SCPE_OK) {                                 /* read failed? */
+        scsi_status (bus, STS_CHK, KEY_HWERR, ASC_UNRERR);
+        return;
+        }
+    }
 else {
     memset (&bus->buf[0], 0, sects);
     }
@@ -988,8 +1006,14 @@ else if (bus->phase == SCSI_DATO) {
     lba = GETW (bus->cmd, 2) | ((bus->cmd[1] & 0x1F) << 16);
     scsi_debug_cmd (bus, "Write(6) - DATO, lba %d bytes %d\n", lba, sects);
 
-    if (uptr->flags & UNIT_ATT)
+    if (uptr->flags & UNIT_ATT) {
         r = sim_disk_wrsect (uptr, lba, &bus->buf[0], &sectswritten, sects);
+        if (r != SCPE_OK) {                             /* write failed? */
+            memset (&bus->cmd[0], 0, 10);
+            scsi_status (bus, STS_CHK, KEY_HWERR, ASC_WRTERR);
+            return;
+            }
+        }
 
     memset (&bus->cmd[0], 0, 10);
     scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
@@ -1061,8 +1085,14 @@ else if (bus->phase == SCSI_DATO) {
     lba = GETL (bus->cmd, 2);
     scsi_debug_cmd (bus, "Write(10) - DATO, lba %d bytes %d\n", lba, sects);
 
-    if (uptr->flags & UNIT_ATT)
+    if (uptr->flags & UNIT_ATT) {
         r = sim_disk_wrsect (uptr, lba, &bus->buf[0], &sectswritten, sects);
+        if (r != SCPE_OK) {                             /* write failed? */
+            memset (&bus->cmd[0], 0, 10);
+            scsi_status (bus, STS_CHK, KEY_HWERR, ASC_WRTERR);
+            return;
+            }
+        }
 
     memset (&bus->cmd[0], 0, 10);
     scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
