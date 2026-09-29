@@ -733,6 +733,9 @@ struct reglink regtable[] = {
     { XSBASE, XSBASE+XSSIZE, &xs_rd, &xs_wr },
     { DZBASE, DZBASE+DZSIZE, &dz_rd, dz_wr },           /* needs extra register */
     { RZBASE, RZBASE+RZSIZE, &rz_rd, rz_wr },
+    /* The option ROM window below covers this block, and ReadReg takes
+       the first entry that matches: keep this one ahead of the OR entry */
+    { 0x20101800, 0x20101810, &memrg_rd, &memrg_wr },
     { ORBASE, ORBASE+ORSIZE, &or_rd, NULL },
     { NARBASE, NARBASE+NARSIZE, &nar_rd, NULL },
     { CFGBASE, CFGBASE+CFGSIZE, &cfg_rd, &ioreset_wr },
@@ -741,7 +744,6 @@ struct reglink regtable[] = {
     { 0x36800000, 0x36800004, &null_rd, &null_wr },     /* Turbo CSR */
     { 0x08000000, 0x08040000, &cache2ds_rd, &cache2ds_wr },  /* Cache second data store */
     { 0x22000000, 0x22040000, &cache2ts_rd, &cache2ts_wr },  /* Cache second tag store - should be at 0x2D000000? */
-    { 0x20101800, 0x20101810, &memrg_rd, &memrg_wr },
     { 0x20101A00, 0x20102000, NULL, &null_wr },         /* invalidate single - check size */
     { ROMBASE, ROMBASE+ROMSIZE, &rom_rd, NULL },
     { NVRBASE, NVRBASE+NVRSIZE, &nvr_rd, &nvr_wr },
