@@ -78,6 +78,7 @@
 #define ASC_OK          0                               /* no additional sense information */
 #define ASC_INVCOM      0x20                            /* invalid command operation code */
 #define ASC_INVCDB      0x24                            /* invalid field in cdb */
+#define ASC_WRTPROT     0x27                            /* write protected */
 #define ASC_NOMEDIA     0x3A                            /* media not present */
 
 #define PUTL(b,x,v)     b[x] = (v >> 24) & 0xFF; \
@@ -679,8 +680,9 @@ if (pc == 0x8) {
 memset (&bus->buf[0], 0, data[4]);                      /* allocation len */
 bus->buf[bus->buf_b++] = 0x0;                           /* mode data length */
 bus->buf[bus->buf_b++] = 0x0;                           /* medium type */
-if (dev->devtype == SCSI_CDROM)
-    bus->buf[bus->buf_b++] = 0x80;                      /* dev specific param */
+if ((dev->devtype == SCSI_CDROM) ||                     /* write protected? */
+    ((uptr->flags & UNIT_WPRT) != 0))
+    bus->buf[bus->buf_b++] = 0x80;                      /* dev specific param: WP */
 else
     bus->buf[bus->buf_b++] = 0x0;                       /* dev specific param */
 bus->buf[bus->buf_b++] = 0x8;                           /* block descriptor len */
@@ -698,6 +700,8 @@ scsi_set_req (bus);                                     /* request to send data 
 
 void scsi_mode_sense10 (SCSI_BUS *bus, uint8 *data, uint32 len)
 {
+UNIT *uptr = bus->dev[bus->target];
+SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
 uint32 pc, pctl;
 
 scsi_debug_cmd (bus, "Mode Sense(10)\n");
@@ -714,7 +718,11 @@ memset (&bus->buf[0], 0, GETW (data, 7));               /* allocation len */
 bus->buf[bus->buf_b++] = 0x0;                           /* mode data length (15:8) */
 bus->buf[bus->buf_b++] = 0x0;                           /* mode data length (7:0) */
 bus->buf[bus->buf_b++] = 0x0;                           /* medium type */
-bus->buf[bus->buf_b++] = 0x0;                           /* dev specific param */
+if ((dev->devtype == SCSI_CDROM) ||                     /* write protected? */
+    ((uptr->flags & UNIT_WPRT) != 0))
+    bus->buf[bus->buf_b++] = 0x80;                      /* dev specific param: WP */
+else
+    bus->buf[bus->buf_b++] = 0x0;                       /* dev specific param */
 bus->buf[bus->buf_b++] = 0x0;                           /* reserved */
 bus->buf[bus->buf_b++] = 0x0;                           /* reserved */
 bus->buf[bus->buf_b++] = 0x0;                           /* block descriptor len (15:8) */
@@ -975,6 +983,10 @@ t_stat r;
 
 if (bus->phase == SCSI_CMD) {
     scsi_debug_cmd (bus, "Write(6) - CMD\n");
+    if (uptr->flags & UNIT_WPRT) {                      /* write protected? */
+        scsi_status (bus, STS_CHK, KEY_PROT, ASC_WRTPROT);
+        return;
+        }
     memcpy (&bus->cmd[0], &data[0], 6);
     sects = bus->cmd[4];
     if (sects == 0) sects = 256;
@@ -1046,6 +1058,10 @@ t_stat r;
 
 if (bus->phase == SCSI_CMD) {
     scsi_debug_cmd (bus, "Write(10) - CMD\n");
+    if (uptr->flags & UNIT_WPRT) {                      /* write protected? */
+        scsi_status (bus, STS_CHK, KEY_PROT, ASC_WRTPROT);
+        return;
+        }
     memcpy (&bus->cmd[0], &data[0], 10);
     sects = GETW (bus->cmd, 7);
     if (sects == 0)                                     /* no data to write */
