@@ -525,8 +525,16 @@ for (;;) {
         else {
             /* transmit packet synchronously - write callback sets status */
             wstatus = eth_write(xs->var->etherface, &xs->var->write_buffer, xs->var->wcallback);
-            if (wstatus)
-                xs->var->csr0 |= CSR0_BABL;
+            if (wstatus) {
+                /* Nothing was sent (unattached, or rejected before the write
+                   callback ran): report loss of carrier in the descriptor, as the
+                   chip does, not CSR0<BABL>, a transmitter timeout. A failure the
+                   callback already reported is left to the retry path below. */
+                if (xs->var->write_buffer.status == 0) {
+                    xs->var->txhdr[3] |= TXR_LCAR;
+                    xs->var->txhdr[1] |= TXR_ERRS;
+                    }
+                }
             else if (DEBUG_PRI (xs_dev, DBG_PCK))
                 eth_packet_trace_ex (xs->var->etherface, xs->var->write_buffer.msg, xs->var->write_buffer.len, "xs-write", DEBUG_PRI (xs_dev, DBG_DAT), DBG_PCK);
             }
