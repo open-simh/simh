@@ -45,6 +45,7 @@
 #define CMD_READ6       0x08                            /* read (6 bytes) */
 #define CMD_READ10      0x28                            /* read (10 bytes) */
 #define CMD_RDLONG      0x3E                            /* read long */
+#define CMD_RDSUBCH     0x42                            /* read sub-channel (CD-ROM) */
 #define CMD_WRITE6      0x0A                            /* write (6 bytes) */
 #define CMD_WRITE10     0x2A                            /* write (10 bytes) */
 #define CMD_ERASE       0x19                            /* erase */
@@ -79,6 +80,13 @@
 #define ASC_INVCOM      0x20                            /* invalid command operation code */
 #define ASC_INVCDB      0x24                            /* invalid field in cdb */
 #define ASC_NOMEDIA     0x3A                            /* media not present */
+
+/* CD-ROM constants (SCSI-2, 14.1.5 and 14.2.10) */
+
+#define CD_SECTSIZE     2048                            /* physical CD-ROM sector */
+#define CD_MSF_OFFSET   150                             /* 2 seconds, in frames */
+#define CD_CTL_DATA     0x14                            /* ADR 1, control 4: data track */
+#define AUD_NOSTATUS    0x15                            /* no current audio status to return */
 
 #define PUTL(b,x,v)     b[x] = (v >> 24) & 0xFF; \
                         b[x+1] = (v >> 16) & 0xFF; \
@@ -1229,6 +1237,123 @@ if ((data[4] & 0x1) == 0)
 scsi_status (bus, STS_OK, KEY_OK, ASC_OK);              /* GOOD status */
 }
 
+/* CD-ROM addresses.
+
+   The CD-ROM commands report addresses either as a logical block address
+   or, when the MSF bit is set, as minutes/seconds/frames.  MSF
+   addresses count physical 2048 byte sectors.  An absolute address counts
+   from the start of the disc, where logical block address 0 is at 00/02/00
+   (SCSI-2, 14.1.5), so its frame count is offset by 150; a track relative
+   address counts from the start of the track and is not.  The logical block
+   size a unit presents may differ from the physical one (an RRD42 presents
+   512 byte blocks), so a logical block count is converted to physical
+   sectors first. */
+
+static void scsi_cd_address (SCSI_BUS *bus, uint32 pos, t_bool msf, t_bool absolute)
+{
+UNIT *uptr = bus->dev[bus->target];
+SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
+uint32 frames;
+
+if (msf) {
+    frames = (uint32)(((t_uint64)pos * dev->block_size) / CD_SECTSIZE);
+    if (absolute)
+        frames += CD_MSF_OFFSET;
+    bus->buf[bus->buf_b++] = 0;                         /* reserved */
+    bus->buf[bus->buf_b++] = (uint8)(frames / (60 * 75)); /* minutes */
+    bus->buf[bus->buf_b++] = (uint8)((frames / 75) % 60); /* seconds */
+    bus->buf[bus->buf_b++] = (uint8)(frames % 75);      /* frames */
+    }
+else {
+    PUTL (bus->buf, bus->buf_b, pos);                   /* logical block address */
+    bus->buf_b += 4;
+    }
+}
+
+/* Command - Read Sub-Channel (CD-ROM)
+
+   The drive never plays audio, so the audio status is always "no current
+   audio status to return" and the position is that of the first block of the
+   one data track.  With the SubQ bit clear only the four byte header is
+   returned, with a data length of zero (SCSI-2, 14.2.10).  Format 0 is the
+   whole sub-Q channel block (current position, then the media catalogue
+   number and the ISRC, neither of which an image file has); formats 1 to 3
+   are its parts (tables 253 and 257 to 259). */
+
+void scsi_read_subchannel (SCSI_BUS *bus, uint8 *data, uint32 len)
+{
+UNIT *uptr = bus->dev[bus->target];
+t_bool msf = ((data[1] & 0x02) != 0);
+t_bool subq = ((data[2] & 0x40) != 0);
+uint32 fmt = data[3];
+uint32 alloc = GETW (data, 7);
+
+scsi_debug_cmd (bus, "Read Sub-Channel, msf = %d, subq = %d, format = %d, alloc = %d\n",
+    msf, subq, fmt, alloc);
+
+if ((uptr->flags & UNIT_ATT) == 0) {                    /* not attached? */
+    scsi_status (bus, STS_CHK, KEY_NOTRDY, ASC_NOMEDIA);
+    return;
+    }
+if (subq && ((fmt > 3) ||                               /* unsupported format? */
+    ((fmt == 3) && (data[6] != 1)))) {                  /* ISRC of a track that isn't there? */
+    scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
+    return;
+    }
+
+bus->buf_b = 0;
+bus->buf[bus->buf_b++] = 0;                             /* reserved */
+bus->buf[bus->buf_b++] = AUD_NOSTATUS;                  /* audio status */
+bus->buf[bus->buf_b++] = 0;                             /* sub-channel data length (15:8) */
+bus->buf[bus->buf_b++] = 0;                             /* sub-channel data length (7:0) */
+
+if (subq) {
+    bus->buf[bus->buf_b++] = fmt;                       /* data format code */
+    switch (fmt) {
+
+        case 0:                                         /* sub-Q channel data */
+        case 1:                                         /* CD-ROM current position */
+            bus->buf[bus->buf_b++] = CD_CTL_DATA;       /* ADR, control */
+            bus->buf[bus->buf_b++] = 1;                 /* track number */
+            bus->buf[bus->buf_b++] = 1;                 /* index number */
+            scsi_cd_address (bus, 0, msf, TRUE);        /* absolute address */
+            scsi_cd_address (bus, 0, msf, FALSE);       /* track relative address */
+            if (fmt == 0) {                             /* format 0 adds the identification data */
+                memset (&bus->buf[bus->buf_b], 0, 32);  /* MCVal and TCVal clear: no MCN, no ISRC */
+                bus->buf_b += 32;
+                }
+            break;
+
+        case 2:                                         /* media catalog number */
+            bus->buf[bus->buf_b++] = 0;                 /* reserved */
+            bus->buf[bus->buf_b++] = 0;
+            bus->buf[bus->buf_b++] = 0;
+            bus->buf[bus->buf_b++] = 0;                 /* MCVal clear: no catalog number */
+            memset (&bus->buf[bus->buf_b], 0, 15);      /* catalog number */
+            bus->buf_b += 15;
+            break;
+
+        case 3:                                         /* track ISRC */
+            bus->buf[bus->buf_b++] = CD_CTL_DATA;       /* ADR, control */
+            bus->buf[bus->buf_b++] = 1;                 /* track number */
+            bus->buf[bus->buf_b++] = 0;                 /* reserved */
+            bus->buf[bus->buf_b++] = 0;                 /* TCVal clear: no ISRC */
+            memset (&bus->buf[bus->buf_b], 0, 15);      /* ISRC */
+            bus->buf_b += 15;
+            break;
+            }
+    PUTW (bus->buf, 2, (bus->buf_b - 4));               /* sub-channel data length */
+    }
+
+if (alloc == 0)                                         /* nothing wanted? */
+    scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
+else {
+    scsi_check_alloc (bus, alloc);                      /* check allocation */
+    scsi_set_phase (bus, SCSI_DATI);                    /* data in phase next */
+    scsi_set_req (bus);                                 /* request to send data */
+    }
+}
+
 /* Process a SCSI command for a direct-access device */
 
 void scsi_disk_command (SCSI_BUS *bus, uint8 *data, uint32 len)
@@ -1449,6 +1574,10 @@ switch (data[0]) {
 
     case CMD_RDLONG:                                    /* optional */
         scsi_read_long (bus, data, len);
+        break;
+
+    case CMD_RDSUBCH:                                   /* optional */
+        scsi_read_subchannel (bus, data, len);
         break;
 
     case CMD_RELEASE:                                   /* mandatory */
