@@ -1545,7 +1545,8 @@ return SCPE_OK;
 t_bool sim_idle (uint32 tmr, int sin_cyc)
 {
 uint32 w_ms, w_idle, act_ms;
-int32 act_cyc;
+int32 act_cyc, w_interval;
+double act_cyc_d, max_cyc;
 static t_bool in_nowait = FALSE;
 double cyc_since_idle;
 RTC *rtc = &rtcs[tmr];
@@ -1635,13 +1636,36 @@ if (sim_clock_queue == QUEUE_LIST_END)
 else
     sim_debug (DBG_IDL, &sim_timer_dev, "sleeping for %d ms - pending event on %s in %d %s\n", w_ms, sim_uname(sim_clock_queue), sim_interval, sim_vm_interval_units);
 cyc_since_idle = sim_gtime() - sim_idle_end_time;       /* time since prior idle */
+w_interval = sim_interval;                              /* pending event when the sleep began */
 act_ms = sim_idle_ms_sleep (w_ms);                      /* wait */
+if ((int32)act_ms < 0) {                                /* host clock stepped backward? */
+    sim_debug (DBG_IDL, &sim_timer_dev, "host clock stepped back %d ms during a %d ms sleep - no time credited\n", -(int32)act_ms, w_ms);
+    act_ms = 0;
+    }
 rtc->clock_time_idled += act_ms;
-act_cyc = act_ms * sim_idle_cyc_ms;
+act_cyc_d = (double)act_ms * (double)sim_idle_cyc_ms;
 if (cyc_since_idle > sim_idle_cyc_sleep)
-    act_cyc -= sim_idle_cyc_sleep / 2;                  /* account for half an interval's worth of cycles */
+    act_cyc_d -= sim_idle_cyc_sleep / 2;                /* account for half an interval's worth of cycles */
 else
-    act_cyc -= (int32)cyc_since_idle;                   /* account for cycles executed */
+    act_cyc_d -= cyc_since_idle;                        /* account for cycles executed */
+/*
+   A sleep normally ends at the pending event, give or take the host's
+   sleep granularity.  It can last far longer than was asked for: the
+   process was stopped, the host was suspended, or the host's clock
+   stepped forward.  Crediting all of that time as instructions would
+   make every overdue event -- a whole burst of clock ticks -- fire
+   back to back in no wall time, and the next calibration would then
+   see a second of ticks take no time at all.  So credit no more than
+   reaches the pending event plus one tick of the calibrated clock; the
+   wall time beyond that is left to calibration and catch-up ticks.
+   The whole sleep still counts as time idled.
+ */
+max_cyc = (double)w_interval + (double)rtc->currd;
+if (act_cyc_d > max_cyc) {
+    sim_debug (DBG_IDL, &sim_timer_dev, "slept for %u ms - credit limited from %.0f to %.0f %s (the pending event plus one tick)\n", act_ms, act_cyc_d, max_cyc, sim_vm_interval_units);
+    act_cyc_d = max_cyc;
+    }
+act_cyc = (int32)MIN(act_cyc_d, (double)0x7FFFFFFF);
 sim_interval = sim_interval - act_cyc;                  /* count down sim_interval to reflect idle period */
 sim_idle_end_time = sim_gtime();                        /* save idle completed time */
 if (sim_clock_queue == QUEUE_LIST_END)
