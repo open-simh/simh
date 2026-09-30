@@ -693,6 +693,8 @@ t_seccnt sread = 0;
 
 sim_debug_unit (ctx->dbit, uptr, "sim_disk_rdsect(unit=%d, lba=0x%X, sects=%d)\n", (int)(uptr - ctx->dptr->units), lba, sects);
 
+if (sectsread)                                          /* init in case of error */
+    *sectsread = 0;
 ctx->read_count++;                                      /* record read operation */
 if ((sects == 1) &&                                     /* Single sector reads */
     (lba >= (uptr->capac*ctx->capac_factor)/(ctx->sector_size/((ctx->dptr->flags & DEV_SECTORS) ? ctx->sector_size : 1)))) {/* beyond the end of the disk */
