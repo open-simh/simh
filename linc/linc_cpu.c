@@ -60,6 +60,7 @@ static int ENI = 0;
 static int PINFF;
 static int DO = 0;
 
+static int32 cycles;
 static t_stat stop_reason;
 
 typedef struct {
@@ -173,6 +174,8 @@ static void cpu_4ndxa()
 static void cpu_mem_read(void)
 {
   cpu_set_B(M[S & AMASK]);
+  mus_sample(A, S, Z, 1);
+  cycles--;
   sim_interval--;
   if (sim_brk_summ && sim_brk_test(S & AMASK, SWMASK('R')))
     stop_reason = STOP_RBKPT;
@@ -260,6 +263,7 @@ cpu_misc(void)
 {
   switch (C) {
   case 00000: //HLT
+    mus_chime();
     stop_reason = STOP_HALT;
     break;
   case 00002: //PDP
@@ -364,6 +368,11 @@ static void cpu_ror(void)
       A &= WMASK;
     }
     cpu_ndxc();
+    if ((C & 3) == 0) {
+      mus_sample(A, S, Z, 1);
+      cycles--;
+      sim_interval--;
+    }
   }
 }
 
@@ -376,6 +385,11 @@ static void cpu_scr(void)
       L = A & 1;
     A = (A & 04000) | (A >> 1);
     cpu_ndxc();
+    if ((C & 3) == 0) {
+      mus_sample(A, S, Z, 1);
+      cycles--;
+      sim_interval--;
+    }
   }
 }
 
@@ -615,6 +629,9 @@ static void cpu_dsc(void)
     Z >>= 1;
     cpu_4ndxa();
     cpu_ndxc();
+    mus_sample(A, S, Z, 1);
+    cycles--;
+    sim_interval--;
   }
   cpu_mem_write();
 }
@@ -914,10 +931,15 @@ t_stat sim_instr(void)
         return SCPE_STEP;
     }
 
+    cycles = sim_interval;
+
     if (paused)
       sim_interval--;
     else
       cpu_insn();
+
+    for (cycles -= sim_interval; cycles > 0; cycles -= 16)
+      mus_sample(A, S, Z, cycles > 16 ? 16 : cycles);
 
     cpu_interrupt();
 

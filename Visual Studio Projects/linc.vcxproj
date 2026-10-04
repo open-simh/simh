@@ -143,6 +143,7 @@
     <ClCompile Include="..\linc\linc_sys.c" />
     <ClCompile Include="..\linc\linc_tape.c" />
     <ClCompile Include="..\linc\linc_tty.c" />
+    <ClCompile Include="..\linc\linc_mus.c" />
     <ClCompile Include="..\scp.c" />
     <ClCompile Include="..\sim_console.c" />
     <ClCompile Include="..\sim_disk.c" />

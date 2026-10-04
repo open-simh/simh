@@ -111,7 +111,7 @@ crt_svc(UNIT *uptr)
   while (vid_poll_kb(&ev) == SCPE_OK)
     kbd_event(&ev);
 
-  sim_activate_after(uptr, 50000);
+  sim_activate_after(uptr, CRT_REFRESH_MS * 1000);
   return crt_svc_stat;
 }
 
