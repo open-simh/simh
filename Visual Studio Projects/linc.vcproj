@@ -230,6 +230,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\linc\linc_mus.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\windows-build\pthreads\pthread.c"
 				>
 				<FileConfiguration
