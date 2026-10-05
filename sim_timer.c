@@ -1807,6 +1807,11 @@ else {
 return SCPE_OK;
 }
 
+t_bool sim_throt_enab(void)
+{
+return sim_throt_type != SIM_THROT_NONE;
+}
+
 void sim_throt_sched (void)
 {
 if (sim_throt_type != SIM_THROT_NONE) {
