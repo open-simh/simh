@@ -155,6 +155,7 @@ return real_sim_os_ms_sleep (msec);
 
 #endif /* defined(MS_MIN_GRANULARITY) && (MS_MIN_GRANULARITY != 1) */
 
+t_bool sim_throt_enab = FALSE;
 t_bool sim_idle_enab = FALSE;                       /* global flag */
 volatile t_bool sim_idle_wait = FALSE;              /* global flag */
 
@@ -1759,6 +1760,7 @@ if (sim_throt_type == SIM_THROT_SPC) {  /* Set initial value while correct one i
     _sim_timer_adjust_cal();            /* adjust timer calibrations */
 } else
     sim_throt_cps = sim_precalibrate_ips;
+sim_throt_enab = sim_throt_type != SIM_THROT_NONE;
 return SCPE_OK;
 }
 

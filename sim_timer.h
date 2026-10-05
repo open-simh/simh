@@ -162,6 +162,7 @@ void sim_set_rom_delay_factor (uint32 delay);
 int32 sim_rom_read_with_delay (int32 val);
 double sim_host_speed_factor (void);
 
+extern t_bool sim_throt_enab;                       /* throttline enabled */
 extern t_bool sim_idle_enab;                        /* idle enabled flag */
 extern volatile t_bool sim_idle_wait;               /* idle waiting flag */
 extern t_bool sim_asynch_timer;
