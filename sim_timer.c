@@ -795,10 +795,20 @@ else {
 rtc = &rtcs[tmr];
 /*
  * If we'd previously succeeded in calibrating a tick value, then use that
- * delay as a better default to setup when we're re-initialized.
- * Re-initializing happens on any boot.
+ * delay as a better default when the running program re-initializes its
+ * clock (an I/O reset, re-arming the clock): its instruction rate has not
+ * changed.  A re-initialization while stopped (BOOT, RESET or RUN at the
+ * console) may start a different program, such as a console ROM running
+ * far below the last calibration, so it uses the lower of the caller's
+ * initial value and the last calibration.  A tick interval that is too
+ * short is corrected by the first calibration; one that is too long
+ * stretches the first calibration second, and a second longer than the
+ * "gap too big" limit in sim_rtcn_calb is discarded, so it may never be
+ * corrected.  The last calibration is the lower one when the simulator is
+ * throttled below the caller's rate: a throttle resumes at its calibrated
+ * rate.
  */
-if (rtc->currd)
+if (rtc->currd && (sim_is_running || (rtc->currd < time)))
     time = rtc->currd;
 if (!uptr)
     uptr = rtc->clock_unit;
