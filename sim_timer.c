@@ -2624,6 +2624,35 @@ _rtcn_tick_catchup_check (rtc, (int32)time);
 return SCPE_OK;
 }
 
+/* sim_rtcn_catchup_cancel - the simulated system has just set its time-of-
+   year clock (a TODR, a watch chip).  It has been told what time it is now,
+   so under SET CLOCK ELAPSED whatever a catch-up still owes would carry it
+   ahead of that time, and is dropped.  Nothing happens under NOELAPSED or
+   while less than a tick is owed.
+*/
+
+void sim_rtcn_catchup_cancel (int32 tmr)
+{
+RTC *rtc;
+double tnow, dropped;
+
+if (tmr == SIM_INTERNAL_CLK)
+    tmr = SIM_NTIMERS;
+else {
+    if ((tmr < 0) || (tmr >= SIM_NTIMERS))
+        return;
+    }
+rtc = &rtcs[tmr];
+if (!_rtcn_owes_gaps (rtc))
+    return;
+tnow = _sim_timer_now ();
+if (tnow - (rtc->clock_catchup_base_time + rtc->calib_tick_time) <= rtc->clock_tick_size)
+    return;
+dropped = _rtcn_catchup_drop (rtc, tnow);
+sim_debug (DBG_CAL, &sim_timer_dev, "sim_rtcn_catchup_cancel(tmr=%d) - time of year set, %.0f ms owed dropped\n", tmr, dropped * 1000.0);
+_rtcn_catchup_end (rtc, dropped);
+}
+
 
 static double _timespec_to_double (struct timespec *time)
 {

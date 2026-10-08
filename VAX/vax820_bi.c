@@ -422,6 +422,7 @@ switch (rg) {
 
     case MT_TODR:                                       /* TODR */
         todr_wr (val);
+        sim_rtcn_catchup_cancel (TMR_CLK);              /* the time was set */
         break;
 
     case MT_RXCS:                                       /* RXCS */
