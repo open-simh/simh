@@ -1299,7 +1299,8 @@ static t_stat rr_reset (DEVICE *dptr)
 
 static t_stat rr_attach (UNIT *uptr, CONST char *cptr)
 {
-    static const char* rr_types[] = { RP_RP03, RP_RP02, NULL };
+    /* NB: Types must be from smaller to larger */
+    static const char* rr_types[] = { RP_RP02, RP_RP03, NULL };
     int32 type = GET_DTYPE(uptr->flags);
     t_stat err = sim_disk_attach_ex2(uptr, cptr,
                                      RP_SIZE(sizeof(*rpxb)), sizeof(*rpxb),
