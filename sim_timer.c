@@ -2554,11 +2554,11 @@ for (tmr=0; tmr<=SIM_NTIMERS; tmr++) {
         sim_debug (DBG_CAL, &sim_timer_dev, "sim_start_timer_services(tmr=%d) - adjusting calibration real time by %d ms\n", tmr, (int)sim_prompt_time);
         if (rtc->clock_catchup_eligible)
             rtc->calib_tick_time += (((double)sim_prompt_time) / 1000.0);
-        if (rtc->clock_unit)
+        if (rtc->clock_unit && (tmr != SIM_NTIMERS))  /* the simulator's own clocks only */
             ++registered_units;
         }
     }
-if (registered_units == 1)
+if (registered_units == 0)                          /* no clock of the simulator's own? */
     sim_catchup_ticks = FALSE;
 if (sim_calb_tmr == -1) {
     sim_debug (DBG_CAL, &sim_timer_dev, "sim_start_timer_services() - starting from scratch\n");
