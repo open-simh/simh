@@ -1867,7 +1867,7 @@ return;
 
 /* Build dib_tab from device list */
 
-t_bool build_dib_tab (void)
+t_stat build_dib_tab (void)
 {
 int32 i, j, k;
 DEVICE *dptr;

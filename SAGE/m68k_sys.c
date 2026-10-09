@@ -231,7 +231,7 @@ error:
     return SCPE_FMT;
 }
 
-t_stat sim_load(FILE* fptr, CONST char* cptr, CONST char* fnam, t_bool flag)
+t_stat sim_load(FILE* fptr, CONST char* cptr, CONST char* fnam, int flag)
 {
     int i,len,rc;
     uint16 data;

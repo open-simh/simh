@@ -44,8 +44,8 @@
 /* ------------------------------------------------------------------------ */
 /* Global state */
 
-extern int cgi;                             /* TRUE if we are running as a CGI program */
-extern int cgiwritable;                     /* TRUE if we can write the disk images back to the image file in CGI mode */
+extern t_bool cgi;                          /* TRUE if we are running as a CGI program */
+extern t_bool cgiwritable;                  /* TRUE if we can write the disk images back to the image file in CGI mode */
 extern t_bool sim_gui;
 
 extern uint16 M[];                          /* core memory, up to 32Kwords (note: don't even think about trying 64K) */

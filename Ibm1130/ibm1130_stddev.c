@@ -112,8 +112,6 @@ typedef struct tag_os_map {                 /* os_map = overstrike mapping */
     unsigned char inlist[MAX_OS_CHARS];     /* inlist = overstruck ASCII characters, sorted. NOT NULL TERMINATED */
 } OS_MAP;
 
-extern int cgi;
-
 static int32 tti_dsw = 0;                   /* device status words */
 static int32 tto_dsw = 0;
        int32 con_dsw = 0;

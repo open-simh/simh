@@ -223,7 +223,7 @@ t_stat idc_attach (UNIT *uptr, CONST char *cptr);
 t_stat idc_set_size (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 void idc_wd_byte (uint32 dat);
 t_stat idc_rds (UNIT *uptr);
-t_stat idc_wds (UNIT *uptr);
+t_bool idc_wds (UNIT *uptr);
 t_bool idc_dter (UNIT *uptr, uint32 first);
 void idc_done (uint32 flg);
 

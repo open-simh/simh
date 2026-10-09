@@ -102,7 +102,7 @@ extern int boot_drive;
 extern t_bool program_is_loaded;
 
 #ifndef GUI_SUPPORT
-    void update_gui (int force)               {}        /* stubs for non-GUI builds */
+    void update_gui (t_bool force)            {}     /* stubs for non-GUI builds */
     void forms_check (int set)                {}
     void print_check (int set)                {}
     void keyboard_select (int select)         {}
@@ -403,7 +403,7 @@ static void RepaintRegion (HWND hWnd, int left, int top, int right, int bottom)
  * reflected instantly.
  * ------------------------------------------------------------------------ */
 
-void update_gui (BOOL force)
+void update_gui (t_bool force)
 {   
     int i;
     BOOL state;

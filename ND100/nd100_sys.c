@@ -94,7 +94,7 @@ gw(FILE *f)
  */
 
 t_stat
-sim_load(FILE *f, CONST char *buf, CONST char *fnam, t_bool flag)
+sim_load(FILE *f, CONST char *buf, CONST char *fnam, int flag)
 {
         int B, C, E, F, H, I;
         int w, i, rv;

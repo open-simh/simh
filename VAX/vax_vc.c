@@ -1079,7 +1079,7 @@ t_stat vc_set_capture (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
 if (vid_active)
     return sim_messagef (SCPE_ALATT, "Capture Mode Can't be changed with device enabled\n");
-vc_input_captured = val;
+vc_input_captured = (val != 0);
 return SCPE_OK;
 }
 

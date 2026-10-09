@@ -87,7 +87,7 @@ DEVICE inq_dev = {
 t_stat inq_io (int32 flag, int32 mod)
 {
 int32 i, t, wm_seen = 0;
-t_bool use_h = inq_unit.flags & UNIT_PCH;
+t_bool use_h = ((inq_unit.flags & UNIT_PCH) != 0);
 
 ind[IN_INC] = 0;                                        /* clear inq clear */
 switch (mod) {                                          /* case on mod */

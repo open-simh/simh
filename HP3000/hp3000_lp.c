@@ -1718,10 +1718,11 @@ return IORETURN (outbound_signals, outbound_value);     /* return the outbound s
 static t_stat xfer_service (UNIT *uptr)
 {
 static t_bool device_flag_last = FALSE;
+const t_bool device_cmd_bool = (device_command ^ J2W10_INSTALLED) != 0;
 t_stat        result;
 OUTBOUND_SET  signals;
 
-device_command_out = device_command ^ J2W10_INSTALLED;  /* set device command out; invert if W10 is installed */
+device_command_out = device_cmd_bool;                   /* set device command out; invert if W10 is installed */
 
 if (lp_dev.flags & DEV_DIAG)                            /* if the DHA is connected */
     result = diag_service (uptr);                       /*   then service the diagnostic hardware */

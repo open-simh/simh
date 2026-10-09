@@ -740,8 +740,8 @@ typedef enum {                                  /* poll synchronization modes */
 /* Flip-flops */
 
 typedef enum {                                  /* flip-flop values */
-    CLEAR = 0,                                  /*   the flip-flop is clear */
-    SET   = 1                                   /*   the flip-flop is set */
+    CLEAR = FALSE,                              /*   the flip-flop is clear */
+    SET   = TRUE                                /*   the flip-flop is set */
     } FLIP_FLOP;
 
 
