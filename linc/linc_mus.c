@@ -41,10 +41,12 @@ static t_stat mus_detach(UNIT *uptr);
 
 /* Audio switch.  The comments refer to the pins in the schematics. */
 #define UNIT_V_OUTPUT  (UNIT_V_UF + 0)
+#define UNIT_V_SCOPE   (UNIT_V_UF + 2)
 #define UNIT_OUTPUT    (3 << UNIT_V_OUTPUT)
 #define UNIT_S1        (0 << UNIT_V_OUTPUT)  /* 1013 Z25Z */
 #define UNIT_Z11       (1 << UNIT_V_OUTPUT)  /* 1014 V4H */
 #define UNIT_A11       (2 << UNIT_V_OUTPUT)  /* 1010 W1Z */
+#define UNIT_SCOPE     (1 << UNIT_V_SCOPE)
 
 /* Debug */
 #define DBG_DEVICE      0001 /* Audio device events. */
@@ -81,6 +83,8 @@ static MTAB mus_mod[] = {
   { UNIT_OUTPUT, UNIT_S1,  "S1",  "S1",  NULL, NULL, "S bit 1" },
   { UNIT_OUTPUT, UNIT_Z11, "Z11", "Z11", NULL, NULL, "Z bit 11" },
   { UNIT_OUTPUT, UNIT_A11, "A11", "A11", NULL, NULL, "A bit 11" },
+  { UNIT_SCOPE,  UNIT_SCOPE, "SCOPE",   "SCOPE",   NULL, NULL, "Sound scope" },
+  { UNIT_SCOPE,  0,          "NOSCOPE", "NOSCOPE", NULL, NULL, "No scope" },
   { 0 }
 };
 
@@ -110,6 +114,11 @@ static SDL_AudioDeviceID mus_audio = 0;
 static float buffer_index;
 static uint8 queue_buffer[WANT_FREQUENCY];
 static int sleep_min = 10000, sleep_max = 0;
+static VID_DISPLAY *mus_scope = NULL;
+static unsigned scope_x = 0;
+static int scope_width = 512;
+static uint32 scope_line[256];
+static uint8 scope_x0 = 0;
 
 static t_stat mus_show_devices(FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 {
@@ -130,6 +139,33 @@ static t_stat mus_show_devices(FILE *st, UNIT *uptr, int32 val, CONST void *desc
   return SCPE_OK;
 }
 
+static void mus_quit(VID_DISPLAY *vptr)
+{
+  if (vptr != mus_scope || mus_scope == NULL)
+    return;
+  mus_unit.flags &= ~UNIT_SCOPE;
+}
+
+static void mus_refresh(void)
+{
+  t_stat stat;
+
+  if (mus_scope == NULL && (mus_unit.flags & UNIT_SCOPE) != 0) {
+    stat = vid_open_window(&mus_scope, &mus_dev, "Sound", scope_width, 256, 0);
+    if (stat != SCPE_OK) {
+      sim_printf("Could not open audio scope.\n");
+      mus_scope = NULL;
+    }
+    vid_register_close_callback(mus_scope, mus_quit);
+  } else if (mus_scope != NULL && (mus_unit.flags & UNIT_SCOPE) == 0) {
+    vid_close_window(mus_scope);
+    mus_scope = NULL;
+  }
+
+  if (mus_scope != NULL)
+    vid_refresh_window(mus_scope);
+}
+
 static t_stat mus_svc(UNIT *uptr)
 {
   static int counter = 0;
@@ -146,6 +182,8 @@ static t_stat mus_svc(UNIT *uptr)
     sleep_max = 0;
   }
 
+  mus_refresh();
+
   return sim_activate_after(uptr, 1000000/TMR_HZ);
 }
 
@@ -155,6 +193,9 @@ static t_stat mus_reset(DEVICE *dptr)
 
   if (dptr->flags & DEV_DIS) {
     mus_detach(&mus_unit);
+    if (mus_scope)
+      vid_close_window(mus_scope);
+    mus_scope = NULL;
   } else {
     if (sim_idle_enab)
       return sim_messagef(SCPE_OPENERR, "The MUS device does not work with idling.\n");
@@ -265,6 +306,27 @@ static void mus_throttle(Uint32 queued)
   sim_os_ms_sleep(ms);
 }
 
+static void mus_draw(void)
+{
+  uint8 x;
+  int i, j;
+
+  if (mus_scope == NULL)
+    return;
+
+  for (i = 0; i < queue_samples; i++) {
+    uint8 x0 = 255 - MAX(scope_x0, queue_buffer[i]);
+    uint8 x1 = 255 - MIN(scope_x0, queue_buffer[i]);
+    for (j = 0; j < 256; j++) {
+      x = (j >= x0 && j <= x1) ? 255 : 0;
+      scope_line[j] = vid_map_rgba_window(mus_scope, 0, x, 0, 255);
+    }
+    vid_draw_window(mus_scope, scope_x, 0, 1, 256, scope_line);
+    scope_x0 = queue_buffer[i];
+    scope_x = (scope_x + 1) % scope_width;
+  }
+}
+
 static void mus_queue()
 {
   int n;
@@ -280,6 +342,8 @@ static void mus_queue()
     sim_printf("SDL_QueueAudio error: %s\n", SDL_GetError());
     return;
   }
+
+  mus_draw();
 
   sim_debug(DBG_QUEUE, &mus_dev, "Queue %d ms to buffer.\n",
             1000 * queue_samples / frequency);
