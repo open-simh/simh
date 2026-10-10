@@ -929,6 +929,7 @@ switch (rg) {
     case MT_TODR:                                       /* TODR */
         sim_debug (DBG_TODR, &sysd_dev, "WriteIPR(val=0x%X)\n", val);
         todr_wr (val);
+        sim_rtcn_catchup_cancel (TMR_CLK);              /* the time was set */
         break;
 
     case MT_CSRS:                                       /* CSRS */
@@ -1385,6 +1386,7 @@ switch (rg) {
     case 0x1B:                                          /* TODR */
         sim_debug (DBG_TODR, &sysd_dev, "ssc_wr(val=0x%X)\n", val);
         todr_wr (val);
+        sim_rtcn_catchup_cancel (TMR_CLK);              /* the time was set */
         break;
 
     case 0x1C:                                          /* CSRS */
