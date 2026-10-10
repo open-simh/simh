@@ -84,6 +84,10 @@ The remaining upper case symbols:
 - `CASE G` - `:`.
 - `CASE Space` - `?`.
 
+Two control panel functions are mapped to keys:
+- `F2` is mapped to `START 20`.
+- `F4` is mapped to `START 400`.
+
 ### Teletype
 
 The TTY device implmenents a teletype for printing output.  When a

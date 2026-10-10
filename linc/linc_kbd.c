@@ -10,6 +10,7 @@
 #define KBD_Q     044  /* CASE Q moves up one page. */
 #define KBD_W     052  /* CASE W moves up one line. */
 
+#define P (*(uint16 *)cpu_reg[0].loc)
 #define A (*(uint16 *)cpu_reg[2].loc)
 #define paused (*(int *)cpu_reg[11].loc)
 
@@ -264,6 +265,12 @@ static void kbd_convert(uint32 key, VID_DISPLAY *vptr)
     // ˣ 75
     // : 76
     // ʸ 77
+  case SIM_KEY_F2:  /* START 20 */
+    P = 020;
+    break;
+  case SIM_KEY_F4:  /* START 400 */
+    P = 0400;
+    break;
   case SIM_KEY_F11:
     crt_toggle_fullscreen(vptr);
     return;
