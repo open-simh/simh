@@ -193,6 +193,8 @@ t_stat vid_open (DEVICE *dptr, const char *title, uint32 width, uint32 height, i
 #define SIM_VID_RESIZABLE           4                       /* video screen is resizable */
 typedef void (*VID_QUIT_CALLBACK)(void);
 t_stat vid_register_quit_callback (VID_QUIT_CALLBACK callback);
+typedef void (*VID_CLOSE_CALLBACK)(VID_DISPLAY *vptr);
+t_stat vid_register_close_callback (VID_DISPLAY *vptr, VID_CLOSE_CALLBACK callback);
 typedef void (*VID_GAMEPAD_CALLBACK)(int, int, int);
 t_stat vid_register_gamepad_motion_callback (VID_GAMEPAD_CALLBACK);
 t_stat vid_register_gamepad_button_callback (VID_GAMEPAD_CALLBACK);

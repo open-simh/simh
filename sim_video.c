@@ -379,6 +379,7 @@ t_bool vid_blending;
 SDL_Rect *vid_dst_last;
 SDL_Rect vid_rect;
 uint32 *vid_data_last;
+VID_CLOSE_CALLBACK vid_close_callback;
 };
 
 SDL_Thread *vid_thread_handle = NULL;                   /* event thread handle */
@@ -484,6 +485,12 @@ sim_messagef (SCPE_OK,
 "version %d.%d.%d.\n", ver.major, ver.minor, ver.patch);
 
 return NULL;
+}
+
+t_stat vid_register_close_callback (VID_DISPLAY *vptr, VID_CLOSE_CALLBACK callback)
+{
+vptr->vid_close_callback = callback;
+return SCPE_OK;
 }
 
 static t_bool vid_push_event (const VID_DISPLAY *vptr, const char *fn, SDL_Event *event)
@@ -753,6 +760,7 @@ if (!vid_active) {
 }
 
 vptr->vid_dev = dptr;
+vptr->vid_close_callback = NULL;
 
 memset (motion_callback, 0, sizeof motion_callback);
 memset (button_callback, 0, sizeof button_callback);
@@ -2130,6 +2138,10 @@ while (vid_active) {
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                             vid_update (vptr);
                             break;
+                        case SDL_WINDOWEVENT_CLOSE:
+                            if (vptr->vid_close_callback)
+                                vptr->vid_close_callback (vptr);
+                            break;
                         default:
                             sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "Did not handle window event: %d - %s\n", event.window.event, windoweventtypes[event.window.event]);
                             break;
@@ -2238,7 +2250,10 @@ while (vid_active) {
                     }
                 break;
             case SDL_QUIT:
-                sim_debug (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR, vptr0->vid_dev, "vid_thread() - QUIT Event - %s\n", vid_quit_callback ? "Signaled" : "Ignored");
+                vptr = vid_get_event_window (&event, event.window.windowID);
+                sim_debug (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR, vptr->vid_dev, "vid_thread() - QUIT Event - %s\n", vid_quit_callback || vptr->vid_close_callback ? "Signaled" : "Ignored");
+                if (vptr->vid_close_callback)
+                    vptr->vid_close_callback (vptr);
                 if (vid_quit_callback)
                     vid_quit_callback ();
                 break;
