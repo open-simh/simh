@@ -139,6 +139,7 @@ Options for the MUS device:
 - `Z11` - sample Z bit 11 (the most significant bit); this is the default.
 - `S1` - sample S bit 1.
 - `A11` - sample A bit 11; this is for compatability with the LINC-8 and PDP-12.
+- `SCOPE` or `NOSCOPE` - display the sound.
 
 ### CPU
 
