@@ -4,10 +4,22 @@
 /* Debug */
 #define DBG   0001
 
+#define KBD_CASE  023  /* Shift key. */
+#define KBD_0     000  /* CASE 0 moves down one page. */
+#define KBD_1     001  /* CASE 1 moves down one line. */
+#define KBD_Q     044  /* CASE Q moves up one page. */
+#define KBD_W     052  /* CASE W moves up one line. */
+
+#define P (*(uint16 *)cpu_reg[0].loc)
 #define A (*(uint16 *)cpu_reg[2].loc)
 #define paused (*(int *)cpu_reg[11].loc)
 
+static t_stat kbd_svc(UNIT *uptr);
 static t_stat kbd_reset(DEVICE *dptr);
+
+static UNIT kbd_unit = {
+  UDATA(&kbd_svc, UNIT_IDLE, 0)
+};
 
 static DEBTAB kbd_deb[] = {
   { "DBG", DBG },
@@ -15,8 +27,8 @@ static DEBTAB kbd_deb[] = {
 };
 
 DEVICE kbd_dev = {
-  "KBD", NULL, NULL, NULL,
-  0, 8, 12, 1, 8, 12,
+  "KBD", &kbd_unit, NULL, NULL,
+  1, 8, 12, 1, 8, 12,
   NULL, NULL, &kbd_reset,
   NULL, NULL, NULL, NULL, DEV_DEBUG, 0, kbd_deb,
   NULL, NULL, NULL, NULL, NULL, NULL
@@ -41,6 +53,24 @@ CASE  0  1  2  3  4  5  6  7  8  9 DEL
 
 static int kbd_pressed = 0;
 static uint16 kbd_code;
+static uint16 kbd_stroke[3];
+static uint16 kbd_strokes = 0;
+
+static t_stat kbd_svc(UNIT *uptr)
+{
+  if (kbd_strokes == 0 || kbd_pressed) {
+    sim_activate(&kbd_unit, 3000);
+    return SCPE_OK;
+  }
+
+  sim_debug(DBG, &kbd_dev, "Key struck %02o\n", kbd_code);
+  kbd_pressed = 1;
+  kbd_strokes--;
+  kbd_code = kbd_stroke[0];
+  memmove(&kbd_stroke[0], &kbd_stroke[1],
+          sizeof kbd_stroke - sizeof kbd_stroke[0]);
+  return SCPE_OK;
+}
 
 int kbd_struck(void)
 {
@@ -54,6 +84,7 @@ uint16 kbd_key(uint16 wait)
   if (kbd_pressed) {
     sim_debug(DBG, &kbd_dev, "KEY %02o\n", kbd_code);
     kbd_pressed = 0;
+    sim_activate(&kbd_unit, 1);
     return kbd_code;
   } else if (wait) {
     sim_debug(DBG, &kbd_dev, "KEY paused\n");
@@ -62,15 +93,15 @@ uint16 kbd_key(uint16 wait)
   return 0;
 }
 
-static void kbd_convert(uint32 key)
+static void kbd_convert(uint32 key, VID_DISPLAY *vptr)
 {
   switch (key) {
   case SIM_KEY_0: /* 0 Q */
   case SIM_KEY_BACKQUOTE:
-    kbd_code = 000;
+    kbd_code = KBD_0;
     break;
   case SIM_KEY_1: /* 1 R */
-    kbd_code = 001;
+    kbd_code = KBD_1;
     break;
   case SIM_KEY_2: /* 2 S */
     kbd_code = 002;
@@ -129,7 +160,8 @@ static void kbd_convert(uint32 key)
     break;
   case SIM_KEY_SHIFT_L: /* CASE _ */
   case SIM_KEY_SHIFT_R:
-    kbd_code = 023;
+  case SIM_KEY_ESC:
+    kbd_code = KBD_CASE;
     break;
   case SIM_KEY_A: /* A " */
   case SIM_KEY_SINGLE_QUOTE:
@@ -183,7 +215,7 @@ static void kbd_convert(uint32 key)
     kbd_code = 043;
     break;
   case SIM_KEY_Q: /* Q */
-    kbd_code = 044;
+    kbd_code = KBD_Q;
     break;
   case SIM_KEY_R: /* R */
     kbd_code = 045;
@@ -201,7 +233,7 @@ static void kbd_convert(uint32 key)
     kbd_code = 051;
     break;
   case SIM_KEY_W: /* W */
-    kbd_code = 052;
+    kbd_code = KBD_W;
     break;
   case SIM_KEY_X: /* X */
     kbd_code = 053;
@@ -233,9 +265,35 @@ static void kbd_convert(uint32 key)
     // ˣ 75
     // : 76
     // ʸ 77
+  case SIM_KEY_F2:  /* START 20 */
+    P = 020;
+    break;
+  case SIM_KEY_F4:  /* START 400 */
+    P = 0400;
+    break;
   case SIM_KEY_F11:
-    crt_toggle_fullscreen();
+    crt_toggle_fullscreen(vptr);
     return;
+  case SIM_KEY_UP:
+    kbd_code = KBD_CASE;
+    kbd_stroke[0] = KBD_W;
+    kbd_strokes = 1;
+    break;
+  case SIM_KEY_DOWN:
+    kbd_code = KBD_CASE;
+    kbd_stroke[0] = KBD_1;
+    kbd_strokes = 1;
+    break;
+  case SIM_KEY_PAGE_UP:
+    kbd_code = KBD_CASE;
+    kbd_stroke[0] = KBD_Q;
+    kbd_strokes = 1;
+    break;
+  case SIM_KEY_PAGE_DOWN:
+    kbd_code = KBD_CASE;
+    kbd_stroke[0] = KBD_0;
+    kbd_strokes = 1;
+    break;
   default:
     return;
   }
@@ -243,25 +301,30 @@ static void kbd_convert(uint32 key)
             vid_key_name(key), kbd_code);
   if (paused)
     A = kbd_code;
-  else
+  else {
     kbd_pressed = 1;
+    sim_cancel(&kbd_unit);
+  }
   paused = 0;
 }
 
-static int
+void
 kbd_event(SIM_KEY_EVENT *ev)
 {
-  if (ev->state == SIM_KEYPRESS_DOWN)
-    kbd_convert(ev->key);
-  return 0;
+  if (ev->state == SIM_KEYPRESS_DOWN) {
+    sim_debug(DBG, &kbd_dev, "Key pressed, window %p\n", ev->vptr);
+    kbd_convert(ev->key, ev->vptr);
+  }
 }
 
 static t_stat
 kbd_reset(DEVICE *dptr)
 {
-#ifdef USE_DISPLAY
-  vid_display_kb_event_process = kbd_event;
-#endif
-
+  if (dptr->flags & DEV_DIS) {
+    sim_cancel(&kbd_unit);
+  } else {
+    if (!sim_is_active(&kbd_unit))
+      sim_activate(&kbd_unit, 1);
+  }
   return SCPE_OK;
 }

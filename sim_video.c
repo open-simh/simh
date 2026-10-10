@@ -379,6 +379,7 @@ t_bool vid_blending;
 SDL_Rect *vid_dst_last;
 SDL_Rect vid_rect;
 uint32 *vid_data_last;
+VID_CLOSE_CALLBACK vid_close_callback;
 };
 
 SDL_Thread *vid_thread_handle = NULL;                   /* event thread handle */
@@ -486,6 +487,26 @@ sim_messagef (SCPE_OK,
 return NULL;
 }
 
+t_stat vid_register_close_callback (VID_DISPLAY *vptr, VID_CLOSE_CALLBACK callback)
+{
+vptr->vid_close_callback = callback;
+return SCPE_OK;
+}
+
+static t_bool vid_push_event (const VID_DISPLAY *vptr, const char *fn, SDL_Event *event)
+{
+const char *dname = vptr == NULL ? "VIDEO" : vid_dname(vptr->vid_dev);
+int wait_count = 0;
+int error;
+while ((error = SDL_PushEvent (event)) == -1 && (++wait_count < 20))
+    sim_os_ms_sleep (10);
+if (wait_count > 1)
+    sim_printf ("%s: %s() SDL_PushEvent delayed for %d ms.\n", dname, fn, 10 * wait_count);
+if (error < 0)
+    sim_printf ("%s: %s() SDL_PushEvent error: %s\n", dname, fn, SDL_GetError());
+return error >= 0;
+}
+
 #if defined (SDL_MAIN_AVAILABLE)
 #if defined (main)
 #undef main
@@ -591,7 +612,7 @@ user_event.type = SDL_USEREVENT;
 user_event.user.code = EVENT_OPEN;
 user_event.user.data1 = vptr;
 user_event.user.data2 = NULL;
-SDL_PushEvent (&user_event);
+vid_push_event (vptr, "vid_create_window", &user_event);
 
 while ((!vptr->vid_ready) && (++wait_count < 20))
     sim_os_ms_sleep (100);
@@ -615,7 +636,7 @@ else {
     user_event.user.code = EVENT_OPEN;
     user_event.user.data1 = vptr;
     user_event.user.data2 = NULL;
-    SDL_PushEvent (&user_event);
+    vid_push_event (vptr, "vid_create_window", &user_event);
     }
 
 if (vid_thread_handle == NULL) {
@@ -739,6 +760,7 @@ if (!vid_active) {
 }
 
 vptr->vid_dev = dptr;
+vptr->vid_close_callback = NULL;
 
 memset (motion_callback, 0, sizeof motion_callback);
 memset (button_callback, 0, sizeof button_callback);
@@ -790,8 +812,7 @@ if (vptr->vid_ready) {
     user_event.user.data1 = NULL;
     user_event.user.data2 = NULL;
 
-    while (SDL_PushEvent (&user_event) < 0)
-        sim_os_ms_sleep (10);
+    vid_push_event (vptr, "vid_close", &user_event);
     vptr->vid_dev = NULL;
     }
 if (vid_thread_handle && vid_active <= 1) {
@@ -897,6 +918,8 @@ void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uin
 SDL_Event user_event;
 SDL_Rect *vid_dst, *last;
 uint32 *vid_data;
+int wait_count = 0;
+int error;
 
 sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "vid_draw(%d, %d, %d, %d)\n", x, y, w, h);
 
@@ -936,8 +959,7 @@ SDL_LockMutex (vptr->vid_draw_mutex);         /* protect vid_dst_last & vid_data
 vptr->vid_dst_last = vid_dst;
 vptr->vid_data_last = vid_data;
 SDL_UnlockMutex (vptr->vid_draw_mutex);       /* done protection */
-if (SDL_PushEvent (&user_event) < 0) {
-    sim_printf ("%s: vid_draw() SDL_PushEvent error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
+if (!vid_push_event (vptr, "vid_draw", &user_event)) {
     free (vid_dst);
     free (vid_data);
     }
@@ -976,8 +998,7 @@ user_event.user.code = EVENT_CURSOR;
 user_event.user.data1 = cursor;
 user_event.user.data2 = (void *)((size_t)visible);
 
-if (SDL_PushEvent (&user_event) < 0) {
-    sim_printf ("%s: vid_set_cursor() SDL_PushEvent error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
+if (!vid_push_event (vptr, "vid_set_cursor", &user_event)) {
     SDL_FreeCursor (cursor);
     }
 
@@ -1028,8 +1049,7 @@ if ((x_delta) || (y_delta)) {
         user_event.user.data1 = NULL;
         user_event.user.data2 = NULL;
 
-        if (SDL_PushEvent (&user_event) < 0)
-            sim_printf ("%s: vid_set_cursor_position() SDL_PushEvent error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
+        vid_push_event (vptr, "vid_set_cursor_position", &user_event);
         sim_debug (SIM_VID_DBG_CURSOR, vptr->vid_dev, "vid_set_cursor_position() - Warp Queued\n");
         }
     else {
@@ -1046,6 +1066,8 @@ vid_set_cursor_position_window (&vid_first, x, y);
 void vid_refresh_window (VID_DISPLAY *vptr)
 {
 SDL_Event user_event;
+int wait_count = 0;
+int error;
 
 sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "vid_refresh() - Queueing Refresh Event\n");
 
@@ -1055,8 +1077,7 @@ user_event.user.code = EVENT_REDRAW;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
 
-if (SDL_PushEvent (&user_event) < 0)
-    sim_printf ("%s: vid_refresh() SDL_PushEvent error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
+vid_push_event (vptr, "vid_refresh", &user_event);
 }
 
 void vid_refresh (void)
@@ -1647,8 +1668,7 @@ user_event.user.code = EVENT_SIZE;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
 #if defined (SDL_MAIN_AVAILABLE)
-while (SDL_PushEvent (&user_event) < 0)
-    sim_os_ms_sleep (100);
+vid_push_event (vptr, "vid_set_window_size", &user_event);
 #else
     SDL_SetWindowSize(vptr->vid_window, w, h);
 #endif
@@ -1667,8 +1687,7 @@ user_event.user.code = EVENT_LOGICAL;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
 #if defined (SDL_MAIN_AVAILABLE)
-while (SDL_PushEvent (&user_event) < 0)
-    sim_os_ms_sleep (100);
+vid_push_event (vptr, "vid_render_set_logical_size", &user_event);
 #else
     SDL_RenderSetLogicalSize(vptr->vid_renderer, w, h);
 #endif
@@ -1694,8 +1713,7 @@ user_event.user.code = EVENT_FULLSCREEN;
 user_event.user.data1 = (flag) ? vptr : NULL;
 user_event.user.data2 = NULL;
 #if defined (SDL_MAIN_AVAILABLE)
-while (SDL_PushEvent (&user_event) < 0)
-    sim_os_ms_sleep (100);
+vid_push_event (vptr, "vid_set_fullscreen", &user_event);
 #else
 if (flag)
     SDL_SetWindowFullscreen (vptr->vid_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -2120,6 +2138,10 @@ while (vid_active) {
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                             vid_update (vptr);
                             break;
+                        case SDL_WINDOWEVENT_CLOSE:
+                            if (vptr->vid_close_callback)
+                                vptr->vid_close_callback (vptr);
+                            break;
                         default:
                             sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "Did not handle window event: %d - %s\n", event.window.event, windoweventtypes[event.window.event]);
                             break;
@@ -2228,7 +2250,10 @@ while (vid_active) {
                     }
                 break;
             case SDL_QUIT:
-                sim_debug (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR, vptr0->vid_dev, "vid_thread() - QUIT Event - %s\n", vid_quit_callback ? "Signaled" : "Ignored");
+                vptr = vid_get_event_window (&event, event.window.windowID);
+                sim_debug (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR, vptr->vid_dev, "vid_thread() - QUIT Event - %s\n", vid_quit_callback || vptr->vid_close_callback ? "Signaled" : "Ignored");
+                if (vptr->vid_close_callback)
+                    vptr->vid_close_callback (vptr);
                 if (vid_quit_callback)
                     vid_quit_callback ();
                 break;
@@ -2591,8 +2616,7 @@ user_event.user.code = EVENT_SHOW;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
 #if defined (SDL_MAIN_AVAILABLE)
-while (SDL_PushEvent (&user_event) < 0)
-    sim_os_ms_sleep (10);
+vid_push_event (NULL, "vid_show_video", &user_event);
 #else
 vid_show_video_event ();
 #endif
@@ -2699,8 +2723,7 @@ user_event.user.code = EVENT_SCREENSHOT;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
 #if defined (SDL_MAIN_AVAILABLE)
-while (SDL_PushEvent (&user_event) < 0)
-    sim_os_ms_sleep (10);
+vid_push_event (NULL, "vid_screenshot", &user_event);
 #else
 vid_screenshot_event ();
 #endif
@@ -2784,8 +2807,7 @@ user_event.user.code = EVENT_BEEP;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
 #if defined (SDL_MAIN_AVAILABLE)
-while (SDL_PushEvent (&user_event) < 0)
-    sim_os_ms_sleep (10);
+vid_push_event (NULL, "vid_beep", &user_event);
 #else
 vid_beep_event ();
 #endif

@@ -139,6 +139,7 @@
     <ClCompile Include="..\linc\linc_crt.c" />
     <ClCompile Include="..\linc\linc_dpy.c" />
     <ClCompile Include="..\linc\linc_kbd.c" />
+    <ClCompile Include="..\linc\linc_sam.c" />
     <ClCompile Include="..\linc\linc_sys.c" />
     <ClCompile Include="..\linc\linc_tape.c" />
     <ClCompile Include="..\linc\linc_tty.c" />

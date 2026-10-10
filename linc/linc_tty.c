@@ -27,6 +27,7 @@
 
 /* Function declaration. */
 static t_stat tty_svc(UNIT *uptr);
+static t_stat tty_reset(DEVICE *dptr);
 static t_stat tty_attach(UNIT *uptr, CONST char *cptr);
 static t_stat tty_detach(UNIT *uptr);
 
@@ -43,7 +44,7 @@ static DEBTAB tty_deb[] = {
 DEVICE tty_dev = {
   "TTY", &tty_unit, NULL, NULL,
   1, 8, 12, 1, 8, 12,
-  NULL, NULL, NULL,
+  NULL, NULL, &tty_reset,
   NULL, &tty_attach, &tty_detach,
   NULL, DEV_DISABLE | DEV_DEBUG, 0, tty_deb,
   NULL, NULL, NULL, NULL, NULL, NULL
@@ -59,11 +60,13 @@ static void tty_output(UNIT *uptr)
 
 static t_stat tty_svc(UNIT *uptr)
 {
+  uint16 bit = R & 1;
+
   switch (uptr->STATE) {
   case STATE_START:
-    if (uptr->PREVIOUS == 0 || (R & 1) == 1) {
+    if (uptr->PREVIOUS == 0 || bit == 1) {
       /* Keep looking for start bit. */
-      uptr->PREVIOUS = R & 1;
+      uptr->PREVIOUS = bit;
       sim_activate(uptr, START_TIME);
       return SCPE_OK;
     }
@@ -79,19 +82,19 @@ static t_stat tty_svc(UNIT *uptr)
 
   default:
     sim_debug(DBG_BIT, &tty_dev, "Data bit %d is %d\n",
-              STATE_FIRST - 1 - uptr->STATE, R & 1);
+              STATE_FIRST - 1 - uptr->STATE, bit);
     uptr->DATA >>= 1;
-    uptr->DATA |= (R & 1) << 7;
+    uptr->DATA |= bit << 7;
     sim_activate(uptr, BIT_TIME);
     break;
 
   case STATE_STOP:
-    sim_debug(DBG_BIT, &tty_dev, "Stop bit is %d\n", R & 1);
-    if (R & 1)
+    sim_debug(DBG_BIT, &tty_dev, "Stop bit is %d\n", bit);
+    if (bit)
       tty_output(uptr);
     else
       sim_debug(DBG, &tty_dev, "Framing error.\n");
-    uptr->PREVIOUS = R & 1;
+    uptr->PREVIOUS = bit;
     /* Look for next start bit. */
     sim_activate(uptr, START_TIME);
     break;
@@ -101,6 +104,14 @@ static t_stat tty_svc(UNIT *uptr)
      the stop bit, and finally the start bit. */
   uptr->STATE--;
   return SCPE_OK;
+}
+
+static t_stat tty_reset(DEVICE *dptr)
+{
+  if ((tty_unit.flags & UNIT_ATT) != 0 && !sim_is_active(&tty_unit))
+    sim_activate(&tty_unit, 1);
+  return SCPE_OK;
+  
 }
 
 static t_stat tty_attach(UNIT *uptr, CONST char *cptr)

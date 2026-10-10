@@ -537,6 +537,7 @@ static void cpu_mul(void)
     A = product & 03777;
   if (L)
     A ^= 07777;
+  Z = (product << 1) & WMASK;
 }
 
 static void cpu_ldh(void)
@@ -649,6 +650,9 @@ static void cpu_jmp(void)
 static void
 cpu_insn(void)
 {
+  if (history)
+    history[history_i].P = P;
+
   /* Cycle 0, or I. */
   cpu_fetch();
   if (!DO)
@@ -659,7 +663,6 @@ cpu_insn(void)
     cpu_indexing();
 
   if (history) {
-    history[history_i].P = P;
     history[history_i].C = C;
     history[history_i].S = S;
   }
@@ -891,6 +894,7 @@ t_stat sim_instr(void)
   if (sim_step)
     sim_step++;
 
+  crt_svc_stat = SCPE_OK;
   stop_reason = 0;
   paused = 0;
   PINFF = 0;

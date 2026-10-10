@@ -1749,7 +1749,7 @@ IMLAC_OPT = -I ${IMLACD} ${DISPLAY_OPT} ${AIO_CCDEFS}
 
 LINCD = ${SIMHD}/linc
 LINC = ${LINCD}/linc_cpu.c ${LINCD}/linc_crt.c ${LINCD}/linc_dpy.c \
-	${LINCD}/linc_kbd.c ${LINCD}/linc_sys.c \
+	${LINCD}/linc_kbd.c ${LINCD}/linc_sam.c ${LINCD}/linc_sys.c \
 	${LINCD}/linc_tape.c ${LINCD}/linc_tty.c ${DISPLAYL}
 LINC_OPT = -I ${LINCD} ${DISPLAY_OPT} ${AIO_CCDEFS}
 
