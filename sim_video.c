@@ -1720,50 +1720,25 @@ t_stat vid_set_fullscreen (t_bool flag)
 return vid_set_fullscreen_window (&vid_first, flag);
 }
 
-static void vid_stretch(VID_DISPLAY *vptr, SDL_Rect *r)
-{
-/* Return in r a rectangle with the same aspect ratio as the video
-   buffer but scaled to fit precisely in the output window.  Normally,
-   the buffer and the window have the same sizes, but if the window is
-   resized, or fullscreen is in effect, they are not. */
-int w, h;
-SDL_GetRendererOutputSize(vptr->vid_renderer, &w, &h);
-if ((double)h / vptr->vid_height < (double)w / vptr->vid_width) {
-    r->w = vptr->vid_width * h / vptr->vid_height;
-    r->h = h;
-    r->x = (w - r->w) / 2;
-    r->y = 0;
-    }
-else {
-    r->w = w;
-    r->h = vptr->vid_height * w / vptr->vid_width;
-    r->x = 0;
-    r->y = (h - r->h) / 2;
-    }
-if (vptr->vid_flags & SIM_VID_IGNORE_VBAR) {
-    r->w = w;
-    r->h = h;
-    r->x = 0;
-    r->y = 0;
-    }
-}
-
 void vid_update (VID_DISPLAY *vptr)
 {
 SDL_Rect vid_dst;
-vid_stretch(vptr, &vid_dst);
+
+vid_dst.x = 0;
+vid_dst.y = 0;
+vid_dst.w = vptr->vid_width;
+vid_dst.h = vptr->vid_height;
+
 sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "Video Update Event: \n");
 if (sim_deb)
     fflush (sim_deb);
-if (vptr->vid_blending)
-    SDL_RenderPresent (vptr->vid_renderer);
-else {
+if (!vptr->vid_blending) {
     if (SDL_RenderClear (vptr->vid_renderer))
         sim_printf ("%s: Video Update Event: SDL_RenderClear error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
     if (SDL_RenderCopy (vptr->vid_renderer, vptr->vid_texture, NULL, &vid_dst))
         sim_printf ("%s: Video Update Event: SDL_RenderCopy error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
-    SDL_RenderPresent (vptr->vid_renderer);
     }
+SDL_RenderPresent (vptr->vid_renderer);
 }
 
 void vid_update_cursor (VID_DISPLAY *vptr, SDL_Cursor *cursor, t_bool visible)
@@ -1805,13 +1780,10 @@ if (vid_dst == vptr->vid_dst_last) {
     }
 SDL_UnlockMutex (vptr->vid_draw_mutex);
 
-if (vptr->vid_blending) {
-    SDL_UpdateTexture(vptr->vid_texture, vid_dst, buf, vid_dst->w*sizeof(*buf));
+if (SDL_UpdateTexture(vptr->vid_texture, vid_dst, buf, vid_dst->w*sizeof(*buf)))
+    sim_printf ("%s: vid_draw_region() - SDL_UpdateTexture error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
+if (vptr->vid_blending)
     SDL_RenderCopy (vptr->vid_renderer, vptr->vid_texture, vid_dst, vid_dst);
-    }
-else
-    if (SDL_UpdateTexture(vptr->vid_texture, vid_dst, buf, vid_dst->w*sizeof(*buf)))
-        sim_printf ("%s: vid_draw_region() - SDL_UpdateTexture error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
 
 free (vid_dst);
 free (buf);
@@ -1827,6 +1799,9 @@ if ((vptr->vid_window == NULL) || (vptr->vid_renderer == NULL)) {
     SDL_Quit ();
     return 0;
     }
+
+/* Ensure SDL automatically does any scaling for full screen mode. */
+SDL_RenderSetLogicalSize(vptr->vid_renderer, vptr->vid_width, vptr->vid_height);
 
 vptr->vid_draw_mutex = SDL_CreateMutex();
 
@@ -1911,8 +1886,6 @@ switch (mode) {
         return SCPE_ARG;
     }
 if (SDL_SetTextureBlendMode (vptr->vid_texture, x))
-    return SCPE_IERR;
-if (SDL_SetRenderDrawBlendMode (vptr->vid_renderer, x))
     return SCPE_IERR;
 return SCPE_OK;
 }
