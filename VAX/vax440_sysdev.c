@@ -584,7 +584,7 @@ return;
 int32 invfl_rd (int32 pa)
 {
 int32 rg = (pa - 0x20200000) >> 2;
-return invfl[rg];
+return invfl[rg] & 0xFFFF;                              /* 16 bits per entry */
 }
 
 void invfl_wr (int32 pa, int32 val, int32 lnt)
