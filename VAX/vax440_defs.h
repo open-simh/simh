@@ -158,7 +158,7 @@
 
 /* Network address ROM */
 
-#define NARAWIDTH       5                               /* NAR addr width */
+#define NARAWIDTH       7                               /* NAR addr width */
 #define NARSIZE         (1u << NARAWIDTH)               /* NAR length */
 #define NARAMASK        (NARSIZE - 1)                   /* NAR addr mask */
 #define NARBASE         0x20090000                      /* NAR base */
