@@ -617,13 +617,13 @@ else cache2ds[rg] = val;
 
 int32 cache2ts_rd (int32 pa)
 {
-int32 rg = (pa - 0x22000000) >> 2;
+int32 rg = (pa - 0x2D000000) >> 2;
 return cache2ts[rg];
 }
 
 void cache2ts_wr (int32 pa, int32 val, int32 lnt)
 {
-int32 rg = (pa - 0x22000000) >> 2;
+int32 rg = (pa - 0x2D000000) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
     int32 sc = (pa & 3) << 3;                           /* merge */
     int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
@@ -647,7 +647,7 @@ WriteL (ka_mapbase + rg, val);
 
 int32 sccr_rd (int32 pa)
 {
-return SCCR & SCCR_RD;
+return (SCCR & SCCR_RD) | SCCR_REV;                    /* DC7203 revision B */
 }
 
 void sccr_wr (int32 pa, int32 val, int32 lnt)
@@ -740,7 +740,7 @@ struct reglink regtable[] = {
     { 0x23000000, 0x23000004, &sccr_rd, &sccr_wr },
     { 0x36800000, 0x36800004, &null_rd, &null_wr },     /* Turbo CSR */
     { 0x08000000, 0x08040000, &cache2ds_rd, &cache2ds_wr },  /* Cache second data store */
-    { 0x22000000, 0x22040000, &cache2ts_rd, &cache2ts_wr },  /* Cache second tag store - should be at 0x2D000000? */
+    { 0x2D000000, 0x2D040000, &cache2ts_rd, &cache2ts_wr },  /* Cache second tag store (DC7203 rev B) */
     { 0x20101800, 0x20101810, &memrg_rd, &memrg_wr },
     { 0x20101A00, 0x20102000, NULL, &null_wr },         /* invalidate single - check size */
     { ROMBASE, ROMBASE+ROMSIZE, &rom_rd, NULL },
