@@ -125,6 +125,7 @@ const char *dz_stopbits[] = {"1", "2", "1", "1.5"};
 #define LPR_GETSTOPBITS(x) dz_stopbits[(((x) >> LPR_V_STOPBITS) & 1) + (((((x) & LPR_M_CHARSIZE) >> LPR_V_CHARSIZE) == 0) ? 2 : 0)]
 #define LPR_LPAR        0x0FF8                          /* line pars - NI */
 #define LPR_RCVE        0x1000                          /* receive enb */
+#define LPR_RD          0x1FCB                          /* bits read back per line */
 #define LPR_GETLN(x)    (((x) >> LPR_V_LINE) & DZ_LNOMASK)
 
 BITFIELD dz_lpr_bits[] = {
@@ -195,6 +196,7 @@ extern int32 tmxr_poll;                                 /* calibrated delay */
 uint16 dz_csr = 0;                                      /* csr */
 uint16 dz_rbuf = 0;                                     /* rcv buffer */
 uint16 dz_lpr = 0;                                      /* line param */
+uint16 dz_lprs[DZ_LINES] = { 0 };                       /* line params, per line */
 uint16 dz_tcr = 0;                                      /* xmit control */
 uint16 dz_msr = 0;                                      /* modem status */
 uint16 dz_tdr = 0;                                      /* xmit data */
@@ -265,6 +267,7 @@ REG dz_reg[] = {
     { HRDATADF (CSR,   dz_csr,         16, "control/status register", dz_csr_bits) },
     { HRDATADF (RBUF,  dz_rbuf,        16, "receive buffer",          dz_rbuf_bits) },
     { HRDATADF (LPR,   dz_lpr,         16, "line parameter register", dz_lpr_bits) },
+    { BRDATAD  (LPRS,  dz_lprs, 16, 16, DZ_LINES, "line parameters, per line") },
     { HRDATADF (TCR,   dz_tcr,         16, "transmission control register", dz_tcr_bits) },
     { HRDATADF (MSR,   dz_msr,         16, "modem status register",    dz_msr_bits) },
     { HRDATADF (TDR,   dz_tdr,         16, "transmit data register",   dz_tdr_bits) },
@@ -316,7 +319,7 @@ DEVICE dz_dev = {
 
 /* Register names for Debug tracing */
 static const char *dz_rd_regs[] =
-    {"CSR ", "RBUF", "TCR ", "MSR " };
+    {"CSR ", "RBUF", "TCR ", "MSR ", "LPR0", "LPR1", "LPR2", "LPR3" };
 static const char *dz_wr_regs[] = 
     {"CSR ", "LPR ", "TCR ", "TDR "};
 
@@ -326,7 +329,7 @@ int32 dz_rd (int32 pa)
 {
 int32 data = 0;
 
-switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
+switch ((pa >> 2) & 07) {                               /* case on PA<4:2> */
 
     case 00:                                            /* CSR */
         data = dz_csr = dz_csr & ~CSR_MBZ;
@@ -372,9 +375,13 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             }
         data = dz_msr;
         break;
+
+    case 04: case 05: case 06: case 07:                 /* LPR0-3 (where mapped) */
+        data = dz_lprs[(pa >> 2) & DZ_LNOMASK];
+        break;
         }
 
-sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], data=0x%X)\n", pa, dz_rd_regs[(pa >> 2) & 03], data);
+sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], data=0x%X)\n", pa, dz_rd_regs[(pa >> 2) & 07], data);
 
 SET_IRQL;
 return data;
@@ -406,6 +413,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
     case 01:                                            /* LPR */
         dz_lpr = data;
         line = LPR_GETLN (data);                        /* get line num */
+        dz_lprs[line] = data & LPR_RD;                  /* readable per line */
         lp = &dz_ldsc[line];                            /* get line desc */
         if (dz_lpr & LPR_RCVE)                          /* rcv enb? on */
             lp->rcve = 1;
@@ -456,6 +464,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
                     dz_char[line] = dz_char[line] | RBUF_FRME;
                 dz_csr &= ~CSR_TRDY;
                 sim_debug(DBG_REG, &dz_dev, "maint char for line %d : %X\n", line, dz_char[line]);
+                sim_activate_abs (&dz_unit[0], dz_unit[1].wait); /* received a char time later */
                 break;
                 }
             sim_activate (&dz_unit[1], 0);
@@ -577,7 +586,11 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
         if (dz_scnt >= DZ_SILO_ALM)
             break;
         c = 0;
-        if ((dz_func[line] == DZ_TMXR) && ((dz_csr & CSR_MAINT) == 0)) {
+        if (dz_csr & CSR_MAINT) {                       /* maintenance loopback? */
+            c = dz_char[line];                          /* char written to TDR */
+            dz_char[line] = 0;
+            }
+        else if (dz_func[line] == DZ_TMXR) {
             lp = &dz_ldsc[line];                        /* get line desc */
             c = tmxr_getc_ln (lp);                      /* test for input */
             if (c & SCPE_BREAK)                         /* break? frame err */
@@ -677,6 +690,8 @@ int32 i;
 dz_csr = 0;                                             /* clear CSR */
 dz_rbuf = 0;                                            /* silo empty */
 dz_lpr = 0;                                             /* no params */
+for (i = 0; i < DZ_LINES; i++)
+    dz_lprs[i] = 0;
 if (flag)                                               /* INIT? clr all */
     dz_tcr = 0;
 else dz_tcr &= ~0377;                                   /* else save dtr */
