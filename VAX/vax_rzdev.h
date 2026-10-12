@@ -209,7 +209,7 @@
 #define RZU_TYPE        SCSI_DISK
 #define RZU_PQUAL       0
 #define RZU_SCSI        2
-#define RZU_RM          TRUE
+#define RZU_RM          FALSE
 #define RZU_BLK         512
 #define RZU_LBN         236328                          /* from RZ23 */
 #define RZU_MANU        "SIMH"
