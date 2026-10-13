@@ -3037,7 +3037,8 @@ while (stat != SCPE_EXIT) {                             /* in case exit */
         sim_cptr_is_action[sim_do_depth] = FALSE;
         }
     if (cptr == NULL) {                                 /* EOF? or SIGINT? */
-        if (sim_ttisatty()) {
+        if (sim_ttisatty() &&
+            sim_fd_isatty (0)) {                        /* terminal not hung up? */
             printf ("\n");
             continue;                                   /* ignore tty EOF */
             }
