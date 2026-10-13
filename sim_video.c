@@ -1645,39 +1645,43 @@ if (SDL_SemWait (vid_mouse_events.sem) == 0) {
 
 void vid_set_window_size (VID_DISPLAY *vptr, int32 w, int32 h)
 {
+#if defined (SDL_MAIN_AVAILABLE)
 SDL_Event user_event;
+#endif
 
 vptr->vid_rect.h = h;
 vptr->vid_rect.w = w;
 
+#if defined (SDL_MAIN_AVAILABLE)
 user_event.type = SDL_USEREVENT;
 user_event.user.windowID = vptr->vid_windowID;
 user_event.user.code = EVENT_SIZE;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
-#if defined (SDL_MAIN_AVAILABLE)
 vid_push_event (vptr, "vid_set_window_size", &user_event);
 #else
-    SDL_SetWindowSize(vptr->vid_window, w, h);
+SDL_SetWindowSize(vptr->vid_window, w, h);
 #endif
 }
 
 void vid_render_set_logical_size (VID_DISPLAY *vptr, int32 w, int32 h)
 {
+#if defined (SDL_MAIN_AVAILABLE)
 SDL_Event user_event;
+#endif
 
 vptr->vid_rect.h = h;
 vptr->vid_rect.w = w;
 
+#if defined (SDL_MAIN_AVAILABLE)
 user_event.type = SDL_USEREVENT;
 user_event.user.windowID = vptr->vid_windowID;
 user_event.user.code = EVENT_LOGICAL;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
-#if defined (SDL_MAIN_AVAILABLE)
 vid_push_event (vptr, "vid_render_set_logical_size", &user_event);
 #else
-    SDL_RenderSetLogicalSize(vptr->vid_renderer, w, h);
+SDL_RenderSetLogicalSize(vptr->vid_renderer, w, h);
 #endif
 }
 
@@ -1693,6 +1697,7 @@ return vid_is_fullscreen_window (&vid_first);
 
 t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag)
 {
+#if defined (SDL_MAIN_AVAILABLE)
 SDL_Event user_event;
 
 user_event.type = SDL_USEREVENT;
@@ -1700,7 +1705,6 @@ user_event.user.windowID = vptr->vid_windowID;
 user_event.user.code = EVENT_FULLSCREEN;
 user_event.user.data1 = (flag) ? vptr : NULL;
 user_event.user.data2 = NULL;
-#if defined (SDL_MAIN_AVAILABLE)
 vid_push_event (vptr, "vid_set_fullscreen", &user_event);
 #else
 if (flag)
@@ -2584,7 +2588,9 @@ _show_stat = _vid_show_video (_show_st, _show_uptr, _show_val, _show_desc);
 
 t_stat vid_show_video (FILE* st, UNIT* uptr, int32 val, CONST void* desc)
 {
+#if defined (SDL_MAIN_AVAILABLE)
 SDL_Event user_event;
+#endif
 
 _show_stat = -1;
 _show_st = st;
@@ -2592,11 +2598,11 @@ _show_uptr = uptr;
 _show_val = val;
 _show_desc = desc;
 
+#if defined (SDL_MAIN_AVAILABLE)
 user_event.type = SDL_USEREVENT;
 user_event.user.code = EVENT_SHOW;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
-#if defined (SDL_MAIN_AVAILABLE)
 vid_push_event (NULL, "vid_show_video", &user_event);
 #else
 vid_show_video_event ();
@@ -2694,16 +2700,18 @@ free (name);
 
 t_stat vid_screenshot (const char *filename)
 {
+#if defined (SDL_MAIN_AVAILABLE)
 SDL_Event user_event;
+#endif
 
 _screenshot_stat = -1;
 _screenshot_filename = filename;
 
+#if defined (SDL_MAIN_AVAILABLE)
 user_event.type = SDL_USEREVENT;
 user_event.user.code = EVENT_SCREENSHOT;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
-#if defined (SDL_MAIN_AVAILABLE)
 vid_push_event (NULL, "vid_screenshot", &user_event);
 #else
 vid_screenshot_event ();
@@ -2781,13 +2789,13 @@ SDL_PauseAudio (0);                 /* Play sound */
 
 void vid_beep (void)
 {
+#if defined (SDL_MAIN_AVAILABLE)
 SDL_Event user_event;
 
 user_event.type = SDL_USEREVENT;
 user_event.user.code = EVENT_BEEP;
 user_event.user.data1 = NULL;
 user_event.user.data2 = NULL;
-#if defined (SDL_MAIN_AVAILABLE)
 vid_push_event (NULL, "vid_beep", &user_event);
 #else
 vid_beep_event ();
