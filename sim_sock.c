@@ -1013,6 +1013,7 @@ char host[CBUFSIZE], port[CBUFSIZE];
 int r;
 struct addrinfo hints;
 struct addrinfo *result = NULL, *preferred;
+int fallback = 0;
 
 r = sim_parse_addr (hostport, host, sizeof(host), NULL, port, sizeof(port), NULL, NULL);
 if (parse_status)
@@ -1035,9 +1036,14 @@ preferred = result;
 /*
     When we can create a dual stack socket, be sure to find the IPv6 addrinfo 
     to bind to.
+    That only works for the unspecified (wildcard) address: a socket bound
+    to a specific IPv6 address such as ::1 never accepts IPv4 connections.
+    So for a named host which resolves to both families (localhost) prefer
+    its IPv4 address, which IPv4-only clients need and dual stack clients
+    fall back to.
 */
 for (; preferred != NULL; preferred = preferred->ai_next) {
-    if (preferred->ai_family == AF_INET6)
+    if (preferred->ai_family == (host[0] ? AF_INET : AF_INET6))
         break;
     }
 if (preferred == NULL)
@@ -1052,10 +1058,21 @@ if (newsock == INVALID_SOCKET) {                        /* socket error? */
         goto retry;
         }
 #else
-    if ((preferred->ai_family == AF_INET6) &&
-        (preferred != result)) {
-        preferred = result;
-        goto retry;
+    /*
+        The host may lack the preferred address family (no IPv6, or a
+        process confined to IPv6): try the first address of the other
+        family, once.
+    */
+    if (!fallback) {
+        int family = preferred->ai_family;
+
+        fallback = 1;
+        for (preferred = result; preferred != NULL; preferred = preferred->ai_next) {
+            if (preferred->ai_family != family)
+                break;
+            }
+        if (preferred != NULL)
+            goto retry;
         }
 #endif
     p_freeaddrinfo(result);
