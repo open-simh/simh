@@ -807,6 +807,10 @@ t_stat cpu_do(void)
 {
   t_stat stat;
 
+  /* Ensure the SIMH console is in a state appropriate for
+     sim_poll_kbd.  Without this, the call will hang. */
+  sim_ttrun();
+
   DO = 1;
   C = LSW;
   cpu_set_B(RSW);
