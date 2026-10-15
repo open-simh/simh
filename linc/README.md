@@ -124,6 +124,9 @@ Options for the CRT units:
 The defaults for CRT0 are `ORANGE` and `CH0`.  The CRT1 defaults are
 `DISABLED`, `GREEN`, and `CH1`.
 
+For scripted interactions, `SET DPY TEXT` to convert characters on the
+scope to ASCII text.
+
 ### Music
 
 The MUS device samples a bit inside the machine state and plays it on

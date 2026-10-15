@@ -79,6 +79,7 @@ extern DEVICE tty_dev;
 extern t_bool build_dev_tab(void);
 extern t_stat cpu_do(void);
 extern void dpy_dis(uint16 h, uint16 x, uint16 y);
+extern void dpy_dsc(uint16 x, uint16 y, uint16 z);
 extern void crt_point(uint16 u, uint16 x, uint16 y);
 extern void crt_toggle_fullscreen(VID_DISPLAY *vptr);
 extern void kbd_event(SIM_KEY_EVENT *ev);
