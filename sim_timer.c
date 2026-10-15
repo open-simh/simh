@@ -226,8 +226,12 @@ typedef struct RTC {
     uint32 clock_catchup_ticks_curr;/* Record of catchups in this second */
     t_bool clock_catchup_pending;   /* clock tick catchup pending */
     t_bool clock_catchup_eligible;  /* clock tick catchup eligible */
+    uint32 clock_tick_rtime;        /* wall time of the most recent tick */
+    uint32 clock_tick_gap_time;     /* wall time in long gaps between ticks this second */
+    uint32 clock_tick_gaps;         /* number of long gaps between ticks this second */
     uint32 clock_time_idled;        /* total time idled */
     uint32 clock_time_idled_last;   /* total time idled as of the previous second */
+    uint32 clock_idle_past_us;      /* usecs idle sleeps ran past the tick this second */
     uint32 clock_calib_skip_idle;   /* Calibrations skipped due to idling */
     uint32 clock_calib_gap2big;     /* Calibrations skipped Gap Too Big */
     uint32 clock_calib_backwards;   /* Calibrations skipped Clock Running Backwards */
@@ -828,6 +832,10 @@ rtc->clock_catchup_eligible = FALSE;
 rtc->clock_catchup_ticks_tot += rtc->clock_catchup_ticks;
 rtc->clock_catchup_ticks = 0;
 rtc->clock_catchup_ticks_curr = 0;
+rtc->clock_tick_rtime = 0;                          /* the next tick measures no gap */
+rtc->clock_tick_gap_time = 0;
+rtc->clock_tick_gaps = 0;
+rtc->clock_idle_past_us = 0;
 rtc->calib_ticks_acked_tot += rtc->calib_ticks_acked;
 rtc->calib_ticks_acked = 0;
 ++rtc->calib_initializations;
@@ -846,6 +854,8 @@ return sim_rtcn_calb (rtc->hz, tmr);
 int32 sim_rtcn_calb (uint32 ticksper, int32 tmr)
 {
 uint32 new_rtime, delta_rtime, last_idle_pct, catchup_ticks_curr;
+uint32 tick_rtime, tick_gap, gap_rtime, gap_count, run_rtime;
+uint32 past_rtime;
 int32 delta_vtime;
 double new_gtime;
 int32 new_currd;
@@ -897,12 +907,37 @@ if (rtc->clock_catchup_pending) {                   /* catchup tick? */
     ++rtc->clock_catchup_ticks_curr;
     rtc->clock_catchup_pending = FALSE;
     }
+/* A gap between two ticks of more than five ticks (and at least 50 ms)   */
+/* is usually wall time in which the simulator did not run: the host     */
+/* stopped or descheduled the process.  It is accumulated so that the    */
+/* measurement of the instruction rate below can leave it out.           */
+tick_rtime = sim_os_msec ();                        /* wall time of this tick */
+if (rtc->clock_tick_rtime != 0) {
+    tick_gap = tick_rtime - rtc->clock_tick_rtime;
+    if (tick_gap > MAX(5000 / ticksper, 50)) {
+        rtc->clock_tick_gap_time += tick_gap - 1000 / ticksper;
+        ++rtc->clock_tick_gaps;
+        }
+    }
+rtc->clock_tick_rtime = tick_rtime;
 rtc->ticks += 1;                                    /* count ticks */
 if (rtc->ticks < ticksper)                          /* 1 sec yet? */
     return rtc->currd;
 catchup_ticks_curr = rtc->clock_catchup_ticks_curr;
 rtc->clock_catchup_ticks_curr = 0;
 rtc->ticks = 0;                                     /* reset ticks */
+gap_rtime = rtc->clock_tick_gap_time;               /* wall time lost this second */
+gap_count = rtc->clock_tick_gaps;
+rtc->clock_tick_gap_time = 0;
+rtc->clock_tick_gaps = 0;
+past_rtime = rtc->clock_idle_past_us / 1000;       /* msecs idled past ticks */
+rtc->clock_idle_past_us = 0;
+/* A stall is one long gap, and a busy host adds a few; when most ticks  */
+/* are far apart the simulator was running with an interval far too     */
+/* long (a console ROM after a restart, say), and the second is measured */
+/* whole.                                                                */
+if (gap_count > 5)
+    gap_rtime = 0;
 rtc->elapsed += 1;                                  /* count sec */
 if (!rtc_avail)                                     /* no timer? */
     return rtc->currd;
@@ -954,6 +989,9 @@ if (delta_rtime > 30000) {                          /* gap too big? */
     sim_debug (DBG_CAL, &sim_timer_dev, "gap too big: delta = %d - result: %d\n", delta_rtime, rtc->currd);
     return rtc->currd;                              /* can't calibr */
     }
+/* Wall time in which instructions were executed (or credited while  */
+/* idling): the elapsed time less the long gaps between ticks.         */
+run_rtime = (gap_rtime < delta_rtime) ? delta_rtime - gap_rtime : 0;
 last_idle_pct = 0;                                  /* normally force calibration */
 if (tmr != SIM_NTIMERS) {
     if (delta_rtime != 0)                           /* avoid divide by zero  */
@@ -970,16 +1008,42 @@ if (tmr != SIM_NTIMERS) {
         }
     }
 new_gtime = sim_gtime();
-if ((last_idle_pct == 0) && (delta_rtime != 0)) {
-    sim_idle_cyc_ms = (uint32)((new_gtime - rtc->gtime) / delta_rtime);
-    if ((sim_idle_rate_ms != 0) && (delta_rtime > 1))
-        sim_idle_cyc_sleep = (uint32)((new_gtime - rtc->gtime) / (delta_rtime / sim_idle_rate_ms));
+/* The instruction rate is measured over the time the simulator ran.   */
+/* A second of catch-up ticks delivered within a few msecs after a     */
+/* stall measures nothing, and is not used.                            */
+if ((last_idle_pct == 0) && (run_rtime != 0) &&
+    ((catchup_ticks_curr == 0) || (run_rtime >= 500))) {
+    sim_idle_cyc_ms = (uint32)((new_gtime - rtc->gtime) / run_rtime);
+    if ((sim_idle_rate_ms != 0) && (run_rtime > 1))
+        sim_idle_cyc_sleep = (uint32)((new_gtime - rtc->gtime) / (run_rtime / sim_idle_rate_ms));
     }
 if (sim_asynch_timer || (catchup_ticks_curr > 0)) {
     /* An asynchronous clock or when catchup ticks have  */
-    /* occurred, we merely needs to divide the number of */
-    /* instructions actually executed by the clock rate. */
-    new_currd = (int32)((new_gtime - rtc->gtime)/ticksper);
+    /* occurred, the ticks did not pace themselves, so   */
+    /* the next interval is the instruction rate: the    */
+    /* instructions executed per second of running time, */
+    /* divided by the clock rate.  Catch-up ticks keep   */
+    /* the wall time of a second near 1000 ms whatever   */
+    /* the simulator did in it, so the instruction count */
+    /* alone is the rate only if the simulator ran for   */
+    /* all of that time.  After a host stall the missed  */
+    /* ticks arrive as catch-up ticks a few instructions */
+    /* apart; a second made of them is too short to      */
+    /* measure, and the interval is kept.                */
+    if (sim_asynch_timer)
+        new_currd = (int32)((new_gtime - rtc->gtime)/ticksper);
+    else {
+        /* sim_idle credits no instructions for the time a sleep ran */
+        /* past the tick it was waiting for (it rounds a sleep up to */
+        /* reach the tick when catch-up ticks are on), so that time  */
+        /* is not running time either.                               */
+        if (past_rtime < run_rtime)
+            run_rtime -= past_rtime;
+        if (run_rtime < 500)
+            new_currd = rtc->currd;
+        else
+            new_currd = (int32)(((new_gtime - rtc->gtime) * 1000.0 / run_rtime)/ticksper);
+        }
     /* avoid excessive swings in the calibrated result */
     if (new_currd > 10*rtc->currd)              /* don't swing big too fast */
         new_currd = 10*rtc->currd;
@@ -989,8 +1053,18 @@ if (sim_asynch_timer || (catchup_ticks_curr > 0)) {
         }
     rtc->based = rtc->currd = new_currd;
     rtc->gtime = new_gtime;                     /* save instruction time */
-    sim_debug (DBG_CAL, &sim_timer_dev, "sim_rtcn_calb(%s tmr=%d, tickper=%d) catchups=%u, idle=%d%% result: %d\n",
-                    sim_asynch_timer ? "asynch" : "catchup", tmr, ticksper, catchup_ticks_curr, last_idle_pct, rtc->currd);
+    /* The servo below measures the clock against vtime, which a second  */
+    /* with catch-up ticks does not use: those ticks keep the clock where */
+    /* the catch-up reference time says it should be.  Keep vtime there  */
+    /* too, and the servo's interval at a nominal second (currd is based */
+    /* here), so that a later second without catch-up ticks starts from  */
+    /* where the clock stands, not from a lead it had before catch-up    */
+    /* ticks began or from the correction of an earlier such second.     */
+    rtc->nxintv = 1000;
+    if (rtc->clock_catchup_eligible)
+        rtc->vtime = rtc->rtime - (uint32)((int32)floor (1000.0 * (sim_timenow_double () - (rtc->clock_catchup_base_time + rtc->calib_tick_time))));
+    sim_debug (DBG_CAL, &sim_timer_dev, "sim_rtcn_calb(%s tmr=%d, tickper=%d) catchups=%u, idle=%d%% result: %d (delta_rtime=%u, gaps=%u, gap=%u, run=%u, vtime-rtime=%d)\n",
+                    sim_asynch_timer ? "asynch" : "catchup", tmr, ticksper, catchup_ticks_curr, last_idle_pct, rtc->currd, delta_rtime, gap_count, gap_rtime, run_rtime, (int)(rtc->vtime - rtc->rtime));
     return rtc->currd;                          /* calibrated result */
     }
 rtc->gtime = new_gtime;                         /* save instruction time */
@@ -999,9 +1073,18 @@ rtc->gtime = new_gtime;                         /* save instruction time */
 /* instructions which was returned the last time it was called. */
 if (delta_rtime == 0)                           /* gap too small? */
     rtc->based = rtc->based * ticksper;         /* slew wide */
-else
-    rtc->based = (int32) (((double) rtc->based * (double) rtc->nxintv) /
-                                ((double) delta_rtime));/* new base rate */
+else {
+    if (gap_rtime == 0)                         /* ran for the whole second? */
+        rtc->based = (int32) (((double) rtc->based * (double) rtc->nxintv) /
+                                    ((double) delta_rtime));/* new base rate */
+    else {                                      /* stalled during it */
+        /* The base rate is measured over the time the simulator ran.  The */
+        /* stalled time is not lost: delta_vtime below still makes it up.  */
+        if (run_rtime >= 500)
+            rtc->based = (int32) (((double) rtc->based * (double) rtc->nxintv) /
+                                        ((double) run_rtime));
+        }                                       /* else too short to measure: keep */
+    }
 delta_vtime = rtc->vtime - rtc->rtime;          /* gap */
 if (delta_vtime > SIM_TMAX)                     /* limit gap */
     delta_vtime = SIM_TMAX;
@@ -1016,8 +1099,8 @@ if (rtc->based <= 0)                                /* never negative or zero! *
     rtc->based = 1;
 if (rtc->currd <= 0)                                /* never negative or zero! */
     rtc->currd = 1;
-sim_debug (DBG_CAL, &sim_timer_dev, "sim_rtcn_calb(tmr=%d, tickper=%d) (delta_rtime=%d, delta_vtime=%d, base=%d, nxintv=%u, catchups=%u, idle=%d%%, result: %d)\n",
-                                    tmr, ticksper, (int)delta_rtime, (int)delta_vtime, rtc->based, rtc->nxintv, catchup_ticks_curr, last_idle_pct, rtc->currd);
+sim_debug (DBG_CAL, &sim_timer_dev, "sim_rtcn_calb(tmr=%d, tickper=%d) (delta_rtime=%d, delta_vtime=%d, base=%d, nxintv=%u, catchups=%u, idle=%d%%, result: %d) (gaps=%u, gap=%u, run=%u)\n",
+                                    tmr, ticksper, (int)delta_rtime, (int)delta_vtime, rtc->based, rtc->nxintv, catchup_ticks_curr, last_idle_pct, rtc->currd, gap_count, gap_rtime, run_rtime);
 /* Adjust calibration for other timers which depend on this timer's calibration */
 for (itmr=0; itmr<=SIM_NTIMERS; itmr++) {
     RTC *irtc = &rtcs[itmr];
@@ -1545,9 +1628,11 @@ return SCPE_OK;
 t_bool sim_idle (uint32 tmr, int sin_cyc)
 {
 uint32 w_ms, w_idle, act_ms;
-int32 act_cyc;
+int32 act_cyc, w_interval;
+double act_cyc_d, max_cyc;
 static t_bool in_nowait = FALSE;
 double cyc_since_idle;
+t_bool to_tick = FALSE;
 RTC *rtc = &rtcs[tmr];
 
 if (rtc->hz == 0)                                       /* specified timer is not running? */
@@ -1611,6 +1696,23 @@ if ((sim_idle_rate_ms == 0) || (sim_idle_cyc_ms == 0)) {/* not possible? */
     return FALSE;
     }
 w_ms = (uint32) sim_interval / sim_idle_cyc_ms;         /* ms to wait */
+/* The next event is normally the calibrated clock's tick.  When catch-up */
+/* ticks are on, sleep the whole number of msecs that reaches it, rather  */
+/* than the whole number that falls short of it.  The fraction of a msec  */
+/* left over is less than half a tick, so it would not be slept but       */
+/* executed: the simulated system's idle loop, at full speed, until the   */
+/* tick.  Whether that happened on almost every tick depended only on     */
+/* whether the calibrated tick came out a little over or a little under a */
+/* whole number of msecs.  A tick reached up to a msec late is repaid by  */
+/* catch-up ticks, as any late tick is; the time slept past it is neither */
+/* credited as instructions nor counted as running time (sim_rtcn_calb),  */
+/* so the instruction rate is measured as before.                         */
+if (sim_catchup_ticks && rtc->clock_catchup_eligible &&
+    (sim_clock_queue == rtc->timer_unit) &&
+    (((uint32) sim_interval % sim_idle_cyc_ms) != 0)) {
+    ++w_ms;                                             /* round up */
+    to_tick = TRUE;
+    }
 /* When the host system has a clock tick which is less frequent than the    */
 /* simulated system's clock, idling will cause delays which will miss       */
 /* simulated clock ticks.  To accomodate this, and still allow idling, if   */
@@ -1633,15 +1735,49 @@ in_nowait = FALSE;
 if (sim_clock_queue == QUEUE_LIST_END)
     sim_debug (DBG_IDL, &sim_timer_dev, "sleeping for %d ms - pending event in %d %s\n", w_ms, sim_interval, sim_vm_interval_units);
 else
-    sim_debug (DBG_IDL, &sim_timer_dev, "sleeping for %d ms - pending event on %s in %d %s\n", w_ms, sim_uname(sim_clock_queue), sim_interval, sim_vm_interval_units);
+    sim_debug (DBG_IDL, &sim_timer_dev, "sleeping for %d ms - pending event on %s in %d %s%s\n", w_ms, sim_uname(sim_clock_queue), sim_interval, sim_vm_interval_units, to_tick ? " (rounded up to reach it)" : "");
 cyc_since_idle = sim_gtime() - sim_idle_end_time;       /* time since prior idle */
+w_interval = sim_interval;                              /* pending event when the sleep began */
 act_ms = sim_idle_ms_sleep (w_ms);                      /* wait */
+if ((int32)act_ms < 0) {                                /* host clock stepped backward? */
+    sim_debug (DBG_IDL, &sim_timer_dev, "host clock stepped back %d ms during a %d ms sleep - no time credited\n", -(int32)act_ms, w_ms);
+    act_ms = 0;
+    }
 rtc->clock_time_idled += act_ms;
-act_cyc = act_ms * sim_idle_cyc_ms;
+act_cyc_d = (double)act_ms * (double)sim_idle_cyc_ms;
 if (cyc_since_idle > sim_idle_cyc_sleep)
-    act_cyc -= sim_idle_cyc_sleep / 2;                  /* account for half an interval's worth of cycles */
+    act_cyc_d -= sim_idle_cyc_sleep / 2;                /* account for half an interval's worth of cycles */
 else
-    act_cyc -= (int32)cyc_since_idle;                   /* account for cycles executed */
+    act_cyc_d -= cyc_since_idle;                        /* account for cycles executed */
+/*
+   A sleep normally ends at the pending event, give or take the host's
+   sleep granularity.  It can last far longer than was asked for: the
+   process was stopped, the host was suspended, or the host's clock
+   stepped forward.  Crediting all of that time as instructions would
+   make every overdue event -- a whole burst of clock ticks -- fire
+   back to back in no wall time, and the next calibration would then
+   see a second of ticks take no time at all.  So credit no more than
+   reaches the pending event plus one tick of the calibrated clock; the
+   wall time beyond that is left to calibration and catch-up ticks.
+   The whole sleep still counts as time idled.
+ */
+if (to_tick && (act_cyc_d > (double)w_interval)) {   /* slept past the tick? */
+    double past_us = ((act_cyc_d - (double)w_interval) * 1000.0) / sim_idle_cyc_ms;
+
+    /* Rounding up adds less than a msec.  More than a tick past it is a   */
+    /* stall, which sim_rtcn_calb already leaves out as a gap between      */
+    /* ticks; count no more than a tick here, so it is not left out twice. */
+    if (past_us > 1000000.0 / rtc->hz)
+        past_us = 1000000.0 / rtc->hz;
+    rtc->clock_idle_past_us += (uint32)past_us;
+    act_cyc_d = (double)w_interval;                     /* credit up to the tick */
+    }
+max_cyc = (double)w_interval + (double)rtc->currd;
+if (act_cyc_d > max_cyc) {
+    sim_debug (DBG_IDL, &sim_timer_dev, "slept for %u ms - credit limited from %.0f to %.0f %s (the pending event plus one tick)\n", act_ms, act_cyc_d, max_cyc, sim_vm_interval_units);
+    act_cyc_d = max_cyc;
+    }
+act_cyc = (int32)MIN(act_cyc_d, (double)0x7FFFFFFF);
 sim_interval = sim_interval - act_cyc;                  /* count down sim_interval to reflect idle period */
 sim_idle_end_time = sim_gtime();                        /* save idle completed time */
 if (sim_clock_queue == QUEUE_LIST_END)
@@ -2551,6 +2687,8 @@ for (tmr=0; tmr<=SIM_NTIMERS; tmr++) {
     if (rtc->initd) {                /* calibrated clock initialized? */
         rtc->rtime += sim_prompt_time;
         rtc->vtime += sim_prompt_time;
+        if (rtc->clock_tick_rtime != 0)
+            rtc->clock_tick_rtime += sim_prompt_time;   /* time at the prompt is not a gap between ticks */
         sim_debug (DBG_CAL, &sim_timer_dev, "sim_start_timer_services(tmr=%d) - adjusting calibration real time by %d ms\n", tmr, (int)sim_prompt_time);
         if (rtc->clock_catchup_eligible)
             rtc->calib_tick_time += (((double)sim_prompt_time) / 1000.0);
