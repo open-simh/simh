@@ -146,7 +146,7 @@ static void cpu_ndxp(int flag)
     P = X(P + 1);
 }
 
-static void cpu_ndxc()
+static void cpu_ndxc(void)
 {
   C = (C & ~BMASK) | ((C + 1) & BMASK);
 }
@@ -616,6 +616,7 @@ static void cpu_dsc(void)
 
   cpu_set_S(1);
   cpu_mem_read();
+  dpy_dsc(B, A & 07740, Z);
   sim_debug(DBG_CPU, &crt_dev, "DSC B=%04o A=%04o\n", B, A);
 
   C &= ~BMASK;
