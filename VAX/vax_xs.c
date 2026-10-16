@@ -596,7 +596,7 @@ sim_debug (DBG_REG, &xs_dev, "xs_inbb = %04X\n", xs->var->inbb);
 
 if (XS_READB (xs->var->inbb, 0x18, &inb[0])) {
     /* memory read error */
-    xs->var->csr0 |= (CSR0_MERR | CSR0_IDON | CSR0_INTR);
+    xs->var->csr0 |= (CSR0_MERR | CSR0_INTR);
     xs->var->csr0 &= ~(CSR0_RXON | CSR0_TXON);
     return SCPE_OK;
     }
