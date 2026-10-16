@@ -253,9 +253,13 @@ for (i = 7; int_unmask && (i >= 0); i--) {
 return 0;
 }
 
-/* Map an address via the translation map */
+/* Map an address via the translation map
 
-t_bool dma_map_addr (uint32 da, uint32 *ma)
+   An entry with the valid bit clear, met by the NI's DMA, sets PAR_CTL<NI_MAP>,
+   and the setting of that bit requests an NI interrupt. The SCSI engine's
+   (PAR_CTL<SCSI_MAP>) is not reported. */
+
+t_bool dma_map_addr (uint32 da, uint32 *ma, int32 dma)
 {
 int32 dblk = (da >> VA_V_VPN);                          /* DMA blk */
 if (dblk <= DMANMAPR) {
@@ -264,6 +268,10 @@ if (dblk <= DMANMAPR) {
         *ma = ((dmap & DMAMAP_PAG) << VA_V_VPN) + VA_GETOFF (da);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
             return TRUE;
+        }
+    else if ((dma == DMA_NI) && !(ka_parctl & PARCTL_NMAP)) {
+        ka_parctl |= PARCTL_NMAP;                       /* NI map error */
+        SET_INT (XS1);
         }
     }
 return FALSE;
@@ -277,7 +285,7 @@ return FALSE;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, int32 dma)
 {
 int32 i;
 uint32 ma, dat;
@@ -285,7 +293,7 @@ uint32 ma, dat;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         *buf = ReadB (ma);
@@ -295,7 +303,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         dat = ReadL (ma);                               /* get lw */
@@ -309,7 +317,7 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, int32 dma)
 {
 int32 i;
 uint32 ma,dat;
@@ -319,7 +327,7 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i = i + 2, buf++) {        /* by words */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         *buf = ReadW (ma);
@@ -329,7 +337,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         dat = ReadL (ma);                               /* get lw */
@@ -341,7 +349,7 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, int32 dma)
 {
 int32 i;
 uint32 ma, dat;
@@ -349,7 +357,7 @@ uint32 ma, dat;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         WriteB (ma, *buf);
@@ -359,7 +367,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         dat = (uint32) *buf++;                          /* get low 8b */
@@ -373,7 +381,7 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, int32 dma)
 {
 int32 i;
 uint32 ma, dat;
@@ -383,7 +391,7 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i = i + 2, buf++) {        /* by words */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         WriteW (ma, *buf);
@@ -393,7 +401,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         dat = (uint32) *buf++;                          /* get low 16b */
@@ -893,6 +901,8 @@ switch (rg) {
 
     case 5:                                             /* parity ctl */
         ka_parctl = (ka_parctl & ~PARCTL_WR) | (val & PARCTL_WR);
+        ka_parctl &= ~(PARCTL_NPERR | PARCTL_NMAP |     /* any write clears */
+                       PARCTL_SPERR | PARCTL_SMAP);     /* the error bits */
         break;
 
     case 7:                                             /* diag timer */
