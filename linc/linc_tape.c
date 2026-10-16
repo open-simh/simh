@@ -45,6 +45,7 @@
 #define DBG_POS        0020
 
 static uint16 BLOCK_GROUP;
+static uint16 CURRENT_UNIT;
 static int16 CURRENT_BLOCK;
 static int16 WANTED_BLOCK;
 
@@ -92,16 +93,18 @@ void tape_op(void)
   if ((uptr->flags & UNIT_ATT) == 0)
     return;
 
+  CURRENT_UNIT = u;
+
   if (uptr->SPEED < 0) {
     if ((C & 7) != MTB) {
-      sim_debug(DBG_SEEK, &tape_dev, "Reverse to forward\n");
+      sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Reverse to forward\n", u);
       uptr->ACC = ACC_REVERSE;
     }
   } else if (uptr->POS >= MAX_POS) {
-    sim_debug(DBG_SEEK, &tape_dev, "End zone; reverse\n");
+    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: End zone; reverse\n", u);
     uptr->ACC = ACC_REVERSE;
   } else if (uptr->SPEED < MAX_SPEED || uptr->ACC < 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "Speed up\n");
+    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Speed up\n", u);
     uptr->ACC = ACC_START;
   }
   if (!sim_is_active(uptr))
@@ -114,17 +117,18 @@ void tape_op(void)
   case RDC: case RDE: case WRC: case WRI: case CHK:
     S = 256 * (B >> 9);
     BLOCK_GROUP = 0;
-    sim_debug(DBG, &tape_dev, "Single transfer: S=%04o, BN=%03o\n",
-              S, WANTED_BLOCK);
+    sim_debug(DBG, &tape_dev, "Unit %u: Single transfer: S=%04o, BN=%03o\n",
+              u, S, WANTED_BLOCK);
     break;
   case RCG: case WCG:
     S = 256 * (B & 7);
     BLOCK_GROUP = B >> 9;
-    sim_debug(DBG, &tape_dev, "Group transfer: S=%04o, BN=%03o/%o\n",
-              S, WANTED_BLOCK, BLOCK_GROUP+1);
+    sim_debug(DBG, &tape_dev, "Unit %u: Group transfer: S=%04o, BN=%03o/%o\n",
+              u, S, WANTED_BLOCK, BLOCK_GROUP+1);
     break;
   case MTB:
-    sim_debug(DBG, &tape_dev, "Move towards block %03o\n", WANTED_BLOCK);
+    sim_debug(DBG, &tape_dev, "Unit %u: Move towards block %03o\n",
+              u, WANTED_BLOCK);
     break;
   }
 }
@@ -198,7 +202,8 @@ static void write_word(FILE *fileref, t_addr block, t_addr offset, uint16 word)
 
 static void tape_done(UNIT *uptr)
 {
-  sim_debug(DBG, &tape_dev, "Done with block\n");
+  uint16 u = uptr - tape_unit;
+  sim_debug(DBG, &tape_dev, "Unit %u: Done with block\n", u);
 
   switch (C & 7) {
   case RDC: case RCG: case RDE: case CHK:
@@ -218,39 +223,41 @@ static void tape_done(UNIT *uptr)
   switch (C & 7) {
   case RDC:
     if (A != GOOD_CHECKSUM) {
-      sim_debug(DBG, &tape_dev, "Check failed; read again\n");
+      sim_debug(DBG, &tape_dev, "Unit %u: Check failed; read again\n", u);
       S &= ~0377;
     } else {
-      sim_debug(DBG, &tape_dev, "Check passed\n");
+      sim_debug(DBG, &tape_dev, "Unit %u: Check passed\n", u);
       paused = 0;
     }
     break;
   case WRC:
-    sim_debug(DBG, &tape_dev, "Block written, go back and check\n");
+    sim_debug(DBG, &tape_dev, "Unit %u: Block written, go back and check\n", u);
     // For now, done.
     A = GOOD_CHECKSUM;
     paused = 0;
     break;
   case RCG: case WCG:
     if (BLOCK_GROUP == 0) {
-      sim_debug(DBG, &tape_dev, "Done with group\n");
+      sim_debug(DBG, &tape_dev, "Unit %u: Done with group\n", u);
       paused = 0;
     } else {
-      sim_debug(DBG, &tape_dev, "Blocks left in group: %d\n", BLOCK_GROUP);
+      sim_debug(DBG, &tape_dev, "Unit %u: Blocks left in group: %d\n",
+                u, BLOCK_GROUP);
       BLOCK_GROUP--;
     }
     WANTED_BLOCK = (WANTED_BLOCK + 1) & TMASK;
     break;
   case RDE: case WRI:
-    sim_debug(DBG, &tape_dev, "Transfer done\n");
+    sim_debug(DBG, &tape_dev, "Unit %u: Transfer done\n", u);
     paused = 0;
     break;
   case MTB:
-    sim_debug(DBG, &tape_dev, "Move towards block done, result %04o\n", A);
+    sim_debug(DBG, &tape_dev, "Unit %u: Move towards block done, result %04o\n",
+              u, A);
     paused = 0;
     break;
   case CHK:
-    sim_debug(DBG, &tape_dev, "Check done\n");
+    sim_debug(DBG, &tape_dev, "Unit %u: Check done\n", u);
     paused = 0;
     break;
   }
@@ -258,29 +265,31 @@ static void tape_done(UNIT *uptr)
   if (paused)
     ;
   else if ((C & IMASK) == 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "Instruction done, stop tape\n");
+    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Instruction done, stop tape\n", u);
     uptr->ACC = uptr->SPEED > 0 ? -ACC_STOP : ACC_STOP;
   } else {
-    sim_debug(DBG_SEEK, &tape_dev, "Instruction done, keep moving\n");
+    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Instruction done, keep moving\n", u);
   }
 }
 
 static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
 {
+  uint16 u = uptr - tape_unit;
+
   switch (C & 7) {
   case RDC: case RCG: case RDE: case CHK:
     B = read_word(uptr->fileref, block, offset);
     sim_debug(DBG_READ, &tape_dev,
-              "Read block %03o offset %03o data %04o address %04o\n",
-              block + uptr->OFFSET, offset, B, S);
+              "Unit %u: Read block %03o offset %03o data %04o address %04o\n",
+              u, block + uptr->OFFSET, offset, B, S);
     if ((C & 7) != CHK)
       M[S] = B;
     break;
   case WRC: case WCG: case WRI:
     B = M[S];
     sim_debug(DBG_WRITE, &tape_dev,
-              "Write block %03o offset %03o data %04o address %04o\n",
-              block + uptr->OFFSET, offset, B, S);
+              "Unit %u: Write block %03o offset %03o data %04o address %04o\n",
+              u, block + uptr->OFFSET, offset, B, S);
     write_word(uptr->fileref, block, offset, B);
     break;
   }
@@ -292,6 +301,7 @@ static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
 static t_stat tape_svc(UNIT *uptr)
 {
   long pos, block, offset;
+  uint16 u = uptr - tape_unit;
 
   uptr->SPEED += uptr->ACC;
   if (uptr->SPEED >= MAX_SPEED) {
@@ -304,14 +314,16 @@ static t_stat tape_svc(UNIT *uptr)
   } else if (uptr->SPEED == 0 && (uptr->ACC == ACC_STOP || uptr->ACC == -ACC_STOP))
     uptr->ACC = 0;
   uptr->POS += uptr->SPEED;
-  sim_debug(DBG_POS, &tape_dev, "Speed %d, position %d (block %03o)\n",
-            uptr->SPEED, uptr->POS, uptr->POS / MAX_SPEED / BLOCK_WORDS);
+  sim_debug(DBG_POS, &tape_dev,
+            "Unit %u: Speed %d, position %d (block %03o)\n",
+            u, uptr->SPEED, uptr->POS,
+            uptr->POS / MAX_SPEED / BLOCK_WORDS + uptr->OFFSET);
 
   if (uptr->POS < 0 && uptr->ACC <= 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "End zone; stop tape\n");
+    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: End zone; stop tape\n", u);
     uptr->ACC = ACC_STOP;
   } else if(uptr->POS >= MAX_POS && uptr->ACC >= 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "End zone; stop tape\n");
+    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: End zone; stop tape\n", u);
     uptr->ACC = -ACC_STOP;
   }
 
@@ -331,7 +343,7 @@ static t_stat tape_svc(UNIT *uptr)
 
   IBZ = offset < IBZ_WORDS;
   if (IBZ)
-    sim_debug(DBG, &tape_dev, "Interblock zone\n");
+    sim_debug(DBG, &tape_dev, "Unit %u: Interblock zone\n", u);
 
   if (uptr->SPEED > -MAX_SPEED && uptr->SPEED < MAX_SPEED)
     return SCPE_OK;
@@ -339,15 +351,19 @@ static t_stat tape_svc(UNIT *uptr)
   if (!paused)
     return SCPE_OK;
 
+  if (u != CURRENT_UNIT)
+    return SCPE_OK;
+
   if (uptr->SPEED > 0) {
     if (offset == 5) {
       /* Forward block number. */
       CURRENT_BLOCK = (uint16)(block + uptr->OFFSET);
       sim_debug(DBG_SEEK, &tape_dev,
-                "Found block number %03o; looking for %03o\n",
-                CURRENT_BLOCK, WANTED_BLOCK);
+                "Unit %u: Found block number %03o; looking for %03o\n",
+                u, CURRENT_BLOCK, WANTED_BLOCK);
       if (CURRENT_BLOCK > WANTED_BLOCK) {
-        sim_debug(DBG_SEEK, &tape_dev, "Reverse to find lower block numbers\n");
+        sim_debug(DBG_SEEK, &tape_dev,
+                  "Unit %u: Reverse to find lower block numbers\n", u);
         uptr->ACC = -ACC_REVERSE;
       }
       if ((C & 7) == MTB)
@@ -367,10 +383,11 @@ static t_stat tape_svc(UNIT *uptr)
     /* Reverse block number. */
     CURRENT_BLOCK = (uint16)(block + uptr->OFFSET);
     sim_debug(DBG_SEEK, &tape_dev,
-              "Found reverse block number %03o; looking for %03o\n",
-              CURRENT_BLOCK, WANTED_BLOCK);
+              "Unit %u: Found reverse block number %03o; looking for %03o\n",
+              u, CURRENT_BLOCK, WANTED_BLOCK);
     if (CURRENT_BLOCK <= WANTED_BLOCK) {
-      sim_debug(DBG_SEEK, &tape_dev, "Reverse to find higher block numbers\n");
+      sim_debug(DBG_SEEK, &tape_dev,
+                "Unit %u: Reverse to find higher block numbers\n", u);
       uptr->ACC = ACC_REVERSE;
       uptr->POS -= MAX_SPEED * BLOCK_WORDS;
     }
@@ -434,6 +451,7 @@ static t_stat tape_attach(UNIT *uptr, CONST char *cptr)
 {
   t_stat stat;
   uint16 block_size;
+  uint16 u = uptr - tape_unit;
   int16 forward_offset, reverse_offset;
 
   if (uptr - tape_unit >= 2 && uptr - tape_unit <= 3)
@@ -445,8 +463,8 @@ static t_stat tape_attach(UNIT *uptr, CONST char *cptr)
   if (stat != SCPE_OK)
     return stat;
   sim_debug(DBG, &tape_dev,
-            "Tape image with block size %o, block offset %d/%d\r\n",
-            block_size, forward_offset, reverse_offset);
+            "Unit %u: Tape image with block size %o, block offset %d/%d\r\n",
+            u, block_size, forward_offset, reverse_offset);
   if (block_size != DATA_WORDS)
     return SCPE_FMT;
   if (forward_offset != reverse_offset)
