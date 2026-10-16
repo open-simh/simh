@@ -362,6 +362,7 @@ t_stat eth_set_async (ETH_DEV* dev, int latency);       /* set read behavior to 
 t_stat eth_clr_async (ETH_DEV* dev);                    /* set read behavior to be not async */
 t_stat eth_set_throttle (ETH_DEV* dev, uint32 time, uint32 burst, uint32 delay); /* set transmit throttle parameters */
 uint32 eth_crc32(uint32 crc, const void* vbuf, size_t len); /* Compute Ethernet Autodin II CRC for buffer */
+int eth_add_packet_crc32(uint8 *msg, int len);          /* append CRC to packet, return length with it */
 
 void eth_packet_trace (ETH_DEV* dev, const uint8 *msg, int len, const char* txt); /* trace ethernet packet header+crc */
 void eth_packet_trace_ex (ETH_DEV* dev, const uint8 *msg, int len, const char* txt, int detail, uint32 reason); /* trace ethernet packet */

@@ -531,6 +531,31 @@ for (;;) {
                 eth_packet_trace_ex (xs->var->etherface, xs->var->write_buffer.msg, xs->var->write_buffer.len, "xs-write", DEBUG_PRI (xs_dev, DBG_DAT), DBG_PCK);
             }
 
+        /* In external loopback the transceiver hands a frame that went out back
+           to the receiver as it was sent: not padded (off bytes), with the CRC
+           the chip appends, in the form the receive path expects of a frame from
+           the network (which it reverses into the chip's byte order). With
+           MODE<DTCR> no CRC is appended: the frame's own last four bytes are
+           taken as its CRC, already in the chip's order. A frame that was not
+           sent (unattached) is not echoed, as on a machine with no cable. */
+        if (((xs->var->mode & (MODE_LOOP | MODE_INTL)) == MODE_LOOP) &&
+            (wstatus == SCPE_OK) && (xs->var->write_buffer.status == 0)) {
+            xs->var->write_buffer.len = off;
+            xs->var->write_buffer.crc_len = 0;
+            if (!(xs->var->mode & MODE_DTCR))
+                xs->var->write_buffer.crc_len = eth_add_packet_crc32 (xs->var->write_buffer.msg, off);
+            else if (off >= 4) {
+                uint8 *crc = &xs->var->write_buffer.msg[off - 4];
+                uint8 b;
+
+                b = crc[0]; crc[0] = crc[3]; crc[3] = b;
+                b = crc[1]; crc[1] = crc[2]; crc[2] = b;
+                xs->var->write_buffer.crc_len = off;
+                }
+            if (xs->var->write_buffer.crc_len >= 4)     /* not a frame shorter than its CRC */
+                ethq_insert (&xs->var->ReadQ, ETH_ITM_LOOPBACK, &xs->var->write_buffer, 0);
+            }
+
         /* update transmit status in transmit buffer */
         if (xs->var->write_buffer.status != 0) {
             /* failure */
