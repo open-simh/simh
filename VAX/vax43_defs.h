@@ -357,6 +357,7 @@ extern int32 sys_model;
 #define XS_WRITEB       Map_WriteB
 #define XS_WRITEW       Map_WriteW
 #define XS_ADRMBO       (0)
+#define XS_INT_LATCH                                    /* NI request latched on a rising edge */
 
 /* Function prototypes for I/O */
 

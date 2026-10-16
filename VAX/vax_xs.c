@@ -40,6 +40,17 @@
 #define GETW(p,x)         ((p[(x + 1)] << 8) | p[x])
 #define GETL(p,x)         ((p[(x + 3)] << 24) | (p[(x + 2)] << 16) | (p[(x + 1)] << 8) | p[x])
 
+/* The chip's interrupt line: CSR0<INTR> gated by CSR0<INEA>.
+
+   Where the system's interrupt controller latches the NI request on the line's
+   rising edge, and clears it only when the interrupt is acknowledged or
+   software writes INT_CLR (XS_INT_LATCH: the KA410, KA41/KA42, KA43 and
+   KA46/KA47/KA48 boards -- VAX410, VAX420, VAX43, VAX440), the request is
+   raised on that edge and never dropped by the chip.
+   Elsewhere the request follows the line. */
+
+#define XS_LINE(xs)       (((xs)->var->csr0 & (CSR0_INTR | CSR_IE)) == (CSR0_INTR | CSR_IE))
+
 extern int32 tmxr_poll;
 
 t_stat xs_svc (UNIT *uptr);
@@ -51,6 +62,7 @@ t_stat xs_init (CTLR* xs);
 void xs_updateint(CTLR* xs);
 void xs_setint (CTLR* xs);
 void xs_clrint (CTLR* xs);
+void xs_edge (CTLR* xs, t_bool line);
 void xs_read_callback (int status);
 void xs_write_callback (int status);
 t_stat xs_reset (DEVICE *dptr);
@@ -196,6 +208,9 @@ void xs_wr (int32 pa, int32 data, int32 access)
 {
 CTLR *xs = &xs_ctrl[0];
 int32 rg = (pa >> 2) & 3;
+#if defined (XS_INT_LATCH)
+t_bool line;
+#endif
 
 switch (rg) {
 
@@ -203,13 +218,19 @@ switch (rg) {
         switch (xs->var->rptr) {
 
             case 0:                                     /* NI_CSR0 */
+#if defined (XS_INT_LATCH)
+                line = XS_LINE (xs);
+#endif
                 xs->var->csr0 = (xs->var->csr0 & ~CSR0_RW) | (data & CSR0_RW);
                 xs->var->csr0 = xs->var->csr0 & ~(data & CSR0_W1C);
+#if defined (XS_INT_LATCH)
+                xs_updateint (xs);                      /* the write itself drops the line, */
+                xs_edge (xs, line);                     /* or raises it by setting INEA */
+                line = XS_LINE (xs);
+#endif
 
                 if (data & CSR0_STOP) {                 /* STOP */
-                    xs->var->csr0 = xs->var->csr0 | CSR0_STOP;
-                    xs->var->csr0 = xs->var->csr0 & ~(CSR0_STRT | CSR0_INIT | CSR0_IDON | CSR0_TXON | CSR0_RXON);
-                    xs->var->csr0 = xs->var->csr0 & ~(CSR0_ERR | CSR0_ESUM);
+                    xs->var->csr0 = CSR0_STOP;          /* clears all the other bits */
                     sim_cancel (&xs_unit);
                     }
                 else if ((data & CSR0_INIT) && (!(xs->var->csr0 & CSR0_INIT)))   /* INIT */
@@ -229,10 +250,20 @@ switch (rg) {
 
                 xs_updateint (xs);
 
+#if defined (XS_INT_LATCH)
+                xs_edge (xs, line);
+#else
+                /* The chip's interrupt pin is CSR0<INTR> gated by CSR0<INEA>: clearing
+                   INEA drops it, and setting INEA while INTR is already set asserts it at
+                   once. xs_setint() only raises the request when INTR goes from 0 to 1,
+                   so an interrupt condition that arrives while INEA is clear must be
+                   raised here, when the driver sets INEA again - otherwise it is lost,
+                   and the driver waits for an interrupt that never comes. */
                 if ((data & CSR_IE) == 0)
                     CLR_INT (XS1);
-                else if ((xs->var->csr0 & (CSR0_INTR + CSR_IE)) == CSR0_INTR)
+                else if ((xs->var->csr0 & (CSR0_INTR + CSR_IE)) == (CSR0_INTR + CSR_IE))
                     SET_INT (XS1);
+#endif
                 break;
 
             case 1:                                     /* NI_CSR1 */
@@ -268,9 +299,16 @@ CTLR *xs = &xs_ctrl[0];
 
 if ((xs->var->csr0 & (CSR0_STRT | CSR0_INIT)) == CSR0_INIT) {
     /* Init done */
+#if defined (XS_INT_LATCH)
+    t_bool line = XS_LINE (xs);
+
+    xs->var->csr0 = xs->var->csr0 | (CSR0_IDON | CSR0_INTR);
+    xs_edge (xs, line);
+#else
     xs->var->csr0 = xs->var->csr0 | (CSR0_IDON | CSR0_INTR);
     if (xs->var->csr0 & CSR_IE)
         SET_INT (XS1);
+#endif
     return SCPE_OK;
     }
 
@@ -677,7 +715,17 @@ if (xs->var->csr0 & CSR_IE)
 void xs_clrint (CTLR* xs)
 {
 xs->var->csr0 &= ~CSR0_INTR;
+#if !defined (XS_INT_LATCH)
 CLR_INT (XS1);
+#endif
+}
+
+/* Raise the request if the line has risen since it was 'line' */
+
+void xs_edge (CTLR* xs, t_bool line)
+{
+if (!line && XS_LINE (xs))
+    SET_INT (XS1);
 }
 
 void xs_read_callback(int status)

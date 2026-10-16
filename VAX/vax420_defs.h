@@ -385,6 +385,7 @@ extern int32 sys_model;
 #else
 #define XS_ADRMBO       ((MEMSIZE -1) & 0xFF000000)     /* bits 31:24 have pull-ups */
 #endif
+#define XS_INT_LATCH                                    /* NI request latched on a rising edge */
 
 /* Function prototypes for I/O */
 
