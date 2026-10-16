@@ -275,6 +275,8 @@ switch(rg) {                                            /* register behaviors */
 
     case 11:                                            /* CSR B */
         val = val & WTC_CSRB_WR;
+        if ((wtc_csrb & WTC_CSRB_SET) && !(val & WTC_CSRB_SET))
+            sim_rtcn_catchup_cancel (TMR_CLK);          /* the time was set */
         new_val = wtc_csrb = (wtc_csrb & ~WTC_CSRB_WR) | val;
         break;
 
