@@ -352,8 +352,8 @@ while (xs->var->ReadQ.count > 0) {
     /* get first packet from receive queue */
     if (!item) {
         item = &xs->var->ReadQ.item[xs->var->ReadQ.head];
-        /* Pad the packet to minimum size */
-        if (item->packet.len < ETH_MIN_PACKET) {
+        /* Pad the packet to minimum size (a looped back frame arrives as it was sent) */
+        if ((item->packet.len < ETH_MIN_PACKET) && (item->type != ETH_ITM_LOOPBACK)) {
             int len = item->packet.len;
             memset (&item->packet.msg[len], 0, ETH_MIN_PACKET - len);
             item->packet.len = ETH_MIN_PACKET;
@@ -453,12 +453,12 @@ while (xs->var->ReadQ.count > 0) {
 void xs_process_transmit (CTLR* xs)
 {
 uint32 segb, ba;
-int slen, wlen, off, giant, runt;
+int slen, wlen, off, giant;
 t_stat rstatus, wstatus;
 
 /* sim_debug(DBG_TRC, xs->dev, "xs_process_transmit()\n"); */
 
-off = giant = runt = 0;
+off = giant = 0;
 for (;;) {
 
     /* get next transmit buffer */
@@ -488,7 +488,7 @@ for (;;) {
     /* prepare to accumulate transmit information if start of frame */
     if (xs->var->txhdr[1] & TXR_STF) {
         memset(&xs->var->write_buffer, 0, sizeof(ETH_PACK));
-        off = giant = runt = 0;
+        off = giant = 0;
         }
 
     /* get packet data from host */
@@ -510,19 +510,32 @@ for (;;) {
     /* transmit packet when end-of-frame is reached */
     if (xs->var->txhdr[1] & TXR_ENF) {
 
-        /* make sure packet is minimum length */
-        if (xs->var->write_buffer.len < ETH_MIN_PACKET) {
-            xs->var->write_buffer.len = ETH_MIN_PACKET;  /* pad packet to minimum length */
-            runt = 1;
-            }
-
         /* are we in internal loopback mode ? */
         if ((xs->var->mode & MODE_LOOP) && (xs->var->mode & MODE_INTL)) {
-            /* just put packet in  receive buffer */
-            ethq_insert (&xs->var->ReadQ, 1, &xs->var->write_buffer, 0);
+            /* just put packet in receive buffer, as it was sent: not padded, and
+               with the CRC the chip appends, in the form the receive path expects
+               of a frame from the network (which it reverses into the chip's byte
+               order). With MODE<DTCR> no CRC is appended: the frame's own last four
+               bytes are taken as its CRC, already in the chip's order. */
+            if (!(xs->var->mode & MODE_DTCR))
+                xs->var->write_buffer.crc_len = eth_add_packet_crc32 (xs->var->write_buffer.msg, xs->var->write_buffer.len);
+            else if (xs->var->write_buffer.len >= 4) {
+                uint8 *crc = &xs->var->write_buffer.msg[xs->var->write_buffer.len - 4];
+                uint8 b;
+
+                b = crc[0]; crc[0] = crc[3]; crc[3] = b;
+                b = crc[1]; crc[1] = crc[2]; crc[2] = b;
+                xs->var->write_buffer.crc_len = xs->var->write_buffer.len;
+                }
+            if (xs->var->write_buffer.crc_len >= 4)     /* not a frame shorter than its CRC */
+                ethq_insert (&xs->var->ReadQ, ETH_ITM_LOOPBACK, &xs->var->write_buffer, 0);
             sim_debug(DBG_TRC, xs->dev, "loopback packet\n");
             }
         else {
+            /* the chip sends a short frame as it is; the host network needs it padded */
+            if (xs->var->write_buffer.len < ETH_MIN_PACKET)
+                xs->var->write_buffer.len = ETH_MIN_PACKET;  /* pad packet to minimum length */
+
             /* transmit packet synchronously - write callback sets status */
             wstatus = eth_write(xs->var->etherface, &xs->var->write_buffer, xs->var->wcallback);
             if (wstatus)
@@ -540,8 +553,8 @@ for (;;) {
             xs->var->txhdr[1] |= TXR_ERRS;
             }
 
-        /* was packet too big or too small? */
-        if (giant || runt) {
+        /* was packet too big? */
+        if (giant) {
             xs->var->txhdr[3] |= TXR_BUFL;
             xs->var->txhdr[1] |= TXR_ERRS;
             }
