@@ -272,7 +272,7 @@ static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
     B = read_word(uptr->fileref, block, offset);
     sim_debug(DBG_READ, &tape_dev,
               "Read block %03o offset %03o data %04o address %04o\n",
-              block, offset, B, S);
+              block + uptr->OFFSET, offset, B, S);
     if ((C & 7) != CHK)
       M[S] = B;
     break;
@@ -280,7 +280,7 @@ static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
     B = M[S];
     sim_debug(DBG_WRITE, &tape_dev,
               "Write block %03o offset %03o data %04o address %04o\n",
-              block, offset, B, S);
+              block + uptr->OFFSET, offset, B, S);
     write_word(uptr->fileref, block, offset, B);
     break;
   }
