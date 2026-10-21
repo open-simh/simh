@@ -1,5 +1,10 @@
 #include "linc_defs.h"
 
+/* The classic LINC had two tape drives.  The micro-LINC could have
+ * four, numbered 0, 1, 4, and 5.  For simplicity, we have six units
+ * but 2 and 3 are invalid. */
+#define TAPE_UNITS  6
+
 #define POS     u3
 #define SPEED   u4
 #define ACC     u5
@@ -58,7 +63,7 @@ static t_stat tape_detach(UNIT *uptr);
 #define UNIT_FLAGS (UNIT_IDLE|UNIT_FIX|UNIT_ATTABLE|UNIT_DISABLE|UNIT_ROABLE)
 #define CAPACITY (MAX_BLOCKS * DATA_WORDS)
 
-static UNIT tape_unit[] = {
+static UNIT tape_unit[TAPE_UNITS] = {
   { UDATA(&tape_svc, UNIT_FLAGS, CAPACITY) },
   { UDATA(&tape_svc, UNIT_FLAGS, CAPACITY) },
   { UDATA(&tape_svc, UNIT_DIS,   0) },
@@ -78,7 +83,7 @@ static DEBTAB tape_deb[] = {
 
 DEVICE tape_dev = {
   "TAPE", tape_unit, NULL, NULL,
-  6, 8, 12, 1, 8, 12,
+  TAPE_UNITS, 8, 12, 1, 8, 12,
   NULL, NULL, &tape_reset,
   &tape_boot, &tape_attach, &tape_detach,
   NULL, DEV_DEBUG, 0, tape_deb,
