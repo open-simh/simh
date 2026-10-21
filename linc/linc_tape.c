@@ -9,6 +9,7 @@
 #define SPEED   u4
 #define ACC     u5
 #define OFFSET  u6
+#define IBZ     us9
 
 #define P (*(uint16 *)cpu_reg[0].loc)
 #define C (*(uint16 *)cpu_reg[1].loc)
@@ -18,7 +19,7 @@
 #define LSW (*(uint16 *)cpu_reg[8].loc)
 #define RSW (*(uint16 *)cpu_reg[9].loc)
 #define paused (*(int *)cpu_reg[11].loc)
-#define IBZ (*(int *)cpu_reg[12].loc)
+#define CPU_IBZ (*(int *)cpu_reg[12].loc)
 
 #define ACC_START    3
 #define ACC_REVERSE  6
@@ -307,6 +308,7 @@ static t_stat tape_svc(UNIT *uptr)
 {
   long pos, block, offset;
   uint16 u = uptr - tape_unit;
+  int i;
 
   uptr->SPEED += uptr->ACC;
   if (uptr->SPEED >= MAX_SPEED) {
@@ -338,24 +340,32 @@ static t_stat tape_svc(UNIT *uptr)
     sim_activate(uptr, 20);
 
   pos = uptr->POS / MAX_SPEED;
-  if (pos < 0)
-    return SCPE_OK;
-
   block = pos / BLOCK_WORDS;
   offset = pos % BLOCK_WORDS;
-  if (block >= MAX_BLOCKS)
-    return SCPE_OK;
 
-  IBZ = offset < IBZ_WORDS;
-  if (IBZ)
+  /* IBZ is sensed even if the tape isn't up to speed */
+  uptr->IBZ = offset < IBZ_WORDS;
+  if (uptr->IBZ)
     sim_debug(DBG, &tape_dev, "Unit %u: Interblock zone\n", u);
 
+  /* IBZ is set if any tape unit is inside an interblock zone. */
+  CPU_IBZ = 0;
+  for (i = 0; i < TAPE_UNITS; i++)
+    CPU_IBZ |= tape_unit[i].IBZ;
+
+  /* Finished with tape motion simulation. */
+
+  /* The tape contents are ignored for any of these condition. */
+  /* In an end zone. */
+  if (pos < 0 || block >= MAX_BLOCKS)
+    return SCPE_OK;
+  /* Not up to speed. */
   if (uptr->SPEED > -MAX_SPEED && uptr->SPEED < MAX_SPEED)
     return SCPE_OK;
-
+  /* Not paused. */
   if (!paused)
     return SCPE_OK;
-
+  /* Not the unit currently attended to. */
   if (u != CURRENT_UNIT)
     return SCPE_OK;
 
@@ -405,6 +415,13 @@ static t_stat tape_svc(UNIT *uptr)
 
 static t_stat tape_reset(DEVICE *dptr)
 {
+  int i;
+
+  for (i = 0; i < TAPE_UNITS; i++) {
+    if (tape_unit[i].flags & UNIT_DIS)
+      tape_unit[i].IBZ = 0;
+  }
+
   return SCPE_OK;
 }
 
@@ -478,6 +495,7 @@ static t_stat tape_attach(UNIT *uptr, CONST char *cptr)
     
   uptr->POS = -2 * START_POS;
   uptr->SPEED = 0;
+  uptr->IBZ = 0;
   return SCPE_OK;
 }
 
