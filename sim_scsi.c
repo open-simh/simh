@@ -54,6 +54,7 @@
 #define CMD_SNDDIAG     0x1D                            /* send diagnostic */
 #define CMD_SPACE       0x11                            /* space */
 #define CMD_WRFMARK     0x10                            /* write filemarks */
+#define CMD_REASSIGN    0x07                            /* reassign blocks */
 
 #define CMD_READ6_TAPE_FIXED    0x01                    /* Fixed record size read */
 #define CMD_READ6_TAPE_SILI     0x02                    /* Suppress Incorrect Length Indicator */
@@ -78,7 +79,10 @@
 #define ASC_OK          0                               /* no additional sense information */
 #define ASC_INVCOM      0x20                            /* invalid command operation code */
 #define ASC_INVCDB      0x24                            /* invalid field in cdb */
+#define ASC_WRTPROT     0x27                            /* write protected */
 #define ASC_NOMEDIA     0x3A                            /* media not present */
+#define ASC_LBAOOR      0x21                            /* logical block address out of range */
+#define ASC_INVPARM     0x26                            /* invalid field in parameter list */
 
 #define PUTL(b,x,v)     b[x] = (v >> 24) & 0xFF; \
                         b[x+1] = (v >> 16) & 0xFF; \
@@ -368,6 +372,23 @@ void scsi_check_alloc (SCSI_BUS *bus, uint32 alloc)
 {
 if (bus->buf_b > alloc)                                 /* check allocation */
     bus->buf_b = alloc;
+}
+
+/* Check that a requested transfer fits in the bus transfer buffer.
+
+   Returns TRUE and reports CHECK CONDITION to the initiator when it does not.
+   Real host adapters have a maximum transfer size and reject commands that
+   exceed it; the alternative here -- silently transferring less than was
+   asked for -- would report success for a short transfer. */
+
+t_bool scsi_xfer_too_big (SCSI_BUS *bus, uint32 bytes)
+{
+if (bytes <= bus->buf_size)
+    return FALSE;
+sim_debug (SCSI_DBG_CMD, bus->dptr,
+    "transfer of %u bytes exceeds the %u byte buffer\n", bytes, bus->buf_size);
+scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
+return TRUE;
 }
 
 /* Command - Test Unit Ready */
@@ -784,6 +805,9 @@ if (sects == 0)
 
 scsi_debug_cmd (bus, "Read(6) lba %d blks %d\n", lba, sects);
 
+if (scsi_xfer_too_big (bus, sects * dev->block_size))
+    return;
+
 if (uptr->flags & UNIT_ATT)
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, sects);
 else {
@@ -924,6 +948,9 @@ if (sects == 0) {                                       /* no data to read */
     return;
     }
 
+if (scsi_xfer_too_big (bus, sects * dev->block_size))
+    return;
+
 if (uptr->flags & UNIT_ATT)
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, sects);
 else {
@@ -943,6 +970,7 @@ scsi_set_req (bus);                                     /* request to send data 
 void scsi_read_long (SCSI_BUS *bus, uint8 *data, uint32 len)
 {
 UNIT *uptr = bus->dev[bus->target];
+SCSI_DEV *dev = (SCSI_DEV *)uptr->up7;
 t_lba lba;
 t_seccnt sects, sectsread;
 t_stat r;
@@ -951,6 +979,9 @@ lba = GETL (data, 2);
 sects = GETW (data, 7);
 
 scsi_debug_cmd (bus, "Read Long lba %d bytes %d\n", lba, sects);
+
+if (scsi_xfer_too_big (bus, (((sects >> 9) + 1) * dev->block_size)))
+    return;
 
 if (uptr->flags & UNIT_ATT)
     r = sim_disk_rdsect (uptr, lba, &bus->buf[0], &sectsread, ((sects >> 9) + 1));
@@ -961,6 +992,76 @@ else {
 bus->buf_b = sects;
 scsi_set_phase (bus, SCSI_DATI);                        /* data in phase next */
 scsi_set_req (bus);                                     /* request to send data */
+}
+
+/* Command - Reassign Blocks (SCSI-2, direct-access devices)
+
+   The initiator sends a defect list: a four byte header, whose last two
+   bytes give the length in bytes of what follows, then one four byte logical
+   block address for each block to reassign.  The command descriptor block
+   does not say how long the list is, so it arrives in two DATA OUT phases,
+   the header and then the descriptors.
+
+   A disk image has no spare blocks to move a block to and no defects to
+   avoid: a block keeps its place, and the data in it is kept -- the standard
+   allows the data in a listed block to be altered, it does not ask for it.
+   A well formed list therefore ends in GOOD status with nothing done.  What
+   the target does check is what any target checks: the unit is there and not
+   write protected, the list is a whole number of descriptors that fits the
+   transfer buffer, and every address is on the unit. */
+
+void scsi_reassign_blocks (SCSI_BUS *bus, uint8 *data, uint32 len)
+{
+UNIT *uptr = bus->dev[bus->target];
+uint32 listlen, i;
+
+if (bus->phase == SCSI_CMD) {
+    scsi_debug_cmd (bus, "Reassign Blocks - CMD\n");
+    if ((uptr->flags & UNIT_ATT) == 0) {                /* not attached? */
+        scsi_status (bus, STS_CHK, KEY_NOTRDY, ASC_NOMEDIA);
+        return;
+        }
+    if (uptr->flags & UNIT_WPRT) {                      /* write protected? */
+        scsi_status (bus, STS_CHK, KEY_PROT, ASC_WRTPROT);
+        return;
+        }
+    memcpy (&bus->cmd[0], &data[0], 6);
+    bus->buf_b = 4;                                     /* the header first */
+    scsi_set_phase (bus, SCSI_DATO);                    /* data out phase next */
+    scsi_set_req (bus);                                 /* request data */
+    }
+else if (bus->phase == SCSI_DATO) {
+    if (bus->buf_b == 4) {                              /* the header is in */
+        listlen = GETW (bus->buf, 2);
+        scsi_debug_cmd (bus, "Reassign Blocks - DATO, list length %d\n", listlen);
+        if (listlen == 0) {                             /* nothing to reassign */
+            memset (&bus->cmd[0], 0, 10);
+            scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
+            return;
+            }
+        if (((listlen & 3) != 0) ||                     /* not whole descriptors? */
+            ((4 + listlen) > bus->buf_size)) {          /* more than the buffer holds? */
+            memset (&bus->cmd[0], 0, 10);
+            scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVPARM);
+            return;
+            }
+        bus->buf_t = 4;                                 /* the descriptors follow the header */
+        bus->buf_b = 4 + listlen;
+        scsi_set_phase (bus, SCSI_DATO);                /* data out phase again */
+        scsi_set_req (bus);                             /* request data */
+        }
+    else {                                              /* the descriptors are in */
+        memset (&bus->cmd[0], 0, 10);
+        for (i = 4; i < bus->buf_b; i += 4) {
+            scsi_debug_cmd (bus, "Reassign Blocks - lba %d\n", GETL (bus->buf, i));
+            if ((uint32)GETL (bus->buf, i) >= uptr->capac) {   /* off the end of the unit? */
+                scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_LBAOOR);
+                return;
+                }
+            }
+        scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
+        }
+    }
 }
 
 /* Command - Write (6 byte command), disk version */
@@ -978,6 +1079,8 @@ if (bus->phase == SCSI_CMD) {
     memcpy (&bus->cmd[0], &data[0], 6);
     sects = bus->cmd[4];
     if (sects == 0) sects = 256;
+    if (scsi_xfer_too_big (bus, sects * dev->block_size))
+        return;
     bus->buf_b = (sects * dev->block_size);
     scsi_set_phase (bus, SCSI_DATO);                    /* data out phase next */
     scsi_set_req (bus);                                 /* request data */
@@ -1051,6 +1154,8 @@ if (bus->phase == SCSI_CMD) {
     if (sects == 0)                                     /* no data to write */
         scsi_status (bus, STS_OK, KEY_OK, ASC_OK);
     else {
+        if (scsi_xfer_too_big (bus, sects * dev->block_size))
+            return;
         bus->buf_b = (sects * dev->block_size);
         scsi_set_phase (bus, SCSI_DATO);                /* data out phase next */
         scsi_set_req (bus);                             /* request data */
@@ -1277,6 +1382,10 @@ switch (data[0]) {
         scsi_read_long (bus, data, len);
         break;
 
+    case CMD_REASSIGN:                                  /* optional */
+        scsi_reassign_blocks (bus, data, len);
+        break;
+
     case CMD_RELEASE:                                   /* mandatory */
         scsi_release_unit (bus, data, len);
         break;
@@ -1492,7 +1601,8 @@ uint32 cmd_len;
 
 cmd_len = scsi_decode_group (data[0]);
 
-if (len < cmd_len)                                      /* all command bytes received? */
+if ((bus->phase == SCSI_CMD) &&                         /* all command bytes received? */
+    (len < cmd_len))                                    /* (data out phases pass their length) */
     return 0;                                           /* no, need more */
 bus->status = STS_OK;
 
@@ -1525,6 +1635,8 @@ uint32 scsi_data (SCSI_BUS *bus, uint8 *data, uint32 len)
 {
 uint32 i;
 
+if (bus->buf_b > bus->buf_size)                         /* never leave the buffer */
+    bus->buf_b = bus->buf_size;
 for (i = 0; ((i < len) && (bus->buf_t != bus->buf_b)); i++, bus->buf_t++)
     bus->buf[bus->buf_t] = data[i];
 if (bus->buf_t == bus->buf_b) {
@@ -1588,6 +1700,8 @@ if (len == 0) {
     return 0;
     }
 scsi_release_req (bus);                                 /* assume done */
+if (bus->buf_b > bus->buf_size)                         /* never leave the buffer */
+    bus->buf_b = bus->buf_size;
 for (i = 0; ((i < len) && (bus->buf_t != bus->buf_b)); i++, bus->buf_t++)
     data[i] = bus->buf[bus->buf_t];
 if (bus->buf_t == bus->buf_b) {
@@ -1691,6 +1805,7 @@ if (bus->buf == NULL)
     bus->buf = (uint8 *)calloc (maxfr, sizeof(uint8));
 if (bus->buf == NULL)
     return SCPE_MEM;
+bus->buf_size = maxfr;                                  /* remember the limit */
 return SCPE_OK;
 }
 
