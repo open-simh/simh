@@ -454,6 +454,7 @@ void xs_process_transmit (CTLR* xs)
 {
 uint32 segb, ba;
 int slen, wlen, off, giant, runt;
+uint16 tmd3;
 t_stat rstatus, wstatus;
 
 /* sim_debug(DBG_TRC, xs->dev, "xs_process_transmit()\n"); */
@@ -485,6 +486,10 @@ for (;;) {
     sim_debug_bits(DBG_TRC, xs->dev, xs_tdes_w2, xs->var->txhdr[2], xs->var->txhdr[2], 0);
     sim_debug(DBG_TRC, xs->dev, ", pktlen=0x%X(%d), used=0x%X, wlen=0x%X\n", 0, 0, 0, wlen);
 
+    /* the chip writes TMD1's status (ERR, MORE, ONE, DEF) whole, keeping none of
+       what the host left in the descriptor */
+    xs->var->txhdr[1] &= ~(TXR_ERRS | TXR_MORE | TXR_ONE | TXR_DEF);
+
     /* prepare to accumulate transmit information if start of frame */
     if (xs->var->txhdr[1] & TXR_STF) {
         memset(&xs->var->write_buffer, 0, sizeof(ETH_PACK));
@@ -509,6 +514,7 @@ for (;;) {
 
     /* transmit packet when end-of-frame is reached */
     if (xs->var->txhdr[1] & TXR_ENF) {
+        tmd3 = 0;
 
         /* make sure packet is minimum length */
         if (xs->var->write_buffer.len < ETH_MIN_PACKET) {
@@ -535,16 +541,21 @@ for (;;) {
         if (xs->var->write_buffer.status != 0) {
             /* failure */
             const uint16 tdr = 100 + wlen * 8; /* arbitrary value */
-            xs->var->txhdr[3] |= TXR_RTRY;
-            xs->var->txhdr[3] |= tdr & TXR_TDR;
+            tmd3 |= TXR_RTRY;
+            tmd3 |= tdr & TXR_TDR;
             xs->var->txhdr[1] |= TXR_ERRS;
             }
 
         /* was packet too big or too small? */
         if (giant || runt) {
-            xs->var->txhdr[3] |= TXR_BUFL;
+            tmd3 |= TXR_BUFL;
             xs->var->txhdr[1] |= TXR_ERRS;
             }
+
+        /* the chip writes TMD3 whole when the frame had an error, and leaves it
+           as it was when not */
+        if (tmd3)
+            xs->var->txhdr[3] = tmd3;
 
         /* tell host we transmitted a packet */
         xs->var->csr0 |= CSR0_TINT;
