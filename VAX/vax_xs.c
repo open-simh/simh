@@ -579,6 +579,7 @@ t_stat xs_init (CTLR* xs)
 {
 uint16 w1, w2;
 uint8 inb[0x18];
+ETH_MULTIHASH ladrf;
 
 sim_debug (DBG_TRC, &xs_dev, "xs_init() at %08X\n", fault_PC);
 
@@ -639,7 +640,17 @@ xs->var->setup.mult0 = GETL (inb, 0x8);
 xs->var->setup.mult1 = GETL (inb, 0xC);
 
 xs->var->setup.promiscuous = (xs->var->mode & MODE_PROM) ? 1 : 0;
-xs->var->setup.multicast   = ((xs->var->setup.mult0 | xs->var->setup.mult1) > 0) ? 1 : 0;
+xs->var->setup.multicast   = ((xs->var->setup.mult0 & xs->var->setup.mult1) == 0xFFFFFFFF) ? 1 : 0;
+
+/* The logical address filter LADRF<63:0> (init block bytes 8-15, bit n in
+   byte n/8): a multicast destination is accepted when the bit its hash
+   selects is set - the high 6 bits of the Ethernet CRC of the address, the
+   same hash as sim_ether's AUTODIN II filter, bit for bit. Every bit set is
+   all multicast; none set, no multicast; broadcast is always accepted. The
+   copy given to sim_ether also has broadcast's own bit (47) set, because its
+   libpcap path consults the hash for broadcast too. */
+memcpy (ladrf, &inb[0x8], sizeof (ladrf));
+ladrf[47 >> 3] |= (1 << (47 & 7));
 
 xs->var->csr0 = xs->var->csr0 | CSR0_INIT;
 xs->var->csr0 = xs->var->csr0 & ~CSR0_STOP;
@@ -648,9 +659,10 @@ xs->var->csr0 = xs->var->csr0 & ~CSR0_STOP;
 eth_copy_mac(xs->var->setup.macs[0], xs->var->mac);
 xs->var->setup.mac_count = 1;
 if (xs->var->etherface)
-    eth_filter (xs->var->etherface, xs->var->setup.mac_count,
-                &xs->var->mac, xs->var->setup.multicast,
-                xs->var->setup.promiscuous);
+    eth_filter_hash (xs->var->etherface, xs->var->setup.mac_count,
+                     &xs->var->mac, xs->var->setup.multicast,
+                     xs->var->setup.promiscuous,
+                     ((xs->var->setup.mult0 | xs->var->setup.mult1) && !xs->var->setup.multicast) ? &ladrf : NULL);
 
 sim_activate (&xs_unit, 50);
 
