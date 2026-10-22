@@ -307,6 +307,12 @@ extern int32 ka_cdiag;
 
 #define LCSPX_BASE      0x38000000
 
+/* TURBOchannel adapter (vax_tca.c): the option ROM the console probes when
+   configuration bit 0 is set, and the register it pulses */
+
+#define TCA_BASE        0x36000000
+#define TCA_CSR         0x36800000
+
 /* Other address spaces */
 
 #define ADDR_IS_IO(x)   (0)
