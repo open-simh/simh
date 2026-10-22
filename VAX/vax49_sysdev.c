@@ -47,6 +47,7 @@
 #include "vax_defs.h"
 #include "vax_sgec.h"
 #include "vax_lcspx.h"
+#include "vax_tca.h"
 
 /* The console ROM.  The simulator carries DEC's KA49 console firmware
    built in when the tree has it: VAX/ka49a.bin listed in sim_BuildROMs.c,
@@ -121,7 +122,8 @@ int32 sys_model = 0;                                    /* no graphics console *
 
 /* Configuration register (2580.0000, read only, word)
 
-   <0>      TURBOchannel adapter present
+   <0>      TURBOchannel adapter present (an option ROM dump is attached to
+            TCA, vax_tca.c; the real 4000/96 has one, the 4000/90 here none)
    <1>      LCSPX graphics present
    <2>      run the remaining power-up device tests (4 to 13); the real
             machine ran them, so the bit is set (its true meaning: guess)
@@ -618,6 +620,8 @@ int32 v = CFG_TESTS | CFG_SERCON;                       /* serial console, run t
 
 if (lcspx_present ())                                   /* the graphics option */
     v = v | CFG_LCSPX;
+if (tca_present ())                                     /* the TURBOchannel adapter */
+    v = v | CFG_TCA;
 
 switch ((uint32) (MEMSIZE >> 20)) {                     /* MB */
 
@@ -1730,6 +1734,8 @@ struct reglink regtable[] = {
     { SGMBASE, SGMBASE+SGMSIZE, &sgm_rd, &sgm_wr },
     { NARBASE, NARBASE+NARSPAN, &ka_nar_rd, NULL },
     { LCSPX_BASE, LCSPX_BASE+LCSPX_WINSIZE, &lcspx_rd, &lcspx_wr },
+    { TCA_BASE, TCA_BASE+TCA_WINSIZE, &tca_rd, &tca_wr },
+    { TCA_CSR, TCA_CSR+TCA_CSRSIZE, &tca_csr_rd, &tca_csr_wr },
     { 0, 0, NULL, NULL }
     };
 
