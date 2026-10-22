@@ -453,12 +453,12 @@ while (xs->var->ReadQ.count > 0) {
 void xs_process_transmit (CTLR* xs)
 {
 uint32 segb, ba;
-int slen, wlen, off, giant, runt;
+int slen, wlen, off, flen, giant, runt;
 t_stat rstatus, wstatus;
 
 /* sim_debug(DBG_TRC, xs->dev, "xs_process_transmit()\n"); */
 
-off = giant = runt = 0;
+off = flen = giant = runt = 0;
 for (;;) {
 
     /* get next transmit buffer */
@@ -488,14 +488,13 @@ for (;;) {
     /* prepare to accumulate transmit information if start of frame */
     if (xs->var->txhdr[1] & TXR_STF) {
         memset(&xs->var->write_buffer, 0, sizeof(ETH_PACK));
-        off = giant = runt = 0;
+        off = flen = giant = runt = 0;
         }
 
     /* get packet data from host */
-    if (xs->var->write_buffer.len + slen > ETH_MAX_PACKET) {
+    flen += slen;                                       /* the frame's length as the host built it */
+    if (xs->var->write_buffer.len + slen > ETH_MAX_PACKET)
         wlen = ETH_MAX_PACKET - xs->var->write_buffer.len;
-        giant = 1;
-        }
     if (wlen > 0) {
         rstatus = XS_READB(segb, wlen, &xs->var->write_buffer.msg[off]);
         if (rstatus) {
@@ -516,8 +515,19 @@ for (;;) {
             runt = 1;
             }
 
+        /* A frame longer on the wire than the maximum (1518 bytes with its CRC,
+           which the chip appends unless MODE<DTCR>) is babble: the chip sends it
+           whole, sets CSR0<BABL> once 1519 bytes have gone out, and reports
+           nothing in the descriptor (TMD1<ERR> sums LCOL, LCAR, UFLO and RTRY
+           only). No station accepts such a frame and the host network cannot
+           carry it, so it is not sent - nor truncated to a frame that would be
+           accepted. */
+        giant = (flen + ((xs->var->mode & MODE_DTCR) ? 0 : ETH_CRC_SIZE) > ETH_FRAME_SIZE);
+        if (giant)
+            xs->var->csr0 |= CSR0_BABL;
+
         /* are we in internal loopback mode ? */
-        if ((xs->var->mode & MODE_LOOP) && (xs->var->mode & MODE_INTL)) {
+        else if ((xs->var->mode & MODE_LOOP) && (xs->var->mode & MODE_INTL)) {
             /* just put packet in  receive buffer */
             ethq_insert (&xs->var->ReadQ, 1, &xs->var->write_buffer, 0);
             sim_debug(DBG_TRC, xs->dev, "loopback packet\n");
@@ -540,8 +550,8 @@ for (;;) {
             xs->var->txhdr[1] |= TXR_ERRS;
             }
 
-        /* was packet too big or too small? */
-        if (giant || runt) {
+        /* was packet too small? */
+        if (runt) {
             xs->var->txhdr[3] |= TXR_BUFL;
             xs->var->txhdr[1] |= TXR_ERRS;
             }
