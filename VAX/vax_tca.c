@@ -52,8 +52,7 @@
       timeout, FIFO, interrupt, DMA triggers, the probe of TURBOchannel
       slot 0) and the "OPT PRS / NO OPT PRES" text are not in the console
       ROM.  So the model cannot make the console print "13 TCA OK" without
-      the adapter's option ROM, a dump of which the author's 4000/96 must
-      give (learnings/m11-tca.md).
+      a dump of the adapter's option ROM, which is not built in.
    2. Whatever the ROM's test returned, it writes 100 to 3680.0000, waits
       one millisecond and writes 0: a reset pulse to, most probably, the
       adapter's CSR (bit 8; EK-KA490-SV Table 5-7 lists RESET among the
@@ -61,7 +60,7 @@
 
    The window therefore serves the ROM exactly as the CPU reads it: the file
    is a raw dump of the longwords at 3600.0000 up to the size the header
-   gives (the form scripts/optrom.py checks), and any width code works.
+   gives (N x 4 KB, N being byte 7 of the header), and any width code works.
    Nothing else of the adapter is modelled: the CSR's bits, the FIFO, the
    interrupt, the DMA path, and the second SCSI controller PKB0 that VMS
    finds on the 4000/96 are open until the option ROM has been read.  A
@@ -332,7 +331,7 @@ fprintf (st, "The VAXstation 4000 Model 96 has a TURBOchannel adapter; the Model
 fprintf (st, "take one.  The console finds it from the configuration register and runs\n");
 fprintf (st, "its tests from an option ROM at 3600.0000, which is DEC's firmware and is\n");
 fprintf (st, "not built in.  Give the model a dump of that ROM, the longwords as the CPU\n");
-fprintf (st, "reads them (the file scripts/optrom.py checks), before BOOT CPU:\n\n");
+fprintf (st, "reads them from 3600.0000 up to the size its header gives, before BOOT CPU:\n\n");
 fprintf (st, "   sim> ATTACH TCA <file>\n\n");
 fprintf (st, "Without a file there is no adapter.  An empty file is an adapter whose ROM\n");
 fprintf (st, "window reads zero, which the console reports as failed.  Only the ROM\n");
