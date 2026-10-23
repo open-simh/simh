@@ -98,6 +98,7 @@ struct scsi_bus_t {
     t_bool atn;                                         /* attention flag */
     t_bool req;                                         /* request flag */
     uint8 *buf;                                         /* transfer buffer */
+    uint32 buf_size;                                    /* transfer buffer size */
     uint8 cmd[10];                                      /* command buffer */
     uint32 buf_b;                                       /* buffer bottom ptr */
     uint32 buf_t;                                       /* buffer top ptr */
@@ -126,6 +127,7 @@ void scsi_set_unit (SCSI_BUS *bus, UNIT *uptr, SCSI_DEV *dev);
 void scsi_reset_unit (UNIT *uptr);
 void scsi_reset (SCSI_BUS *bus);
 t_stat scsi_init (SCSI_BUS *bus, uint32 maxfr);
+t_bool scsi_xfer_too_big (SCSI_BUS *bus, uint32 bytes);
 
 t_stat scsi_set_fmt (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat scsi_set_wlk (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
