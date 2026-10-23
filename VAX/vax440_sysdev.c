@@ -90,14 +90,14 @@ CTAB vax460_cmd[] = {
 
 /* KA460 secondary cache control register - checked */
 
-#define SCCR_CENA       0x00000001
-#define SCCR_TERR       0x00000002
-#define SCCR_WBMODE     0x00000080
-#define SCCR_SPECIO     0x00000100                      /* SPECIO inhibit */
-#define SCCR_FONFUL     0x00000200
-#define SCCR_REV        0x00000400
+#define SCCR_CENA       0x00000001                      /* cache enable */
+#define SCCR_TERR       0x00000002                      /* tag error, read only */
+#define SCCR_WBMODE     0x00000080                      /* MOD, write buffer mode */
+#define SCCR_FONFUL     0x00000100                      /* flush on full */
+#define SCCR_SPECIO     0x00000200                      /* special I/O */
+#define SCCR_REV        0x00000400                      /* revision, read only */
 #define SCCR_RD         0x00000783
-#define SCCR_WR         0x00000101
+#define SCCR_WR         (SCCR_CENA | SCCR_WBMODE | SCCR_FONFUL | SCCR_SPECIO)
 
 /* KA460 Memory system error register */
 
