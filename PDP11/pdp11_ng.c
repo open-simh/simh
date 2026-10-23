@@ -263,16 +263,16 @@ ng_set_scale(UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
   t_stat r;
   t_value v;
-  if ((uptr->flags & UNIT_DIS) == 0)
-    return SCPE_ALATT;
+  if ((ng_dev.flags & DEV_DIS) == 0)
+    return sim_messagef (SCPE_ALATT, "Can not change scale of open window\n");
   if (cptr == NULL)
     return SCPE_ARG;
   v = get_uint(cptr, 10, 8, &r);
   if (r != SCPE_OK)
     return r;
   if (v != 1 && v != 2 && v != 4 && v != 8)
-    return SCPE_ARG;
-  ng_scale = v;
+    return sim_messagef (SCPE_ARG, "Scale can only be: 1, 2, 4, or 8, not: %s\n", cptr);
+  ng_scale = (int32)v;
   return SCPE_OK;
 }
 
