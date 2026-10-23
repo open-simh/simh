@@ -307,27 +307,31 @@ extern int32 sys_model;
 /* Machine specific definitions - RZ94 */
 
 #define RZ_SCSI_ID      6                               /* initiator SCSI id */
-#define RZ_READB        Map_ReadB
-#define RZ_READW        Map_ReadW
-#define RZ_WRITEB       Map_WriteB
-#define RZ_WRITEW       Map_WriteW
+#define RZ_READB(ba,bc,buf)    Map_ReadB(ba, bc, buf, DMA_SCSI)
+#define RZ_READW(ba,bc,buf)    Map_ReadW(ba, bc, buf, DMA_SCSI)
+#define RZ_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, DMA_SCSI)
+#define RZ_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, DMA_SCSI)
 
 /* Machine specific definitions - XS */
 
 #define XS_ROM_INDEX    -1                              /* no ROM needed */
 #define XS_FLAGS        0
-#define XS_READB        Map_ReadB
-#define XS_READW        Map_ReadW
-#define XS_WRITEB       Map_WriteB
-#define XS_WRITEW       Map_WriteW
+#define XS_READB(ba,bc,buf)    Map_ReadB(ba, bc, buf, DMA_NI)
+#define XS_READW(ba,bc,buf)    Map_ReadW(ba, bc, buf, DMA_NI)
+#define XS_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, DMA_NI)
+#define XS_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, DMA_NI)
 #define XS_ADRMBO       (0)
 
-/* Function prototypes for I/O */
+/* Function prototypes for I/O; the last argument names the DMA engine,
+   which PAR_CTL reports an invalid map entry for */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf);
+#define DMA_SCSI        0
+#define DMA_NI          1
+
+int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, int32 dma);
+int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, int32 dma);
+int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, int32 dma);
+int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, int32 dma);
 
 /* Function prototypes for system-specific unaligned support */
 
