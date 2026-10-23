@@ -165,7 +165,7 @@
 
 /* Serial line controller */
 
-#define DZSIZE          0x10                            /* DZ length */
+#define DZSIZE          0x20                            /* DZ length */
 #define DZBASE          0x200A0000                      /* DZ base */
 
 /* Non-volatile RAM - 1KB Bytes long */
