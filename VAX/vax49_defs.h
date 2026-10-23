@@ -312,6 +312,12 @@ extern int32 ka_cdiag;
 
 #define TCA_BASE        0x36000000
 #define TCA_CSR         0x36800000
+#define TCA_SLOT        0x30000000                      /* TURBOchannel slot 0 */
+#define TCA_TRIG        0x34000000                      /* DMA triggers */
+#define TCA_FIFO        0x35000000                      /* FIFO port */
+#define TCA_MAP         0x35800000                      /* scatter/gather map RAM */
+void ka49_tca_int (int32 level);
+#define TCA_SET_INT(l)  ka49_tca_int (l)
 
 /* Other address spaces */
 
@@ -396,6 +402,7 @@ typedef struct {
 
 #define INT_V_NI        0                               /* IPL 14: SGEC */
 
+#define INT_V_TCA       0                               /* IPL 15: the TURBOchannel adapter, INT_REQ<0> */
 #define INT_V_SC        1                               /* IPL 15: 53C94, INT_REQ<1> */
 #define INT_V_DZRX      3                               /* DZ receive, INT_REQ<3> */
 #define INT_V_AUD       4                               /* audio (guess: INT_REQ<4>) */
@@ -403,6 +410,7 @@ typedef struct {
 #define INT_V_DZTX      8                               /* DZ transmit, reads as INT_REQ<3> */
 
 #define INT_NI          (1u << INT_V_NI)
+#define INT_TCA         (1u << INT_V_TCA)
 #define INT_SC          (1u << INT_V_SC)
 #define INT_DZRX        (1u << INT_V_DZRX)
 #define INT_AUD         (1u << INT_V_AUD)
@@ -421,7 +429,8 @@ typedef struct {
 #define IPL_AUD         (0x15 - IPL_HMIN)
 #define IPL_SGMERR      (0x15 - IPL_HMIN)
 
-#define VEC_SC          0x148                           /* fixed board vectors */
+#define VEC_TCA         0x144                           /* fixed board vectors */
+#define VEC_SC          0x148
 #define VEC_DZRX        0x150
 #define VEC_DZTX        0x154
 #define VEC_AUD         0x158

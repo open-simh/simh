@@ -459,9 +459,20 @@ DEVICE sysd_dev = {
 
 /* Interrupt controller helpers */
 
+/* The TURBOchannel adapter's request (vax_tca.c): a level that follows the
+   adapter's CSR, INT_REQ<0>; INT_CLR does not remove it */
+
+void ka49_tca_int (int32 level)
+{
+if (level)
+    int_req[IPL_SC] = int_req[IPL_SC] | INT_TCA;
+else int_req[IPL_SC] = int_req[IPL_SC] & ~INT_TCA;
+SET_IRQL;
+}
+
 static int32 int_mask_expanded (void)                  /* INT_MSK as int_req[1] bits */
 {
-int32 m = int_mask & (INT_SC | INT_DZRX | INT_AUD);     /* sources with a known vector */
+int32 m = int_mask & (INT_TCA | INT_SC | INT_DZRX | INT_AUD);  /* sources with a known vector */
 
 if (int_mask & INT_DZRX)                                /* one mask bit for both DZ directions */
     m = m | INT_DZTX;
@@ -591,6 +602,8 @@ switch (lvl) {
 
     case 0x15:                                          /* board devices */
         pend = int_pending () & int_mask_expanded ();
+        if (pend & INT_TCA)                             /* TCA: level, follows its CSR */
+            return VEC_TCA;
         if (pend & INT_SC)                              /* 53C94: level, follows the chip */
             return VEC_SC;
         if (pend & INT_DZRX) {                          /* DZ: latched requests */
@@ -1505,7 +1518,7 @@ switch (rg) {
                 if ((lvl & 2) == 0)
                     clr = clr | INT_DZTX;
                 }
-            clr = clr & ~INT_SC;                        /* the 53C94 request follows the chip */
+            clr = clr & ~(INT_SC | INT_TCA);            /* the 53C94 and TCA requests follow their source */
             int_req[IPL_SC] = int_req[IPL_SC] & ~clr;
             SET_IRQL;
             }
@@ -1734,6 +1747,10 @@ struct reglink regtable[] = {
     { SGMBASE, SGMBASE+SGMSIZE, &sgm_rd, &sgm_wr },
     { NARBASE, NARBASE+NARSPAN, &ka_nar_rd, NULL },
     { LCSPX_BASE, LCSPX_BASE+LCSPX_WINSIZE, &lcspx_rd, &lcspx_wr },
+    { TCA_SLOT, TCA_SLOT+TCA_SLOTSIZE, &tca_slot_rd, &tca_slot_wr },
+    { TCA_TRIG, TCA_TRIG+TCA_TRIGSIZE, &tca_trig_rd, &tca_trig_wr },
+    { TCA_FIFO, TCA_FIFO+TCA_FIFOSIZE, &tca_fifo_rd, &tca_fifo_wr },
+    { TCA_MAP, TCA_MAP+TCA_MAPSIZE, &tca_map_rd, &tca_map_wr },
     { TCA_BASE, TCA_BASE+TCA_WINSIZE, &tca_rd, &tca_wr },
     { TCA_CSR, TCA_CSR+TCA_CSRSIZE, &tca_csr_rd, &tca_csr_wr },
     { 0, 0, NULL, NULL }

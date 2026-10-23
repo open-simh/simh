@@ -38,6 +38,10 @@
                                                            header's size byte can ask
                                                            for: 255 x 4 KB, rounded up */
 #define TCA_CSRSIZE     0x00000004                      /* one longword */
+#define TCA_SLOTSIZE    0x04000000                      /* slot 0 of the TURBOchannel */
+#define TCA_TRIGSIZE    0x01000000                      /* the DMA triggers (read, write) */
+#define TCA_FIFOSIZE    0x00800000                      /* the FIFO port */
+#define TCA_MAPSIZE     0x00080000                      /* map RAM, 512 KB */
 
 extern DEVICE tca_dev;
 
@@ -45,6 +49,15 @@ int32 tca_rd (int32 pa);
 void tca_wr (int32 pa, int32 val, int32 lnt);
 int32 tca_csr_rd (int32 pa);
 void tca_csr_wr (int32 pa, int32 val, int32 lnt);
+int32 tca_fifo_rd (int32 pa);
+void tca_fifo_wr (int32 pa, int32 val, int32 lnt);
+int32 tca_trig_rd (int32 pa);
+void tca_trig_wr (int32 pa, int32 val, int32 lnt);
+int32 tca_map_rd (int32 pa);
+void tca_map_wr (int32 pa, int32 val, int32 lnt);
+int32 tca_slot_rd (int32 pa);
+void tca_slot_wr (int32 pa, int32 val, int32 lnt);
+void tca_module_irq (t_bool level);
 t_bool tca_present (void);
 
 #endif

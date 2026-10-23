@@ -58,17 +58,38 @@
       adapter's CSR (bit 8; EK-KA490-SV Table 5-7 lists RESET among the
       CSR's functions).  The console never reads the register.
 
-   The window therefore serves the ROM exactly as the CPU reads it: the file
-   is a raw dump of the longwords at 3600.0000 up to the size the header
-   gives (N x 4 KB, N being byte 7 of the header), and any width code works.
-   Nothing else of the adapter is modelled: the CSR's bits, the FIFO, the
-   interrupt, the DMA path, and the second SCSI controller PKB0 that VMS
-   finds on the 4000/96 are open until the option ROM has been read.  A
-   read of the CSR is therefore a machine check, like any address that
-   nothing answers, and so is a read of the window past the end of the file.
+   The adapter's other parts are the ones that option ROM's self-test uses
+   (EK-KA490-SV Table 5-7 and A-20):
+
+   - the CSR at 3680.0000: bit 8 RESET, 11 TURBOchannel timeout, 12
+     interrupt enable, 13 interrupt asserted, 9 map enable, 10 and 14
+     write-one-to-clear errors (10 is INV, an invalid map reference), 15 and
+     16 and the low byte plain storage, 17 FIFO not empty;
+   - a 512-longword FIFO behind 3500.0000, and the two DMA triggers at
+     3400.0000, a read and a write: the first FIFO longword is the DMA
+     address, a read trigger fills the FIFO with 128 longwords (one 512-byte
+     page) of memory, a write trigger stores the longwords then in the FIFO;
+   - 512 KB of map RAM at 3580.0000: bit 31 valid, the low bits a 512-byte
+     page frame number, one entry per 512 bytes of TURBOchannel address;
+   - slot 0 of the TURBOchannel at 3000.0000: a read that nothing answers
+     (no module, or RESET asserted) sets CSR bit 11 and reads zero;
+   - the interrupt: INT_REQ bit 0 at IPL 15, vector 0144, a level that is the
+     CSR's bit 13.
+
+   Not known, and chosen to make the real ROM's tests pass (marked "guess"
+   where used): how the diagnostic DMA address word maps to memory (the
+   test's 0x10000 reaches 0x2000; the model shifts right by 3), what events
+   set CSR bits 10 and 14 (none here), what a read of 3400.0000 returns
+   (zero), what a read of an empty FIFO returns (zero), and bit 9's meaning
+   (map enable, from the manual's "INV by doing an invalid map DMA").
+
+   The module in slot 0 (the 4000/96's PMAZ-AA, PKB0) is not part of this
+   file; SET TCA MODULE says that one is fitted, which only changes whether
+   a read of slot 0 times out: without one the console prints
+   "NO OPT PRES v1.0" for the adapter, with one "OPT PRS    V1.0".
 
    Without a file attached the adapter is absent: the configuration
-   register's bit 0 is clear, the console does not look for it, and the two
+   register's bit 0 is clear, the console does not look for it, and the
    windows machine-check on a read.  An empty file is an adapter whose ROM
    window reads zero, which the console rejects (width code 0): the way to
    see the failure report.
@@ -79,18 +100,47 @@
 #include "vax_defs.h"
 #include "vax_tca.h"
 
-#if !defined (TCA_BASE) || !defined (TCA_CSR)
-#error "the model must define TCA_BASE and TCA_CSR, the adapter's windows in I/O space"
+#if !defined (TCA_BASE) || !defined (TCA_CSR) || !defined (TCA_MAP) || !defined (TCA_SET_INT)
+#error "the model must define TCA_BASE, TCA_CSR, TCA_MAP and TCA_SET_INT, the adapter's windows and its request"
 #endif
 
 #define DBG_ROM         0x0001                          /* option ROM reads */
 #define DBG_REG         0x0002                          /* the CSR */
+#define DBG_FIFO        0x0004                          /* FIFO traffic and DMA triggers */
+#define DBG_SLOT        0x0008                          /* slot 0 accesses */
+#define DBG_INT         0x0010                          /* the interrupt line */
+
+/* CSR bits (3680.0000) */
+
+#define CSR_RW          0x00019BFF                      /* stored as written: <9:0>, <11>, <12>, <15>, <16> */
+#define CSR_RESET       0x00000100                      /* <8> */
+#define CSR_MAPEN       0x00000200                      /* <9> guess: map enable */
+#define CSR_INV         0x00000400                      /* <10> INV: invalid map reference, write one to clear */
+#define CSR_TMO         0x00000800                      /* <11> TURBOchannel timeout; writable */
+#define CSR_INTEN       0x00001000                      /* <12> interrupt enable */
+#define CSR_INT         0x00002000                      /* <13> interrupt asserted (read only) */
+#define CSR_ERR14       0x00004000                      /* <14> error (cause not known), write one to clear */
+#define CSR_FIFONE      0x00020000                      /* <17> FIFO not empty (read only) */
+
+#define TCA_FIFOLEN     512                             /* FIFO depth in longwords */
+#define TCA_DMALEN      128                             /* a read trigger moves one 512-byte page */
+#define TCA_MAPLEN      0x20000                         /* map RAM longwords (512 KB at 3580.0000) */
+#define TCA_MAPENTRIES  8192                            /* entries the map uses (32 KB, 4 MB of address) */
+#define MAP_VALID       0x80000000u                     /* map entry: valid, low bits = 512-byte PFN */
 
 static uint32 *tca_rom = NULL;                          /* the dump, one entry per longword */
 static uint32 tca_romlen = 0;                           /* longwords in it */
 static t_bool tca_zero = FALSE;                         /* an empty file: the window reads zero */
+static uint32 tca_csr = 0;                              /* CSR bits that are stored (CSR_RW) */
+static uint32 tca_err = 0;                              /* CSR_INV, CSR_ERR14 as latched */
 static uint32 tca_csr_last = 0;                         /* the last value written to the CSR */
 static uint32 tca_csr_writes = 0;                       /* number of writes to it */
+static uint32 tca_fifo[TCA_FIFOLEN];                    /* the FIFO behind 3500.0000 */
+static uint32 tca_fifo_rp = 0, tca_fifo_wp = 0, tca_fifo_n = 0;
+static uint32 *tca_map = NULL;                          /* map RAM, 3580.0000 */
+static t_bool tca_module = FALSE;                       /* a module is fitted in slot 0 */
+static t_bool tca_option_irq = FALSE;                   /* the module asks for an interrupt */
+static t_bool tca_int = FALSE;                          /* the request as last given to the CPU */
 
 t_stat tca_reset (DEVICE *dptr);
 t_stat tca_attach (UNIT *uptr, CONST char *cptr);
@@ -98,6 +148,8 @@ t_stat tca_detach (UNIT *uptr);
 t_stat tca_show_rom (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 t_stat tca_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *tca_description (DEVICE *dptr);
+t_stat tca_set_module (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+t_stat tca_show_module (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 
 /* TCA data structures
 
@@ -110,18 +162,31 @@ UNIT tca_unit = { UDATA (NULL, UNIT_ATTABLE + UNIT_RO, 0) };
 
 MTAB tca_mod[] = {
     { MTAB_XTD|MTAB_VDV, 0, "ROM", NULL, NULL, &tca_show_rom, NULL, "Show which option ROM dump is in use" },
+    { MTAB_XTD|MTAB_VDV, 1, "MODULE", "MODULE", &tca_set_module, &tca_show_module, NULL,
+      "A TURBOchannel module is fitted in slot 0 (a read of slot 0 does not time out)" },
+    { MTAB_XTD|MTAB_VDV, 0, NULL, "NOMODULE", &tca_set_module, NULL, NULL,
+      "No module in slot 0 (a read of slot 0 times out: NO OPT PRES)" },
     { 0 }
     };
 
 REG tca_reg[] = {
     { HRDATAD (CSRLAST, tca_csr_last, 32, "last value written to the CSR (3680.0000)") },
     { DRDATAD (CSRWRITES, tca_csr_writes, 32, "writes to the CSR since reset") },
+    { HRDATAD (CSR, tca_csr, 32, "CSR bits that are stored") },
+    { HRDATAD (ERR, tca_err, 32, "CSR error bits <10> (INV) and <14> as latched") },
+    { DRDATAD (FIFON, tca_fifo_n, 10, "longwords in the FIFO") },
+    { FLDATAD (MODULE, tca_module, 0, "a module is fitted in slot 0") },
+    { FLDATAD (OPTIRQ, tca_option_irq, 0, "the module in slot 0 asks for an interrupt") },
+    { FLDATAD (INT, tca_int, 0, "the interrupt request to the CPU (INT_REQ<0>)") },
     { NULL }
     };
 
 DEBTAB tca_debug[] = {
     { "ROM", DBG_ROM, "option ROM reads" },
-    { "REG", DBG_REG, "CSR writes" },
+    { "REG", DBG_REG, "CSR accesses" },
+    { "FIFO", DBG_FIFO, "FIFO traffic and DMA triggers" },
+    { "SLOT", DBG_SLOT, "slot 0 accesses" },
+    { "INT", DBG_INT, "the interrupt line" },
     { NULL, 0 }
     };
 
@@ -164,30 +229,265 @@ void tca_wr (int32 pa, int32 val, int32 lnt)
 return;
 }
 
-/* The CSR (3680.0000).  Only writes are known: the console writes 100,
-   then, a millisecond later, 0.  What a read returns is not known. */
+/* The interrupt: the CSR's bit 13, a level, is INT_REQ<0> at IPL 15.  It is
+   asserted when the interrupt enable (bit 12) is set and there is a cause:
+   the timeout (bit 11, which the self-test can force by writing it), an
+   error bit, or the module's own request.  Guess for the causes beyond
+   bit 11, which is all that the console's self-test shows. */
+
+static t_bool tca_csr_int (void)
+{
+if ((tca_csr & CSR_INTEN) &&
+    ((tca_csr & CSR_TMO) || tca_err || tca_option_irq))
+    return TRUE;
+return FALSE;
+}
+
+static void tca_update_int (void)
+{
+t_bool i = tca_csr_int ();
+
+if (i != tca_int) {
+    tca_int = i;
+    sim_debug (DBG_INT, &tca_dev, "interrupt request %d\n", i);
+    TCA_SET_INT (i);
+    }
+}
+
+/* The module's request, called from its controller (not yet modelled) */
+
+void tca_module_irq (t_bool level)
+{
+tca_option_irq = level;
+tca_update_int ();
+}
+
+/* The CSR (3680.0000), a longword.  Bits 14 and 10 are cleared by writing
+   ones; the others that can be written are stored; 13 and 17 are outputs. */
+
+static uint32 tca_csr_value (void)
+{
+uint32 v = tca_csr | tca_err;
+
+if (tca_int)
+    v |= CSR_INT;
+if (tca_fifo_n)
+    v |= CSR_FIFONE;
+return v;
+}
 
 int32 tca_csr_rd (int32 pa)
 {
-sim_debug (DBG_REG, &tca_dev, "CSR read: not known, PC %08X\n", fault_PC);
-MACH_CHECK (MCHK_READ);
-return 0;
+uint32 v;
+
+if (!tca_present ()) {
+    sim_debug (DBG_REG, &tca_dev, "CSR read: no adapter, PC %08X\n", fault_PC);
+    MACH_CHECK (MCHK_READ);
+    }
+v = tca_csr_value ();
+sim_debug (DBG_REG, &tca_dev, "CSR read %08X, PC %08X\n", v, fault_PC);
+return (int32) v;
 }
 
 void tca_csr_wr (int32 pa, int32 val, int32 lnt)
 {
+uint32 v = (uint32) val;
+
 if (!tca_present ())
     return;
-tca_csr_last = (uint32) val;
+tca_csr_last = v;
 tca_csr_writes++;
-sim_debug (DBG_REG, &tca_dev, "CSR write %08X (%d), PC %08X\n", val, lnt, fault_PC);
+sim_debug (DBG_REG, &tca_dev, "CSR write %08X (%d), PC %08X\n", v, lnt, fault_PC);
+tca_err &= ~(v & (CSR_INV | CSR_ERR14));
+tca_csr = v & CSR_RW;
+tca_update_int ();
 return;
+}
+
+/* The FIFO behind 3500.0000.  An empty FIFO reads zero (guess); a write to a
+   full one is lost. */
+
+static void tca_fifo_put (uint32 v)
+{
+if (tca_fifo_n >= TCA_FIFOLEN)
+    return;
+tca_fifo[tca_fifo_wp] = v;
+tca_fifo_wp = (tca_fifo_wp + 1) % TCA_FIFOLEN;
+tca_fifo_n++;
+}
+
+static uint32 tca_fifo_get (void)
+{
+uint32 v;
+
+if (tca_fifo_n == 0)
+    return 0;
+v = tca_fifo[tca_fifo_rp];
+tca_fifo_rp = (tca_fifo_rp + 1) % TCA_FIFOLEN;
+tca_fifo_n--;
+return v;
+}
+
+int32 tca_fifo_rd (int32 pa)
+{
+uint32 v;
+
+if (!tca_present ())
+    MACH_CHECK (MCHK_READ);
+v = tca_fifo_get ();
+sim_debug (DBG_FIFO, &tca_dev, "FIFO read %08X (%u left), PC %08X\n", v, tca_fifo_n, fault_PC);
+return (int32) v;
+}
+
+void tca_fifo_wr (int32 pa, int32 val, int32 lnt)
+{
+if (!tca_present ())
+    return;
+tca_fifo_put ((uint32) val);
+sim_debug (DBG_FIFO, &tca_dev, "FIFO write %08X (%u in), PC %08X\n", (uint32) val, tca_fifo_n, fault_PC);
+}
+
+/* A DMA address word from the FIFO to a physical address.  With the map
+   enable clear (the self-test's case) the word is shifted right by 3: guess,
+   the test's 0x10000 reaches physical 0x2000.  With it set, the word is a
+   TURBOchannel address and the map RAM, one entry per 512 bytes, gives the
+   page; an invalid entry sets INV (bit 10) and the transfer does not happen.
+   Returns FALSE on INV. */
+
+static t_bool tca_dma_addr (uint32 w, uint32 *pa)
+{
+if (tca_csr & CSR_MAPEN) {
+    uint32 ix = w >> 9;
+
+    if ((ix >= TCA_MAPENTRIES) || ((tca_map[ix] & MAP_VALID) == 0)) {
+        tca_err |= CSR_INV;
+        sim_debug (DBG_FIFO, &tca_dev, "DMA %08X: invalid map entry %u\n", w, ix);
+        return FALSE;
+        }
+    *pa = ((tca_map[ix] & ~MAP_VALID) << 9) | (w & 0x1FF);
+    return TRUE;
+    }
+*pa = w >> 3;
+return TRUE;
+}
+
+/* The triggers at 3400.0000.  A read takes the FIFO's first longword as the
+   DMA address and replaces the FIFO's contents with 128 longwords from there,
+   one page; a write takes the address and stores the rest of the FIFO there.
+   What a read of the trigger itself returns is not known: zero. */
+
+int32 tca_trig_rd (int32 pa)
+{
+uint32 w, a, i;
+
+if (!tca_present ())
+    MACH_CHECK (MCHK_READ);
+w = tca_fifo_get ();
+if (tca_dma_addr (w, &a)) {
+    sim_debug (DBG_FIFO, &tca_dev, "read trigger: %u longwords from %08X\n", TCA_DMALEN, a);
+    tca_fifo_rp = tca_fifo_wp = tca_fifo_n = 0;
+    for (i = 0; i < TCA_DMALEN; i++, a += 4)
+        tca_fifo_put ((a < MEMSIZE)? M[a >> 2]: 0);
+    }
+return 0;
+}
+
+void tca_trig_wr (int32 pa, int32 val, int32 lnt)
+{
+uint32 w, a;
+
+if (!tca_present ())
+    return;
+w = tca_fifo_get ();
+if (tca_dma_addr (w, &a)) {
+    sim_debug (DBG_FIFO, &tca_dev, "write trigger: %u longwords to %08X\n", tca_fifo_n, a);
+    while (tca_fifo_n) {
+        uint32 d = tca_fifo_get ();
+
+        if (a < MEMSIZE)
+            M[a >> 2] = d;
+        a += 4;
+        }
+    }
+}
+
+/* The map RAM at 3580.0000 */
+
+int32 tca_map_rd (int32 pa)
+{
+uint32 ix = (((uint32) pa) - TCA_MAP) >> 2;
+
+if (!tca_present ())
+    MACH_CHECK (MCHK_READ);
+return (int32) tca_map[ix];
+}
+
+void tca_map_wr (int32 pa, int32 val, int32 lnt)
+{
+uint32 ix = (((uint32) pa) - TCA_MAP) >> 2;
+
+if (!tca_present ())
+    return;
+tca_map[ix] = (uint32) val;
+}
+
+/* Slot 0 of the TURBOchannel.  With no module fitted, or the adapter's
+   RESET asserted, nothing answers: the adapter ends the cycle with the
+   timeout flag (bit 11) and the read gives zero, without a machine check.
+   A module (the 4000/96's PMAZ-AA) is not modelled yet: it answers zero. */
+
+int32 tca_slot_rd (int32 pa)
+{
+if (!tca_present ())
+    MACH_CHECK (MCHK_READ);
+if (!tca_module || (tca_csr & CSR_RESET)) {
+    sim_debug (DBG_SLOT, &tca_dev, "slot read %08X: timeout, PC %08X\n", (uint32) pa, fault_PC);
+    tca_csr |= CSR_TMO;
+    tca_update_int ();
+    return 0;
+    }
+sim_debug (DBG_SLOT, &tca_dev, "slot read %08X, PC %08X\n", (uint32) pa, fault_PC);
+return 0;
+}
+
+void tca_slot_wr (int32 pa, int32 val, int32 lnt)
+{
+if (!tca_present ())
+    return;
+if (!tca_module || (tca_csr & CSR_RESET)) {
+    sim_debug (DBG_SLOT, &tca_dev, "slot write %08X: timeout, PC %08X\n", (uint32) pa, fault_PC);
+    tca_csr |= CSR_TMO;
+    tca_update_int ();
+    }
 }
 
 t_stat tca_reset (DEVICE *dptr)
 {
 tca_csr_last = 0;
 tca_csr_writes = 0;
+tca_csr = 0;
+tca_err = 0;
+tca_fifo_rp = tca_fifo_wp = tca_fifo_n = 0;
+tca_option_irq = FALSE;
+if (tca_map == NULL)
+    tca_map = (uint32 *) calloc (TCA_MAPLEN, sizeof (uint32));
+if (tca_map == NULL)
+    return SCPE_MEM;
+memset (tca_map, 0, TCA_MAPLEN * sizeof (uint32));
+tca_int = FALSE;
+TCA_SET_INT (FALSE);
+return SCPE_OK;
+}
+
+t_stat tca_set_module (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+tca_module = val? TRUE: FALSE;
+return SCPE_OK;
+}
+
+t_stat tca_show_module (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
+{
+fprintf (st, tca_module? "a module is fitted in slot 0": "no module in slot 0");
 return SCPE_OK;
 }
 
@@ -334,10 +634,11 @@ fprintf (st, "not built in.  Give the model a dump of that ROM, the longwords as
 fprintf (st, "reads them from 3600.0000 up to the size its header gives, before BOOT CPU:\n\n");
 fprintf (st, "   sim> ATTACH TCA <file>\n\n");
 fprintf (st, "Without a file there is no adapter.  An empty file is an adapter whose ROM\n");
-fprintf (st, "window reads zero, which the console reports as failed.  Only the ROM\n");
-fprintf (st, "window and the write of the console's reset pulse are modelled; the\n");
-fprintf (st, "adapter's own registers and the second SCSI controller (PKB0 under VMS)\n");
-fprintf (st, "are not.  SHOW TCA ROM says which dump is in use.\n");
+fprintf (st, "window reads zero, which the console reports as failed.  The adapter's CSR,\n");
+fprintf (st, "FIFO, DMA triggers, map RAM and interrupt are modelled to the extent that\n");
+fprintf (st, "its own self-test uses them.  SET TCA MODULE says a module is fitted in\n");
+fprintf (st, "slot 0 (without one the console prints NO OPT PRES).  SHOW TCA ROM says\n");
+fprintf (st, "which dump is in use.\n");
 fprint_set_help (st, dptr);
 fprint_show_help (st, dptr);
 fprint_reg_help (st, dptr);
