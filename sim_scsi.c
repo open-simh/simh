@@ -285,6 +285,7 @@ void scsi_status (SCSI_BUS *bus, uint32 sts, uint32 key, uint32 asc)
 {
 bus->sense_key = key;
 bus->sense_code = asc;
+bus->sense_info = 0;                                    /* the information of an earlier status is not this one's */
 bus->buf[0] = sts;                                      /* status code */
 bus->buf_b = 1;
 scsi_set_phase (bus, SCSI_STS);                         /* status phase next */
@@ -298,6 +299,7 @@ void scsi_status_deferred (SCSI_BUS *bus, uint32 sts, uint32 key, uint32 asc)
 bus->status = sts;
 bus->sense_key = key;
 bus->sense_code = asc;
+bus->sense_info = 0;                                    /* a caller that has some sets it after this */
 }
 
 /* Decode the command group to get the command length */
