@@ -83,10 +83,10 @@
    (zero), what a read of an empty FIFO returns (zero), and bit 9's meaning
    (map enable, from the manual's "INV by doing an invalid map DMA").
 
-   The module in slot 0 (the 4000/96's PMAZ-AA, PKB0) is not part of this
-   file; SET TCA MODULE says that one is fitted, which only changes whether
-   a read of slot 0 times out: without one the console prints
-   "NO OPT PRES v1.0" for the adapter, with one "OPT PRS    V1.0".
+   The module in slot 0 (the 4000/96's PMAZ-AA, PKB0) is vax_pmaz.c's; SET
+   TCA MODULE says that one is fitted.  Without one a read of slot 0 times out
+   and the console prints "NO OPT PRES v1.0" for the adapter, with one it
+   prints "OPT PRS    V1.0".
 
    Without a file attached the adapter is absent: the configuration
    register's bit 0 is clear, the console does not look for it, and the
@@ -99,6 +99,7 @@
 
 #include "vax_defs.h"
 #include "vax_tca.h"
+#include "vax_pmaz.h"
 
 #if !defined (TCA_BASE) || !defined (TCA_CSR) || !defined (TCA_MAP) || !defined (TCA_SET_INT)
 #error "the model must define TCA_BASE, TCA_CSR, TCA_MAP and TCA_SET_INT, the adapter's windows and its request"
@@ -259,7 +260,7 @@ if (i != tca_int) {
     }
 }
 
-/* The module's request, called from its controller (not yet modelled) */
+/* The module's request, called from its SCSI controller (vax4xx_rz94.c, RZB) */
 
 void tca_module_irq (t_bool level)
 {
@@ -439,7 +440,7 @@ tca_map[ix] = (uint32) val;
 /* Slot 0 of the TURBOchannel.  With no module fitted, or the adapter's
    RESET asserted, nothing answers: the adapter ends the cycle with the
    timeout flag (bit 11) and the read gives zero, without a machine check.
-   A module (the 4000/96's PMAZ-AA) is not modelled yet: it answers zero. */
+   The module (the 4000/96's PMAZ-AA, vax_pmaz.c) answers otherwise. */
 
 int32 tca_slot_rd (int32 pa)
 {
@@ -452,7 +453,7 @@ if (!tca_module || (tca_csr & CSR_RESET)) {
     return 0;
     }
 sim_debug (DBG_SLOT, &tca_dev, "slot read %08X, PC %08X\n", (uint32) pa, fault_PC);
-return 0;
+return pmaz_rd (((uint32) pa) - TCA_SLOT);
 }
 
 void tca_slot_wr (int32 pa, int32 val, int32 lnt)
@@ -463,7 +464,9 @@ if (!tca_module || (tca_csr & CSR_RESET)) {
     sim_debug (DBG_SLOT, &tca_dev, "slot write %08X: timeout, PC %08X\n", (uint32) pa, fault_PC);
     tca_csr |= CSR_TMO;
     tca_update_int ();
+    return;
     }
+pmaz_wr (((uint32) pa) - TCA_SLOT, val, lnt);
 }
 
 t_stat tca_reset (DEVICE *dptr)
@@ -474,6 +477,7 @@ tca_csr = 0;
 tca_err = 0;
 tca_fifo_rp = tca_fifo_wp = tca_fifo_n = 0;
 tca_option_irq = FALSE;
+pmaz_reset ();
 if (tca_map == NULL)
     tca_map = (uint32 *) calloc (TCA_MAPLEN, sizeof (uint32));
 if (tca_map == NULL)

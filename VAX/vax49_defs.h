@@ -478,10 +478,14 @@ t_stat nar_reset (DEVICE *dptr);
    INT_REQ<1> as a level that follows the chip's INT output */
 
 #define RZ_SCSI_ID      6                               /* initiator SCSI id */
-#define RZ_DMA_READ(rz,bc,buf)  sqwf_read (bc, buf)
-#define RZ_DMA_WRITE(rz,bc,buf) sqwf_write (bc, buf)
-#define RZ_DMA_DONE(rz,n)       sqwf_done (n)
+#define RZ_DMA_READ(rz,bc,buf)  ((rz)->cnum? pmaz_dma_read (bc, buf): sqwf_read (bc, buf))
+#define RZ_DMA_WRITE(rz,bc,buf) ((rz)->cnum? pmaz_dma_write (bc, buf): sqwf_write (bc, buf))
+#define RZ_DMA_DONE(rz,n)       do { if ((rz)->cnum) pmaz_dma_done (n); else sqwf_done (n); } while (0)
 #define RZ_INT_LEVEL    1
+#define RZ_CTLRS        2                               /* RZB: the PMAZ-AA in TURBOchannel slot 0 (vax_pmaz.c) */
+#define RZ_SET_INT(rz)  do { if ((rz)->cnum) tca_module_irq (TRUE); else SET_INT (SC); } while (0)
+#define RZ_CLR_INT(rz)  do { if ((rz)->cnum) tca_module_irq (FALSE); else CLR_INT (SC); } while (0)
+#define RZ_INITIATOR_ID(rz) ((rz)->cnum? 7: RZ_SCSI_ID)
 #define RZ_ABSENT_UNATTACHED 1                          /* no drive behind an empty unit */
 
 /* Function prototypes for I/O */
@@ -490,6 +494,12 @@ int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
 int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
 int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf);
 int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf);
+int32 rzb_rd (int32 pa);
+void rzb_wr (int32 pa, int32 data, int32 access);
+int32 pmaz_dma_read (uint32 bc, uint8 *buf);
+int32 pmaz_dma_write (uint32 bc, uint8 *buf);
+void pmaz_dma_done (uint32 n);
+void tca_module_irq (t_bool level);
 int32 sqwf_read (uint32 bc, uint8 *buf);
 int32 sqwf_write (uint32 bc, uint8 *buf);
 void sqwf_done (uint32 n);

@@ -1617,7 +1617,7 @@ VAX49 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax_watch.c ${VAXD}/vax_nar.c ${VAXD}/vax49_stddev.c \
 	${VAXD}/vax49_sysdev.c ${VAXD}/vax49_syslist.c ${VAXD}/vax4xx_dz.c \
 	${VAXD}/vax_lk.c ${VAXD}/vax_vs.c ${VAXD}/vax4xx_rz94.c \
-	${VAXD}/vax_sgec.c ${VAXD}/vax_lcspx.c ${VAXD}/vax_tca.c
+	${VAXD}/vax_sgec.c ${VAXD}/vax_lcspx.c ${VAXD}/vax_tca.c ${VAXD}/vax_pmaz.c
 VAX49_OPT = -DVM_VAX -DVAX_49 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
 
 

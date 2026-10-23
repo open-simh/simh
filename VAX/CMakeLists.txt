@@ -114,7 +114,8 @@ set(VAX49
     ${VAXD}/vax4xx_rz94.c
     ${VAXD}/vax_sgec.c
     ${VAXD}/vax_lcspx.c
-    ${VAXD}/vax_tca.c)
+    ${VAXD}/vax_tca.c
+    ${VAXD}/vax_pmaz.c)
 
 set(VAX630
     ${VAXD}/vax_cpu.c
