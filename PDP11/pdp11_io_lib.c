@@ -828,8 +828,8 @@ AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
         {010440} },                                     /* AAV11/AAV11C */
     { { NULL },          1,  2,  8, 8, 
         {016400}, {0140} },                             /* AXV11C - fx CSR,vec */
-    { { NULL },          1,  2,  4, 8, 
-        {010420} },                                     /* KWV11C - fx CSR */
+    { { "KWV11" },      1,  2,  0, 0,
+        {010420}, {0440} },                             /* KWV11-A/C - fx CSR, fx VEC */
     { { NULL },          1,  2,  8, 8, 
         {016410} },                                     /* ADV11D - fx CSR */
     { { NULL },          1,  2,  8, 8, 
