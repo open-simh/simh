@@ -308,11 +308,9 @@ static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
   A &= WMASK;
 }
 
-static t_stat tape_svc(UNIT *uptr)
+static void tape_motion(UNIT *uptr)
 {
-  long pos, block, offset;
   uint16 u = uptr - tape_unit;
-  int i;
 
   uptr->SPEED += uptr->ACC;
   if (uptr->SPEED >= MAX_SPEED) {
@@ -357,10 +355,12 @@ static t_stat tape_svc(UNIT *uptr)
     else if (uptr->ACC != 0)
       sim_debug(DBG_MOT, &tape_dev, "Unit %u: Stopping\n", u);
   }
+}
 
-  pos = uptr->POS / MAX_SPEED;
-  block = pos / BLOCK_WORDS;
-  offset = pos % BLOCK_WORDS;
+static void tape_ibz(UNIT *uptr, long offset)
+{
+  uint16 u = uptr - tape_unit;
+  int i;
 
   /* IBZ is sensed even if the tape isn't up to speed */
   uptr->IBZ = offset < IBZ_WORDS;
@@ -371,22 +371,11 @@ static t_stat tape_svc(UNIT *uptr)
   CPU_IBZ = 0;
   for (i = 0; i < TAPE_UNITS; i++)
     CPU_IBZ |= tape_unit[i].IBZ;
+}
 
-  /* Finished with tape motion simulation. */
-
-  /* The tape contents are ignored for any of these condition. */
-  /* In an end zone. */
-  if (pos < 0 || block >= MAX_BLOCKS)
-    return SCPE_OK;
-  /* Not up to speed. */
-  if (uptr->SPEED > -MAX_SPEED && uptr->SPEED < MAX_SPEED)
-    return SCPE_OK;
-  /* Not paused. */
-  if (!paused)
-    return SCPE_OK;
-  /* Not the unit currently attended to. */
-  if (u != CURRENT_UNIT)
-    return SCPE_OK;
+static void tape_data(UNIT *uptr, long block, long offset)
+{
+  uint16 u = uptr - tape_unit;
 
   if (uptr->SPEED > 0) {
     if (offset == 5) {
@@ -428,6 +417,36 @@ static t_stat tape_svc(UNIT *uptr)
     if ((C & 7) == MTB)
       tape_done(uptr);
   }
+}
+
+static t_stat tape_svc(UNIT *uptr)
+{
+  long pos, block, offset;
+  uint16 u = uptr - tape_unit;
+
+  tape_motion(uptr);
+
+  pos = uptr->POS / MAX_SPEED;
+  block = pos / BLOCK_WORDS;
+  offset = pos % BLOCK_WORDS;
+
+  tape_ibz(uptr, offset);
+
+  /* The tape contents are ignored for any of these conditions. */
+  /* In an end zone. */
+  if (pos < 0 || block >= MAX_BLOCKS)
+    return SCPE_OK;
+  /* Not up to speed. */
+  if (uptr->SPEED > -MAX_SPEED && uptr->SPEED < MAX_SPEED)
+    return SCPE_OK;
+  /* Not paused. */
+  if (!paused)
+    return SCPE_OK;
+  /* Not the unit currently attended to. */
+  if (u != CURRENT_UNIT)
+    return SCPE_OK;
+
+  tape_data(uptr, block, offset);
 
   return SCPE_OK;
 }
