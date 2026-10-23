@@ -62,7 +62,7 @@
    (EK-KA490-SV Table 5-7 and A-20):
 
    - the CSR at 3680.0000: bit 8 RESET, 11 TURBOchannel timeout, 12
-     interrupt enable, 13 interrupt asserted, 9 map enable, 10 and 14
+     interrupt enable, 13 set by 11 with 12 (VMS: spurious), 9 map enable, 10 and 14
      write-one-to-clear errors (10 is INV, an invalid map reference), 15 and
      16 and the low byte plain storage, 17 FIFO not empty;
    - a 512-longword FIFO behind 3500.0000, and the two DMA triggers at
@@ -73,8 +73,8 @@
      page frame number, one entry per 512 bytes of TURBOchannel address;
    - slot 0 of the TURBOchannel at 3000.0000: a read that nothing answers
      (no module, or RESET asserted) sets CSR bit 11 and reads zero;
-   - the interrupt: INT_REQ bit 0 at IPL 15, vector 0144, a level that is the
-     CSR's bit 13.
+   - the interrupt: INT_REQ bit 0 at IPL 15, vector 0144, a level that is up
+     while CSR bit 12 is set and bit 11, an error bit or the module asks.
 
    Not known, and chosen to make the real ROM's tests pass (marked "guess"
    where used): how the diagnostic DMA address word maps to memory (the
@@ -118,7 +118,8 @@
 #define CSR_INV         0x00000400                      /* <10> INV: invalid map reference, write one to clear */
 #define CSR_TMO         0x00000800                      /* <11> TURBOchannel timeout; writable */
 #define CSR_INTEN       0x00001000                      /* <12> interrupt enable */
-#define CSR_INT         0x00002000                      /* <13> interrupt asserted (read only) */
+#define CSR_INT         0x00002000                      /* <13> read only: interrupt forced by <11> with <12>
+                                                           set; VMS treats it as spurious */
 #define CSR_ERR14       0x00004000                      /* <14> error (cause not known), write one to clear */
 #define CSR_FIFONE      0x00020000                      /* <17> FIFO not empty (read only) */
 
@@ -229,11 +230,15 @@ void tca_wr (int32 pa, int32 val, int32 lnt)
 return;
 }
 
-/* The interrupt: the CSR's bit 13, a level, is INT_REQ<0> at IPL 15.  It is
-   asserted when the interrupt enable (bit 12) is set and there is a cause:
-   the timeout (bit 11, which the self-test can force by writing it), an
-   error bit, or the module's own request.  Guess for the causes beyond
-   bit 11, which is all that the console's self-test shows. */
+/* The interrupt, a level, is INT_REQ<0> at IPL 15.  It is asserted when the
+   interrupt enable (bit 12) is set and there is a cause: the timeout (bit 11,
+   which the self-test can force by writing it), an error bit, or the
+   module's own request.  The CSR's bit 13 reads 1 when bits 12 and 11 are
+   both set (the self-test needs that); VMS's interrupt routine treats an
+   interrupt with bit 13 set as spurious and hands one with it clear to the
+   option's handler, so an interrupt from the module must not set it.  Guess
+   for the causes beyond bit 11, which is all that the console's self-test
+   shows. */
 
 static t_bool tca_csr_int (void)
 {
@@ -269,7 +274,7 @@ static uint32 tca_csr_value (void)
 {
 uint32 v = tca_csr | tca_err;
 
-if (tca_int)
+if ((tca_csr & CSR_INTEN) && (tca_csr & CSR_TMO))
     v |= CSR_INT;
 if (tca_fifo_n)
     v |= CSR_FIFONE;
