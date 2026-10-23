@@ -54,6 +54,7 @@
 #define CMD_SNDDIAG     0x1D                            /* send diagnostic */
 #define CMD_SPACE       0x11                            /* space */
 #define CMD_WRFMARK     0x10                            /* write filemarks */
+#define CMD_RDPOS       0x34                            /* read position */
 
 #define CMD_READ6_TAPE_FIXED    0x01                    /* Fixed record size read */
 #define CMD_READ6_TAPE_SILI     0x02                    /* Suppress Incorrect Length Indicator */
@@ -1212,6 +1213,47 @@ scsi_set_phase (bus, SCSI_DATI);                        /* data in phase next */
 scsi_set_req (bus);                                     /* request to send data */
 }
 
+/* Command - Read Position
+
+   The short form (SCSI-2 10.2.6) is twenty bytes: BOP, EOP and BPU flags, the
+   partition, the first and last block locations, and the blocks and bytes in
+   the target's buffer. A SIMH tape unit keeps a byte offset into its container
+   and no block count, so it cannot give a block address: BPU (block position
+   unknown) is always set and the locations are zero, as the standard allows
+   for a target that does not know where it is. BOP is set at the beginning of
+   the tape, which the unit does know. The unit has no buffer.
+
+   OpenVMS sends this command when it initializes or mounts a tape. Measured
+   with a BACKUP save, restore and compare on a simulated tape: with BPU clear
+   (a position of zero) it asks again at every mount and the drive ends with a
+   device error count of 1; with BPU set it asks once and the count stays 0.
+
+   Only the BT bit of byte 1 is defined in SCSI-2; the other forms of later
+   standards (service actions such as the long form) are refused. */
+
+void scsi_read_position (SCSI_BUS *bus, uint8 *data, uint32 len)
+{
+UNIT *uptr = bus->dev[bus->target];
+
+scsi_debug_cmd (bus, "Read Position\n");
+
+if (data[1] & 0xFE) {                                   /* only BT (bit 0) is defined: no other form */
+    scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
+    return;
+    }
+
+if ((uptr->flags & UNIT_ATT) == 0) {                    /* no tape loaded */
+    scsi_status (bus, STS_CHK, KEY_NOTRDY, ASC_NOMEDIA);
+    return;
+    }
+
+memset (&bus->buf[bus->buf_b], 0, 20);
+bus->buf[bus->buf_b] = sim_tape_bot (uptr) ? 0x84 : 0x04; /* BOP at the beginning of the tape, BPU always */
+bus->buf_b += 20;
+scsi_set_phase (bus, SCSI_DATI);                        /* data in phase next */
+scsi_set_req (bus);                                     /* request to send data */
+}
+
 /* Command Load/Unload Unit */
 
 void scsi_load_unload (SCSI_BUS *bus, uint8 *data, uint32 len)
@@ -1356,6 +1398,10 @@ switch (data[0]) {
 
     case CMD_RDBLKLIM:                                  /* mandatory */
         scsi_read_blklim (bus, data, len);
+        break;
+
+    case CMD_RDPOS:                                     /* optional */
+        scsi_read_position (bus, data, len);
         break;
 
     case CMD_RELEASE:                                   /* mandatory */
