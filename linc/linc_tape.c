@@ -45,10 +45,11 @@
 #define CHK  7  /* check tape */
 
 #define DBG            0001
-#define DBG_SEEK       0002
-#define DBG_READ       0004
-#define DBG_WRITE      0010
-#define DBG_POS        0020
+#define DBG_INSN       0002
+#define DBG_SEEK       0004
+#define DBG_READ       0010
+#define DBG_WRITE      0020
+#define DBG_POS        0040
 
 static uint16 BLOCK_GROUP;
 static uint16 CURRENT_UNIT;
@@ -75,6 +76,7 @@ static UNIT tape_unit[TAPE_UNITS] = {
 
 static DEBTAB tape_deb[] = {
   { "DBG",      DBG },
+  { "INSN",     DBG_INSN },
   { "SEEK",     DBG_SEEK },
   { "READ",     DBG_READ },
   { "WRITE",    DBG_WRITE },
@@ -123,17 +125,17 @@ void tape_op(void)
   case RDC: case RDE: case WRC: case WRI: case CHK:
     S = 256 * (B >> 9);
     BLOCK_GROUP = 0;
-    sim_debug(DBG, &tape_dev, "Unit %u: Single transfer: S=%04o, BN=%03o\n",
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Single transfer: S=%04o, BN=%03o\n",
               u, S, WANTED_BLOCK);
     break;
   case RCG: case WCG:
     S = 256 * (B & 7);
     BLOCK_GROUP = B >> 9;
-    sim_debug(DBG, &tape_dev, "Unit %u: Group transfer: S=%04o, BN=%03o/%o\n",
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Group transfer: S=%04o, BN=%03o/%o\n",
               u, S, WANTED_BLOCK, BLOCK_GROUP+1);
     break;
   case MTB:
-    sim_debug(DBG, &tape_dev, "Unit %u: Move towards block %03o\n",
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Move towards block %03o\n",
               u, WANTED_BLOCK);
     break;
   }
@@ -209,7 +211,7 @@ static void write_word(FILE *fileref, t_addr block, t_addr offset, uint16 word)
 static void tape_done(UNIT *uptr)
 {
   uint16 u = uptr - tape_unit;
-  sim_debug(DBG, &tape_dev, "Unit %u: Done with block\n", u);
+  sim_debug(DBG_INSN, &tape_dev, "Unit %u: Done with block\n", u);
 
   switch (C & 7) {
   case RDC: case RCG: case RDE: case CHK:
@@ -229,41 +231,41 @@ static void tape_done(UNIT *uptr)
   switch (C & 7) {
   case RDC:
     if (A != GOOD_CHECKSUM) {
-      sim_debug(DBG, &tape_dev, "Unit %u: Check failed; read again\n", u);
+      sim_debug(DBG_INSN, &tape_dev, "Unit %u: Check failed; read again\n", u);
       S &= ~0377;
     } else {
-      sim_debug(DBG, &tape_dev, "Unit %u: Check passed\n", u);
+      sim_debug(DBG_INSN, &tape_dev, "Unit %u: Check passed\n", u);
       paused = 0;
     }
     break;
   case WRC:
-    sim_debug(DBG, &tape_dev, "Unit %u: Block written, go back and check\n", u);
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Block written, go back and check\n", u);
     // For now, done.
     A = GOOD_CHECKSUM;
     paused = 0;
     break;
   case RCG: case WCG:
     if (BLOCK_GROUP == 0) {
-      sim_debug(DBG, &tape_dev, "Unit %u: Done with group\n", u);
+      sim_debug(DBG_INSN, &tape_dev, "Unit %u: Done with group\n", u);
       paused = 0;
     } else {
-      sim_debug(DBG, &tape_dev, "Unit %u: Blocks left in group: %d\n",
+      sim_debug(DBG_INSN, &tape_dev, "Unit %u: Blocks left in group: %d\n",
                 u, BLOCK_GROUP);
       BLOCK_GROUP--;
     }
     WANTED_BLOCK = (WANTED_BLOCK + 1) & TMASK;
     break;
   case RDE: case WRI:
-    sim_debug(DBG, &tape_dev, "Unit %u: Transfer done\n", u);
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Transfer done\n", u);
     paused = 0;
     break;
   case MTB:
-    sim_debug(DBG, &tape_dev, "Unit %u: Move towards block done, result %04o\n",
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Move towards block done, result %04o\n",
               u, A);
     paused = 0;
     break;
   case CHK:
-    sim_debug(DBG, &tape_dev, "Unit %u: Check done\n", u);
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Check done\n", u);
     paused = 0;
     break;
   }
@@ -346,7 +348,7 @@ static t_stat tape_svc(UNIT *uptr)
   /* IBZ is sensed even if the tape isn't up to speed */
   uptr->IBZ = offset < IBZ_WORDS;
   if (uptr->IBZ)
-    sim_debug(DBG, &tape_dev, "Unit %u: Interblock zone\n", u);
+    sim_debug(DBG_INSN, &tape_dev, "Unit %u: Interblock zone\n", u);
 
   /* IBZ is set if any tape unit is inside an interblock zone. */
   CPU_IBZ = 0;
