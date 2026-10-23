@@ -1164,6 +1164,10 @@ switch (code) {
         else                                            /* forwards */
             r = sim_tape_spfilef (uptr, sects, &skipped);
         break;
+
+    default:                                            /* sequential filemarks, end of data, */
+        scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB); /* setmarks and the reserved codes */
+        return;
         }
 
 scsi_tape_status (bus, r);
