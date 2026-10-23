@@ -49,7 +49,8 @@
 #define DBG_SEEK       0004
 #define DBG_READ       0010
 #define DBG_WRITE      0020
-#define DBG_POS        0040
+#define DBG_MOT        0040
+#define DBG_POS        0100
 
 static uint16 BLOCK_GROUP;
 static uint16 CURRENT_UNIT;
@@ -80,6 +81,7 @@ static DEBTAB tape_deb[] = {
   { "SEEK",     DBG_SEEK },
   { "READ",     DBG_READ },
   { "WRITE",    DBG_WRITE },
+  { "MOTION",   DBG_MOT },
   { "POSITION", DBG_POS },
   { NULL, 0 }
 };
@@ -105,14 +107,14 @@ void tape_op(void)
 
   if (uptr->SPEED < 0) {
     if ((C & 7) != MTB) {
-      sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Reverse to forward\n", u);
+      sim_debug(DBG_MOT, &tape_dev, "Unit %u: Reverse to forward\n", u);
       uptr->ACC = ACC_REVERSE;
     }
   } else if (uptr->POS >= MAX_POS) {
-    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: End zone; reverse\n", u);
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: End zone; reverse\n", u);
     uptr->ACC = ACC_REVERSE;
   } else if (uptr->SPEED < MAX_SPEED || uptr->ACC < 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Speed up\n", u);
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: Speed up\n", u);
     uptr->ACC = ACC_START;
   }
   if (!sim_is_active(uptr))
@@ -273,10 +275,10 @@ static void tape_done(UNIT *uptr)
   if (paused)
     ;
   else if ((C & IMASK) == 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Instruction done, stop tape\n", u);
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: Instruction done, stop tape\n", u);
     uptr->ACC = uptr->SPEED > 0 ? -ACC_STOP : ACC_STOP;
   } else {
-    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: Instruction done, keep moving\n", u);
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: Instruction done, keep moving\n", u);
   }
 }
 
@@ -315,10 +317,14 @@ static t_stat tape_svc(UNIT *uptr)
   uptr->SPEED += uptr->ACC;
   if (uptr->SPEED >= MAX_SPEED) {
     uptr->SPEED = MAX_SPEED;
+    if (uptr->ACC != 0)
+      sim_debug(DBG_MOT, &tape_dev, "Unit %u: Tape up to speed\n", u);
     uptr->ACC = 0;
   }
   else if (uptr->SPEED <= -MAX_SPEED) {
     uptr->SPEED = -MAX_SPEED;
+    if (uptr->ACC != 0)
+      sim_debug(DBG_MOT, &tape_dev, "Unit %u: Tape up to speed\n", u);
     uptr->ACC = 0;
   } else if (uptr->SPEED == 0 && (uptr->ACC == ACC_STOP || uptr->ACC == -ACC_STOP))
     uptr->ACC = 0;
@@ -328,11 +334,11 @@ static t_stat tape_svc(UNIT *uptr)
             u, uptr->SPEED, uptr->POS,
             uptr->POS / MAX_SPEED / BLOCK_WORDS + uptr->OFFSET);
 
-  if (uptr->POS < 0 && uptr->ACC <= 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: End zone; stop tape\n", u);
+  if (uptr->POS < 0 && uptr->ACC <= 0 && uptr->SPEED < 0) {
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: End zone; stop tape\n", u);
     uptr->ACC = ACC_STOP;
-  } else if(uptr->POS >= MAX_POS && uptr->ACC >= 0) {
-    sim_debug(DBG_SEEK, &tape_dev, "Unit %u: End zone; stop tape\n", u);
+  } else if(uptr->POS >= MAX_POS && uptr->ACC >= 0 && uptr->SPEED > 0) {
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: End zone; stop tape\n", u);
     uptr->ACC = -ACC_STOP;
   }
 
@@ -340,6 +346,17 @@ static t_stat tape_svc(UNIT *uptr)
     /* The tape takes 160 microseconds between words.  This is
        approximately 20 memory cycles, 8 microseconds each. */
     sim_activate(uptr, 20);
+  else
+    sim_debug(DBG_MOT, &tape_dev, "Unit %u: Tape stopped\n", u);
+
+  if (uptr->SPEED > -MAX_SPEED && uptr->SPEED < MAX_SPEED) {
+    if (uptr->SPEED > 0 && uptr->ACC > 0)
+      sim_debug(DBG_MOT, &tape_dev, "Unit %u: Not up to speed yet\n", u);
+    else if (uptr->SPEED < 0 && uptr->ACC < 0)
+      sim_debug(DBG_MOT, &tape_dev, "Unit %u: Not up to speed yet\n", u);
+    else if (uptr->ACC != 0)
+      sim_debug(DBG_MOT, &tape_dev, "Unit %u: Stopping\n", u);
+  }
 
   pos = uptr->POS / MAX_SPEED;
   block = pos / BLOCK_WORDS;
