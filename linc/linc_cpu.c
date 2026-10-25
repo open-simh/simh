@@ -30,6 +30,8 @@
 /* Debug */
 #define DBG_CPU   0001
 #define DBG_INT   0002
+#define DBG_DIS   0004
+#define DBG_DSC   0010
 
 #define INSN_ENI  00010
 #define INSN_NOP  00016
@@ -119,6 +121,8 @@ static MTAB cpu_mod[] = {
 static DEBTAB cpu_deb[] = {
   { "CPU", DBG_CPU },
   { "INTERRUPT", DBG_INT },
+  { "DIS", DBG_DIS },
+  { "DSC", DBG_DSC },
   { NULL, 0 }
 };
 
@@ -327,7 +331,7 @@ static void cpu_dis(void)
   cpu_set_S(C03);
   cpu_mem_read();
   cpu_index();
-  sim_debug(DBG_CPU, &cpu_dev, "DIS α=%02o B=%04o A=%04o\n", S, B, A);
+  sim_debug(DBG_DIS, &cpu_dev, "DIS α=%02o B=%04o A=%04o\n", S, B, A);
   dpy_dis(B >> 11, B & DMASK, A & DMASK);
 }
 
@@ -617,7 +621,7 @@ static void cpu_dsc(void)
   cpu_set_S(1);
   cpu_mem_read();
   dpy_dsc(B, A & 07740, Z);
-  sim_debug(DBG_CPU, &crt_dev, "DSC B=%04o A=%04o\n", B, A);
+  sim_debug(DBG_DSC, &cpu_dev, "DSC B=%04o A=%04o\n", B, A);
 
   C &= ~BMASK;
   while (C03 < 12) {
