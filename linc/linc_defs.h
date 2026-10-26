@@ -39,7 +39,7 @@
 #define STOP_HALT       1
 #define STOP_IBKPT      2
 #define STOP_RBKPT      3
-#define STOP_WBKPT      3
+#define STOP_WBKPT      4
 
 #define WMASK  07777  /* Full word. */
 #define HMASK  04000  /* H bit; half word select. */
