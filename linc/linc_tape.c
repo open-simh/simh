@@ -54,7 +54,7 @@
 
 static uint16 BLOCK_GROUP;
 static uint16 CURRENT_UNIT;
-static int16 CURRENT_BLOCK;
+static t_bool FOUND_BLOCK;
 static int16 WANTED_BLOCK;
 
 static t_stat tape_svc(UNIT *uptr);
@@ -210,7 +210,7 @@ static void write_word(FILE *fileref, t_addr block, t_addr offset, uint16 word)
 
  */
 
-static void tape_done(UNIT *uptr)
+static void tape_done(UNIT *uptr, uint16 block)
 {
   uint16 u = uptr - tape_unit;
   sim_debug(DBG_INSN, &tape_dev, "Unit %u: Done with block\n", u);
@@ -224,7 +224,7 @@ static void tape_done(UNIT *uptr)
     A &= WMASK;
     break;
   case MTB:
-    A = (WANTED_BLOCK + ~CURRENT_BLOCK);
+    A = (WANTED_BLOCK + ~block);
     A += A >> 12;
     A &= WMASK;
     break;
@@ -288,10 +288,10 @@ static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
 
   switch (C & 7) {
   case RDC: case RCG: case RDE: case CHK:
-    B = read_word(uptr->fileref, block, offset);
+    B = read_word(uptr->fileref, block - uptr->OFFSET, offset);
     sim_debug(DBG_READ, &tape_dev,
               "Unit %u: Read block %03o offset %03o data %04o address %04o\n",
-              u, block + uptr->OFFSET, offset, B, S);
+              u, block, offset, B, S);
     if ((C & 7) != CHK)
       M[S] = B;
     break;
@@ -299,8 +299,8 @@ static void tape_word(UNIT *uptr, uint16 block, uint16 offset)
     B = M[S];
     sim_debug(DBG_WRITE, &tape_dev,
               "Unit %u: Write block %03o offset %03o data %04o address %04o\n",
-              u, block + uptr->OFFSET, offset, B, S);
-    write_word(uptr->fileref, block, offset, B);
+              u, block, offset, B, S);
+    write_word(uptr->fileref, block - uptr->OFFSET, offset, B);
     break;
   }
   S = (S+1) & AMASK;
@@ -373,49 +373,48 @@ static void tape_ibz(UNIT *uptr, long offset)
     CPU_IBZ |= tape_unit[i].IBZ;
 }
 
-static void tape_data(UNIT *uptr, long block, long offset)
+static void tape_data(UNIT *uptr, int16 block, long offset)
 {
   uint16 u = uptr - tape_unit;
 
   if (uptr->SPEED > 0) {
     if (offset == 5) {
       /* Forward block number. */
-      CURRENT_BLOCK = (uint16)(block + uptr->OFFSET);
+      FOUND_BLOCK = WANTED_BLOCK == block;
       sim_debug(DBG_SEEK, &tape_dev,
                 "Unit %u: Found block number %03o; looking for %03o\n",
-                u, CURRENT_BLOCK, WANTED_BLOCK);
-      if (CURRENT_BLOCK > WANTED_BLOCK) {
+                u, block, WANTED_BLOCK);
+      if (block > WANTED_BLOCK) {
         sim_debug(DBG_SEEK, &tape_dev,
                   "Unit %u: Reverse to find lower block numbers\n", u);
         uptr->ACC = -ACC_REVERSE;
       }
       if ((C & 7) == MTB)
-        tape_done(uptr);
+        tape_done(uptr, block);
     /* Word 6 is a guard. */
-    } else if (offset >= 7 && offset < 263) {
-      if (CURRENT_BLOCK == WANTED_BLOCK)
-        tape_word(uptr, (uint16)block, (uint16)(offset - 7));
-    }
-    else if (offset == 263 && CURRENT_BLOCK == WANTED_BLOCK)
+    } else if (offset >= 7 && offset < 263 && FOUND_BLOCK)
+      tape_word(uptr, block, (uint16)(offset - 7));
+    else if (offset == 263 && FOUND_BLOCK) {
       /* Checksum here. */
-      tape_done(uptr);
+      tape_done(uptr, block);
+      FOUND_BLOCK = 0;
+    }
   }
   /* Word 264-265 are "C". */
   /* Word 266 is a guard. */
   else if (offset == 267 && uptr->SPEED < 0) {
     /* Reverse block number. */
-    CURRENT_BLOCK = (uint16)(block + uptr->OFFSET);
     sim_debug(DBG_SEEK, &tape_dev,
               "Unit %u: Found reverse block number %03o; looking for %03o\n",
-              u, CURRENT_BLOCK, WANTED_BLOCK);
-    if (CURRENT_BLOCK <= WANTED_BLOCK) {
+              u, block, WANTED_BLOCK);
+    if (block <= WANTED_BLOCK) {
       sim_debug(DBG_SEEK, &tape_dev,
                 "Unit %u: Reverse to find higher block numbers\n", u);
       uptr->ACC = ACC_REVERSE;
       uptr->POS -= MAX_SPEED * BLOCK_WORDS;
     }
     if ((C & 7) == MTB)
-      tape_done(uptr);
+      tape_done(uptr, block);
   }
 }
 
@@ -446,7 +445,7 @@ static t_stat tape_svc(UNIT *uptr)
   if (u != CURRENT_UNIT)
     return SCPE_OK;
 
-  tape_data(uptr, block, offset);
+  tape_data(uptr, block + uptr->OFFSET, offset);
 
   return SCPE_OK;
 }
