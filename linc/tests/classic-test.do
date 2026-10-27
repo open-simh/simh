@@ -98,7 +98,7 @@ call test 704 ENIT1  110
 call test  71 MISCTS 111
 
 echo DIAGNOSTICS PASSED
-quit
+return
 
 :test
 echo *** Test: %1 - %2 ***
