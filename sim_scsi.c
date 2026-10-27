@@ -279,16 +279,37 @@ scsi_set_phase (bus, SCSI_CMD);                         /* command phase next */
 return used;
 }
 
+/* Present a status to the initiator now; the sense that goes with it is the caller's */
+
+static void scsi_status_phase (SCSI_BUS *bus, uint32 sts)
+{
+bus->buf[0] = sts;                                      /* status code */
+bus->buf_b = 1;
+scsi_set_phase (bus, SCSI_STS);                         /* status phase next */
+scsi_set_req (bus);                                     /* request to send data */
+}
+
 /* Send status to the initiator immediately */
 
 void scsi_status (SCSI_BUS *bus, uint32 sts, uint32 key, uint32 asc)
 {
 bus->sense_key = key;
 bus->sense_code = asc;
-bus->buf[0] = sts;                                      /* status code */
-bus->buf_b = 1;
-scsi_set_phase (bus, SCSI_STS);                         /* status phase next */
-scsi_set_req (bus);                                     /* request to send data */
+bus->sense_qual = 0;                                    /* the qualifier and the information of an earlier */
+bus->sense_info = 0;                                    /* status are not this one's */
+scsi_status_phase (bus, sts);
+}
+
+/* Send the status that scsi_status_deferred() set up, with its sense as set up
+
+   scsi_status() starts a new status and clears the sense of the last one;
+   this does not, so a deferred status can be sent after the work that set it
+   up has finished without losing the qualifier (a filemark's ASCQ 01h) or the
+   information field. */
+
+void scsi_status_send_deferred (SCSI_BUS *bus)
+{
+scsi_status_phase (bus, bus->status);
 }
 
 /* Send status to the initiator at the end of transaction */
@@ -298,6 +319,8 @@ void scsi_status_deferred (SCSI_BUS *bus, uint32 sts, uint32 key, uint32 asc)
 bus->status = sts;
 bus->sense_key = key;
 bus->sense_code = asc;
+bus->sense_qual = 0;                                    /* a caller that has some sets them after this */
+bus->sense_info = 0;
 }
 
 /* Decode the command group to get the command length */
@@ -836,7 +859,7 @@ if (uptr->flags & UNIT_ATT) {
                     new_buf_b += SCSI_QIC_BLKSZ;
                 } else {
                     scsi_tape_status(bus, r);
-                    scsi_status(bus, bus->status, bus->sense_key, bus->sense_code);
+                    scsi_status_send_deferred (bus);
                     return;
                 }
             }
@@ -1030,7 +1053,7 @@ else if (bus->phase == SCSI_DATO) {
         scsi_status_deferred (bus, STS_OK, KEY_OK, ASC_OK);
 
     memset (&bus->cmd[0], 0, 10);                       /* clear current cmd */
-    scsi_status (bus, bus->status, bus->sense_key, bus->sense_code);
+    scsi_status_send_deferred (bus);
     }
 }
 
@@ -1085,7 +1108,7 @@ else
     r = sim_tape_wrgap (uptr, dev->gaplen);             /* write gap */
 
 scsi_tape_status (bus, r);
-scsi_status (bus, bus->status, bus->sense_key, bus->sense_code);
+scsi_status_send_deferred (bus);
 }
 
 /* Command - Reserve Unit */
@@ -1116,7 +1139,7 @@ scsi_debug_cmd (bus, "Rewind\n");
 r = sim_tape_rewind (uptr);
 
 scsi_tape_status (bus, r);
-scsi_status (bus, bus->status, bus->sense_key, bus->sense_code);
+scsi_status_send_deferred (bus);
 }
 
 /* Command - Send Diagnostic */
