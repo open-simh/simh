@@ -145,6 +145,14 @@ int32 ka_parctl = 0xF0;                                 /* KA460 parity control 
 int32 mem_cnfg = 0;
 int32 CADR = 0;                                         /* cache disable reg */
 int32 SCCR = 0;                                         /* secondary cache control */
+#if defined (VAX_46)
+int32 cache2_model = 0;                                 /* secondary cache model on */
+t_addr cache2_cpu_memlimit = INITMEMSIZE;               /* ADDR_IS_MEM_CPU's limit (the type of MEMSIZE) */
+t_uint64 cache2_fills = 0;                              /* model counters */
+t_uint64 cache2_hits = 0;
+t_uint64 cache2_whits = 0;
+t_uint64 cache2_invals = 0;
+#endif
 int32 sys_model = 0;                                    /* MicroVAX or VAXstation */
 int32 int_req[IPL_HLVL] = { 0 };                        /* interrupt requests */
 int32 int_mask = 0;                                     /* interrupt mask */
@@ -170,6 +178,12 @@ extern void dz_wr (int32 pa, int32 val, int32 lnt);
 extern void rz_wr (int32 pa, int32 val, int32 lnt);
 extern void xs_wr (int32 pa, int32 val, int32 lnt);
 
+#if defined (VAX_46)
+t_stat sysd_set_cache (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
+t_stat sysd_show_cache (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
+t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+#endif
+
 UNIT sysd_unit = { UDATA (NULL, 0, 0) };
 
 REG sysd_reg[] = {
@@ -181,10 +195,24 @@ REG sysd_reg[] = {
     { HRDATAD (MAPBASE, ka_mapbase, 32, "KA460 DMA map base") },
     { HRDATAD (LED,     ka_led,     16, "KA460 diag display") },
     { HRDATAD (PARCTL,  ka_parctl,  32, "KA460 parity control") },
+#if defined (VAX_46)
+    { DRDATAD (CFILLS,  cache2_fills,  64, "cache model: lines filled by a read miss") },
+    { DRDATAD (CHITS,   cache2_hits,   64, "cache model: reads served from the data store") },
+    { DRDATAD (CWHITS,  cache2_whits,  64, "cache model: writes that updated a line") },
+    { DRDATAD (CINVALS, cache2_invals, 64, "cache model: lines invalidated by a DMA write or a deposit") },
+#endif
     { NULL }
     };
 
 MTAB sysd_mod[] = {
+#if defined (VAX_46)
+    { MTAB_XTD|MTAB_VDV, 1, NULL, "CACHE", &sysd_set_cache, NULL, NULL,
+      "Enable the secondary cache model" },
+    { MTAB_XTD|MTAB_VDV, 0, NULL, "NOCACHE", &sysd_set_cache, NULL, NULL,
+      "Disable the secondary cache model (default)" },
+    { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "CACHE", NULL, NULL, &sysd_show_cache, NULL,
+      "Show the secondary cache model" },
+#endif
     { 0 },
     };
 
@@ -193,7 +221,11 @@ DEVICE sysd_dev = {
     1, 16, 16, 1, 16, 8,
     NULL, NULL, &sysd_reset,
     NULL, NULL, NULL,
+#if defined (VAX_46)
+    NULL, 0, 0, NULL, NULL, NULL, &sysd_help, NULL, NULL,
+#else
     NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 
+#endif
     &sysd_description
     };
 
@@ -253,17 +285,190 @@ for (i = 7; int_unmask && (i >= 0); i--) {
 return 0;
 }
 
-/* Map an address via the translation map */
+/* KA46 secondary cache model (SET SYSD CACHE; off by default)
 
-t_bool dma_map_addr (uint32 da, uint32 *ma)
+   The specification's cache: 256 KB, one set, quadword lines, direct mapped
+   by PA<17:3>, tagged with PA<26:18>, write through.  A read that misses
+   allocates the line and fills both longwords; a read that hits is served
+   from the data store; a write always goes to memory and updates the line
+   only when the tag matches (no write allocate).  It is active only while
+   the guest has SCCR<CENA> set and the simulator is running.  The stores
+   are the ones the diagnostic windows show: tag entry e is cache2ts[2e]
+   (TAG<10:2>, P<1>, V<0>), data longword l of entry e is cache2ds[2e+l].
+
+   While the model is on, ADDR_IS_MEM_CPU is false (its limit, which is
+   MEMSIZE otherwise, is zero), so the CPU's references to memory come here
+   through ReadReg and WriteReg.  The limit is set with the option and by
+   every reset, and SET CPU <size> ends in a reset.  DMA (Map_*), the map
+   window and examine/deposit at sim> are not the CPU: they touch M[]
+   directly, and a write by them invalidates a line that holds the address.
+   Not modelled: the write buffer, tag parity and TERR, data store parity,
+   the processor's primary cache. */
+
+#if defined (VAX_46)
+
+static void cache2_set_limit (void)
+{
+cache2_cpu_memlimit = cache2_model? 0: MEMSIZE;
+return;
+}
+
+#define C2_INDEX(pa)    ((((uint32) (pa)) >> 3) & 0x7FFF)
+#define C2_TAG(pa)      ((((uint32) (pa)) >> 18) & 0x1FF)
+#define C2_TS_V         0x00000001
+#define C2_TS_P         0x00000002
+#define C2_TS_TAG(ts)   (((ts) >> 2) & 0x1FF)
+
+static uint32 cache2_parity (uint32 tag)                /* P: odd number of ones in TAG sets it */
+{
+tag ^= tag >> 4;
+tag ^= tag >> 2;
+tag ^= tag >> 1;
+return (tag & 1)? C2_TS_P: 0;
+}
+
+static SIM_INLINE t_bool cache2_active (void)
+{
+return (SCCR & SCCR_CENA) && sim_is_running;
+}
+
+/* Is the line that holds pa valid in the cache? */
+
+static SIM_INLINE t_bool cache2_match (uint32 pa)
+{
+uint32 ts = (uint32) cache2ts[C2_INDEX (pa) << 1];
+
+return (ts & C2_TS_V) && (C2_TS_TAG (ts) == C2_TAG (pa));
+}
+
+static void cache2_invalidate (uint32 pa)
+{
+if (cache2_match (pa)) {
+    cache2ts[C2_INDEX (pa) << 1] &= ~C2_TS_V;
+    cache2_invals++;
+    }
+return;
+}
+
+/* Memory read by the CPU: the longword at pa & ~3 */
+
+static int32 cache2_read (uint32 pa)
+{
+uint32 ix = C2_INDEX (pa) << 1;
+uint32 lw = (pa >> 2) & 1;
+
+if (!cache2_active ())
+    return M[pa >> 2];
+if (cache2_match (pa)) {                                /* hit: from the store */
+    cache2_hits++;
+    return cache2ds[ix + lw];
+    }
+cache2ds[ix] = M[(pa & ~07) >> 2];                      /* miss: fill the line */
+cache2ds[ix + 1] = M[((pa & ~07) >> 2) + 1];
+cache2ts[ix] = (C2_TAG (pa) << 2) | cache2_parity (C2_TAG (pa)) | C2_TS_V;
+cache2_fills++;
+return M[pa >> 2];
+}
+
+/* Memory write by the CPU: the bytes of the longword at pa & ~3 in mask,
+   data already in position.  Write through; update the line on a hit. */
+
+static void cache2_write (uint32 pa, int32 dat, int32 mask)
+{
+uint32 id = pa >> 2;
+
+M[id] = (M[id] & ~mask) | (dat & mask);
+if (!sim_is_running)                                    /* deposit at sim> */
+    cache2_invalidate (pa);
+else if (cache2_active () && cache2_match (pa)) {
+    uint32 ix = (C2_INDEX (pa) << 1) + (id & 1);
+
+    cache2ds[ix] = (cache2ds[ix] & ~mask) | (dat & mask);
+    cache2_whits++;
+    }
+return;
+}
+
+#endif
+
+/* Memory access by a DMA engine or the map window: not through the cache.
+   A write invalidates the line that holds the address (the board's
+   invalidate filter, specification 4.5).  The filter is modelled as always
+   enabled: BWF0<FEN> is not consulted, because OpenVMS never sets it here
+   (a trace of every write to PAR_CTL from power-on to login shows none) and
+   a stale line then reaches the guest. */
+
+static SIM_INLINE void dma_wr_done (uint32 pa)
+{
+#if defined (VAX_46)
+if (cache2_model)
+    cache2_invalidate (pa);
+#endif
+return;
+}
+
+static SIM_INLINE int32 dma_rdb (uint32 pa)
+{
+return (M[pa >> 2] >> ((pa & 3) << 3)) & BMASK;
+}
+
+static SIM_INLINE int32 dma_rdw (uint32 pa)
+{
+return (M[pa >> 2] >> ((pa & 2)? 16: 0)) & WMASK;
+}
+
+static SIM_INLINE int32 dma_rdl (uint32 pa)
+{
+return ADDR_IS_MEM (pa)? M[pa >> 2]: ReadL (pa);
+}
+
+static SIM_INLINE void dma_wrl (uint32 pa, int32 val)
+{
+if (ADDR_IS_MEM (pa)) {
+    M[pa >> 2] = val;
+    dma_wr_done (pa);
+    }
+else WriteL (pa, val);
+return;
+}
+
+static SIM_INLINE void dma_wrb (uint32 pa, int32 val)
+{
+int32 sc = (pa & 3) << 3;
+
+M[pa >> 2] = (M[pa >> 2] & ~(BMASK << sc)) | ((val & BMASK) << sc);
+dma_wr_done (pa);
+return;
+}
+
+static SIM_INLINE void dma_wrw (uint32 pa, int32 val)
+{
+int32 sc = (pa & 2)? 16: 0;
+
+M[pa >> 2] = (M[pa >> 2] & ~(WMASK << sc)) | ((val & WMASK) << sc);
+dma_wr_done (pa);
+return;
+}
+
+/* Map an address via the translation map
+
+   An entry with the valid bit clear, met by the NI's DMA, sets PAR_CTL<NI_MAP>,
+   and the setting of that bit requests an NI interrupt. The SCSI engine's
+   (PAR_CTL<SCSI_MAP>) is not reported. */
+
+t_bool dma_map_addr (uint32 da, uint32 *ma, int32 dma)
 {
 int32 dblk = (da >> VA_V_VPN);                          /* DMA blk */
 if (dblk <= DMANMAPR) {
-    int32 dmap = ReadL (ka_mapbase + (dblk << 2));
+    int32 dmap = dma_rdl (ka_mapbase + (dblk << 2));
     if (dmap & DMAMAP_VLD) {                            /* valid? */
         *ma = ((dmap & DMAMAP_PAG) << VA_V_VPN) + VA_GETOFF (da);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
             return TRUE;
+        }
+    else if ((dma == DMA_NI) && !(ka_parctl & PARCTL_NMAP)) {
+        ka_parctl |= PARCTL_NMAP;                       /* NI map error */
+        SET_INT (XS1);
         }
     }
 return FALSE;
@@ -277,7 +482,7 @@ return FALSE;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, int32 dma)
 {
 int32 i;
 uint32 ma, dat;
@@ -285,20 +490,20 @@ uint32 ma, dat;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
-        *buf = ReadB (ma);
+        *buf = dma_rdb (ma);
         ma = ma + 1;
         }
     }
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
-        dat = ReadL (ma);                               /* get lw */
+        dat = dma_rdl (ma);                               /* get lw */
         *buf++ = dat & BMASK;                           /* low 8b */
         *buf++ = (dat >> 8) & BMASK;                    /* next 8b */
         *buf++ = (dat >> 16) & BMASK;                   /* next 8b */
@@ -309,7 +514,7 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, int32 dma)
 {
 int32 i;
 uint32 ma,dat;
@@ -319,20 +524,20 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i = i + 2, buf++) {        /* by words */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
-        *buf = ReadW (ma);
+        *buf = dma_rdw (ma);
         ma = ma + 2;
         }
     }
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
-        dat = ReadL (ma);                               /* get lw */
+        dat = dma_rdl (ma);                               /* get lw */
         *buf++ = dat & WMASK;                           /* low 16b */
         *buf = (dat >> 16) & WMASK;                     /* high 16b */
         ma = ma + 4;
@@ -341,7 +546,7 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf)
+int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, int32 dma)
 {
 int32 i;
 uint32 ma, dat;
@@ -349,31 +554,31 @@ uint32 ma, dat;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
-        WriteB (ma, *buf);
+        dma_wrb (ma, *buf);
         ma = ma + 1;
         }
     }
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         dat = (uint32) *buf++;                          /* get low 8b */
         dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
         dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
         dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
-        WriteL (ma, dat);                               /* store lw */
+        dma_wrl (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
     }
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf)
+int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, int32 dma)
 {
 int32 i;
 uint32 ma, dat;
@@ -383,22 +588,22 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i = i + 2, buf++) {        /* by words */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
-        WriteW (ma, *buf);
+        dma_wrw (ma, *buf);
         ma = ma + 2;
         }
     }
 else {
     for (i = ma = 0; i < bc; i = i + 4, buf++) {        /* by longwords */
         if ((ma & VA_M_OFF) == 0) {                     /* need map? */
-            if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
+            if (!dma_map_addr (ba + i, &ma, dma))       /* inv or NXM? */
                 return (bc - i);
             }
         dat = (uint32) *buf++;                          /* get low 16b */
         dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
-        WriteL (ma, dat);                               /* store lw */
+        dma_wrl (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
     }
@@ -617,13 +822,13 @@ else cache2ds[rg] = val;
 
 int32 cache2ts_rd (int32 pa)
 {
-int32 rg = (pa - 0x22000000) >> 2;
+int32 rg = (pa - 0x2D000000) >> 2;
 return cache2ts[rg];
 }
 
 void cache2ts_wr (int32 pa, int32 val, int32 lnt)
 {
-int32 rg = (pa - 0x22000000) >> 2;
+int32 rg = (pa - 0x2D000000) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
     int32 sc = (pa & 3) << 3;                           /* merge */
     int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
@@ -635,19 +840,19 @@ else cache2ts[rg] = val;
 int32 dma_map_rd (int32 pa)
 {
 int32 rg = (pa - DMABASE);
-int32 val = ReadL (ka_mapbase + rg);
+int32 val = dma_rdl (ka_mapbase + rg);
 return val;
 }
 
 void dma_map_wr (int32 pa, int32 val, int32 lnt)
 {
 int32 rg = (pa - DMABASE);
-WriteL (ka_mapbase + rg, val);
+dma_wrl (ka_mapbase + rg, val);
 }
 
 int32 sccr_rd (int32 pa)
 {
-return SCCR & SCCR_RD;
+return (SCCR & SCCR_RD) | SCCR_REV;                    /* DC7203 revision B */
 }
 
 void sccr_wr (int32 pa, int32 val, int32 lnt)
@@ -740,7 +945,7 @@ struct reglink regtable[] = {
     { 0x23000000, 0x23000004, &sccr_rd, &sccr_wr },
     { 0x36800000, 0x36800004, &null_rd, &null_wr },     /* Turbo CSR */
     { 0x08000000, 0x08040000, &cache2ds_rd, &cache2ds_wr },  /* Cache second data store */
-    { 0x22000000, 0x22040000, &cache2ts_rd, &cache2ts_wr },  /* Cache second tag store - should be at 0x2D000000? */
+    { 0x2D000000, 0x2D040000, &cache2ts_rd, &cache2ts_wr },  /* Cache second tag store (DC7203 rev B) */
     { 0x20101800, 0x20101810, &memrg_rd, &memrg_wr },
     { 0x20101A00, 0x20102000, NULL, &null_wr },         /* invalidate single - check size */
     { ROMBASE, ROMBASE+ROMSIZE, &rom_rd, NULL },
@@ -762,6 +967,10 @@ int32 ReadReg (uint32 pa, int32 lnt)
 {
 struct reglink *p;
 
+#if defined (VAX_46)
+if (ADDR_IS_MEM (pa))                                   /* CPU read, model on */
+    return cache2_model? cache2_read (pa): M[pa >> 2];
+#endif
 for (p = &regtable[0]; p->low != 0; p++) {
     if ((pa >= p->low) && (pa < p->high) && p->read)
         return p->read (pa);
@@ -797,6 +1006,17 @@ void WriteReg (uint32 pa, int32 val, int32 lnt)
 {
 struct reglink *p;
 
+#if defined (VAX_46)
+if (ADDR_IS_MEM (pa)) {                                 /* CPU write, model on */
+    int32 sc = (pa & 3) << 3;
+    int32 mask = (lnt >= L_LONG)? -1: (lnt == L_WORD)? (WMASK << sc): (BMASK << sc);
+
+    if (cache2_model)
+        cache2_write (pa, val << sc, mask);
+    else M[pa >> 2] = (M[pa >> 2] & ~mask) | ((val << sc) & mask);
+    return;
+    }
+#endif
 for (p = &regtable[0]; p->low != 0; p++) {
     if ((pa >= p->low) && (pa < p->high) && p->write) {
         p->write (pa, val, lnt);  
@@ -819,8 +1039,17 @@ return;
 void WriteRegU (uint32 pa, int32 val, int32 lnt)
 {
 int32 sc = (pa & 03) << 3;
-int32 dat = ReadReg (pa & ~03, L_LONG);
+int32 dat;
 
+#if defined (VAX_46)
+if (ADDR_IS_MEM (pa)) {                                 /* CPU write, model on */
+    if (cache2_model)
+        cache2_write (pa, val << sc, insert[lnt] << sc);
+    else M[pa >> 2] = (M[pa >> 2] & ~(insert[lnt] << sc)) | ((val << sc) & (insert[lnt] << sc));
+    return;
+    }
+#endif
+dat = ReadReg (pa & ~03, L_LONG);
 dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
 WriteReg (pa & ~03, dat, L_LONG);
 return;
@@ -893,6 +1122,8 @@ switch (rg) {
 
     case 5:                                             /* parity ctl */
         ka_parctl = (ka_parctl & ~PARCTL_WR) | (val & PARCTL_WR);
+        ka_parctl &= ~(PARCTL_NPERR | PARCTL_NMAP |     /* any write clears */
+                       PARCTL_SPERR | PARCTL_SMAP);     /* the error bits */
         break;
 
     case 7:                                             /* diag timer */
@@ -1019,8 +1250,73 @@ if (cache2ts == NULL)
 
 sim_vm_cmd = vax460_cmd;
 
+#if defined (VAX_46)
+cache2_set_limit ();                                    /* MEMSIZE may have changed */
+#endif
 return SCPE_OK;
 }
+
+#if defined (VAX_46)
+
+/* SET SYSD CACHE | NOCACHE
+
+   Valid at any stop, with a guest running, in both directions.  Switching
+   on starts the cache from a state the hardware could be in, every valid
+   bit clear; switching off changes no store and the model then serves
+   nothing, so the next switch on can never find a stale line. */
+
+t_stat sysd_set_cache (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
+{
+uint32 i;
+
+if (cptr != NULL)
+    return SCPE_2MARG;
+if (val == cache2_model)
+    return SCPE_OK;
+if (val) {
+    for (i = 0; i < 0x8000; i++)
+        cache2ts[i << 1] &= ~C2_TS_V;
+    }
+cache2_model = val;
+cache2_set_limit ();
+cache2_fills = cache2_hits = cache2_whits = cache2_invals = 0;
+return SCPE_OK;
+}
+
+t_stat sysd_show_cache (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
+{
+fprintf (st, "secondary cache model %s (guest cache enable %s)",
+         cache2_model? "on": "off", (SCCR & SCCR_CENA)? "set": "clear");
+if (cache2_model)
+    fprintf (st, ", fills %llu, hits %llu, write hits %llu, invalidates %llu",
+             (unsigned long long) cache2_fills, (unsigned long long) cache2_hits,
+             (unsigned long long) cache2_whits, (unsigned long long) cache2_invals);
+fprintf (st, "\n");
+return SCPE_OK;
+}
+
+t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+{
+fprintf (st, "KA46 system devices\n\n");
+fprintf (st, "The secondary cache (256 KB, direct mapped, quadword lines, write through)\n");
+fprintf (st, "is not modelled by default: its tag and data stores are plain memory\n");
+fprintf (st, "behind the diagnostic windows.  The model makes them the cache's own:\n\n");
+fprintf (st, "   sim> SET SYSD CACHE\n   sim> SET SYSD NOCACHE\n   sim> SHOW SYSD CACHE\n\n");
+fprintf (st, "With the model on and the guest's SCCR<CENA> set, a CPU read fills a line\n");
+fprintf (st, "(tag valid, both longwords) and a later read of it is served from the data\n");
+fprintf (st, "store; a CPU write goes to memory and updates the line only on a tag hit;\n");
+fprintf (st, "a DMA write or a DEPOSIT invalidates the line.  The\n");
+fprintf (st, "console's TEST 4 CACHE subtests need it.  It costs host time, so it is off.\n\n");
+fprintf (st, "The option may be changed at any stop, with a guest running.  Switching on\n");
+fprintf (st, "clears every tag valid bit, as a flush would; the guest's SCCR is untouched.\n");
+fprintf (st, "EXAMINE SYSD shows the counters CFILLS, CHITS, CWHITS and CINVALS; a switch\n");
+fprintf (st, "change or a DEPOSIT of 0 clears them.  Not modelled: the write buffer, tag\n");
+fprintf (st, "parity and TERR, data store parity and the processor's primary cache.\n");
+fprintf (st, "A stop at sim> sets the guest clock back by its length unless SET CLOCK ELAPSED repays it.\n");
+return SCPE_OK;
+}
+
+#endif
 
 const char *sysd_description (DEVICE *dptr)
 {
