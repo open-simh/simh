@@ -112,7 +112,7 @@ void tape_op(void)
     }
   } else if (uptr->POS >= MAX_POS) {
     sim_debug(DBG_MOT, &tape_dev, "Unit %u: End zone; reverse\n", u);
-    uptr->ACC = ACC_REVERSE;
+    uptr->ACC = -ACC_REVERSE;
   } else if (uptr->SPEED < MAX_SPEED || uptr->ACC < 0) {
     sim_debug(DBG_MOT, &tape_dev, "Unit %u: Speed up\n", u);
     uptr->ACC = ACC_START;
