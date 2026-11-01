@@ -1903,8 +1903,22 @@ return;
    the processor is still taking one is a double error: console halt with
    code 05.  VA is the virtual address of the reference, saved before the
    frame is written (each write of the frame moves mchk_va); ISTATE2 gives
-   the opcode and the mode the reference was made in; Rn, VR and Q are
-   left zero (the model has no microcode state to report). */
+   the opcode and the mode the reference was made in.  Rn and Q are left
+   zero (the model has no microcode state to report).
+
+   VR ("VAX restart", ISTATE2<7>) tells the handler that the instruction can
+   be restarted by an REI to the saved PC.  It is set for the synchronous
+   hardware error (code 06), the failed read of an address nothing answers:
+   all nine of the real 4000/90's frames for such reads have it (ISTATE2
+   A37C0080 for a user-mode CLRQ), and the model does restart the
+   instruction, because the abort unwinds the instruction's side effects and
+   restores the PC before the frame is built.  VMS's handler reads the bit:
+   with it set the handler REIs and the read is made again, up to a limit of
+   three events in three minutes, after which the process is killed (a
+   user-mode reference) or the system stops; with it clear the first event
+   kills the process.  So VR makes the error log show three MACHINE CHECK
+   entries for the first failed read of a window and one for each later
+   one, as the real machine's did. */
 
 int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
 {
@@ -1919,6 +1933,8 @@ if (in_ie) {
 sim_debug (DBG_MCHK, &sysd_dev, "machine check code %02X, VA %08X, PC %08X\n", p1, va, PC);
 istate1 = ((ASTLVL & 07) << 29) | ((p1 & 0xFF) << 16) | (ka_cpuid & 0xFF);
 istate2 = (((PSL >> PSL_V_CUR) & 3) << 24) | ((opc & 0xFF) << 16);
+if (p1 == MCHK_SYNC)                                    /* restartable */
+    istate2 |= 0x80;                                    /* VR */
 cc = intexc (SCB_MCHK, cc, 0, IE_SVE);                  /* take exception */
 acc = ACC_MASK (KERN);                                  /* in kernel mode */
 in_ie = 1;
