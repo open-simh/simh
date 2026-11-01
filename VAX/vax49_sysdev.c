@@ -388,9 +388,11 @@ int32 nca_cesr = 0;                                     /* CESR */
 int32 nca_cmcdsr = 0;                                   /* CMCDSR */
 int32 nca_cioear2 = 0;                                  /* CIOEAR2: CP2 I/O error address */
 
-/* SCSI scatter/gather map, as written */
+/* SCSI scatter/gather map, as written (an array, not allocated, so that
+   a register can save it: the driver loads the map and, some instructions
+   later, starts the transfer that uses it) */
 
-uint32 *ka_sgmap = NULL;
+uint32 ka_sgmap[SGM_ENTRIES];
 
 t_stat sysd_reset (DEVICE *dptr);
 t_stat sysd_show_led (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
@@ -427,6 +429,7 @@ REG sysd_reg[] = {
     { HRDATAD (INTREQ,  int_req[1], 16, "IPL 15 interrupt requests") },
     { HRDATAD (DMAADR,  ka_dmaadr,  32, "SCSI DMA window address") },
     { HRDATAD (DMADIR,  ka_dmadir,   1, "SCSI DMA direction") },
+    { BRDATAD (SGMAP,   ka_sgmap,   16, 32, SGM_ENTRIES, "SCSI scatter/gather map, as written"), REG_HIDDEN },
     { BRDATAD (MEMCON,  nmc_memcon, 16, 32, 8, "NMC memory configuration") },
     { HRDATAD (MESR,    nmc_mesr,   32, "NMC memory error status") },
     { HRDATAD (MEAR,    nmc_mear,   32, "NMC memory error address, as latched by a memory error") },
@@ -2028,8 +2031,6 @@ int32 i;
 
 if (nmc_obit == NULL)                                   /* O-bit RAM */
     nmc_obit = (uint32 *) calloc (OBIT_PAGES * OBIT_ENTRIES, sizeof (uint32));
-if (ka_sgmap == NULL)                                   /* scatter/gather map */
-    ka_sgmap = (uint32 *) calloc (SGM_ENTRIES, sizeof (uint32));
 if (ka_bctag == NULL)                                   /* Bcache tags */
     ka_bctag = (uint32 *) calloc (BCTAG_ENTRIES, sizeof (uint32));
 if (ka_bcecc == NULL)                                   /* Bcache data check words */
@@ -2038,7 +2039,7 @@ if (ka_bcecc_set == NULL)
     ka_bcecc_set = (uint8 *) calloc (BCECC_ENTRIES, sizeof (uint8));
 if (ka_bcdata == NULL)                                  /* Bcache data RAM */
     ka_bcdata = (uint32 *) calloc (BCDATA_SIZE >> 2, sizeof (uint32));
-if ((nmc_obit == NULL) || (ka_sgmap == NULL) || (ka_bctag == NULL) ||
+if ((nmc_obit == NULL) || (ka_bctag == NULL) ||
     (ka_bcecc == NULL) || (ka_bcecc_set == NULL) || (ka_bcdata == NULL))
     return SCPE_MEM;
 
