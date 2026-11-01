@@ -50,13 +50,15 @@
 #define CSR_MAINT       0x0008                          /* maint - NI */
 #define CSR_CLR         0x0010                          /* clear */
 #define CSR_MSE         0x0020                          /* master scan enb */
+#define CSR_RIE         0x0040                          /* rcv int enb (see dz_int_level) */
 #define CSR_RDONE       0x0080                          /* rcv done - RO */
 #define CSR_V_TLINE     8                               /* xmit line - RO */
 #define CSR_TLINE       (DZ_LNOMASK << CSR_V_TLINE)
 #define CSR_SAE         0x1000                          /* silo alm enb */
 #define CSR_SA          0x2000                          /* silo alm - RO */
+#define CSR_TIE         0x4000                          /* xmit int enb (see dz_int_level) */
 #define CSR_TRDY        0x8000                          /* xmit rdy - RO */
-#define CSR_RW          (CSR_MAINT | CSR_MSE | CSR_SAE)
+#define CSR_RW          (CSR_MAINT | CSR_MSE | CSR_RIE | CSR_SAE | CSR_TIE)
 #define CSR_MBZ         (0xC07 | CSR_CLR)
 
 #define CSR_GETTL(x)    (((x) >> CSR_V_TLINE) & DZ_LNOMASK)
@@ -67,13 +69,13 @@ BITFIELD dz_csr_bits[] = {
     BIT(MAINT),                                         /* Maint */
     BIT(CLR),                                           /* clear */
     BIT(MSE),                                           /* naster scan enable */
-    BITNCF(1),                                          /* not used */
+    BIT(RIE),                                           /* receive interrupt enable */
     BIT(RDONE),                                         /* receive done */
     BITF(TLINE,2),                                      /* transmit line */
     BITNCF(2),                                          /* not used */
     BIT(SAE),                                           /* silo alarm enable */
     BIT(SA),                                            /* silo alarm */
-    BITNCF(1),                                          /* not used */
+    BIT(TIE),                                           /* transmit interrupt enable */
     BIT(TRDY),                                          /* transmit ready */
     ENDBITS
     };
@@ -125,6 +127,7 @@ const char *dz_stopbits[] = {"1", "2", "1", "1.5"};
 #define LPR_GETSTOPBITS(x) dz_stopbits[(((x) >> LPR_V_STOPBITS) & 1) + (((((x) & LPR_M_CHARSIZE) >> LPR_V_CHARSIZE) == 0) ? 2 : 0)]
 #define LPR_LPAR        0x0FF8                          /* line pars - NI */
 #define LPR_RCVE        0x1000                          /* receive enb */
+#define LPR_RD          0x1FCB                          /* bits read back per line */
 #define LPR_GETLN(x)    (((x) >> LPR_V_LINE) & DZ_LNOMASK)
 
 BITFIELD dz_lpr_bits[] = {
@@ -195,9 +198,12 @@ extern int32 tmxr_poll;                                 /* calibrated delay */
 uint16 dz_csr = 0;                                      /* csr */
 uint16 dz_rbuf = 0;                                     /* rcv buffer */
 uint16 dz_lpr = 0;                                      /* line param */
+uint16 dz_lprs[DZ_LINES] = { 0 };                       /* line params, per line */
 uint16 dz_tcr = 0;                                      /* xmit control */
 uint16 dz_msr = 0;                                      /* modem status */
 uint16 dz_tdr = 0;                                      /* xmit data */
+uint8 dz_xpend = 0;                                     /* TDR holds an unsent char */
+uint8 dz_xline = 0;                                     /* line it is for */
 uint16 dz_silo[DZ_SILO_ALM] = { 0 };                    /* silo */
 uint16 dz_scnt = 0;                                     /* silo used */
 uint8 dz_sae = 0;                                       /* silo alarm enabled */
@@ -242,7 +248,8 @@ t_stat dz_clear (t_bool flag);
 uint16 dz_getc (void);
 t_stat dz_putc (int32 line, uint16 data);
 void dz_update_rcvi (void);
-void dz_update_xmti (void);
+void dz_update_xmti (t_bool restart);
+int32 dz_int_level (void);
 t_stat dz_set_log (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat dz_set_nolog (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
@@ -265,6 +272,7 @@ REG dz_reg[] = {
     { HRDATADF (CSR,   dz_csr,         16, "control/status register", dz_csr_bits) },
     { HRDATADF (RBUF,  dz_rbuf,        16, "receive buffer",          dz_rbuf_bits) },
     { HRDATADF (LPR,   dz_lpr,         16, "line parameter register", dz_lpr_bits) },
+    { BRDATAD  (LPRS,  dz_lprs, 16, 16, DZ_LINES, "line parameters, per line") },
     { HRDATADF (TCR,   dz_tcr,         16, "transmission control register", dz_tcr_bits) },
     { HRDATADF (MSR,   dz_msr,         16, "modem status register",    dz_msr_bits) },
     { HRDATADF (TDR,   dz_tdr,         16, "transmit data register",   dz_tdr_bits) },
@@ -274,6 +282,8 @@ REG dz_reg[] = {
     { FLDATAD  (AUTODS, dz_auto, 0,        "autodisconnect enabled") },
     { FLDATAD  (TXINT,  int_req[IPL_DZTX], INT_V_DZTX, "transmit interrupt pending flag") },
     { FLDATAD  (RXINT,  int_req[IPL_DZRX], INT_V_DZRX, "receive interrupt pending flag") },
+    { FLDATAD  (TXPEND, dz_xpend, 0,       "character in TDR not yet sent") },
+    { HRDATAD  (TXLINE, dz_xline, 2,       "line that character is for") },
     { NULL }
     };
 
@@ -316,7 +326,7 @@ DEVICE dz_dev = {
 
 /* Register names for Debug tracing */
 static const char *dz_rd_regs[] =
-    {"CSR ", "RBUF", "TCR ", "MSR " };
+    {"CSR ", "RBUF", "TCR ", "MSR ", "LPR0", "LPR1", "LPR2", "LPR3" };
 static const char *dz_wr_regs[] = 
     {"CSR ", "LPR ", "TCR ", "TDR "};
 
@@ -326,7 +336,7 @@ int32 dz_rd (int32 pa)
 {
 int32 data = 0;
 
-switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
+switch ((pa >> 2) & 07) {                               /* case on PA<4:2> */
 
     case 00:                                            /* CSR */
         data = dz_csr = dz_csr & ~CSR_MBZ;
@@ -372,9 +382,13 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             }
         data = dz_msr;
         break;
+
+    case 04: case 05: case 06: case 07:                 /* LPR0-3 (where mapped) */
+        data = dz_lprs[(pa >> 2) & DZ_LNOMASK];
+        break;
         }
 
-sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], data=0x%X)\n", pa, dz_rd_regs[(pa >> 2) & 03], data);
+sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], data=0x%X)\n", pa, dz_rd_regs[(pa >> 2) & 07], data);
 
 SET_IRQL;
 return data;
@@ -383,6 +397,7 @@ return data;
 void dz_wr (int32 pa, int32 data, int32 access)
 {
 int32 line;
+int32 old_csr = dz_csr;
 char lineconfig[16];
 TMLN *lp;
 
@@ -401,11 +416,14 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
         else
             dz_csr &= ~(CSR_SA | CSR_RDONE | CSR_TRDY);
         dz_csr = (dz_csr & ~CSR_RW) | (data & CSR_RW);
+        if (((old_csr & CSR_TIE) == 0) && (dz_int_level () & 2))
+            SET_INT (DZTX);                             /* TIE set, TRDY standing */
         break;
 
     case 01:                                            /* LPR */
         dz_lpr = data;
         line = LPR_GETLN (data);                        /* get line num */
+        dz_lprs[line] = data & LPR_RD;                  /* readable per line */
         lp = &dz_ldsc[line];                            /* get line desc */
         if (dz_lpr & LPR_RCVE)                          /* rcv enb? on */
             lp->rcve = 1;
@@ -438,7 +456,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             }
         dz_tcr = data;
         tmxr_poll_tx (&dz_desc);                        /* poll output */
-        dz_update_xmti ();                              /* update int */
+        dz_update_xmti (TRUE);                          /* scanner restarts */
         break;
 
     case 03:                                            /* TDR */
@@ -456,8 +474,13 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
                     dz_char[line] = dz_char[line] | RBUF_FRME;
                 dz_csr &= ~CSR_TRDY;
                 sim_debug(DBG_REG, &dz_dev, "maint char for line %d : %X\n", line, dz_char[line]);
+                sim_activate_abs (&dz_unit[0], dz_unit[1].wait); /* received a char time later */
                 break;
                 }
+            dz_xline = (uint8)line;                     /* TDR full: scanner waits */
+            dz_xpend = 1;
+            dz_csr &= ~CSR_TRDY;
+            CLR_INT (DZTX);
             sim_activate (&dz_unit[1], 0);
             }
         break;
@@ -494,7 +517,7 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
     tmxr_poll_rx (&dz_desc);                            /* poll input */
     dz_update_rcvi ();                                  /* upd rcv intr */
     tmxr_poll_tx (&dz_desc);                            /* poll output */
-    dz_update_xmti ();                                  /* upd xmt intr */
+    dz_update_xmti (FALSE);                             /* upd xmt intr */
     if ((dz_csr & CSR_RDONE) == 0)
         sim_clock_coschedule (uptr, tmxr_poll);         /* reactivate */
     }
@@ -503,12 +526,10 @@ return SCPE_OK;
 
 t_stat dz_xmt_svc (UNIT *uptr)
 {
-int32 line;
-
-line = CSR_GETTL (dz_csr);
-if (SCPE_STALL != dz_putc (line, dz_tdr)) {             /* sent ok? */
+if (SCPE_STALL != dz_putc (dz_xline, dz_tdr)) {         /* sent ok? */
+    dz_xpend = 0;                                       /* TDR empty */
     tmxr_poll_tx (&dz_desc);                            /* poll output */
-    dz_update_xmti ();                                  /* update int */
+    dz_update_xmti (FALSE);                             /* update int */
     }
 else
     sim_activate (uptr, dz_unit[1].wait);               /* come back later */
@@ -577,7 +598,11 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
         if (dz_scnt >= DZ_SILO_ALM)
             break;
         c = 0;
-        if ((dz_func[line] == DZ_TMXR) && ((dz_csr & CSR_MAINT) == 0)) {
+        if (dz_csr & CSR_MAINT) {                       /* maintenance loopback? */
+            c = dz_char[line];                          /* char written to TDR */
+            dz_char[line] = 0;
+            }
+        else if (dz_func[line] == DZ_TMXR) {
             lp = &dz_ldsc[line];                        /* get line desc */
             c = tmxr_getc_ln (lp);                      /* test for input */
             if (c & SCPE_BREAK)                         /* break? frame err */
@@ -644,15 +669,38 @@ else
 return;
 }
 
-/* Update transmit interrupts */
+/* Update transmit interrupts
 
-void dz_update_xmti (void)
+   The scanner stops on an enabled line whose buffer is empty (and whose
+   output can take a character) and sets TRDY.  It stays there until
+   software loads TDR, which clears TRDY and holds the scanner until the
+   character has been sent; a write to TCR restarts it.  The transmit
+   request is raised when TRDY is set again, or when the scanner stops on
+   another line, and not while TRDY merely stands: a program that writes
+   one character a request, as the KA46 console ROM and VMS do, gets one
+   request a character, and one that looks at the controller only when it
+   has been asked to (NetBSD's autoconfiguration) sees nothing from an
+   idle line.  The request does not wait for CSR<TIE>: the KA46 ROM takes
+   transmit interrupts with TIE clear. */
+
+void dz_update_xmti (t_bool restart)
 {
-int32 linemask, i, line;
+int32 linemask, i, line, oline;
+t_bool was_ready;
 
+if (dz_xpend) {                                         /* TDR full? */
+    dz_csr &= ~CSR_TRDY;                                /* scanner waits */
+    CLR_INT (DZTX);
+    return;
+    }
 linemask = dz_tcr & DZ_LMASK;                           /* enabled lines */
+was_ready = (dz_csr & CSR_TRDY) != 0;
+oline = CSR_GETTL (dz_csr);
+if (was_ready && !restart &&                            /* stopped on a line */
+    (linemask & (1 << oline)) && dz_ldsc[oline].xmte)   /* that can still go? */
+    return;                                             /* stay there */
 dz_csr &= ~CSR_TRDY;                                    /* assume not rdy */
-line = CSR_GETTL (dz_csr);                              /* start at current */
+line = oline;                                           /* start at current */
 for (i = 0; i < DZ_LINES; i++) {                        /* loop thru lines */
     line = (line + 1) & DZ_LNOMASK;                     /* next line */
     if ((linemask & (1 << line)) && dz_ldsc[line].xmte) {
@@ -661,11 +709,34 @@ for (i = 0; i < DZ_LINES; i++) {                        /* loop thru lines */
         break;
         }
     }
-if (dz_csr & CSR_TRDY)                                  /* ready? */
-    SET_INT (DZTX);
+if (dz_csr & CSR_TRDY) {                                /* ready? */
+    if (!was_ready || (CSR_GETTL (dz_csr) != oline))    /* newly, or new line */
+        SET_INT (DZTX);
+    }
 else
     CLR_INT (DZTX);                                     /* no int req */
 return;
+}
+
+/* The receive and transmit requests as a DZ11 raises them: receive while
+   RIE is set and RDONE (or, with SAE, the silo alarm) is set, transmit
+   while TIE and TRDY are set.  The requests stay asserted as long as the
+   controller wants service.  For a system whose interrupt controller
+   takes the DC7085's requests as levels; the SET_INT/CLR_INT requests
+   above remain what the other systems use.
+
+   Returns bit 0 for a receive request, bit 1 for a transmit request. */
+
+int32 dz_int_level (void)
+{
+int32 lvl = 0;
+
+if ((dz_csr & CSR_RIE) &&
+    ((dz_csr & CSR_SAE)? (dz_csr & CSR_SA): (dz_csr & CSR_RDONE)))
+    lvl |= 1;
+if ((dz_csr & CSR_TIE) && (dz_csr & CSR_TRDY))
+    lvl |= 2;
+return lvl;
 }
 
 /* Device reset */
@@ -677,10 +748,13 @@ int32 i;
 dz_csr = 0;                                             /* clear CSR */
 dz_rbuf = 0;                                            /* silo empty */
 dz_lpr = 0;                                             /* no params */
+for (i = 0; i < DZ_LINES; i++)
+    dz_lprs[i] = 0;
 if (flag)                                               /* INIT? clr all */
     dz_tcr = 0;
 else dz_tcr &= ~0377;                                   /* else save dtr */
 dz_tdr = 0;
+dz_xpend = 0;                                           /* nothing to send */
 dz_sae = 1;                                             /* alarm on */
 dz_scnt = 0;
 CLR_INT (DZRX);                                         /* clear int */

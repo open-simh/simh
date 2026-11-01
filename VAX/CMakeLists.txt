@@ -93,6 +93,30 @@ set(VAX440
     ${VAXD}/vax_vs.c
     ${VAXD}/vax4xx_rz94.c)
 
+set(VAX49
+    ${VAXD}/vax_cpu.c
+    ${VAXD}/vax_cpu1.c
+    ${VAXD}/vax_fpa.c
+    ${VAXD}/vax_cis.c
+    ${VAXD}/vax_octa.c
+    ${VAXD}/vax_cmode.c
+    ${VAXD}/vax_mmu.c
+    ${VAXD}/vax_sys.c
+    ${VAXD}/vax_syscm.c
+    ${VAXD}/vax_watch.c
+    ${VAXD}/vax_nar.c
+    ${VAXD}/vax49_stddev.c
+    ${VAXD}/vax49_sysdev.c
+    ${VAXD}/vax49_syslist.c
+    ${VAXD}/vax4xx_dz.c
+    ${VAXD}/vax_lk.c
+    ${VAXD}/vax_vs.c
+    ${VAXD}/vax4xx_rz94.c
+    ${VAXD}/vax_sgec.c
+    ${VAXD}/vax_lcspx.c
+    ${VAXD}/vax_tca.c
+    ${VAXD}/vax_pmaz.c)
+
 set(VAX630
     ${VAXD}/vax_cpu.c
     ${VAXD}/vax_cpu1.c
@@ -753,6 +777,22 @@ add_simulator(vaxstation4000vlc
         VAX_440
         VAX_48
     FEATURE_FULL64
+    USES_AIO
+    BUILDROMS
+    LABEL VAX
+    PKG_FAMILY vax_family
+    TEST vax-diag)
+
+add_simulator(vaxstation4000m90
+    SOURCES
+        ${VAX49}
+    INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    DEFINES
+        VM_VAX
+        VAX_49
+    FEATURE_FULL64
+    FEATURE_VIDEO
     USES_AIO
     BUILDROMS
     LABEL VAX

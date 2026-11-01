@@ -24,11 +24,66 @@
    in this Software without prior written authorization from the author.
 
    rz           SCSI controller
+
+   The 53C94 sits on a board that supplies its DMA engine and its interrupt
+   request; the boards differ in both.  The model's _defs.h describes its
+   board with these definitions:
+
+   RZ_SCSI_ID           initiator SCSI ID; that target unit is reserved
+   RZ_READB, RZ_WRITEB  memory access for the default DMA engine
+   RZ_DMA_ADDR,         (optional) addresses of the board's DMA address and
+   RZ_DMA_DIR           direction registers, if they sit in the chip's
+                        address window (KA46/47/48): the default DMA engine
+                        starts every transfer at the address register
+   RZ_DMA_READ(rz,bc,buf)  (optional, all three together) the board's own
+   RZ_DMA_WRITE(rz,bc,buf) DMA engine: fetch bc bytes from memory for the
+   RZ_DMA_DONE(rz,n)       SCSI bus, store bc bytes from the bus in memory
+                        (each returns the number of bytes not transferred,
+                        without moving the board's address), and n bytes
+                        have crossed the bus by DMA (the board's address
+                        counter moves on)
+   RZ_INT_LEVEL         (optional) the board's request follows the chip's
+                        INT output as a level, so reading the interrupt
+                        register removes it; without it the board latches
+                        the request when the chip raises it, and the board's
+                        acknowledge or interrupt clear removes it
+   RZ_ABSENT_UNATTACHED (optional) a target unit with nothing attached that
+                        is not a removable-media drive, and the chip's own
+                        ID, do not answer selection (the bus has no such
+                        device); without it every enabled unit answers
+   RZ_CTLRS             (optional) number of controllers, 1 or 2; the second
+                        is device RZB with the register routines rzb_rd and
+                        rzb_wr.  A board with two chips has to tell them
+                        apart in the macros below, which receive the
+                        controller (rz->cnum is 0 or 1)
+   RZ_SET_INT(rz),      (optional) the board's request for the chip rz is
+   RZ_CLR_INT(rz)       raised and removed; the default is INT_REQ<1>, SC
+   RZ_INITIATOR_ID(rz)  (optional) initiator SCSI ID of the chip; default
+                        RZ_SCSI_ID
+
+   The chip's state is kept per controller (CTLR), so that a board with two
+   53C94s can have a second device; this module defines one (RZ), or two.
 */
 
 #include "vax_defs.h"
 #include "sim_scsi.h"
 #include "vax_rzdev.h"
+
+#if !defined (RZ_CTLRS)
+#define RZ_CTLRS        1
+#endif
+#if !defined (RZ_SET_INT)
+#define RZ_SET_INT(rz)  SET_INT (SC)
+#define RZ_CLR_INT(rz)  CLR_INT (SC)
+#endif
+#if !defined (RZ_INITIATOR_ID)
+#define RZ_INITIATOR_ID(rz) RZ_SCSI_ID
+#endif
+
+#define RZ_NUMDR        8                               /* targets on the bus */
+#define RZ_CTLR         (RZ_NUMDR)                      /* unit for the chip's own events */
+
+#define cnum            u4                              /* unit: controller index */
 
 /* command groups */
 
@@ -73,24 +128,38 @@
 
 #define RZ_MAXFR        (1u << 16)                      /* max transfer */
 
-uint32 rz_last_cmd = 0;
-uint32 rz_txi = 0;                                      /* transfer count */
-uint32 rz_txc = 0;                                      /* transfer counter */
-uint8 rz_cfg1 = 0;                                      /* config 1 */
-uint8 rz_cfg2 = 0;                                      /* config 2 */
-uint8 rz_cfg3 = 0;                                      /* config 3 */
-uint8 rz_int = 0;                                       /* interrupt */
-uint8 rz_stat = 0;                                      /* status */
-uint32 rz_seq = 0;
-uint32 rz_dest = 1;
-uint8 rz_fifo[16] = { 0 };
-uint32 rz_fifo_t = 0;
-uint32 rz_fifo_b = 0;
-uint32 rz_fifo_c = 0;
-uint32 rz_dma = 0;
-uint32 rz_dir = 0;
-uint8 *rz_buf;
-SCSI_BUS rz_bus;
+/* The default DMA engine: every transfer starts at the board's DMA address
+   register, which the CPU loads before each transfer */
+
+#if !defined (RZ_DMA_READ)
+#define RZ_DMA_READ(rz,bc,buf)  RZ_READB ((rz)->dma, (bc), (buf))
+#define RZ_DMA_WRITE(rz,bc,buf) RZ_WRITEB ((rz)->dma, (bc), (buf))
+#define RZ_DMA_DONE(rz,n)
+#endif
+
+typedef struct {
+    uint32 cnum;                                        /* controller number */
+    uint32 last_cmd;                                    /* last command */
+    uint32 txi;                                         /* transfer count */
+    uint32 txc;                                         /* transfer counter */
+    uint8 cfg1;                                         /* config 1 */
+    uint8 cfg2;                                         /* config 2 */
+    uint8 cfg3;                                         /* config 3 */
+    uint8 intr;                                         /* interrupt */
+    uint8 stat;                                         /* status */
+    uint32 seq;                                         /* sequence step */
+    uint32 dest;                                        /* destination bus ID */
+    uint8 fifo[16];
+    uint32 fifo_t;
+    uint32 fifo_b;
+    uint32 fifo_c;
+    uint32 dma;                                         /* board DMA address (RZ_DMA_ADDR) */
+    uint32 dir;                                         /* board DMA direction (RZ_DMA_DIR) */
+    uint8 *buf;                                         /* transfer buffer */
+    SCSI_BUS bus;                                       /* SCSI bus state */
+    DEVICE *dev;                                        /* the controller's device */
+    UNIT *units;                                        /* its units: targets, then the chip's events */
+    } CTLR;
 
 /* debugging bitmaps */
 
@@ -108,14 +177,22 @@ DEBTAB rz_debug[] = {
     { "SDSK", SCSI_DBG_DSK, "SCSI disk activity" },
     { "STAP", SCSI_DBG_TAP, "SCSI tape activity" },
     { 0 }
-};
+    };
+
+extern DEVICE rz_dev;
+extern UNIT rz_unit[];
+#if (RZ_CTLRS > 1)
+extern DEVICE rzb_dev;
+extern UNIT rzb_unit[];
+#endif
 
 t_stat rz_svc (UNIT *uptr);
 t_stat rz_reset (DEVICE *dptr);
 t_stat rz_attach (UNIT *uptr, CONST char *cptr);
-void rz_sw_reset (void);
+void rz_sw_reset (CTLR *rz);
 t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void rz_cmd (uint32 cmd);
+void rz_cmd (CTLR *rz, uint32 cmd);
+void rz_dma_stopped (CTLR *rz, uint32 cmd, int32 nshort);
 t_stat rz_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat rz_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
 const char *rz_description (DEVICE *dptr);
@@ -128,24 +205,17 @@ const char *rz_description (DEVICE *dptr);
    rz_reg       RZ register list
 */
 
-UNIT rz_unit[] = {
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
-    { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
-            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
+CTLR rz_ctx = { .cnum = 0, .dev = &rz_dev, .units = rz_unit };
+
+#define RZ_UNIT_TARGET  { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+ \
+            (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) }
+#define RZ_UNIT_LIST \
+    RZ_UNIT_TARGET, RZ_UNIT_TARGET, RZ_UNIT_TARGET, RZ_UNIT_TARGET, \
+    RZ_UNIT_TARGET, RZ_UNIT_TARGET, RZ_UNIT_TARGET, RZ_UNIT_TARGET, \
     { UDATA (&rz_svc, UNIT_DIS, 0) }
+
+UNIT rz_unit[] = {
+    RZ_UNIT_LIST
     };
 
 REG rz_reg[] = {
@@ -153,10 +223,22 @@ REG rz_reg[] = {
     { NULL }
     };
 
+#if (RZ_CTLRS > 1)
+CTLR rzb_ctx = { .cnum = 1, .dev = &rzb_dev, .units = rzb_unit };
+
+UNIT rzb_unit[] = {
+    RZ_UNIT_LIST
+    };
+
+REG rzb_reg[] = {
+    { NULL }
+    };
+#endif
+
 MTAB rz_mod[] = {
-    { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED", 
+    { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED",
         &scsi_set_wlk, &scsi_show_wlk,   NULL, "Write enable drive" },
-    { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED", 
+    { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED",
         &scsi_set_wlk, NULL,   NULL, "Write lock drive" },
     { MTAB_XTD|MTAB_VUN, RZ23_DTYPE, NULL, "RZ23",
       &rz_set_type, NULL, NULL, "Set RZ23 Disk Type" },
@@ -234,110 +316,150 @@ DEVICE rz_dev = {
     &rz_description
     };
 
+#if (RZ_CTLRS > 1)
+DEVICE rzb_dev = {
+    "RZB", rzb_unit, rzb_reg, rz_mod,
+    9, DEV_RDX, 8, 1, DEV_RDX, 8,
+    NULL, NULL, &rz_reset,
+    NULL, &rz_attach, &scsi_detach,
+    NULL, DEV_DISABLE | DEV_DEBUG | DEV_DISK | DEV_SECTORS,
+    0, rz_debug, NULL, NULL, &rz_help, NULL, NULL,
+    &rz_description
+    };
+#endif
+
+static CTLR *rz_ctxmap[] = {
+    &rz_ctx
+#if (RZ_CTLRS > 1)
+    , &rzb_ctx
+#endif
+    };
+
 /* Register names for Debug tracing */
 static const char *rz_rd_regs[] =
     {"TX L", "TX H", "FIFO", "CMD ",
      "STAT", "INT ", "SEQ ", "FFLG",
      "CFG1", "RSVD", "RSVD", "CFG2",
      "CFG3", "RSVD", "RSVD", "RSVD" };
-static const char *rz_wr_regs[] = 
+static const char *rz_wr_regs[] =
     {"TX L", "TX H", "FIFO", "CMD ",
      "DST ", "TMO ", "SYNP", "SYNO",
      "CFG1", "CLK ", "TEST", "CFG2",
      "CFG3", "RSVD", "RSVD", "FFOB" };
 
-uint8 rz_fifo_rd (void)
+uint8 rz_fifo_rd (CTLR *rz)
 {
-if (rz_fifo_c) {
-    rz_fifo_t &= 0xF;
-    rz_fifo_c--;
-    return rz_fifo[rz_fifo_t++];
+if (rz->fifo_c) {
+    rz->fifo_t &= 0xF;
+    rz->fifo_c--;
+    return rz->fifo[rz->fifo_t++];
     }
 else
-    return rz_fifo[rz_fifo_b];
+    return rz->fifo[rz->fifo_b];
 }
 
-void rz_fifo_wr (uint8 data)
+void rz_fifo_wr (CTLR *rz, uint8 data)
 {
-if (rz_fifo_c < 16) {
-    rz_fifo[rz_fifo_b++] = data;
-    rz_fifo_b &= 0xF;
-    rz_fifo_c++;
+if (rz->fifo_c < 16) {
+    rz->fifo[rz->fifo_b++] = data;
+    rz->fifo_b &= 0xF;
+    rz->fifo_c++;
     }
 else {
-    rz_fifo[rz_fifo_b] = data;
-    rz_stat |= STS_GE;                                  /* gross error */
+    rz->fifo[rz->fifo_b] = data;
+    rz->stat |= STS_GE;                                 /* gross error */
     }
 }
 
-void rz_fifo_reset (void)
+void rz_fifo_reset (CTLR *rz)
 {
-rz_fifo_c = 0;
-rz_fifo_t = rz_fifo_b = 0;
-rz_fifo[rz_fifo_b] = 0;
+rz->fifo_c = 0;
+rz->fifo_t = rz->fifo_b = 0;
+rz->fifo[rz->fifo_b] = 0;
+}
+
+/* Does a target answer selection? */
+
+static t_bool rz_present (CTLR *rz, uint32 tgt)
+{
+#if defined (RZ_ABSENT_UNATTACHED)
+UNIT *uptr = rz->bus.dev[tgt];
+
+if (tgt == (uint32) (rz->cfg1 & CFG1_MYID))             /* the chip itself */
+    return FALSE;
+if (((uptr->flags & UNIT_ATT) == 0) &&                  /* nothing attached */
+    !rzdev_tab[GET_DTYPE (uptr->flags)].removeable)     /* and not a drive without media */
+    return FALSE;
+#endif
+return TRUE;
 }
 
 /* IO dispatch routines, I/O addresses 177601x0 - 177601x7 */
 
-int32 rz_rd (int32 pa)
+static int32 rz_rd_c (CTLR *rz, int32 pa)
 {
 int32 data = 0;
 
-if (pa == 0x200C0000) {
-    return rz_dma;
+#if defined (RZ_DMA_ADDR)
+if (pa == RZ_DMA_ADDR) {
+    return rz->dma;
     }
-if (pa == 0x200C000C) {
-    return rz_dir;
+if (pa == RZ_DMA_DIR) {
+    return rz->dir;
     }
+#endif
 
 switch ((pa >> 2) & 0xF) {                              /* case on PA<2:1> */
 
     case 0:                                             /* transfer counter LSB */
-        data = rz_txc & 0xFF;
+        data = rz->txc & 0xFF;
         break;
 
     case 1:                                             /* transfer counter MSB */
-        data = (rz_txc >> 8) & 0xFF;
+        data = (rz->txc >> 8) & 0xFF;
         break;
 
     case 2:                                             /* FIFO */
-        data = rz_fifo_rd ();
+        data = rz_fifo_rd (rz);
         break;
 
     case 3:                                             /* command */
-        data = rz_last_cmd;
+        data = rz->last_cmd;
         break;
 
     case 4:                                             /* status */
-        data = rz_stat | rz_bus.phase;
+        data = rz->stat | rz->bus.phase;
         break;
 
     case 5:                                             /* interrupt */
-        data = rz_int;
-        if (rz_stat & STS_INT) {
-            rz_stat &= STS_CLR;
-            rz_int = 0;
+        data = rz->intr;
+        if (rz->stat & STS_INT) {
+            rz->stat &= STS_CLR;
+            rz->intr = 0;
+#if defined (RZ_INT_LEVEL)
+            RZ_CLR_INT (rz);                            /* the request follows the chip */
+#endif
             }
         break;
 
     case 6:                                             /* sequence step */
-        data = rz_seq;
+        data = rz->seq;
         break;
 
     case 7:                                             /* FIFO flags/seq step */
-        data = (rz_seq << 5) | rz_fifo_c;
+        data = (rz->seq << 5) | rz->fifo_c;
         break;
 
     case 8:                                             /* config 1 */
-        data = rz_cfg1;
+        data = rz->cfg1;
         break;
 
     case 11:                                            /* config 2 */
-        data = rz_cfg2;
+        data = rz->cfg2;
         break;
 
     case 12:                                            /* config 3 */
-        data = rz_cfg3;
+        data = rz->cfg3;
         break;
 
     default:                                            /* NCR reserved */
@@ -345,45 +467,52 @@ switch ((pa >> 2) & 0xF) {                              /* case on PA<2:1> */
         break;
         }
 
-sim_debug (DBG_REG, &rz_dev, "rz_rd(PA=0x%08X [%s], data=0x%X) at %08X\n", pa, rz_rd_regs[(pa >> 2) & 0xF], data, fault_PC);
+sim_debug (DBG_REG, rz->dev, "rz_rd(PA=0x%08X [%s], data=0x%X) at %08X\n", pa, rz_rd_regs[(pa >> 2) & 0xF], data, fault_PC);
 
 SET_IRQL;
 return data;
 }
 
-void rz_wr (int32 pa, int32 data, int32 access)
+int32 rz_rd (int32 pa)
 {
-sim_debug (DBG_REG, &rz_dev, "rz_wr(PA=0x%08X [%s], access=%d, data=0x%X) at %08X\n", pa, rz_wr_regs[(pa >> 2) & 0xF], access, data, fault_PC);
+return rz_rd_c (rz_ctxmap[0], pa);
+}
 
-if (pa == 0x200C0000) {
-    rz_dma = data;
+static void rz_wr_c (CTLR *rz, int32 pa, int32 data, int32 access)
+{
+sim_debug (DBG_REG, rz->dev, "rz_wr(PA=0x%08X [%s], access=%d, data=0x%X) at %08X\n", pa, rz_wr_regs[(pa >> 2) & 0xF], access, data, fault_PC);
+
+#if defined (RZ_DMA_ADDR)
+if (pa == RZ_DMA_ADDR) {
+    rz->dma = data;
     return;
     }
-if (pa == 0x200C000C) {
-    rz_dir = data;
+if (pa == RZ_DMA_DIR) {
+    rz->dir = data;
     return;
     }
+#endif
 
 switch ((pa >> 2) & 0xF) {                              /* case on PA<2:1> */
 
     case 0:                                             /* transfer count LSB */
-        rz_txi = (rz_txi & ~0xFF) | (data & 0xFF);
+        rz->txi = (rz->txi & ~0xFF) | (data & 0xFF);
         break;
 
     case 1:                                             /* transfer count MSB */
-        rz_txi = (rz_txi & ~0xFF00) | ((data << 8) & 0xFF00);
+        rz->txi = (rz->txi & ~0xFF00) | ((data << 8) & 0xFF00);
         break;
 
     case 2:                                             /* FIFO */
-        rz_fifo_wr (data);
+        rz_fifo_wr (rz, data);
         break;
 
     case 3:                                             /* command */
-        rz_cmd (data);
+        rz_cmd (rz, data);
         break;
 
     case 4:                                             /* destination bus ID */
-        rz_dest = data & 0x7;
+        rz->dest = data & 0x7;
         break;
 
     case 5:                                             /* select timeout - NI */
@@ -396,7 +525,7 @@ switch ((pa >> 2) & 0xF) {                              /* case on PA<2:1> */
         break;
 
     case 8:                                             /* config 1 */
-        rz_cfg1 = data;
+        rz->cfg1 = data;
         break;
 
     case 9:                                             /* clock conversion - NI */
@@ -406,11 +535,11 @@ switch ((pa >> 2) & 0xF) {                              /* case on PA<2:1> */
         break;
 
     case 11:                                            /* config 2 */
-        rz_cfg2 = data;
+        rz->cfg2 = data;
         break;
 
     case 12:                                            /* config 3 */
-        rz_cfg3 = data;
+        rz->cfg3 = data;
         break;
 
     case 15:                                            /* FIFO bottom */
@@ -423,412 +552,528 @@ switch ((pa >> 2) & 0xF) {                              /* case on PA<2:1> */
 SET_IRQL;
 }
 
-/* Unit service routine */
+void rz_wr (int32 pa, int32 data, int32 access)
+{
+rz_wr_c (rz_ctxmap[0], pa, data, access);
+}
+
+#if (RZ_CTLRS > 1)
+int32 rzb_rd (int32 pa)
+{
+return rz_rd_c (rz_ctxmap[1], pa);
+}
+
+void rzb_wr (int32 pa, int32 data, int32 access)
+{
+rz_wr_c (rz_ctxmap[1], pa, data, access);
+}
+#endif
+
+/* Unit service routine
+
+   The chip's INT output is its interrupt register being non-zero: there is
+   no interrupt without a cause in the register.  Every command queues one of
+   these events, and a command written while an earlier event is still queued
+   shares it (sim_activate leaves a queued event where it is).  If software
+   reads the register between the two, the later event finds the register
+   empty and must not raise the interrupt again, or the driver takes an
+   interrupt that has nothing to report. */
 
 t_stat rz_svc (UNIT *uptr)
 {
-rz_stat |= STS_INT;
-SET_INT (SC);
+CTLR *rz = rz_ctxmap[uptr->cnum];
+
+if (rz->intr != 0) {
+    rz->stat |= STS_INT;
+    RZ_SET_INT (rz);
+    }
 return SCPE_OK;
 }
 
-void rz_setint (uint32 flag)
+void rz_setint (CTLR *rz, uint32 flag)
 {
-rz_int |= flag;
-sim_activate (&rz_unit[8], 50);
+rz->intr |= flag;
+sim_activate (&rz->units[RZ_CTLR], 50);
 }
 
-void rz_cmd (uint32 cmd)
+/* The board's DMA engine moved fewer bytes than the chip asked for
+
+   The chip's transfer counter decrements on a DMA acknowledge for data out
+   and synchronous data in, and on the SCSI ACK for asynchronous data in
+   (NCR 53C94/95/96 data sheet, Transfer Counter register): a board that
+   stops answering, as the KA46's does for a map entry with the valid bit
+   clear, leaves the count short and the command unfinished.  The chip
+   therefore sets no terminal count and raises no interrupt; the command
+   stays where it is until software resets the chip (or the bus), as on
+   the real part.  The board reports the failure to the CPU itself (on the
+   KA46, PAR_CTL<SCSI_MAP> and the SCSI interrupt).
+
+   An asynchronous data in is acknowledged into the chip's 16-byte FIFO
+   before the DMA engine drains it, so the count runs ahead of a stopped
+   engine by what the FIFO holds; rz_dma_refused() (below) takes that into
+   account.  Data out has no such slack: its count follows the engine. */
+
+void rz_dma_stopped (CTLR *rz, uint32 cmd, int32 nshort)
 {
-uint32 ini = (rz_cfg1 & CFG1_MYID);
-uint32 tgt = rz_dest;
-uint32 state = scsi_state (&rz_bus, ini);
+sim_debug (DBG_CMD, rz->dev, "DMA stopped, %d bytes not moved\n", nshort);
+rz->last_cmd = cmd;
+}
+
+/* The board's DMA engine took only some of the bytes of an asynchronous data in
+
+   The bytes were read from the bus (got), the engine stored got - nshort of
+   them.  The chip acknowledged the rest into its FIFO for as long as there
+   was room in it (16 bytes) and decremented its transfer counter for each,
+   so the counter ends nshort, or the room, whichever is less, below where
+   the engine left it, and the bytes wait in the FIFO, where the FIFO flags
+   count them and the microprocessor can read them out.
+
+   A transfer information command is complete when the counter is zero, the
+   FIFO is empty and the target asserts REQ for the next byte, or when the
+   target changes phase (data sheet, Transfer Information).  A FIFO that
+   holds bytes the engine did not take keeps the first from happening, so:
+
+     - the FIFO filled and bytes remain, or the counter is zero and the
+       target is still in the phase: the command waits for its DMA (terminal
+       count set if the counter is zero), no interrupt;
+     - the target changed phase (all it had to send was taken, by the
+       engine or the FIFO): the command ends as usual, with terminal count if
+       the counter is zero and the bus service interrupt, and the bytes still
+       in the FIFO.
+
+   Returns TRUE if the command goes on to end. */
+
+static t_bool rz_dma_refused (CTLR *rz, uint32 cmd, uint32 got, int32 nshort, uint32 old_phase)
+{
+uint32 moved = got - nshort;
+uint32 held = 16 - rz->fifo_c;
+uint32 i;
+
+if (held > (uint32) nshort)
+    held = nshort;
+for (i = 0; i < held; i++)
+    rz_fifo_wr (rz, rz->buf[moved + i]);
+rz->txc -= held;
+sim_debug (DBG_CMD, rz->dev, "DMA refused, %d bytes not moved, %d in the FIFO\n", nshort, held);
+if (((uint32) nshort > held) ||                         /* the FIFO is full and the target has more, */
+    ((rz->txc == 0) && (rz->bus.phase == old_phase))) { /* or it is not finished with the phase */
+    if (rz->txc == 0)
+        rz->stat |= STS_TC;
+    rz_dma_stopped (rz, cmd, nshort);
+    return FALSE;
+    }
+return TRUE;
+}
+
+void rz_cmd (CTLR *rz, uint32 cmd)
+{
+uint32 ini = (rz->cfg1 & CFG1_MYID);
+uint32 tgt = rz->dest;
+uint32 state = scsi_state (&rz->bus, ini);
 uint32 txc, i, old_phase;
+int32 nshort;
+UNIT *cuptr = &rz->units[RZ_CTLR];
 
 if ((cmd & CMD_DISC) && (state != SCSI_DISC)) {         /* check cmd validity */
-    sim_debug (DBG_CMD, &rz_dev, "disconnected cmd when not disconnected\n");
-    rz_setint (INT_ILLCMD);
+    sim_debug (DBG_CMD, rz->dev, "disconnected cmd when not disconnected\n");
+    rz_setint (rz, INT_ILLCMD);
     return;
     }
 if ((cmd & CMD_TARG) && (state != SCSI_TARG)) {
-    sim_debug (DBG_CMD, &rz_dev, "target cmd when not target\n");
-    rz_setint (INT_ILLCMD);
+    sim_debug (DBG_CMD, rz->dev, "target cmd when not target\n");
+    rz_setint (rz, INT_ILLCMD);
     return;
     }
 if ((cmd & CMD_INIT) && (state != SCSI_INIT)) {
-    sim_debug (DBG_CMD, &rz_dev, "initiator cmd when not initiator\n");
-    rz_setint (INT_ILLCMD);
+    sim_debug (DBG_CMD, rz->dev, "initiator cmd when not initiator\n");
+    rz_setint (rz, INT_ILLCMD);
     return;
     }
 
 switch (cmd & 0x7f) {
 
     case 0:                                         /* NOP */
-        sim_debug (DBG_CMD, &rz_dev, "NOP\n");
+        sim_debug (DBG_CMD, rz->dev, "NOP\n");
         if (cmd & 0x80) {                           /* DMA */
-            rz_stat &= ~STS_TC;
-            rz_txc = (rz_txi == 0) ? RZ_MAXFR : rz_txi;
+            rz->stat &= ~STS_TC;
+            rz->txc = (rz->txi == 0) ? RZ_MAXFR : rz->txi;
             }
         break;
 
     case 1:                                         /* flush FIFO */
-        sim_debug (DBG_CMD, &rz_dev, "flush fifo\n");
-        rz_fifo_reset ();
-        rz_int |= INT_FC;
+        sim_debug (DBG_CMD, rz->dev, "flush fifo\n");
+        rz_fifo_reset (rz);
+        rz->intr |= INT_FC;
         break;
 
     case 2:                                         /* reset chip */
-        sim_debug (DBG_CMD, &rz_dev, "sw reset\n");
-        rz_sw_reset ();
+        sim_debug (DBG_CMD, rz->dev, "sw reset\n");
+        rz_sw_reset (rz);
         break;
 
     case 3:                                         /* reset SCSI */
-        sim_debug (DBG_CMD, &rz_dev, "SCSI reset\n");
-        scsi_reset (&rz_bus);
-        if ((rz_cfg1 & CFG1_SRD) == 0) {
-            rz_setint (INT_SCSIRST);
+        sim_debug (DBG_CMD, rz->dev, "SCSI reset\n");
+        scsi_reset (&rz->bus);
+        if ((rz->cfg1 & CFG1_SRD) == 0) {
+            rz_setint (rz, INT_SCSIRST);
             }
         break;
 
     case 0x20:                                      /* send message */
-        sim_debug (DBG_CMD, &rz_dev, "send message\n");
+        sim_debug (DBG_CMD, rz->dev, "send message\n");
         break;
 
     case 0x21:                                      /* send status */
-        sim_debug (DBG_CMD, &rz_dev, "send status\n");
+        sim_debug (DBG_CMD, rz->dev, "send status\n");
         break;
 
     case 0x22:                                      /* send data */
-        sim_debug (DBG_CMD, &rz_dev, "send data\n");
+        sim_debug (DBG_CMD, rz->dev, "send data\n");
         break;
 
     case 0x23:                                      /* disconnect sequence */
-        sim_debug (DBG_CMD, &rz_dev, "disconnect sequence\n");
+        sim_debug (DBG_CMD, rz->dev, "disconnect sequence\n");
         break;
 
     case 0x24:                                      /* terminate sequence */
-        sim_debug (DBG_CMD, &rz_dev, "terminate sequence\n");
+        sim_debug (DBG_CMD, rz->dev, "terminate sequence\n");
         break;
 
     case 0x25:                                      /* target cmd complete sequence */
-        sim_debug (DBG_CMD, &rz_dev, "target cmd complete sequence\n");
+        sim_debug (DBG_CMD, rz->dev, "target cmd complete sequence\n");
         break;
 
     case 0x27:                                      /* disconnect */
-        sim_debug (DBG_CMD, &rz_dev, "disconnect\n");
+        sim_debug (DBG_CMD, rz->dev, "disconnect\n");
         break;
 
     case 0x28:                                      /* rcv message seq */
-        sim_debug (DBG_CMD, &rz_dev, "rcv message seq\n");
+        sim_debug (DBG_CMD, rz->dev, "rcv message seq\n");
         break;
 
     case 0x29:                                      /* rcv cmd */
-        sim_debug (DBG_CMD, &rz_dev, "rcv cmd\n");
+        sim_debug (DBG_CMD, rz->dev, "rcv cmd\n");
         break;
 
     case 0x30:                                      /* rcv data */
-        sim_debug (DBG_CMD, &rz_dev, "rcv data\n");
+        sim_debug (DBG_CMD, rz->dev, "rcv data\n");
         break;
 
     case 0x31:                                      /* rcv cmd seq */
-        sim_debug (DBG_CMD, &rz_dev, "rcv cmd seq\n");
+        sim_debug (DBG_CMD, rz->dev, "rcv cmd seq\n");
         break;
 
     case 0x40:                                      /* reselect */
-        sim_debug (DBG_CMD, &rz_dev, "reselect\n");
+        sim_debug (DBG_CMD, rz->dev, "reselect\n");
         break;
 
     case 0x41:                                          /* select without ATN */
-        sim_debug (DBG_CMD, &rz_dev, "select without atn\n");
-        rz_seq = 0;
-        if (!scsi_arbitrate (&rz_bus, ini)) {
-            rz_seq = 0;
-            rz_int |= INT_DIS;                          /* disconnect */
-            sim_activate (&rz_unit[8], 100);
+        sim_debug (DBG_CMD, rz->dev, "select without atn\n");
+        rz->seq = 0;
+        if (!scsi_arbitrate (&rz->bus, ini)) {
+            rz->seq = 0;
+            rz->intr |= INT_DIS;                        /* disconnect */
+            sim_activate (cuptr, 100);
             break;
             }
-        if (!scsi_select (&rz_bus, tgt)) {
-            rz_seq = 0;
-            rz_int |= INT_DIS;                          /* disconnect */
-            scsi_release (&rz_bus);
-            sim_activate (&rz_unit[8], 100);
+        if (!rz_present (rz, tgt) || !scsi_select (&rz->bus, tgt)) {
+            rz->seq = 0;
+            rz->intr |= INT_DIS;                        /* disconnect */
+            scsi_release (&rz->bus);
+            sim_activate (cuptr, 100);
             break;
             }
-        rz_seq = 2;
-        for (i = 0; rz_fifo_c > 0; i++)
-            rz_buf[i] = rz_fifo_rd ();
-        scsi_write (&rz_bus, &rz_buf[0], i);
-        if (scsi_state (&rz_bus, tgt) == SCSI_DISC) {
-            rz_seq = 3;
-            rz_int |= INT_DIS;
+        rz->seq = 2;
+        for (i = 0; rz->fifo_c > 0; i++)
+            rz->buf[i] = rz_fifo_rd (rz);
+        scsi_write (&rz->bus, &rz->buf[0], i);
+        if (scsi_state (&rz->bus, tgt) == SCSI_DISC) {
+            rz->seq = 3;
+            rz->intr |= INT_DIS;
             }
         else {
-            rz_seq = 4;
-            rz_int |= (INT_BUSSV | INT_FC);
+            rz->seq = 4;
+            rz->intr |= (INT_BUSSV | INT_FC);
             }
-        sim_activate (&rz_unit[8], 50);
+        sim_activate (cuptr, 50);
         break;
 
     case 0x42:                                          /* select with ATN */
-        sim_debug (DBG_CMD, &rz_dev, "select with atn\n");
-        rz_seq = 0;
-        if (!scsi_arbitrate (&rz_bus, ini)) {
-            rz_int |= INT_DIS;                          /* disconnect */
-            sim_activate (&rz_unit[8], 100);
+        sim_debug (DBG_CMD, rz->dev, "select with atn\n");
+        rz->seq = 0;
+        if (!scsi_arbitrate (&rz->bus, ini)) {
+            rz->intr |= INT_DIS;                        /* disconnect */
+            sim_activate (cuptr, 100);
             break;
             }
-        scsi_set_atn (&rz_bus);
-        if (!scsi_select (&rz_bus, tgt)) {
-            rz_seq = 0;
-            rz_int |= INT_DIS;                          /* disconnect */
-            scsi_release (&rz_bus);
-            sim_activate (&rz_unit[8], 100);
+        scsi_set_atn (&rz->bus);
+        if (!rz_present (rz, tgt) || !scsi_select (&rz->bus, tgt)) {
+            rz->seq = 0;
+            rz->intr |= INT_DIS;                        /* disconnect */
+            scsi_release (&rz->bus);
+            sim_activate (cuptr, 100);
             break;
             }
-        for (i = 0; rz_fifo_c > 0; i++)
-            rz_buf[i] = rz_fifo_rd ();
-        scsi_write (&rz_bus, &rz_buf[0], i);
-        rz_seq = 2;
-        if (scsi_state (&rz_bus, tgt) == SCSI_DISC) {
-            rz_seq = 3;
-            rz_int |= INT_DIS;
+        for (i = 0; rz->fifo_c > 0; i++)
+            rz->buf[i] = rz_fifo_rd (rz);
+        scsi_write (&rz->bus, &rz->buf[0], i);
+        rz->seq = 2;
+        if (scsi_state (&rz->bus, tgt) == SCSI_DISC) {
+            rz->seq = 3;
+            rz->intr |= INT_DIS;
             }
         else {
-            rz_seq = 4;
-            rz_int |= (INT_BUSSV | INT_FC);
+            rz->seq = 4;
+            rz->intr |= (INT_BUSSV | INT_FC);
             }
-        sim_activate (&rz_unit[8], 50);
+        sim_activate (cuptr, 50);
         break;
 
     case 0x43:                                          /* select with ATN and stop */
-        sim_debug (DBG_CMD, &rz_dev, "select with atn and stop\n");
-        if (!scsi_arbitrate (&rz_bus, ini)) {
-            rz_seq = 0;
-            rz_int |= INT_DIS;                          /* disconnect */
-            sim_activate (&rz_unit[8], 100);
+        sim_debug (DBG_CMD, rz->dev, "select with atn and stop\n");
+        if (!scsi_arbitrate (&rz->bus, ini)) {
+            rz->seq = 0;
+            rz->intr |= INT_DIS;                        /* disconnect */
+            sim_activate (cuptr, 100);
             break;
             }
-        scsi_set_atn (&rz_bus);
-        if (!scsi_select (&rz_bus, tgt)) {
-            rz_seq = 0;
-            rz_int |= INT_DIS;                          /* disconnect */
-            scsi_release (&rz_bus);
-            sim_activate (&rz_unit[8], 100);
+        scsi_set_atn (&rz->bus);
+        if (!rz_present (rz, tgt) || !scsi_select (&rz->bus, tgt)) {
+            rz->seq = 0;
+            rz->intr |= INT_DIS;                        /* disconnect */
+            scsi_release (&rz->bus);
+            sim_activate (cuptr, 100);
             break;
             }
-        rz_buf[0] = rz_fifo_rd ();
-        scsi_write (&rz_bus, &rz_buf[0], 1);            /* send one message byte */
-        if (scsi_state (&rz_bus, tgt) == SCSI_DISC) {   /* disconnected? */
-            rz_seq = 0;
-            rz_int |= INT_DIS;
+        rz->buf[0] = rz_fifo_rd (rz);
+        scsi_write (&rz->bus, &rz->buf[0], 1);          /* send one message byte */
+        if (scsi_state (&rz->bus, tgt) == SCSI_DISC) {  /* disconnected? */
+            rz->seq = 0;
+            rz->intr |= INT_DIS;
             }
         else {
-            scsi_set_atn (&rz_bus);                     /* keep ATN asserted */
-            rz_seq = 1;
-            rz_int |= (INT_BUSSV | INT_FC);             /* continue */
+            scsi_set_atn (&rz->bus);                    /* keep ATN asserted */
+            rz->seq = 1;
+            rz->intr |= (INT_BUSSV | INT_FC);           /* continue */
             }
-        sim_activate (&rz_unit[8], 50);
+        sim_activate (cuptr, 50);
         break;
 
     case 0x44:                                          /* enable selection/reselection */
-        sim_debug (DBG_CMD, &rz_dev, "enable selection/reselection\n");
+        sim_debug (DBG_CMD, rz->dev, "enable selection/reselection\n");
         break;
-    
+
     case 0x46:                                          /* select with ATN3 */
-        sim_debug (DBG_CMD, &rz_dev, "select with atn3\n");
-        scsi_set_atn (&rz_bus);
-        if (!scsi_select (&rz_bus, tgt)) {
-            rz_int |= INT_DIS;                          /* disconnect */
-            scsi_release (&rz_bus);
+        sim_debug (DBG_CMD, rz->dev, "select with atn3\n");
+        scsi_set_atn (&rz->bus);
+        if (!rz_present (rz, tgt) || !scsi_select (&rz->bus, tgt)) {
+            rz->intr |= INT_DIS;                        /* disconnect */
+            scsi_release (&rz->bus);
             }
-        sim_activate (&rz_unit[8], 50);
+        else
+            rz->intr |= (INT_BUSSV | INT_FC);           /* selected */
+        sim_activate (cuptr, 50);
         break;
 
     case 0x1A:                                          /* set ATN */
-        sim_debug (DBG_CMD, &rz_dev, "set atn\n");
-        scsi_set_atn (&rz_bus);
-        if (rz_bus.phase == 6) {                        /* TODO: check this */
-            rz_int |= (INT_BUSSV | INT_FC);
-            sim_activate (&rz_unit[8], 50);
-            }
+        sim_debug (DBG_CMD, rz->dev, "set atn\n");
+        scsi_set_atn (&rz->bus);                        /* no interrupt (Am53CF94 data sheet) */
         break;
-    
+
     case 0x1B:                                          /* reset ATN */
-        sim_debug (DBG_CMD, &rz_dev, "reset atn\n");
-        scsi_release_atn (&rz_bus);
+        sim_debug (DBG_CMD, rz->dev, "reset atn\n");
+        scsi_release_atn (&rz->bus);
         break;
-    
+
     case 0x10:
-        sim_debug (DBG_CMD, &rz_dev, "transfer information\n");
+        sim_debug (DBG_CMD, rz->dev, "transfer information\n");
         if (cmd & 0x80) {                               /* DMA */
-            rz_stat &= ~STS_TC;
-            rz_txc = (rz_txi == 0) ? RZ_MAXFR : rz_txi;
+            rz->stat &= ~STS_TC;
+            rz->txc = (rz->txi == 0) ? RZ_MAXFR : rz->txi;
             }
-        old_phase = rz_bus.phase;
-        switch (rz_bus.phase) {
+        old_phase = rz->bus.phase;
+        switch (rz->bus.phase) {
             case SCSI_DATO:                             /* data out */
             case SCSI_CMD:                              /* command */
             case SCSI_MSGO:                             /* message out */
-                if (rz_bus.phase == 6)
-                    scsi_release_atn (&rz_bus);
+                if (rz->bus.phase == 6)
+                    scsi_release_atn (&rz->bus);
                 if (cmd & 0x80) {                       /* DMA */
-                    RZ_READB (rz_dma, rz_txc, &rz_buf[0]);
-                    txc = scsi_write (&rz_bus, &rz_buf[0], rz_txc);
-                    rz_txc -= txc;
-                    if (rz_txc == 0)
-                        rz_stat |= STS_TC;
+                    nshort = RZ_DMA_READ (rz, rz->txc, &rz->buf[0]);
+                    txc = ((uint32) nshort < rz->txc)?
+                        scsi_write (&rz->bus, &rz->buf[0], rz->txc - nshort): 0;
+                    RZ_DMA_DONE (rz, txc);
+                    rz->txc -= txc;
+                    if (nshort != 0) {                  /* board stopped the DMA */
+                        rz_dma_stopped (rz, cmd, nshort);
+                        return;
+                        }
+                    if (rz->txc == 0)
+                        rz->stat |= STS_TC;
                     }
                 else {
-                    for (txc = 0; rz_fifo_c > 0; txc++)
-                        rz_buf[txc] = rz_fifo_rd ();
-                    txc = scsi_write (&rz_bus, &rz_buf[0], txc);
+                    for (txc = 0; rz->fifo_c > 0; txc++)
+                        rz->buf[txc] = rz_fifo_rd (rz);
+                    txc = scsi_write (&rz->bus, &rz->buf[0], txc);
                     }
                 break;
-                
+
             case SCSI_DATI:                             /* data in */
             case SCSI_STS:                              /* status */
             case SCSI_MSGI:                             /* message in */
                 if (cmd & 0x80) {                       /* DMA */
-                    while ((rz_bus.phase == old_phase) && (rz_txc != 0)) {
-                        txc = scsi_read (&rz_bus, &rz_buf[0], rz_txc);
-                        RZ_WRITEB (rz_dma, txc, &rz_buf[0]);
-                        rz_txc -= txc;
+                    while ((rz->bus.phase == old_phase) && (rz->txc != 0)) {
+                        txc = scsi_read (&rz->bus, &rz->buf[0], rz->txc);
+                        nshort = RZ_DMA_WRITE (rz, txc, &rz->buf[0]);
+                        RZ_DMA_DONE (rz, txc - nshort);
+                        rz->txc -= txc - nshort;
+                        if ((nshort != 0) &&            /* board stopped the DMA */
+                            !rz_dma_refused (rz, cmd, txc, nshort, old_phase))
+                            return;
                         }
-                    if (rz_txc == 0)
-                        rz_stat |= STS_TC;
+                    if (rz->txc == 0)
+                        rz->stat |= STS_TC;
                     }
                 else {
-                    txc = scsi_read (&rz_bus, &rz_buf[0], 1);
-                    rz_fifo_wr (rz_buf[0]);
+                    txc = scsi_read (&rz->bus, &rz->buf[0], 1);
+                    rz_fifo_wr (rz, rz->buf[0]);
                     }
                 break;
                 }
-        rz_seq = 0;
-        if (scsi_state (&rz_bus, tgt) == SCSI_DISC) {
-            rz_int |= INT_DIS;
+        rz->seq = 0;
+        if (scsi_state (&rz->bus, tgt) == SCSI_DISC) {
+            rz->intr |= INT_DIS;
             }
         else {
-            if (rz_bus.req)
-                rz_int |= INT_BUSSV;
-            if (rz_bus.phase == SCSI_MSGI)
-                rz_int |= INT_FC;
+            if (rz->bus.req)
+                rz->intr |= INT_BUSSV;
+            if (rz->bus.phase == SCSI_MSGI)
+                rz->intr |= INT_FC;
             }
-            sim_activate (&rz_unit[8], 50);
+            sim_activate (cuptr, 50);
         break;
 
     case 0x11:
-        sim_debug (DBG_CMD, &rz_dev, "initiator command complete\n");
+        sim_debug (DBG_CMD, rz->dev, "initiator command complete\n");
         txc = 0;
-        txc += scsi_read (&rz_bus, &rz_buf[0], 1);
-        txc += scsi_read (&rz_bus, &rz_buf[1], 1);
-        rz_fifo_wr (rz_buf[0]);
-        rz_fifo_wr (rz_buf[1]);
-        rz_seq = 0;
-        rz_int |= INT_FC;
-        sim_activate (&rz_unit[8], 50);
+        txc += scsi_read (&rz->bus, &rz->buf[0], 1);
+        txc += scsi_read (&rz->bus, &rz->buf[1], 1);
+        rz_fifo_wr (rz, rz->buf[0]);
+        rz_fifo_wr (rz, rz->buf[1]);
+        rz->seq = 0;
+        rz->intr |= INT_FC;
+        sim_activate (cuptr, 50);
         break;
-    
+
     case 0x12:
-        sim_debug (DBG_CMD, &rz_dev, "message accepted\n");
-        scsi_release (&rz_bus);
-        rz_seq = 0;
-        rz_int |= INT_DIS;
-        sim_activate (&rz_unit[8], 50);
+        sim_debug (DBG_CMD, rz->dev, "message accepted\n");
+        scsi_release (&rz->bus);
+        rz->seq = 0;
+        rz->intr |= INT_DIS;
+        sim_activate (cuptr, 50);
         break;
 
     case 0x18:
-        sim_debug (DBG_CMD, &rz_dev, "transfer pad\n");
+        sim_debug (DBG_CMD, rz->dev, "transfer pad\n");
         if (cmd & 0x80) {                               /* DMA */
-            rz_stat &= ~STS_TC;
-            rz_txc = (rz_txi == 0) ? RZ_MAXFR : rz_txi;
+            rz->stat &= ~STS_TC;
+            rz->txc = (rz->txi == 0) ? RZ_MAXFR : rz->txi;
             }
-        old_phase = rz_bus.phase;
-        switch (rz_bus.phase) {
+        old_phase = rz->bus.phase;
+        switch (rz->bus.phase) {
             case SCSI_DATO:                             /* data out */
             case SCSI_CMD:                              /* command */
             case SCSI_MSGO:                             /* message out */
-                if (rz_bus.phase == 6)
-                    scsi_release_atn (&rz_bus);
-                rz_buf[0] = 0;
-                for (; ((rz_bus.phase == old_phase) && (rz_txc > 0)); rz_txc--)
-                    scsi_write (&rz_bus, &rz_buf[0], 1);
-                if (rz_txc == 0)
-                    rz_stat |= STS_TC;
+                if (rz->bus.phase == 6)
+                    scsi_release_atn (&rz->bus);
+                rz->buf[0] = 0;
+                for (; ((rz->bus.phase == old_phase) && (rz->txc > 0)); rz->txc--)
+                    scsi_write (&rz->bus, &rz->buf[0], 1);
+                if (rz->txc == 0)
+                    rz->stat |= STS_TC;
                 break;
-                
+
             case SCSI_DATI:                             /* data in */
             case SCSI_STS:                              /* status */
             case SCSI_MSGI:                             /* message in */
-                for (; ((rz_bus.phase == old_phase) && (rz_txc > 0)); rz_txc--)
-                    txc = scsi_read (&rz_bus, &rz_buf[0], 1);
-                if (rz_txc == 0)
-                    rz_stat |= STS_TC;
+                for (; ((rz->bus.phase == old_phase) && (rz->txc > 0)); rz->txc--)
+                    txc = scsi_read (&rz->bus, &rz->buf[0], 1);
+                if (rz->txc == 0)
+                    rz->stat |= STS_TC;
                 break;
                 }
-        rz_seq = 0;
-        if (scsi_state (&rz_bus, tgt) == SCSI_DISC)
-            rz_int |= INT_DIS;
+        rz->seq = 0;
+        if (scsi_state (&rz->bus, tgt) == SCSI_DISC)
+            rz->intr |= INT_DIS;
         else {
-            if (rz_bus.req)
-                rz_int |= INT_BUSSV;
-            /* if (rz_bus.phase == SCSI_MSGI) */
-                rz_int |= INT_FC;
+            if (rz->bus.req)
+                rz->intr |= INT_BUSSV;
+            /* if (rz->bus.phase == SCSI_MSGI) */
+                rz->intr |= INT_FC;
             }
-            sim_activate (&rz_unit[8], 50);
+            sim_activate (cuptr, 50);
         break;
 
     default:
-        sim_debug (DBG_CMD, &rz_dev, "unknown command %X\n", cmd);
+        sim_debug (DBG_CMD, rz->dev, "unknown command %X\n", cmd);
         break;
         }
 if (cmd > 0)
-    rz_last_cmd = cmd;
+    rz->last_cmd = cmd;
 }
 
-void rz_sw_reset ()
+void rz_sw_reset (CTLR *rz)
 {
 uint32 i;
 
 for (i = 0; i < 9; i++)
-    sim_cancel (&rz_unit[i]);
-rz_txc = 0;
-rz_cfg1 = rz_cfg1 & 0x7;
-rz_cfg2 = 0;
-rz_cfg3 = 0;
-rz_stat = 0;
-rz_seq = 0;
-rz_int = 0;
-rz_dest = 0;
-rz_fifo_reset ();
-CLR_INT (SC);
-scsi_reset (&rz_bus);
+    sim_cancel (&rz->units[i]);
+rz->txc = 0;
+rz->cfg1 = rz->cfg1 & 0x7;
+rz->cfg2 = 0;
+rz->cfg3 = 0;
+rz->stat = 0;
+rz->seq = 0;
+rz->intr = 0;
+rz->dest = 0;
+rz_fifo_reset (rz);
+RZ_CLR_INT (rz);
+scsi_reset (&rz->bus);
 }
 
 t_stat rz_reset (DEVICE *dptr)
 {
+CTLR *rz = rz_ctxmap[0];
 uint32 i;
 uint32 dtyp;
 UNIT *uptr;
 t_stat r;
 
-if (rz_buf == NULL)
-    rz_buf = (uint8 *)calloc (RZ_MAXFR, sizeof(uint8));
-if (rz_buf == NULL)
+#if (RZ_CTLRS > 1)
+if (dptr == &rzb_dev)
+    rz = rz_ctxmap[1];
+#endif
+
+if (rz->buf == NULL)
+    rz->buf = (uint8 *)calloc (RZ_MAXFR, sizeof(uint8));
+if (rz->buf == NULL)
     return SCPE_MEM;
-r = scsi_init (&rz_bus, RZ_MAXFR);                      /* init SCSI bus */
+r = scsi_init (&rz->bus, RZ_MAXFR);                     /* init SCSI bus */
 if (r != SCPE_OK)
     return r;
-rz_bus.dptr = dptr;                                     /* set bus device */
+rz->bus.dptr = dptr;                                    /* set bus device */
 for (i = 0; i < 8; i++) {
     uptr = dptr->units + i;
-    if (i == RZ_SCSI_ID)                                /* initiator ID? */
+    if (i == (uint32) RZ_INITIATOR_ID (rz))             /* initiator ID? */
         uptr->flags = UNIT_DIS;                         /* disable unit */
-    scsi_add_unit (&rz_bus, i, &rz_unit[i]);
-    dtyp = GET_DTYPE (rz_unit[i].flags);
-    scsi_set_unit (&rz_bus, &rz_unit[i], &rzdev_tab[dtyp]);
-    scsi_reset_unit (&rz_unit[i]);
+    scsi_add_unit (&rz->bus, i, uptr);
+    dtyp = GET_DTYPE (uptr->flags);
+    scsi_set_unit (&rz->bus, uptr, &rzdev_tab[dtyp]);
+    scsi_reset_unit (uptr);
     }
-rz_sw_reset ();
+for (i = 0; i <= RZ_CTLR; i++)                          /* units know their controller */
+    dptr->units[i].cnum = rz->cnum;
+rz_sw_reset (rz);
 return SCPE_OK;
 }
 
@@ -836,6 +1081,7 @@ return SCPE_OK;
 
 t_stat rz_set_type (UNIT *uptr, int32 val, CONST char *cptr, void *desc)
 {
+CTLR *rz = rz_ctxmap[uptr->cnum];
 uint32 cap;
 uint32 max = sim_toffset_64? RZU_EMAXC: RZU_MAXC;
 t_stat r;
@@ -854,7 +1100,7 @@ if (cptr) {
     }
 uptr->flags = (uptr->flags & ~UNIT_DTYPE) | (val << UNIT_V_DTYPE);
 uptr->capac = (t_addr)rzdev_tab[val].lbn;
-scsi_set_unit (&rz_bus, uptr, &rzdev_tab[val]);
+scsi_set_unit (&rz->bus, uptr, &rzdev_tab[val]);
 scsi_reset_unit (uptr);
 return SCPE_OK;
 }
@@ -876,8 +1122,14 @@ if (dptr->flags & DEV_DISABLE)
     fprintf (st, "Initially the %s controller is disabled.\n", dptr->name);
 else
     fprintf (st, "The %s controller cannot be disabled.\n", dptr->name);
-fprintf (st, "SCSI target device %s%d is reserved for the initiator and cannot\n", dptr->name, RZ_SCSI_ID);
+fprintf (st, "SCSI target device %s%d is reserved for the initiator and cannot\n", dptr->name,
+    RZ_INITIATOR_ID (dptr == &rz_dev? &rz_ctx: rz_ctxmap[RZ_CTLRS - 1]));
 fprintf (st, "be enabled\n");
+#if defined (RZ_ABSENT_UNATTACHED)
+fprintf (st, "A target disk with no file attached is absent from the bus: it does not\n");
+fprintf (st, "answer selection.  A CD-ROM or tape drive with no file attached answers as\n");
+fprintf (st, "a drive with no medium loaded.\n");
+#endif
 fprintf (st, "Each target on the SCSI bus can be set to one of several types:\n");
 fprint_set_help (st, dptr);
 fprintf (st, "Configured options can be displayed with:\n\n");

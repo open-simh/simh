@@ -417,6 +417,7 @@ if (NOT DONT_USE_ROMS)
             ${CMAKE_SOURCE_DIR}/VAX/vax_ka4xx_8pln_bin.h
             ${CMAKE_SOURCE_DIR}/VAX/vax_ka4xx_dz_bin.h
             ${CMAKE_SOURCE_DIR}/VAX/vax_ka4xx_spx_bin.h
+            ${CMAKE_SOURCE_DIR}/VAX/vax_lcspx_bin.h
             ${CMAKE_SOURCE_DIR}/VAX/vax_ka750_bin_new.h
             ${CMAKE_SOURCE_DIR}/VAX/vax_ka750_bin_old.h
             ${CMAKE_SOURCE_DIR}/VAX/vax_vcb02_bin.h

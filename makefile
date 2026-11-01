@@ -148,7 +148,7 @@ BUILD_SINGLE := ${MAKECMDGOALS} $(BLANK_SUFFIX)
 BUILD_MULTIPLE_VERB = is
 # building the pdp1, pdp11, tx-0, or any microvax simulator could use video support
 ifneq (3,${SIM_MAJOR})
-  ifneq (,$(or $(findstring XXpdp1XX,$(addsuffix XX,$(addprefix XX,${MAKECMDGOALS}))),$(findstring pdp11,${MAKECMDGOALS}),$(findstring tx-0,${MAKECMDGOALS}),$(findstring microvax1,${MAKECMDGOALS}),$(findstring microvax2,${MAKECMDGOALS}),$(findstring microvax3900,${MAKECMDGOALS}),$(findstring microvax2000,${MAKECMDGOALS}),$(findstring vaxstation3100,${MAKECMDGOALS}),$(findstring XXvaxXX,$(addsuffix XX,$(addprefix XX,${MAKECMDGOALS})))))
+  ifneq (,$(or $(findstring XXpdp1XX,$(addsuffix XX,$(addprefix XX,${MAKECMDGOALS}))),$(findstring pdp11,${MAKECMDGOALS}),$(findstring tx-0,${MAKECMDGOALS}),$(findstring microvax1,${MAKECMDGOALS}),$(findstring microvax2,${MAKECMDGOALS}),$(findstring microvax3900,${MAKECMDGOALS}),$(findstring microvax2000,${MAKECMDGOALS}),$(findstring vaxstation3100,${MAKECMDGOALS}),$(findstring vaxstation4000m90,${MAKECMDGOALS}),$(findstring XXvaxXX,$(addsuffix XX,$(addprefix XX,${MAKECMDGOALS})))))
     VIDEO_USEFUL = true
   endif
   # building the besm6 needs both video support and fontfile support
@@ -1611,6 +1611,16 @@ VAX47_OPT = ${VAX440_OPT} -DVAX_47
 VAX48_OPT = ${VAX440_OPT} -DVAX_48
 
 
+VAX49 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
+	${VAXD}/vax_cis.c ${VAXD}/vax_octa.c ${VAXD}/vax_cmode.c \
+	${VAXD}/vax_mmu.c ${VAXD}/vax_sys.c ${VAXD}/vax_syscm.c \
+	${VAXD}/vax_watch.c ${VAXD}/vax_nar.c ${VAXD}/vax49_stddev.c \
+	${VAXD}/vax49_sysdev.c ${VAXD}/vax49_syslist.c ${VAXD}/vax4xx_dz.c \
+	${VAXD}/vax_lk.c ${VAXD}/vax_vs.c ${VAXD}/vax4xx_rz94.c \
+	${VAXD}/vax_sgec.c ${VAXD}/vax_lcspx.c ${VAXD}/vax_tca.c ${VAXD}/vax_pmaz.c
+VAX49_OPT = -DVM_VAX -DVAX_49 -DUSE_INT64 -DUSE_ADDR64 -DUSE_SIM_VIDEO -I ${VAXD} ${NETWORK_OPT} ${VIDEO_CCDEFS} ${VIDEO_LDFLAGS} ${AIO_CCDEFS}
+
+
 IS1000 = ${VAXD}/vax_cpu.c ${VAXD}/vax_cpu1.c ${VAXD}/vax_fpa.c \
 	${VAXD}/vax_cis.c ${VAXD}/vax_octa.c ${VAXD}/vax_cmode.c \
 	${VAXD}/vax_mmu.c ${VAXD}/vax_sys.c ${VAXD}/vax_syscm.c \
@@ -2247,7 +2257,7 @@ ALL = pdp1 pdp4 pdp7 pdp8 pdp9 pdp15 pdp11 pdp10 \
 	vax8200 vax8600 besm6 \
 	microvax2000 infoserver100 infoserver150vxt microvax3100 microvax3100e \
 	vaxstation3100m30 vaxstation3100m38 vaxstation3100m76 vaxstation4000m60 \
-	microvax3100m80 vaxstation4000vlc infoserver1000 \
+	microvax3100m80 vaxstation4000vlc vaxstation4000m90 infoserver1000 \
 	nd100 nova eclipse hp2100 hp3000 i1401 i1620 s3 altair altairz80 gri \
 	i7094 ibm1130 id16 id32 sds lgp h316 cdc1700 \
 	swtp6800mp-a swtp6800mp-a2 tx-0 ssem b5500 intel-mds \
@@ -2505,6 +2515,15 @@ vaxstation4000vlc : ${BIN}vaxstation4000vlc${EXE}
 ${BIN}vaxstation4000vlc${EXE} : ${VAX440} ${SCSI} ${SIM} ${BUILD_ROMS}
 	${MKDIRBIN}
 	${CC} ${VAX440} ${SCSI} ${SIM} ${VAX48_OPT} -o $@ ${LDFLAGS}
+ifneq (,$(call find_test,${VAXD},vax-diag))
+	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
+endif
+
+vaxstation4000m90 : ${BIN}vaxstation4000m90${EXE}
+
+${BIN}vaxstation4000m90${EXE} : ${VAX49} ${SCSI} ${SIM} ${BUILD_ROMS}
+	${MKDIRBIN}
+	${CC} ${VAX49} ${SCSI} ${SIM} ${VAX49_OPT} -o $@ ${LDFLAGS}
 ifneq (,$(call find_test,${VAXD},vax-diag))
 	$@ $(call find_test,${VAXD},vax-diag) ${TEST_ARG}
 endif
