@@ -218,8 +218,54 @@ UNIT rz_unit[] = {
     RZ_UNIT_LIST
     };
 
+/* The chip's state, and the SCSI bus's, as registers
+
+   SAVE writes, and RESTORE reads back, a device's registers and its units
+   and nothing else, so a chip whose state is not listed here comes back
+   from a RESTORE as it is after a power-up.  Its configuration register 1
+   is then zero and its own bus ID 0, and the driver, which wrote the
+   register once when it started and never again, selects every target as
+   initiator 0.  Target 0 is the chip itself, which does not answer
+   (rz_present), so the commands to DKA0 time out and VMS stays in mount
+   verification.  Hidden (EXAMINE RZ ALL stays as short as it was; each
+   register can still be named).  Not listed: the pointers in a CTLR, which
+   rz_reset sets up again, and the transfer buffers. */
+
+#define RZ_STATE_REGS(c) \
+    { HRDATAD (CFG1,    c.cfg1,      8, "configuration 1"), REG_HIDDEN }, \
+    { HRDATAD (CFG2,    c.cfg2,      8, "configuration 2"), REG_HIDDEN }, \
+    { HRDATAD (CFG3,    c.cfg3,      8, "configuration 3"), REG_HIDDEN }, \
+    { HRDATAD (LASTCMD, c.last_cmd, 32, "last command"), REG_HIDDEN }, \
+    { HRDATAD (TXI,     c.txi,      32, "transfer count as written"), REG_HIDDEN }, \
+    { HRDATAD (TXC,     c.txc,      32, "transfer counter"), REG_HIDDEN }, \
+    { HRDATAD (INTR,    c.intr,      8, "interrupt register"), REG_HIDDEN }, \
+    { HRDATAD (STAT,    c.stat,      8, "status register"), REG_HIDDEN }, \
+    { HRDATAD (SEQ,     c.seq,      32, "sequence step"), REG_HIDDEN }, \
+    { HRDATAD (DEST,    c.dest,     32, "destination bus ID"), REG_HIDDEN }, \
+    { BRDATAD (FIFO,    c.fifo,     16, 8, 16, "FIFO"), REG_HIDDEN }, \
+    { HRDATAD (FIFOT,   c.fifo_t,   32, "FIFO top"), REG_HIDDEN }, \
+    { HRDATAD (FIFOB,   c.fifo_b,   32, "FIFO bottom"), REG_HIDDEN }, \
+    { HRDATAD (FIFOC,   c.fifo_c,   32, "FIFO count"), REG_HIDDEN }, \
+    { HRDATAD (DMA,     c.dma,      32, "board DMA address"), REG_HIDDEN }, \
+    { HRDATAD (DIR,     c.dir,      32, "board DMA direction"), REG_HIDDEN }, \
+    { HRDATAD (BINIT,   c.bus.initiator, 32, "bus: initiator"), REG_HIDDEN }, \
+    { HRDATAD (BTARG,   c.bus.target,    32, "bus: target"), REG_HIDDEN }, \
+    { HRDATAD (BATN,    c.bus.atn,       32, "bus: ATN"), REG_HIDDEN }, \
+    { HRDATAD (BREQ,    c.bus.req,       32, "bus: REQ"), REG_HIDDEN }, \
+    { BRDATAD (BCMD,    c.bus.cmd,   16, 8, 10, "bus: command buffer"), REG_HIDDEN }, \
+    { HRDATAD (BBUFB,   c.bus.buf_b,     32, "bus: buffer bottom"), REG_HIDDEN }, \
+    { HRDATAD (BBUFT,   c.bus.buf_t,     32, "bus: buffer top"), REG_HIDDEN }, \
+    { HRDATAD (BPHASE,  c.bus.phase,     32, "bus: phase"), REG_HIDDEN }, \
+    { HRDATAD (BLUN,    c.bus.lun,       32, "bus: LUN"), REG_HIDDEN }, \
+    { HRDATAD (BSTATUS, c.bus.status,    32, "bus: status byte"), REG_HIDDEN }, \
+    { HRDATAD (BSKEY,   c.bus.sense_key,  32, "bus: sense key"), REG_HIDDEN }, \
+    { HRDATAD (BSCODE,  c.bus.sense_code, 32, "bus: sense code"), REG_HIDDEN }, \
+    { HRDATAD (BSQUAL,  c.bus.sense_qual, 32, "bus: sense qualifier"), REG_HIDDEN }, \
+    { HRDATAD (BSINFO,  c.bus.sense_info, 32, "bus: sense information"), REG_HIDDEN }
+
 REG rz_reg[] = {
     { FLDATAD (INT, int_req[IPL_SC], INT_V_SC, "interrupt pending flag") },
+    RZ_STATE_REGS (rz_ctx),
     { NULL }
     };
 
@@ -231,6 +277,7 @@ UNIT rzb_unit[] = {
     };
 
 REG rzb_reg[] = {
+    RZ_STATE_REGS (rzb_ctx),
     { NULL }
     };
 #endif
