@@ -157,6 +157,7 @@ typedef struct {
     uint32 dir;                                         /* board DMA direction (RZ_DMA_DIR) */
     uint8 *buf;                                         /* transfer buffer */
     SCSI_BUS bus;                                       /* SCSI bus state */
+    uint8 busbuf[RZ_MAXFR];                             /* the bus's data buffer (bus.buf): saved by SAVE */
     DEVICE *dev;                                        /* the controller's device */
     UNIT *units;                                        /* its units: targets, then the chip's events */
     } CTLR;
@@ -229,7 +230,10 @@ UNIT rz_unit[] = {
    (rz_present), so the commands to DKA0 time out and VMS stays in mount
    verification.  Hidden (EXAMINE RZ ALL stays as short as it was; each
    register can still be named).  Not listed: the pointers in a CTLR, which
-   rz_reset sets up again, and the transfer buffers. */
+   rz_reset sets up again, and rz->buf, which holds data only while one
+   command runs.  The bus's data buffer is listed: a read command is done
+   at selection, so the data waits in it until the driver's Transfer
+   Information command moves it, and a SAVE in between must keep it. */
 
 #define RZ_STATE_REGS(c) \
     { HRDATAD (CFG1,    c.cfg1,      8, "configuration 1"), REG_HIDDEN }, \
@@ -253,6 +257,7 @@ UNIT rz_unit[] = {
     { HRDATAD (BATN,    c.bus.atn,       32, "bus: ATN"), REG_HIDDEN }, \
     { HRDATAD (BREQ,    c.bus.req,       32, "bus: REQ"), REG_HIDDEN }, \
     { BRDATAD (BCMD,    c.bus.cmd,   16, 8, 10, "bus: command buffer"), REG_HIDDEN }, \
+    { BRDATAD (BBUF,    c.busbuf,    16, 8, RZ_MAXFR, "bus: data buffer"), REG_HIDDEN }, \
     { HRDATAD (BBUFB,   c.bus.buf_b,     32, "bus: buffer bottom"), REG_HIDDEN }, \
     { HRDATAD (BBUFT,   c.bus.buf_t,     32, "bus: buffer top"), REG_HIDDEN }, \
     { HRDATAD (BPHASE,  c.bus.phase,     32, "bus: phase"), REG_HIDDEN }, \
@@ -1105,6 +1110,7 @@ if (rz->buf == NULL)
     rz->buf = (uint8 *)calloc (RZ_MAXFR, sizeof(uint8));
 if (rz->buf == NULL)
     return SCPE_MEM;
+rz->bus.buf = rz->busbuf;                               /* a static buffer, so that a register can save it */
 r = scsi_init (&rz->bus, RZ_MAXFR);                     /* init SCSI bus */
 if (r != SCPE_OK)
     return r;
