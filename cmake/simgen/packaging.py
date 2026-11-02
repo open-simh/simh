@@ -242,6 +242,7 @@ package_info["vaxstation3100m38"] = SIMHPackaging(vax_family)
 package_info["vaxstation3100m76"] = SIMHPackaging(vax_family)
 package_info["vaxstation4000m60"] = SIMHPackaging(vax_family)
 package_info["vaxstation4000vlc"] = SIMHPackaging(vax_family)
+package_info["vaxstation4000m90"] = SIMHPackaging(vax_family)
 
 ## Experimental simulators:
 package_info["alpha"] = SIMHPackaging(experimental_family)
