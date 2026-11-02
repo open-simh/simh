@@ -181,6 +181,8 @@
 
 #define RZSIZE          0xC0                            /* RZ length */
 #define RZBASE          0x200C0000                      /* RZ base */
+#define RZ_DMA_ADDR     0x200C0000                      /* SCSI DMA address register */
+#define RZ_DMA_DIR      0x200C000C                      /* SCSI DMA direction register */
 
 /* LANCE Ethernet controller */
 
