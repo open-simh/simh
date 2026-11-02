@@ -33,6 +33,9 @@
     <ClCompile Include="..\linc\linc_pt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\linc\linc_sam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\linc\linc_sys.c">
       <Filter>Source Files</Filter>
     </ClCompile>

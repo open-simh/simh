@@ -124,6 +124,7 @@ t_stat sim_show_clock_queues (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, CO
 t_bool sim_idle (uint32 tmr, int sin_cyc);
 t_stat sim_set_throt (int32 arg, CONST char *cptr);
 t_stat sim_show_throt (FILE *st, DEVICE *dnotused, UNIT *unotused, int32 flag, CONST char *cptr);
+t_bool sim_throt_enab(void);
 t_stat sim_set_idle (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat sim_clr_idle (UNIT *uptr, int32 val, CONST char *cptr, void *desc);
 t_stat sim_show_idle (FILE *st, UNIT *uptr, int32 val, CONST void *desc);
