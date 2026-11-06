@@ -63,4 +63,5 @@ jobs:
       - name: makefile build
         env:
           SIM: ${{matrix.simulators}}
+          LONG_TESTS: yep
         run: make LTO=1 OPTIMIZE=-O3 $SIM
