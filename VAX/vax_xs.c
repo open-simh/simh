@@ -48,6 +48,7 @@ void xs_process_transmit (CTLR* xs);
 void xs_dump_rxring(CTLR* xs);
 void xs_dump_txring(CTLR* xs);
 t_stat xs_init (CTLR* xs);
+void xs_set_filter (CTLR* xs);
 void xs_updateint(CTLR* xs);
 void xs_setint (CTLR* xs);
 void xs_clrint (CTLR* xs);
@@ -87,13 +88,16 @@ REG xs_reg[] = {
     { GRDATA  ( SA3,    xs_var.mac[3],        16,  8, 0), REG_RO|REG_FIT },
     { GRDATA  ( SA4,    xs_var.mac[4],        16,  8, 0), REG_RO|REG_FIT },
     { GRDATA  ( SA5,    xs_var.mac[5],        16,  8, 0), REG_RO|REG_FIT },
-    { FLDATA  ( INT,    xs_var.irq, 0) },
+    { FLDATA  ( IRQ,    xs_var.irq, 0) },
     { SAVEDATA  ( SETUP,  xs_var.setup) },
     { GRDATA  ( CSR0,   xs_var.csr0,     DEV_RDX, 16, 0), REG_FIT },
     { GRDATA  ( CSR1,   xs_var.csr1,     DEV_RDX, 16, 0), REG_FIT },
     { GRDATA  ( CSR2,   xs_var.csr2,     DEV_RDX, 16, 0), REG_FIT },
     { GRDATA  ( CSR3,   xs_var.csr3,     DEV_RDX, 16, 0), REG_FIT },
     { GRDATA  ( MODE,   xs_var.mode,     DEV_RDX, 16, 0), REG_FIT },
+    { GRDATA  ( LADRF0, xs_var.setup.mult0, DEV_RDX, 32, 0), REG_FIT|REG_HIDDEN },
+    { GRDATA  ( LADRF1, xs_var.setup.mult1, DEV_RDX, 32, 0), REG_FIT|REG_HIDDEN },
+    { GRDATA  ( LADRFV, xs_var.ladrfv,   DEV_RDX,  8, 0), REG_FIT|REG_HIDDEN },
     { GRDATA  ( RPTR,   xs_var.rptr,     DEV_RDX, 16, 0), REG_FIT },
     { GRDATA  ( INBB,   xs_var.inbb,     DEV_RDX, 32, 0), REG_FIT },
     { GRDATA  ( TDRB,   xs_var.tdrb,     DEV_RDX, 32, 0), REG_FIT },
@@ -589,6 +593,7 @@ ethq_clear (&xs->var->ReadQ);
 
 /* clear setup info */
 memset (&xs->var->setup, 0, sizeof(struct xs_setup));
+xs->var->ladrfv = 0;
 
 xs->var->inbb = ((xs->var->csr2 & 0xFF) << 16) | (xs->var->csr1 & 0xFFFE);
 xs->var->inbb |= XS_ADRMBO;                             /* set system specific bits */
@@ -637,24 +642,52 @@ sim_debug (DBG_REG, &xs_dev, "xs_trlen = %04X\n", xs->var->trlen);
 
 xs->var->setup.mult0 = GETL (inb, 0x8);
 xs->var->setup.mult1 = GETL (inb, 0xC);
-
-xs->var->setup.promiscuous = (xs->var->mode & MODE_PROM) ? 1 : 0;
-xs->var->setup.multicast   = ((xs->var->setup.mult0 | xs->var->setup.mult1) > 0) ? 1 : 0;
+xs->var->ladrfv = 1;                                    /* LADRF is an init block's */
 
 xs->var->csr0 = xs->var->csr0 | CSR0_INIT;
 xs->var->csr0 = xs->var->csr0 & ~CSR0_STOP;
 
 /* reset ethernet interface */
-eth_copy_mac(xs->var->setup.macs[0], xs->var->mac);
-xs->var->setup.mac_count = 1;
-if (xs->var->etherface)
-    eth_filter (xs->var->etherface, xs->var->setup.mac_count,
-                &xs->var->mac, xs->var->setup.multicast,
-                xs->var->setup.promiscuous);
+xs_set_filter (xs);
 
 sim_activate (&xs_unit, 50);
 
 return SCPE_OK;
+}
+
+/* Program the host interface's receive filter from the chip's init-block
+   state: MODE, the physical address and LADRF<63:0> (init block bytes 8-15,
+   bit n in byte n/8).  Run when the chip is initialised, and when a RESTORE
+   has opened a new interface under a chip that holds an init block's
+   filter (LADRFV): the interface has no filter until it is given one, and a
+   running driver does not initialise the chip again.
+
+   A multicast destination is accepted when the bit its hash selects is set -
+   the high 6 bits of the Ethernet CRC of the address, the same hash as
+   sim_ether's AUTODIN II filter, bit for bit. Every bit set is all
+   multicast; none set, no multicast; broadcast is always accepted. The copy
+   given to sim_ether also has broadcast's own bit (47) set, because its
+   libpcap path consults the hash for broadcast too. */
+
+void xs_set_filter (CTLR* xs)
+{
+ETH_MULTIHASH ladrf;
+int i;
+
+xs->var->setup.promiscuous = (xs->var->mode & MODE_PROM) ? 1 : 0;
+xs->var->setup.multicast   = ((xs->var->setup.mult0 & xs->var->setup.mult1) == 0xFFFFFFFF) ? 1 : 0;
+for (i = 0; i < 4; i++) {
+    ladrf[i]     = (uint8) (xs->var->setup.mult0 >> (8 * i));
+    ladrf[i + 4] = (uint8) (xs->var->setup.mult1 >> (8 * i));
+    }
+ladrf[47 >> 3] |= (1 << (47 & 7));
+eth_copy_mac(xs->var->setup.macs[0], xs->var->mac);
+xs->var->setup.mac_count = 1;
+if (xs->var->etherface)
+    eth_filter_hash (xs->var->etherface, xs->var->setup.mac_count,
+                     &xs->var->mac, xs->var->setup.multicast,
+                     xs->var->setup.promiscuous,
+                     ((xs->var->setup.mult0 | xs->var->setup.mult1) && !xs->var->setup.multicast) ? &ladrf : NULL);
 }
 
 void xs_updateint(CTLR* xs)
@@ -711,6 +744,7 @@ xs->var->csr3 = 0;
 xs->var->rptr = 0;
 xs->var->mode = 0;
 xs->var->inbb = 0;
+xs->var->ladrfv = 0;
 CLR_INT (XS1);                                           /* clear int req */
 /* init read queue (first time only) */
 status = ethq_init (&xs->var->ReadQ, XS_QUE_MAX);
@@ -751,8 +785,26 @@ uptr->filename = tptr;
 uptr->flags |= UNIT_ATT;
 eth_setcrc(xs->var->etherface, 1); /* enable CRC */
 
-/* reset the device with the new attach info */
-xs_reset(xs->dev);
+/* reset the device with the new attach info, unless a RESTORE is re-attaching
+   the unit under the chip state it has just read back (SIM_SW_REST is set
+   only by RESTORE; no ATTACH command can carry it).  A chip that was running
+   is kept - a driver that finds it so does not initialise it again - and the
+   new interface is given the filter the chip's init block asked for.  That
+   filter is there when LADRFV says so, whatever CSR0 holds (a chip stopped
+   and started again with STRT alone still has it).  Where LADRFV is clear
+   (a file saved before the register existed) a chip that is running has no
+   filter to give: reset it, as before, and the driver initialises it again.
+   A chip that is not running and has no filter is kept as it is. */
+if ((sim_switches & SIM_SW_REST) &&
+    (xs->var->ladrfv || !(xs->var->csr0 & (CSR0_INIT | CSR0_STRT)))) {
+    t_stat rstatus = ethq_init (&xs->var->ReadQ, XS_QUE_MAX);
+
+    if (rstatus != SCPE_OK)
+        return rstatus;
+    if (xs->var->ladrfv)
+        xs_set_filter (xs);
+    }
+else xs_reset(xs->dev);
 
 return SCPE_OK;
 }

@@ -65,6 +65,7 @@ struct xs_device {
     uint16              rptr;                           /* register pointer */
     uint16              mode;                           /* mode register */
     uint32              inbb;                           /* initialisation block base */
+    uint8               ladrfv;                         /* LADRF holds an init block's filter */
 
     uint32              tdrb;                           /* transmit desc ring base */
     uint32              telen;                          /* transmit desc ring entry len */
