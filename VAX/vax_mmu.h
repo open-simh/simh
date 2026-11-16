@@ -62,6 +62,14 @@ extern DEVICE cpu_dev;
 extern int32 mapen;                                     /* map enable */
 
 extern int32 mchk_va, mchk_ref;                         /* for mcheck */
+
+/* Memory test of the CPU's own physical accesses.  A system with a model
+   of a cache between the CPU and memory (the KA46 secondary cache) sends
+   those accesses to the register space handlers while the model is on. */
+
+#ifndef ADDR_IS_MEM_CPU
+#define ADDR_IS_MEM_CPU(x)      ADDR_IS_MEM (x)
+#endif
 extern TLBENT stlb[VA_TBSIZE], ptlb[VA_TBSIZE];
 
 static const int32 insert[4] = {
@@ -276,7 +284,7 @@ static SIM_INLINE int32 ReadB (uint32 pa)
 {
 int32 dat;
 
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     dat = M[pa >> 2];
 else {
     mchk_ref = REF_V;
@@ -292,7 +300,7 @@ static SIM_INLINE int32 ReadW (uint32 pa)
 {
 int32 dat;
 
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     dat = M[pa >> 2];
 else {
     mchk_ref = REF_V;
@@ -306,7 +314,7 @@ return ((dat >> ((pa & 2)? 16: 0)) & WMASK);
 
 static SIM_INLINE int32 ReadL (uint32 pa)
 {
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     return M[pa >> 2];
 mchk_ref = REF_V;
 if (ADDR_IS_IO (pa))
@@ -316,7 +324,7 @@ return ReadReg (pa, L_LONG);
 
 static SIM_INLINE int32 ReadLP (uint32 pa)
 {
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     return M[pa >> 2];
 mchk_va = pa;
 mchk_ref = REF_P;
@@ -338,7 +346,7 @@ static SIM_INLINE int32 ReadU (uint32 pa, int32 lnt)
 {
 int32 dat;
 int32 sc = (pa & 3) << 3;
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     dat = M[pa >> 2];
 else {
     mchk_ref = REF_V;
@@ -361,7 +369,7 @@ return ((dat >> sc) & insert[lnt]);
 
 static SIM_INLINE void WriteB (uint32 pa, int32 val)
 {
-if (ADDR_IS_MEM (pa)) {
+if (ADDR_IS_MEM_CPU (pa)) {
     int32 id = pa >> 2;
     int32 sc = (pa & 3) << 3;
     int32 mask = 0xFF << sc;
@@ -379,7 +387,7 @@ return;
 
 static SIM_INLINE void WriteW (uint32 pa, int32 val)
 {
-if (ADDR_IS_MEM (pa)) {
+if (ADDR_IS_MEM_CPU (pa)) {
     int32 id = pa >> 2;
     M[id] = (pa & 2)? (M[id] & 0xFFFF) | (val << 16):
         (M[id] & ~0xFFFF) | val;
@@ -396,7 +404,7 @@ return;
 
 static SIM_INLINE void WriteL (uint32 pa, int32 val)
 {
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     M[pa >> 2] = val;
 else {
     mchk_ref = REF_V;
@@ -410,7 +418,7 @@ return;
 
 static SIM_INLINE void WriteLP (uint32 pa, int32 val)
 {
-if (ADDR_IS_MEM (pa))
+if (ADDR_IS_MEM_CPU (pa))
     M[pa >> 2] = val;
 else {
     mchk_va = pa;
@@ -435,7 +443,7 @@ return;
 
 static SIM_INLINE void WriteU (uint32 pa, int32 val, int32 lnt)
 {
-if (ADDR_IS_MEM (pa)) {
+if (ADDR_IS_MEM_CPU (pa)) {
     int32 bo = pa & 3;
     int32 sc = bo << 3;
     M[pa >> 2] = (M[pa >> 2] & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
