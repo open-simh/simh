@@ -9857,6 +9857,8 @@ if (!(flag & EX_E))
     return SCPE_OK;
 sim_eval[0] = val;
 GET_RADIX (rdx, rptr->radix);
+if (rdx == 0)                                           /* no radix (SAVEDATA)? */
+    rdx = 16;                                           /*   show the bytes in hex, as -H does */
 if ((rptr->flags & REG_VMAD) && sim_vm_fprint_addr)
     sim_vm_fprint_addr (ofile, sim_dflt_dev, (t_addr) val);
 else if (!(rptr->flags & REG_VMFLAGS) ||
