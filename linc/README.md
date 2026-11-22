@@ -11,6 +11,7 @@ This is an emulator for the classic LINC from 1965.
 - SAM - sampled analog inputs.
 - TAPE - four tape drives.
 - TTY - teletype.
+- MUS - speaker.
 
 ### LOAD
 
@@ -84,6 +85,10 @@ The remaining upper case symbols:
 - `CASE G` - `:`.
 - `CASE Space` - `?`.
 
+Two control panel functions are mapped to keys:
+- `F2` is mapped to `START 20`.
+- `F4` is mapped to `START 400`.
+
 ### Teletype
 
 The TTY device implmenents a teletype for printing output.  When a
@@ -99,6 +104,45 @@ Some characters are translated by LAP6 from the LINC character to ASCII:
 - `_` to `@`
 - `"` to `^`
 - `„` to `;`
+
+### Scopes
+
+The CRT device implements two scopes, or displays.  Normally a LINC
+would only have one scope, but some had two.  The display instructions
+can chose between two channels.  Both scopes can display either
+channel, or both.
+
+The CRT device has two units: CRT0 and CRT1.
+
+Options for the CRT units:
+- `ORANGE` - use an orange phosphor with long retention.
+- `GREEN` - use a green phosphor with short retention.
+- `CH0` - display channel 0.
+- `CH1` - display channel 1.
+- `BOTH` - display both channels.
+
+The defaults for CRT0 are `ORANGE` and `CH0`.  The CRT1 defaults are
+`DISABLED`, `GREEN`, and `CH1`.
+
+For scripted interactions, `SET DPY TEXT` to convert characters on the
+scope to ASCII text.
+
+### Music
+
+The MUS device samples a bit inside the machine state and plays it on
+a speaker.  The LINC audio switch can be placed in the positions Z25-Z
+(for S1), V2-V (unknown), and V4-H (for Z11).  Available music
+software uses Z11 for output.
+
+Type `ATTACH MUS <device>` to select some particular audio device, or
+else the default device will be used.  Type `SHOW MUS DEVICES` to see
+a list of available devices.
+
+Options for the MUS device:
+- `Z11` - sample Z bit 11 (the most significant bit); this is the default.
+- `S1` - sample S bit 1.
+- `A11` - sample A bit 11; this is for compatability with the LINC-8 and PDP-12.
+- `SCOPE` or `NOSCOPE` - display the sound.
 
 ### CPU
 

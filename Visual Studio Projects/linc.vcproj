@@ -214,6 +214,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\linc\linc_sam.c"
+				>
+			</File>
+			<File
 				RelativePath="..\linc\linc_sys.c"
 				>
 			</File>
@@ -223,6 +227,10 @@
 			</File>
 			<File
 				RelativePath="..\linc\linc_tty.c"
+				>
+			</File>
+			<File
+				RelativePath="..\linc\linc_mus.c"
 				>
 			</File>
 			<File

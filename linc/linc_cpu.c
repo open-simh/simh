@@ -30,6 +30,8 @@
 /* Debug */
 #define DBG_CPU   0001
 #define DBG_INT   0002
+#define DBG_DIS   0004
+#define DBG_DSC   0010
 
 #define INSN_ENI  00010
 #define INSN_NOP  00016
@@ -60,6 +62,7 @@ static int ENI = 0;
 static int PINFF;
 static int DO = 0;
 
+static int32 cycles;
 static t_stat stop_reason;
 
 typedef struct {
@@ -118,6 +121,8 @@ static MTAB cpu_mod[] = {
 static DEBTAB cpu_deb[] = {
   { "CPU", DBG_CPU },
   { "INTERRUPT", DBG_INT },
+  { "DIS", DBG_DIS },
+  { "DSC", DBG_DSC },
   { NULL, 0 }
 };
 
@@ -145,7 +150,7 @@ static void cpu_ndxp(int flag)
     P = X(P + 1);
 }
 
-static void cpu_ndxc()
+static void cpu_ndxc(void)
 {
   C = (C & ~BMASK) | ((C + 1) & BMASK);
 }
@@ -173,6 +178,8 @@ static void cpu_4ndxa()
 static void cpu_mem_read(void)
 {
   cpu_set_B(M[S & AMASK]);
+  mus_sample(A, S, Z, 1);
+  cycles--;
   sim_interval--;
   if (sim_brk_summ && sim_brk_test(S & AMASK, SWMASK('R')))
     stop_reason = STOP_RBKPT;
@@ -260,6 +267,7 @@ cpu_misc(void)
 {
   switch (C) {
   case 00000: //HLT
+    mus_chime();
     stop_reason = STOP_HALT;
     break;
   case 00002: //PDP
@@ -323,7 +331,7 @@ static void cpu_dis(void)
   cpu_set_S(C03);
   cpu_mem_read();
   cpu_index();
-  sim_debug(DBG_CPU, &cpu_dev, "DIS α=%02o B=%04o A=%04o\n", S, B, A);
+  sim_debug(DBG_DIS, &cpu_dev, "DIS α=%02o B=%04o A=%04o\n", S, B, A);
   dpy_dis(B >> 11, B & DMASK, A & DMASK);
 }
 
@@ -364,6 +372,11 @@ static void cpu_ror(void)
       A &= WMASK;
     }
     cpu_ndxc();
+    if ((C & 3) == 0) {
+      mus_sample(A, S, Z, 1);
+      cycles--;
+      sim_interval--;
+    }
   }
 }
 
@@ -376,6 +389,11 @@ static void cpu_scr(void)
       L = A & 1;
     A = (A & 04000) | (A >> 1);
     cpu_ndxc();
+    if ((C & 3) == 0) {
+      mus_sample(A, S, Z, 1);
+      cycles--;
+      sim_interval--;
+    }
   }
 }
 
@@ -511,7 +529,6 @@ static void cpu_lam(void)
 
 static void cpu_mul(void)
 {
-  uint32 factor, product;
   cpu_mem_read();
 
   C &= ~BMASK;
@@ -522,21 +539,20 @@ static void cpu_mul(void)
     B ^= WMASK;
   Z = B;
   cpu_set_B(A);
-  factor = B;
-  product = A = 0;
-  while (C03 < 12) {
-    if (Z & 1)
-      product += factor;
-    Z >>= 1;
-    factor <<= 1;
+  A = 0;
+  for (;;) {
     cpu_ndxc();
+    if (Z & 1)
+      A += B;
+    if (C03 == 12)
+      break;
+    Z = ((A << 11) | (Z >> 1)) & WMASK;
+    A >>= 1;
   }
-  if (S & HMASK)
-    A = product >> 11;
-  else
-    A = product & 03777;
+  if ((S & HMASK) == 0)
+    A = Z >> 1;
   if (L)
-    A ^= 07777;
+    A ^= WMASK;
 }
 
 static void cpu_ldh(void)
@@ -604,7 +620,8 @@ static void cpu_dsc(void)
 
   cpu_set_S(1);
   cpu_mem_read();
-  sim_debug(DBG_CPU, &crt_dev, "DSC B=%04o A=%04o\n", B, A);
+  dpy_dsc(B, A & 07740, Z);
+  sim_debug(DBG_DSC, &cpu_dev, "DSC B=%04o A=%04o\n", B, A);
 
   C &= ~BMASK;
   while (C03 < 12) {
@@ -617,6 +634,9 @@ static void cpu_dsc(void)
     Z >>= 1;
     cpu_4ndxa();
     cpu_ndxc();
+    mus_sample(A, S, Z, 1);
+    cycles--;
+    sim_interval--;
   }
   cpu_mem_write();
 }
@@ -649,6 +669,9 @@ static void cpu_jmp(void)
 static void
 cpu_insn(void)
 {
+  if (history)
+    history[history_i].P = P;
+
   /* Cycle 0, or I. */
   cpu_fetch();
   if (!DO)
@@ -659,7 +682,6 @@ cpu_insn(void)
     cpu_indexing();
 
   if (history) {
-    history[history_i].P = P;
     history[history_i].C = C;
     history[history_i].S = S;
   }
@@ -789,6 +811,10 @@ t_stat cpu_do(void)
 {
   t_stat stat;
 
+  /* Ensure the SIMH console is in a state appropriate for
+     sim_poll_kbd.  Without this, the call will hang. */
+  sim_ttrun();
+
   DO = 1;
   C = LSW;
   cpu_set_B(RSW);
@@ -891,6 +917,7 @@ t_stat sim_instr(void)
   if (sim_step)
     sim_step++;
 
+  crt_svc_stat = SCPE_OK;
   stop_reason = 0;
   paused = 0;
   PINFF = 0;
@@ -913,10 +940,15 @@ t_stat sim_instr(void)
         return SCPE_STEP;
     }
 
+    cycles = sim_interval;
+
     if (paused)
       sim_interval--;
     else
       cpu_insn();
+
+    for (cycles -= sim_interval; cycles > 0; cycles -= 16)
+      mus_sample(A, S, Z, cycles > 16 ? 16 : cycles);
 
     cpu_interrupt();
 

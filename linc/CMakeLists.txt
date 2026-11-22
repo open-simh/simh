@@ -20,9 +20,11 @@ add_simulator(linc
         linc_crt.c
         linc_dpy.c
         linc_kbd.c
+        linc_sam.c
         linc_sys.c
         linc_tape.c
         linc_tty.c
+        linc_mus.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
     FEATURE_DISPLAY
