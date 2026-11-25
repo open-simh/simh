@@ -233,7 +233,14 @@ void nvram_write(uint32 pa, uint32 val, size_t size)
  * tenth step incrementing the time-of-day counter.
  */
 
+#if defined(REV3)
 #define TOD_12H(TD)       (((TD)->clkset & 1) == 0)
+#else
+/* The Rev 2 MM58174 has no 12-hour mode and no clock-set register:
+ * clkset stays 0, which must not mean 12-hour mode here, or the
+ * hour wraps from 12 to 1 and the date changes at noon. */
+#define TOD_12H(TD)       (FALSE)
+#endif
 #define TOD_BCDH(V)       (((V) / 10) & 0xf)
 #define TOD_BCDL(V)       (((V) % 10) & 0xf)
 #define TOD_LYEAR(TD)     ((TD)->lyear == 0)
