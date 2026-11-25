@@ -76,6 +76,13 @@ static uint8    id_dpw = 0;
 static uint8    id_status = 0;
 /* Unit Interrupt Status */
 static uint8    id_int_status = 0;
+/* Seek/Recal end status, latched per unit until a Sense Interrupt
+ * Status reads it (as the uPD7261 does). Without this, a seek end on
+ * one unit overwrites a pending seek end on the other, the driver
+ * never sees it, and it waits for its timeout (about 20 seconds). */
+static uint8    id_seek_end[ID_NUM_UNITS] = {0};
+static uint32   id_seek_seq[ID_NUM_UNITS] = {0};   /* 0 = none pending */
+static uint32   id_seek_cnt = 0;
 /* Last command received */
 static uint8    id_cmd = 0;
 /* 8-byte FIFO */
@@ -222,12 +229,32 @@ t_stat id_ctlr_svc(UNIT *uptr)
     uptr->u4 = 0;
 
     switch (cmd) {
-    case ID_CMD_SIS:
+    case ID_CMD_SIS: {
+        int u, pick = -1;
+        for (u = 0; u < ID_NUM_UNITS; u++) {
+            if (id_seek_seq[u] &&
+                (pick < 0 || id_seek_seq[u] < id_seek_seq[pick])) {
+                pick = u;
+            }
+        }
+        if (pick >= 0) {
+            id_data[0] = id_seek_end[pick];
+            id_seek_seq[pick] = 0;
+            /* Another unit still has a seek end to report */
+            for (u = 0; u < ID_NUM_UNITS; u++) {
+                if (id_seek_seq[u] && POLLING(u)) {
+                    id_set_status(ID_STAT_SRQ);
+                }
+            }
+        } else {
+            id_data[0] = id_int_status;
+        }
         sim_debug(EXECUTE_MSG, &id_dev,
-                  "INTR\t\tCOMPLETING Sense Interrupt Status.\n");
-        id_data[0] = id_int_status;
+                  "INTR\t\tCOMPLETING Sense Interrupt Status (%02x).\n",
+                  id_data[0]);
         id_int_status = 0;
         break;
+    }
     default:
         sim_debug(EXECUTE_MSG, &id_dev,
                   "INTR\t\tCOMPLETING OTHER COMMAND 0x%x (CONTROLLER)\n",
@@ -290,6 +317,8 @@ t_stat id_unit_svc(UNIT *uptr)
         }
 
         id_data[0] = id_int_status;
+        id_seek_end[unit] = id_int_status;
+        id_seek_seq[unit] = ++id_seek_cnt;
         break;
     case ID_CMD_SUS:
         sim_debug(EXECUTE_MSG, &id_dev,
@@ -373,6 +402,7 @@ t_stat id_show_type (FILE *st, UNIT *uptr, int32 val, CONST void *desc)
 t_stat id_reset(DEVICE *dptr)
 {
     id_clear_fifo();
+    memset(id_seek_seq, 0, sizeof(id_seek_seq));
     return SCPE_OK;
 }
 
@@ -699,6 +729,7 @@ void id_handle_command(uint8 val)
             sim_cancel(id_sel_unit);
             sim_cancel(id_ctlr_unit);
             id_status = 0;
+            memset(id_seek_seq, 0, sizeof(id_seek_seq));
             id_set_srqm(FALSE);
         }
 
