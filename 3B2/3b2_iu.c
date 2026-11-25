@@ -617,15 +617,28 @@ t_stat iu_svc_contty(UNIT *uptr)
         UPDATE_IRQ;
     }
 
-    /* Check for RX */
-    if ((iu_contty.conf & RX_EN) && contty_ldsc[0].conn) {
+    /* Check for RX. Fill the receive FIFO as far as it has room, but
+     * never past it: one byte per poll is too slow for the DMD 5620's
+     * xt packets, and an overrun loses bytes. What does not fit stays
+     * in the TMXR buffer for the next poll. */
+    while ((iu_contty.conf & RX_EN) && contty_ldsc[0].conn &&
+           !(iu_contty.sr & STS_FFL) && !iu_contty.rxr_full) {
         c = tmxr_getc_ln(&contty_ldsc[0]);
-        if (c && !(c & SCPE_BREAK)) {
+        if (c == 0) {
+            break;
+        }
+        if (!(c & SCPE_BREAK)) {
             iu_rx(&iu_contty, (uint8) c);
         }
     }
 
-    tmxr_clock_coschedule(uptr, tmxr_poll);
+    /* Bytes still waiting: come back soon (500 usec, about half a
+     * character time at 9600 baud) rather than at the next clock poll. */
+    if (contty_ldsc[0].conn && tmxr_rqln(&contty_ldsc[0]) > 0) {
+        sim_activate_after(uptr, 500);
+    } else {
+        tmxr_clock_coschedule(uptr, tmxr_poll);
+    }
 
     return SCPE_OK;
 }
